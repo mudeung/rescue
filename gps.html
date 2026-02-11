@@ -140,19 +140,20 @@ function sendSMSAndCall() {
   const kakaoMapURL =
     `https://map.kakao.com/link/map/${lat},${lng}`;
 
-  // Google Sheet 저장
-  fetch(GOOGLE_SHEET_API, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      lat,
-      lng,
-      kakaoMapURL,
-      condition: "-"
-    })
-  }).catch(err => console.error("시트 저장 실패:", err));
+// Google Sheet 저장
+fetch(GOOGLE_SHEET_API, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    lat,
+    lng,
+    kakaoMapURL,
+    condition: "-"
+  })
+}).catch(err => console.error("시트 저장 실패:", err));
+
 
   const smsText =
 `🚨 [산악구조요청]
