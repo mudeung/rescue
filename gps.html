@@ -140,9 +140,9 @@ function sendSMSAndCall() {
   const kakaoMapURL =
     `https://map.kakao.com/link/map/${lat},${lng}`;
 
-// Google Sheet 저장
 fetch(GOOGLE_SHEET_API, {
   method: "POST",
+  mode: "no-cors",   // ✅ 이 줄 추가
   headers: {
     "Content-Type": "application/json"
   },
@@ -152,7 +152,7 @@ fetch(GOOGLE_SHEET_API, {
     kakaoMapURL,
     condition: "-"
   })
-}).catch(err => console.error("시트 저장 실패:", err));
+});
 
 
   const smsText =
