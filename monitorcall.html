@@ -50,10 +50,12 @@ button {
   padding:12px;
   margin-bottom:10px;
   border-radius:6px;
+  transition:0.3s;
 }
 
-.done {
-  opacity:0.5;
+.card.done {
+  background:#2b2b2b;
+  opacity:0.6;
 }
 
 .time { color:#ffcc00; font-size:14px; }
@@ -74,9 +76,8 @@ button {
   <div class="form-box">
     <h3>📌 구조 요청 등록</h3>
 
-    <textarea id="condition" placeholder="증상 입력 (예: 발목 골절 의심)"></textarea>
+    <textarea id="condition" placeholder="증상 입력"></textarea>
     <input type="text" id="phone" placeholder="연락처 입력">
-
     <input type="number" step="any" id="lat" placeholder="위도 직접 입력 (선택)">
     <input type="number" step="any" id="lng" placeholder="경도 직접 입력 (선택)">
 
@@ -89,58 +90,34 @@ button {
 
 <script>
 
-const API_URL = "https://script.google.com/macros/s/AKfycbybwt7-vC5W8NUmve94LLsdlIRFHoiw3wcIrWk9GZFRHnmZJ_0TEsihhz7oX8al_BYR_A/exec";
+const API_URL = "여기에_당신의_웹앱_URL";
 
 let map;
 let marker;
 
-/********************************
- * 지도 초기화
- ********************************/
+/**************** 지도 초기화 ****************/
 function initMap() {
   const container = document.getElementById("map");
   const options = {
     center: new kakao.maps.LatLng(35.1345, 126.9902),
     level: 5
   };
-
   map = new kakao.maps.Map(container, options);
 
   marker = new kakao.maps.Marker({
     position: map.getCenter()
   });
-
   marker.setMap(map);
 }
 
-/********************************
- * 지도 이동
- ********************************/
 function moveMap(lat, lng) {
   const moveLatLng = new kakao.maps.LatLng(lat, lng);
   map.setCenter(moveLatLng);
   marker.setPosition(moveLatLng);
 }
 
-/********************************
- * 좌표 입력 시 실시간 이동
- ********************************/
-function handleCoordInput() {
-  const lat = parseFloat(document.getElementById("lat").value);
-  const lng = parseFloat(document.getElementById("lng").value);
-
-  if (!isNaN(lat) && !isNaN(lng)) {
-    moveMap(lat, lng);
-  }
-}
-
-document.getElementById("lat").addEventListener("input", handleCoordInput);
-document.getElementById("lng").addEventListener("input", handleCoordInput);
-
-/********************************
- * 구조 요청 등록
- ********************************/
-function submitData() {
+/**************** 등록 ****************/
+async function submitData() {
 
   const condition = document.getElementById("condition").value;
   const phone = document.getElementById("phone").value;
@@ -148,112 +125,89 @@ function submitData() {
   let lng = document.getElementById("lng").value;
 
   if (!condition) {
-    alert("증상을 입력하세요.");
+    alert("증상 입력 필수");
     return;
   }
 
-  if (lat && lng) {
-    sendData(parseFloat(lat), parseFloat(lng), condition, phone);
+  if (!lat || !lng) {
+    if (!navigator.geolocation) {
+      alert("위치 정보 사용 불가");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(position => {
+      sendData(position.coords.latitude,
+               position.coords.longitude,
+               condition,
+               phone);
+    });
     return;
   }
 
-  if (!navigator.geolocation) {
-    alert("위치 정보를 사용할 수 없습니다.");
-    return;
-  }
-
-  navigator.geolocation.getCurrentPosition(position => {
-    sendData(
-      position.coords.latitude,
-      position.coords.longitude,
-      condition,
-      phone
-    );
-  }, () => {
-    alert("위치 정보를 가져올 수 없습니다.");
-  });
+  sendData(parseFloat(lat), parseFloat(lng), condition, phone);
 }
 
-/********************************
- * 전송 처리
- ********************************/
 async function sendData(lat, lng, condition, phone) {
 
-  const kakaoMapURL = `https://map.kakao.com/link/map/구조위치,${lat},${lng}?map_type=TYPE_MAP&zoom=3`;
-
-  const payload = { kakaoMapURL, lat, lng, condition, phone };
+  const kakaoMapURL =
+  `https://map.kakao.com/link/map/구조위치,${lat},${lng}`;
 
   try {
-
     const res = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({ kakaoMapURL, lat, lng, condition, phone })
     });
 
     const result = await res.json();
 
     if (result.result === "success") {
-
-      alert("구조 요청이 등록되었습니다.");
-
+      alert("등록 완료");
       moveMap(lat, lng);
-
       document.getElementById("condition").value = "";
       document.getElementById("phone").value = "";
       document.getElementById("lat").value = "";
       document.getElementById("lng").value = "";
-
       loadData();
-
     } else {
-      alert("전송 실패: " + result.message);
+      alert("등록 실패");
     }
 
-  } catch (err) {
-    alert("전송 실패 (네트워크 문제)");
+  } catch {
+    alert("네트워크 오류");
   }
 }
 
-/********************************
- * 조치완료 처리
- ********************************/
+/**************** 조치완료 ****************/
 async function markComplete(id) {
 
   if (!confirm("조치완료 처리하시겠습니까?")) return;
 
   try {
-
-    const res = await fetch(
-      API_URL + "?action=complete&id=" + id
-    );
-
+    const res = await fetch(API_URL + "?action=complete&id=" + id);
     const result = await res.json();
 
     if (result.result === "success") {
       loadData();
     } else {
-      alert("처리 실패");
+      alert("처리 실패: " + result.message);
     }
 
-  } catch (err) {
+  } catch {
     alert("네트워크 오류");
   }
 }
 
-/********************************
- * 목록 불러오기
- ********************************/
+/**************** 목록 ****************/
 async function loadData() {
-  try {
 
+  try {
     const res = await fetch(API_URL);
     const data = await res.json();
-
     const area = document.getElementById("listArea");
 
     if (!data.length) {
-      area.innerHTML = "현재 접수된 신고가 없습니다.";
+      area.innerHTML = "현재 접수된 신고 없음";
       return;
     }
 
@@ -264,21 +218,33 @@ async function loadData() {
       const div = document.createElement("div");
       div.className = "card";
 
-      const isDone = item.status === "조치완료";
-      if (isDone) div.classList.add("done");
+      if (item.status === "조치완료") {
+        div.classList.add("done");
+      }
 
       div.innerHTML = `
-        <div class="time">🕒 ${new Date(item.time).toLocaleString()}</div>
-        <div class="coord" onclick="moveMap(${item.lat}, ${item.lng})">
-          📍 위도: ${item.lat} / 경도: ${item.lng}
+        <div class="time">
+        🕒 ${new Date(item.time).toLocaleString()}
         </div>
-        🩺 증상: ${item.condition || "미입력"}<br>
-        📞 <span class="phone">${item.phone || "번호없음"}</span><br>
-        🗺 <a class="maplink" href="${item.mapURL}" target="_blank">지도보기</a>
+
+        <div class="coord"
+          onclick="moveMap(${item.lat}, ${item.lng})">
+          📍 ${item.lat}, ${item.lng}
+        </div>
+
+        🩺 ${item.condition || "미입력"}<br>
+        📞 ${item.phone || "번호없음"}<br>
+        🗺 <a class="maplink"
+          href="${item.mapURL}" target="_blank">지도보기</a>
         <br><br>
-        <button onclick="markComplete('${item.id}')"
-          style="background:${isDone ? '#444' : '#2e7d32'}">
-          ${isDone ? '조치완료됨' : '조치완료'}
+
+        <button
+          onclick="markComplete('${item.id}')"
+          style="background:
+          ${item.status === '조치완료' ? '#444' : '#2e7d32'}">
+          ${item.status === '조치완료'
+            ? '조치완료됨'
+            : '조치완료'}
         </button>
       `;
 
@@ -295,6 +261,5 @@ loadData();
 setInterval(loadData, 10000);
 
 </script>
-
 </body>
 </html>
