@@ -116,6 +116,28 @@ function moveMap(lat, lng) {
   marker.setPosition(moveLatLng);
 }
 
+/**************** 지도 이동 ****************/
+
+function moveMap(lat, lng) {
+  const moveLatLng = new kakao.maps.LatLng(lat, lng);
+  map.setCenter(moveLatLng);
+  marker.setPosition(moveLatLng);
+}
+
+/***************좌표 입력 시 실시간 이동*****************/
+function handleCoordInput() {
+  const lat = parseFloat(document.getElementById("lat").value);
+  const lng = parseFloat(document.getElementById("lng").value);
+
+  if (!isNaN(lat) && !isNaN(lng)) {
+    moveMap(lat, lng);
+  }
+}
+
+document.getElementById("lat").addEventListener("input", handleCoordInput);
+document.getElementById("lng").addEventListener("input", handleCoordInput);  
+
+  
 /**************** 등록 ****************/
 async function submitData() {
 
