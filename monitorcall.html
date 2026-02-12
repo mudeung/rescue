@@ -5,6 +5,9 @@
 <title>🚨 무등산 실시간 위치구조 신고공유</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<!-- ✅ 카카오 지도 SDK -->
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
+
 <style>
 body { margin:0; font-family:Arial; background:#111; color:#fff; }
 header { background:#b71c1c; padding:15px; text-align:center; font-size:20px; }
@@ -35,6 +38,13 @@ button {
   font-size:16px;
 }
 
+#map {
+  width:100%;
+  height:300px;
+  margin-bottom:15px;
+  border-radius:6px;
+}
+
 .card {
   background:#1e1e1e;
   padding:12px;
@@ -45,7 +55,7 @@ button {
 .time { color:#ffcc00; font-size:14px; }
 .phone { color:#4fc3f7; }
 .maplink { color:#81c784; text-decoration:none; }
-.coord { color:#90caf9; }
+.coord { color:#90caf9; cursor:pointer; }
 </style>
 </head>
 
@@ -55,6 +65,9 @@ button {
 
 <div class="container">
 
+  <!-- 🗺 지도 미리보기 -->
+  <div id="map"></div>
+
   <!-- 🔴 입력 영역 -->
   <div class="form-box">
     <h3>📌 구조 요청 등록</h3>
@@ -62,7 +75,6 @@ button {
     <textarea id="condition" placeholder="증상 입력 (예: 발목 골절 의심)"></textarea>
     <input type="text" id="phone" placeholder="연락처 입력">
 
-    <!-- 좌표 직접 입력 -->
     <input type="number" step="any" id="lat" placeholder="위도 직접 입력 (선택)">
     <input type="number" step="any" id="lng" placeholder="경도 직접 입력 (선택)">
 
@@ -77,6 +89,37 @@ button {
 <script>
 
 const API_URL = "https://script.google.com/macros/s/AKfycbybwt7-vC5W8NUmve94LLsdlIRFHoiw3wcIrWk9GZFRHnmZJ_0TEsihhz7oX8al_BYR_A/exec";
+
+let map;
+let marker;
+
+/********************************
+ * 지도 초기화
+ ********************************/
+function initMap() {
+  const container = document.getElementById("map");
+  const options = {
+    center: new kakao.maps.LatLng(35.1345, 126.9902),
+    level: 5
+  };
+
+  map = new kakao.maps.Map(container, options);
+
+  marker = new kakao.maps.Marker({
+    position: map.getCenter()
+  });
+
+  marker.setMap(map);
+}
+
+/********************************
+ * 지도 이동 함수
+ ********************************/
+function moveMap(lat, lng) {
+  const moveLatLng = new kakao.maps.LatLng(lat, lng);
+  map.setCenter(moveLatLng);
+  marker.setPosition(moveLatLng);
+}
 
 /********************************
  * 구조 요청 등록
@@ -93,13 +136,11 @@ function submitData() {
     return;
   }
 
-  // ✅ 좌표 직접 입력한 경우
   if (lat && lng) {
     sendData(parseFloat(lat), parseFloat(lng), condition, phone);
     return;
   }
 
-  // ✅ 직접 입력 없으면 GPS 사용
   if (!navigator.geolocation) {
     alert("위치 정보를 사용할 수 없습니다.");
     return;
@@ -118,7 +159,7 @@ function submitData() {
 }
 
 /********************************
- * 실제 전송 처리
+ * 전송 처리
  ********************************/
 async function sendData(lat, lng, condition, phone) {
 
@@ -145,7 +186,10 @@ async function sendData(lat, lng, condition, phone) {
     const result = await res.json();
 
     if (result.result === "success") {
+
       alert("구조 요청이 등록되었습니다.");
+
+      moveMap(lat, lng);  // ✅ 지도 이동
 
       document.getElementById("condition").value = "";
       document.getElementById("phone").value = "";
@@ -189,8 +233,9 @@ async function loadData() {
 
       div.innerHTML = `
         <div class="time">🕒 ${new Date(item.time).toLocaleString()}</div>
-        <div class="coord">📍 위도: ${item.lat}</div>
-        <div class="coord">📍 경도: ${item.lng}</div>
+        <div class="coord" onclick="moveMap(${item.lat}, ${item.lng})">
+          📍 위도: ${item.lat} / 경도: ${item.lng}
+        </div>
         🩺 증상: ${item.condition || "미입력"}<br>
         📞 <span class="phone">${item.phone || "번호없음"}</span><br>
         🗺 <a class="maplink" href="${item.mapURL}" target="_blank">지도보기</a>
@@ -199,12 +244,12 @@ async function loadData() {
       area.appendChild(div);
     });
 
-} catch (err) {
-  console.error(err);
-  alert("전송 실패: " + err.message);
-}
+  } catch (err) {
+    console.error(err);
+  }
 }
 
+initMap();
 loadData();
 setInterval(loadData, 10000);
 
