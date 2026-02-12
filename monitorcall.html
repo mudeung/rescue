@@ -189,10 +189,10 @@ async function loadData() {
       area.appendChild(div);
     });
 
-  } catch (err) {
-    document.getElementById("listArea").innerHTML =
-      "데이터 불러오기 실패";
-  }
+} catch (err) {
+  console.error(err);
+  alert("전송 실패: " + err.message);
+}
 }
 
 loadData();
