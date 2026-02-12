@@ -122,6 +122,22 @@ function moveMap(lat, lng) {
 }
 
 /********************************
+ * 위도·경도 입력 시 실시간 이동
+ ********************************/
+function handleCoordInput() {
+  const lat = parseFloat(document.getElementById("lat").value);
+  const lng = parseFloat(document.getElementById("lng").value);
+
+  if (!isNaN(lat) && !isNaN(lng)) {
+    moveMap(lat, lng);
+  }
+}
+
+// 입력할 때마다 실행
+document.getElementById("lat").addEventListener("input", handleCoordInput);
+document.getElementById("lng").addEventListener("input", handleCoordInput);
+  
+/********************************
  * 구조 요청 등록
  ********************************/
 function submitData() {
