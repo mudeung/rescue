@@ -5,7 +5,7 @@
 <title>🚨 무등산 실시간 위치구조 신고공유</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- ✅ 카카오 지도 SDK (여기에 본인 JavaScript 키 입력) -->
+<!-- ✅ 카카오 지도 SDK -->
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
 
 <style>
@@ -88,7 +88,7 @@ button {
 
 <script>
 
-const API_URL = "여기에_본인_AppsScript_URL";
+const API_URL = "https://script.google.com/macros/s/AKfycbybwt7-vC5W8NUmve94LLsdlIRFHoiw3wcIrWk9GZFRHnmZJ_0TEsihhz7oX8al_BYR_A/exec";
 
 let map;
 let marker;
@@ -113,7 +113,7 @@ function initMap() {
 }
 
 /********************************
- * 좌표로 지도 이동
+ * 지도 이동 함수
  ********************************/
 function moveMap(lat, lng) {
   const moveLatLng = new kakao.maps.LatLng(lat, lng);
@@ -122,7 +122,7 @@ function moveMap(lat, lng) {
 }
 
 /********************************
- * 구조 요청 등록 버튼
+ * 구조 요청 등록
  ********************************/
 function submitData() {
 
@@ -159,11 +159,11 @@ function submitData() {
 }
 
 /********************************
- * 실제 전송
+ * 전송 처리
  ********************************/
 async function sendData(lat, lng, condition, phone) {
 
-  const kakaoMapURL = `https://map.kakao.com/link/map/구조위치,${lat},${lng}`;
+  const kakaoMapURL = `https://map.kakao.com/link/map/구조위치,${lat},${lng}?map_type=TYPE_MAP&zoom=3`;
 
   const payload = {
     kakaoMapURL,
@@ -189,7 +189,7 @@ async function sendData(lat, lng, condition, phone) {
 
       alert("구조 요청이 등록되었습니다.");
 
-      moveMap(lat, lng);
+      moveMap(lat, lng);  // ✅ 지도 이동
 
       document.getElementById("condition").value = "";
       document.getElementById("phone").value = "";
@@ -212,11 +212,11 @@ async function sendData(lat, lng, condition, phone) {
  * 목록 불러오기
  ********************************/
 async function loadData() {
-
   try {
 
     const res = await fetch(API_URL);
     const data = await res.json();
+
     const area = document.getElementById("listArea");
 
     if (!data.length) {
