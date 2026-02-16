@@ -8,27 +8,17 @@
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
 
 <style>
-body {
-  margin:0;
-  font-family:Arial;
-  background:#111;
-  color:#fff;
-}
-header {
-  background:#b71c1c;
-  padding:15px;
-  text-align:center;
-  font-size:20px;
-}
-.container {
-  padding:15px;
-}
+body { margin:0; font-family:Arial; background:#111; color:#fff; }
+header { background:#b71c1c; padding:15px; text-align:center; font-size:20px; }
+.container { padding:15px; }
+
 .form-box {
   background:#222;
   padding:12px;
   margin-bottom:15px;
   border-radius:6px;
 }
+
 input, textarea {
   width:100%;
   padding:8px;
@@ -36,6 +26,7 @@ input, textarea {
   border-radius:4px;
   border:none;
 }
+
 button {
   width:100%;
   padding:10px;
@@ -46,33 +37,29 @@ button {
   font-size:16px;
   cursor:pointer;
 }
+
 #map {
   width:100%;
   height:300px;
   margin-bottom:15px;
   border-radius:6px;
 }
+
 .card {
   background:#1e1e1e;
   padding:12px;
   margin-bottom:10px;
   border-radius:6px;
 }
+
 .card.done {
   background:#2b2b2b;
   opacity:0.6;
 }
-.time {
-  color:#ffcc00;
-  font-size:14px;
-}
-.complete-btn {
-  background:#2e7d32;
-}
-.status {
-  margin-top:10px;
-  font-weight:bold;
-}
+
+.time { color:#ffcc00; font-size:14px; }
+.complete-btn { background:#2e7d32; }
+.status { margin-top:10px; font-weight:bold; }
 </style>
 </head>
 
@@ -121,6 +108,7 @@ function initMap() {
 /**************** 지도 이동 ****************/
 function moveMap(lat, lng) {
   const moveLatLng = new kakao.maps.LatLng(lat, lng);
+  map.setLevel(3);
   map.setCenter(moveLatLng);
   marker.setPosition(moveLatLng);
 }
@@ -259,25 +247,25 @@ async function loadData() {
 
       if (item.status === "조치완료") {
         div.classList.add("done");
+        div.style.cursor = "default";
+      } else {
+        div.style.cursor = "pointer";
       }
 
       div.innerHTML = `
         <div class="time">
           🕒 접수시간: ${new Date(item.time).toLocaleString()}
         </div>
-
         🏠 신고주소: ${item.address || "주소없음"}<br>
         📍 위도: ${item.lat || "-"}<br>
         📍 경도: ${item.lng || "-"}<br>
         📞 ${item.phone || "번호없음"}<br>
         📝 증상: ${item.symptom || "내용없음"}<br>
-
         ${item.completedTime ? `
           <div class="time" style="color:#4caf50; margin-top:6px;">
             ✅ 처리완료시간: ${new Date(item.completedTime).toLocaleString()}
           </div>
         ` : ""}
-
         <div class="status">
           ${
             item.status === "조치완료"
@@ -289,6 +277,20 @@ async function loadData() {
           }
         </div>
       `;
+
+      // 🔥 접수중 건만 클릭 시 지도 이동
+      div.addEventListener("click", function(e) {
+
+        if (e.target.tagName === "BUTTON") return;
+        if (item.status === "조치완료") return;
+
+        if (item.lat && item.lng) {
+          moveMap(parseFloat(item.lat), parseFloat(item.lng));
+        } else {
+          alert("좌표 정보 없음");
+        }
+
+      });
 
       area.appendChild(div);
     });
@@ -305,3 +307,4 @@ setInterval(loadData, 10000);
 
 </body>
 </html>
+
