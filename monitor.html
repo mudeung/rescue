@@ -26,47 +26,46 @@ header{background:#b71c1c;padding:15px;text-align:center;font-size:20px;}
 <script>
 const API_URL="https://script.google.com/macros/s/AKfycbybwt7-vC5W8NUmve94LLsdlIRFHoiw3wcIrWk9GZFRHnmZJ_0TEsihhz7oX8al_BYR_A/exec";
 
+/******** 목록 ********/
 async function loadData(){
-  try{
-    const res=await fetch(API_URL);
-    const data=await res.json();
-    const area=document.getElementById("listArea");
-    area.innerHTML="";
+  const res=await fetch(API_URL);
+  const data=await res.json();
+  listArea.innerHTML="";
 
-    if(!data.length){
-      area.innerHTML="현재 접수된 신고가 없습니다.";
-      return;
-    }
+  data.sort((a,b)=>new Date(b.time)-new Date(a.time));
 
-    data.sort((a,b)=>new Date(b.time)-new Date(a.time));
+  data.forEach(item=>{
+    const div=document.createElement("div");
+    div.className="card"+(item.status==="조치완료"?" done":"");
 
-    data.forEach(item=>{
-
-      const div=document.createElement("div");
-      div.className="card";
-
-      if(item.status==="조치완료"){
-        div.classList.add("done");
+    div.innerHTML=`
+      <div class="time">🕒 접수: ${new Date(item.time).toLocaleString()}</div>
+      ${item.status==="조치완료"
+        ? `<div class="time">✅ 완료: ${new Date(item.completeTime).toLocaleString()}</div>`
+        : ""
       }
-
-      div.innerHTML=`
-        <div class="time">🕒 ${new Date(item.time).toLocaleString()}</div>
-        🏠 ${item.address||"주소없음"}<br>
-        📞 ${item.phone||"번호없음"}<br>
-        📝 ${item.symptom||"내용없음"}<br>
-        ${item.status==="조치완료" ? "✅ 조치완료" : "🚑 진행중"}
-      `;
-
-      area.appendChild(div);
-    });
-
-  }catch(err){
-    document.getElementById("listArea").innerHTML="데이터 불러오기 실패";
-  }
+      🏠 ${item.address||"주소없음"}<br>
+      📞 ${item.phone||"번호없음"}<br>
+      📝 ${item.symptom||"내용없음"}<br>
+      <div class="coord">위도: ${item.lat} / 경도: ${item.lng}</div>
+      <a class="maplink" href="${item.kakaoMapURL}" target="_blank">지도보기</a><br>
+      ${
+        item.status==="조치완료"
+        ? "✅ 조치완료"
+        : `<button class="complete-btn" onclick="completeCase('${item.id}')">조치완료 처리</button>`
+      }
+    `;
+    listArea.appendChild(div);
+  });
 }
 
+const conditionEl=condition, phoneEl=phone, addressEl=address, latEl=lat, lngEl=lng;
+const listArea=document.getElementById("listArea");
+
+initMap();
 loadData();
 setInterval(loadData,10000);
+
 </script>
 
 </body>
