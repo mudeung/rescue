@@ -58,8 +58,7 @@ button {
 }
 
 .time { color:#ffcc00; font-size:14px; }
-.coord { color:#90caf9; cursor:pointer; }
-.maplink { color:#81c784; text-decoration:none; }
+.status { margin-top:8px; font-weight:bold; }
 </style>
 </head>
 
@@ -76,10 +75,7 @@ button {
 
     <textarea id="condition" placeholder="증상 입력"></textarea>
     <input type="text" id="phone" placeholder="연락처 입력">
-
-    <!-- 주소 입력 (선택사항) -->
     <input type="text" id="address" placeholder="신고 주소 입력 (선택)">
-
     <input type="number" step="any" id="lat" placeholder="위도 직접 입력 (선택)">
     <input type="number" step="any" id="lng" placeholder="경도 직접 입력 (선택)">
 
@@ -126,10 +122,8 @@ function moveMap(lat, lng) {
   marker.setPosition(moveLatLng);
 }
 
-/**************** 주소 입력 즉시 지도 이동 ****************/
-
+/**************** 주소 → 좌표 자동변환 ****************/
 const addressInput = document.getElementById("address");
-
 let debounceTimer;
 
 addressInput.addEventListener("input", function() {
@@ -152,12 +146,10 @@ addressInput.addEventListener("input", function() {
 
         document.getElementById("lat").value = lat;
         document.getElementById("lng").value = lng;
-
       }
-
     });
 
-  }, 600); // 입력 멈춘 후 0.6초 뒤 실행
+  }, 600);
 });
 
 /**************** 등록 ****************/
@@ -165,6 +157,7 @@ async function submitData() {
 
   const condition = document.getElementById("condition").value;
   const phone = document.getElementById("phone").value;
+  const address = document.getElementById("address").value;
   let lat = document.getElementById("lat").value;
   let lng = document.getElementById("lng").value;
 
@@ -173,20 +166,19 @@ async function submitData() {
     return;
   }
 
-  // 좌표 직접 입력 또는 주소 변환된 좌표 사용
   if (lat && lng) {
-    sendData(parseFloat(lat), parseFloat(lng), condition, phone);
+    sendData(parseFloat(lat), parseFloat(lng), condition, phone, address);
     return;
   }
 
-  // GPS 자동
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(position => {
       sendData(
         position.coords.latitude,
         position.coords.longitude,
         condition,
-        phone
+        phone,
+        address
       );
     });
   } else {
@@ -194,7 +186,7 @@ async function submitData() {
   }
 }
 
-async function sendData(lat, lng, condition, phone) {
+async function sendData(lat, lng, condition, phone, address) {
 
   const kakaoMapURL =
   `https://map.kakao.com/link/map/구조위치,${lat},${lng}`;
@@ -204,7 +196,14 @@ async function sendData(lat, lng, condition, phone) {
     const res = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ kakaoMapURL, lat, lng, condition, phone })
+      body: JSON.stringify({
+        kakaoMapURL,
+        lat,
+        lng,
+        address,
+        symptom: condition,
+        phone
+      })
     });
 
     const result = await res.json();
@@ -222,9 +221,6 @@ async function sendData(lat, lng, condition, phone) {
       document.getElementById("lng").value = "";
 
       loadData();
-
-    } else {
-      alert("등록 실패");
     }
 
   } catch {
@@ -232,10 +228,34 @@ async function sendData(lat, lng, condition, phone) {
   }
 }
 
+/**************** 조치완료 ****************/
+async function completeCase(id) {
+
+  if (!confirm("조치완료 처리하시겠습니까?")) return;
+
+  try {
+
+    const res = await fetch(
+      API_URL + "?action=complete&id=" + id
+    );
+
+    const result = await res.json();
+
+    if (result.result === "success") {
+      alert("조치완료 처리되었습니다.");
+      loadData();
+    }
+
+  } catch {
+    alert("상태 변경 실패");
+  }
+}
+
 /**************** 목록 ****************/
 async function loadData() {
 
   try {
+
     const res = await fetch(API_URL);
     const data = await res.json();
     const area = document.getElementById("listArea");
@@ -261,31 +281,19 @@ async function loadData() {
           🕒 ${new Date(item.time).toLocaleString()}
         </div>
 
-        <div class="address">
-          🏠 신고주소: ${item.address || "주소없음"}
-        </div>
-
-        📍 위도: ${item.lat || "-"} <br>
-        📍 경도: ${item.lng || "-"} <br>
-
-        📞 <span class="phone">
-          ${item.phone || "번호없음"}
-        </span><br>
-
-        <div class="symptom">
-          📝 증상: ${item.symptom || "내용없음"}
-        </div>
-
-        🗺 <a class="maplink"
-          href="${item.mapURL || '#'}" target="_blank">
-          지도보기
-        </a>
+        🏠 신고주소: ${item.address || "주소없음"}<br>
+        📍 위도: ${item.lat || "-"}<br>
+        📍 경도: ${item.lng || "-"}<br>
+        📞 ${item.phone || "번호없음"}<br>
+        📝 증상: ${item.symptom || "내용없음"}<br>
 
         <div class="status">
           ${
             item.status === "조치완료"
               ? "✅ 조치완료"
-              : "🟡 처리중"
+              : `<button onclick="completeCase('${item.id}')">
+                   조치완료
+                 </button>`
           }
         </div>
       `;
@@ -293,12 +301,13 @@ async function loadData() {
       area.appendChild(div);
     });
 
-  } catch (err) {
+  } catch {
     document.getElementById("listArea").innerHTML =
       "데이터 불러오기 실패";
   }
 }
 
+initMap();
 loadData();
 setInterval(loadData, 10000);
 
