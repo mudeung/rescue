@@ -18,8 +18,17 @@ button{padding:8px 12px;background:#e53935;color:#fff;border:none;border-radius:
 .card.done{opacity:0.6;background:#2b2b2b;}
 .time{color:#ffcc00;font-size:14px;}
 .coord{font-size:12px;color:#aaa;}
-.maplink{color:#4fc3f7;font-size:12px;}
-.complete-btn{background:#2e7d32;margin-top:6px;color:#fff;border:none;padding:6px 10px;border-radius:4px;cursor:pointer;}
+.maplink{color:#4fc3f7;font-size:12px;text-decoration:none;}
+.maplink:hover{text-decoration:underline;}
+.complete-btn{
+  background:#2e7d32;
+  margin-top:6px;
+  color:#fff;
+  border:none;
+  padding:6px 10px;
+  border-radius:4px;
+  cursor:pointer;
+}
 .complete-btn:hover{opacity:0.8;}
 </style>
 </head>
@@ -137,6 +146,7 @@ async function loadData(){
 
   data.forEach(item=>{
     const div=document.createElement("div");
+    // 완료건이면 done 클래스 적용
     div.className="card"+(item.status==="조치완료"?" done":"");
 
     div.innerHTML=`
@@ -153,7 +163,7 @@ async function loadData(){
       <a class="maplink" href="https://map.kakao.com/link/map/구조위치,${item.lat},${item.lng}" target="_blank">📍 지도보기</a><br>
       ${
         item.status==="조치완료"
-        ? "✅ 조치완료"
+        ? "" // 완료건이면 버튼 제거
         : `<button class="complete-btn" onclick="completeCase('${item.id}')">조치완료 처리</button>`
       }
     `;
@@ -164,7 +174,6 @@ async function loadData(){
 initMap();
 loadData();
 setInterval(loadData,10000);
-
 </script>
 
 </body>
