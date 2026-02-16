@@ -127,43 +127,58 @@ async function completeCase(id){
   loadData();
 }
 
-/******** 목록 ********/
+/******** 목록 불러오기 ********/
 async function loadData(){
+
   const res=await fetch(API_URL);
   const data=await res.json();
   listArea.innerHTML="";
 
+  if(!data.length){
+    listArea.innerHTML="현재 접수된 신고가 없습니다.";
+    return;
+  }
+
+  // 최신순 정렬
   data.sort((a,b)=>new Date(b.time)-new Date(a.time));
 
   data.forEach(item=>{
+
     const div=document.createElement("div");
     div.className="card"+(item.status==="조치완료"?" done":"");
 
     div.innerHTML=`
       <div class="time">🕒 접수: ${new Date(item.time).toLocaleString()}</div>
-      ${item.status==="조치완료"
+
+      ${
+        item.status==="조치완료" && item.completeTime
         ? `<div class="time">✅ 완료: ${new Date(item.completeTime).toLocaleString()}</div>`
         : ""
       }
+
       🏠 ${item.address||"주소없음"}<br>
       📞 ${item.phone||"번호없음"}<br>
       📝 ${item.symptom||"내용없음"}<br>
       <div class="coord">위도: ${item.lat} / 경도: ${item.lng}</div>
-      <a class="maplink" href="${item.kakaoMapURL}" target="_blank">지도보기</a><br>
+
+      <!-- ✅ 지도보기 직접 생성 -->
+      <a class="maplink"
+         href="https://map.kakao.com/link/map/구조위치,${item.lat},${item.lng}"
+         target="_blank">
+         📍 지도보기
+      </a><br>
+
       ${
         item.status==="조치완료"
         ? "✅ 조치완료"
         : `<button class="complete-btn" onclick="completeCase('${item.id}')">조치완료 처리</button>`
       }
     `;
+
     listArea.appendChild(div);
   });
 }
 
-const conditionEl=condition, phoneEl=phone, addressEl=address, latEl=lat, lngEl=lng;
-const listArea=document.getElementById("listArea");
-
-initMap();
 loadData();
 setInterval(loadData,10000);
 
