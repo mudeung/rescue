@@ -141,23 +141,6 @@ async function completeCase(id){
   loadData();
 }
 
-/******** 전체 마커 ********/
-function showAllMarkers(data){
-  allMarkers.forEach(m=>m.setMap(null));
-  allMarkers=[];
-
-  data.forEach(item=>{
-    if(!item.lat || !item.lng) return;
-    if(filterActive && item.status==="조치완료") return;
-
-    const marker=new kakao.maps.Marker({
-      position:new kakao.maps.LatLng(item.lat,item.lng)
-    });
-
-    marker.setMap(map);
-    allMarkers.push(marker);
-  });
-}
 
 /******** 진행중 마커 ********/
 function showActiveMarker(lat,lng){
