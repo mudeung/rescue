@@ -39,25 +39,16 @@ const API_URL="https://script.google.com/macros/s/AKfycbybwt7-vC5W8NUmve94LLsdlI
 const listArea=document.getElementById("listArea");
 
 /******** 조치완료 처리 ********/
-async function completeCase(id) {
+async function completeCase(id){
   if(!confirm("조치완료 처리하시겠습니까?")) return;
-
   try{
     await fetch(API_URL,{
       method:"POST",
       headers:{ "Content-Type":"text/plain;charset=utf-8" },
-      body:JSON.stringify({
-        action:"complete",
-        id:id,
-        completeTime: new Date().toISOString()
-      })
+      body:JSON.stringify({ action:"complete", id:id, completeTime: new Date().toISOString() })
     });
-
     loadData();
-  }catch(err){
-    alert("처리 실패");
-    console.error(err);
-  }
+  }catch(err){ alert("처리 실패"); console.error(err); }
 }
 
 /******** 목록 불러오기 ********/
@@ -65,11 +56,7 @@ async function loadData(){
   const res=await fetch(API_URL);
   const data=await res.json();
   listArea.innerHTML="";
-
-  if(!data.length){
-    listArea.innerHTML="현재 접수된 신고가 없습니다.";
-    return;
-  }
+  if(!data.length){ listArea.innerHTML="현재 접수된 신고가 없습니다."; return; }
 
   data.sort((a,b)=>new Date(b.time)-new Date(a.time));
 
@@ -99,8 +86,10 @@ async function loadData(){
   });
 }
 
+initMap();
 loadData();
 setInterval(loadData,10000);
+
 </script>
 
 </body>
