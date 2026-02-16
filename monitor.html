@@ -32,7 +32,7 @@ header {
   transition:0.3s;
 }
 
-/* ✅ 완료된 건 스타일 */
+/* 완료된 건 */
 .card.done {
   background:#2b2b2b;
   opacity:0.6;
@@ -55,6 +55,12 @@ header {
 .status {
   margin-top:8px;
   font-weight:bold;
+}
+
+.symptom {
+  margin-top:6px;
+  color:#ff8a65;
+  white-space:pre-line;   /* 줄바꿈 자동 처리 */
 }
 </style>
 </head>
@@ -90,7 +96,7 @@ async function loadData() {
       const div = document.createElement("div");
       div.className = "card";
 
-      /* ✅ 완료 상태 반영 */
+      /* 완료 상태 반영 */
       if (item.status === "조치완료") {
         div.classList.add("done");
       }
@@ -100,15 +106,19 @@ async function loadData() {
           🕒 ${new Date(item.time).toLocaleString()}
         </div>
 
-        📍 위도: ${item.lat} <br>
-        📍 경도: ${item.lng} <br>
+        📍 위도: ${item.lat || "-"} <br>
+        📍 경도: ${item.lng || "-"} <br>
 
         📞 <span class="phone">
           ${item.phone || "번호없음"}
         </span><br>
 
+        <div class="symptom">
+          📝 증상: ${item.symptom || "내용없음"}
+        </div>
+
         🗺 <a class="maplink"
-          href="${item.mapURL}" target="_blank">
+          href="${item.mapURL || '#'}" target="_blank">
           지도보기
         </a>
 
@@ -132,7 +142,7 @@ async function loadData() {
 
 loadData();
 
-/* 🔁 10초마다 자동 새로고침 */
+/* 10초마다 자동 새로고침 */
 setInterval(loadData, 10000);
 
 </script>
