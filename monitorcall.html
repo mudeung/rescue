@@ -21,12 +21,18 @@ button{padding:8px 12px;background:#e53935;color:#fff;border:none;border-radius:
 .complete-btn{background:#2e7d32;margin-top:6px;}
 .filter-box{margin-bottom:10px;}
 .time{color:#ffcc00;font-size:14px;}
+.coord{font-size:12px;color:#aaa;}
+.maplink{color:#4fc3f7;font-size:12px;}
 </style>
 </head>
 
 <body>
 
 <header>🚨 무등산 특수구조팀 실시간 위치구조 신고공유</header>
+
+<div class="container">
+
+<div id="map"></div>
 
 <div class="filter-box">
   <button onclick="toggleFilter()">🔎 접수중만 보기</button>
@@ -77,7 +83,7 @@ function openKakaoNavigation(lat,lng){
   window.open(`https://map.kakao.com/link/to/구조위치,${lat},${lng}`,"_blank");
 }
 
-/******** 주소 → 좌표 ********/
+/******** 주소 → 좌표 자동변환 ********/
 document.getElementById("address").addEventListener("input",function(){
   const address=this.value.trim();
   if(!address) return;
@@ -139,7 +145,7 @@ async function completeCase(id){
   loadData();
 }
 
-/******** 마커 표시 ********/
+/******** 전체 마커 ********/
 function showAllMarkers(data){
   allMarkers.forEach(m=>m.setMap(null));
   allMarkers=[];
@@ -151,12 +157,15 @@ function showAllMarkers(data){
     const marker=new kakao.maps.Marker({
       position:new kakao.maps.LatLng(item.lat,item.lng)
     });
+
     marker.setMap(map);
     allMarkers.push(marker);
   });
 }
 
+/******** 진행중 마커 ********/
 function showActiveMarker(lat,lng){
+
   activeLat=lat;
   activeLng=lng;
 
@@ -179,11 +188,13 @@ function showActiveMarker(lat,lng){
 
   infoWindow=new kakao.maps.InfoWindow({
     content:`<div style="padding:8px;color:red;font-weight:bold;">
-    🚨 진행중 구조위치<br>👉 클릭하면 길찾기
+      🚨 진행중 구조위치<br>
+      👉 클릭하면 길찾기
     </div>`
   });
 
   infoWindow.open(map,activeMarker);
+
   map.setLevel(3);
   map.setCenter(new kakao.maps.LatLng(lat,lng));
 }
@@ -194,12 +205,18 @@ function toggleFilter(){
   loadData();
 }
 
-/******** 목록 ********/
+/******** 목록 로드 ********/
 async function loadData(){
+
   const res=await fetch(API_URL);
   let data=await res.json();
   const area=document.getElementById("listArea");
   area.innerHTML="";
+
+  if(!data.length){
+    area.innerHTML="현재 접수된 신고가 없습니다.";
+    return;
+  }
 
   data.sort((a,b)=>{
     if(a.status==="조치완료" && b.status!=="조치완료") return 1;
@@ -210,6 +227,7 @@ async function loadData(){
   showAllMarkers(data);
 
   data.forEach(item=>{
+
     if(filterActive && item.status==="조치완료") return;
 
     const div=document.createElement("div");
@@ -221,13 +239,12 @@ async function loadData(){
       🏠 ${item.address||"주소없음"}<br>
       📞 ${item.phone||"번호없음"}<br>
       📝 ${item.symptom||"내용없음"}<br>
+      <div class="coord">위도: ${item.lat} / 경도: ${item.lng}</div>
+      <a class="maplink" href="${item.kakaoMapURL}" target="_blank">지도보기</a><br>
       ${
         item.status==="조치완료"
         ? "✅ 조치완료"
-        : `<button class="complete-btn"
-             onclick="completeCase('${item.id}')">
-             조치완료
-           </button>`
+        : `<button class="complete-btn" onclick="completeCase('${item.id}')">조치완료</button>`
       }
     `;
 
