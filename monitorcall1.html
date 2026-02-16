@@ -50,6 +50,7 @@ button {
   padding:12px;
   margin-bottom:10px;
   border-radius:6px;
+  transition:0.3s;
 }
 
 .card.done {
@@ -58,8 +59,9 @@ button {
 }
 
 .time { color:#ffcc00; font-size:14px; }
-.coord { color:#90caf9; cursor:pointer; }
+.phone { color:#4fc3f7; }
 .maplink { color:#81c784; text-decoration:none; }
+.coord { color:#90caf9; cursor:pointer; }
 </style>
 </head>
 
@@ -76,10 +78,6 @@ button {
 
     <textarea id="condition" placeholder="증상 입력"></textarea>
     <input type="text" id="phone" placeholder="연락처 입력">
-
-    <!-- 주소 입력 (선택사항) -->
-    <input type="text" id="address" placeholder="주소 입력 (선택사항)">
-
     <input type="number" step="any" id="lat" placeholder="위도 직접 입력 (선택)">
     <input type="number" step="any" id="lng" placeholder="경도 직접 입력 (선택)">
 
@@ -96,70 +94,50 @@ const API_URL = "https://script.google.com/macros/s/AKfycbybwt7-vC5W8NUmve94LLsd
 
 let map;
 let marker;
-let geocoder;
 
 /**************** 지도 초기화 ****************/
 function initMap() {
-
   const container = document.getElementById("map");
-
   const options = {
     center: new kakao.maps.LatLng(35.1345, 126.9902),
     level: 5
   };
-
   map = new kakao.maps.Map(container, options);
 
   marker = new kakao.maps.Marker({
     position: map.getCenter()
   });
-
   marker.setMap(map);
-
-  geocoder = new kakao.maps.services.Geocoder();
 }
 
-/**************** 지도 이동 ****************/
 function moveMap(lat, lng) {
   const moveLatLng = new kakao.maps.LatLng(lat, lng);
   map.setCenter(moveLatLng);
   marker.setPosition(moveLatLng);
 }
 
-/**************** 주소 입력 즉시 지도 이동 ****************/
+/**************** 지도 이동 ****************/
 
-const addressInput = document.getElementById("address");
+function moveMap(lat, lng) {
+  const moveLatLng = new kakao.maps.LatLng(lat, lng);
+  map.setCenter(moveLatLng);
+  marker.setPosition(moveLatLng);
+}
 
-let debounceTimer;
+/***************좌표 입력 시 실시간 이동*****************/
+function handleCoordInput() {
+  const lat = parseFloat(document.getElementById("lat").value);
+  const lng = parseFloat(document.getElementById("lng").value);
 
-addressInput.addEventListener("input", function() {
+  if (!isNaN(lat) && !isNaN(lng)) {
+    moveMap(lat, lng);
+  }
+}
 
-  clearTimeout(debounceTimer);
+document.getElementById("lat").addEventListener("input", handleCoordInput);
+document.getElementById("lng").addEventListener("input", handleCoordInput);  
 
-  debounceTimer = setTimeout(() => {
-
-    const address = addressInput.value.trim();
-    if (!address) return;
-
-    geocoder.addressSearch(address, function(result, status) {
-
-      if (status === kakao.maps.services.Status.OK) {
-
-        const lat = parseFloat(result[0].y);
-        const lng = parseFloat(result[0].x);
-
-        moveMap(lat, lng);
-
-        document.getElementById("lat").value = lat;
-        document.getElementById("lng").value = lng;
-
-      }
-
-    });
-
-  }, 600); // 입력 멈춘 후 0.6초 뒤 실행
-});
-
+  
 /**************** 등록 ****************/
 async function submitData() {
 
@@ -173,25 +151,22 @@ async function submitData() {
     return;
   }
 
-  // 좌표 직접 입력 또는 주소 변환된 좌표 사용
-  if (lat && lng) {
-    sendData(parseFloat(lat), parseFloat(lng), condition, phone);
+  if (!lat || !lng) {
+    if (!navigator.geolocation) {
+      alert("위치 정보 사용 불가");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(position => {
+      sendData(position.coords.latitude,
+               position.coords.longitude,
+               condition,
+               phone);
+    });
     return;
   }
 
-  // GPS 자동
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(position => {
-      sendData(
-        position.coords.latitude,
-        position.coords.longitude,
-        condition,
-        phone
-      );
-    });
-  } else {
-    alert("위치 정보 사용 불가");
-  }
+  sendData(parseFloat(lat), parseFloat(lng), condition, phone);
 }
 
 async function sendData(lat, lng, condition, phone) {
@@ -200,7 +175,6 @@ async function sendData(lat, lng, condition, phone) {
   `https://map.kakao.com/link/map/구조위치,${lat},${lng}`;
 
   try {
-
     const res = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -210,21 +184,35 @@ async function sendData(lat, lng, condition, phone) {
     const result = await res.json();
 
     if (result.result === "success") {
-
       alert("등록 완료");
-
       moveMap(lat, lng);
-
       document.getElementById("condition").value = "";
       document.getElementById("phone").value = "";
-      document.getElementById("address").value = "";
       document.getElementById("lat").value = "";
       document.getElementById("lng").value = "";
-
       loadData();
-
     } else {
       alert("등록 실패");
+    }
+
+  } catch {
+    alert("네트워크 오류");
+  }
+}
+
+/**************** 조치완료 ****************/
+async function markComplete(id) {
+
+  if (!confirm("조치완료 처리하시겠습니까?")) return;
+
+  try {
+    const res = await fetch(API_URL + "?action=complete&id=" + id);
+    const result = await res.json();
+
+    if (result.result === "success") {
+      loadData();
+    } else {
+      alert("처리 실패: " + result.message);
     }
 
   } catch {
@@ -235,44 +223,59 @@ async function sendData(lat, lng, condition, phone) {
 /**************** 목록 ****************/
 async function loadData() {
 
-  const res = await fetch(API_URL);
-  const data = await res.json();
-  const area = document.getElementById("listArea");
+  try {
+    const res = await fetch(API_URL);
+    const data = await res.json();
+    const area = document.getElementById("listArea");
 
-  if (!data.length) {
-    area.innerHTML = "현재 접수된 신고 없음";
-    return;
-  }
-
-  area.innerHTML = "";
-
-  data.reverse().forEach(item => {
-
-    const div = document.createElement("div");
-    div.className = "card";
-
-    if (item.status === "조치완료") {
-      div.classList.add("done");
+    if (!data.length) {
+      area.innerHTML = "현재 접수된 신고 없음";
+      return;
     }
 
-    div.innerHTML = `
-      <div class="time">
+    area.innerHTML = "";
+
+    data.reverse().forEach(item => {
+
+      const div = document.createElement("div");
+      div.className = "card";
+
+      if (item.status === "조치완료") {
+        div.classList.add("done");
+      }
+
+      div.innerHTML = `
+        <div class="time">
         🕒 ${new Date(item.time).toLocaleString()}
-      </div>
+        </div>
 
-      <div class="coord"
-        onclick="moveMap(${item.lat}, ${item.lng})">
-        📍 ${item.lat}, ${item.lng}
-      </div>
+        <div class="coord"
+          onclick="moveMap(${item.lat}, ${item.lng})">
+          📍 ${item.lat}, ${item.lng}
+        </div>
 
-      🩺 ${item.condition || "미입력"}<br>
-      📞 ${item.phone || "번호없음"}<br>
-      🗺 <a class="maplink"
-        href="${item.mapURL}" target="_blank">지도보기</a>
-    `;
+        🩺 ${item.condition || "미입력"}<br>
+        📞 ${item.phone || "번호없음"}<br>
+        🗺 <a class="maplink"
+          href="${item.mapURL}" target="_blank">지도보기</a>
+        <br><br>
 
-    area.appendChild(div);
-  });
+        <button
+          onclick="markComplete('${item.id}')"
+          style="background:
+          ${item.status === '조치완료' ? '#444' : '#2e7d32'}">
+          ${item.status === '조치완료'
+            ? '조치완료됨'
+            : '조치완료'}
+        </button>
+      `;
+
+      area.appendChild(div);
+    });
+
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 initMap();
@@ -282,4 +285,3 @@ setInterval(loadData, 10000);
 </script>
 </body>
 </html>
-
