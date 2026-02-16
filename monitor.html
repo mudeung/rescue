@@ -67,9 +67,30 @@ async function completeCase(id) {
   }
 }
 
+async/******** 조치완료 처리 ********/
+async function completeCase(id){
+  if(!confirm("조치완료 처리하시겠습니까?")) return;
+
+  try{
+    await fetch(API_URL,{
+      method:"POST",
+      headers:{ "Content-Type":"text/plain;charset=utf-8" },
+      body:JSON.stringify({
+        action:"complete",
+        id:id,
+        completeTime: new Date().toISOString()
+      })
+    });
+
+    loadData();
+  }catch(err){
+    alert("처리 실패");
+    console.error(err);
+  }
+}
+
 /******** 목록 불러오기 ********/
 async function loadData(){
-
   const res=await fetch(API_URL);
   const data=await res.json();
   listArea.innerHTML="";
@@ -79,48 +100,39 @@ async function loadData(){
     return;
   }
 
-  // 최신순 정렬
   data.sort((a,b)=>new Date(b.time)-new Date(a.time));
 
   data.forEach(item=>{
-
     const div=document.createElement("div");
     div.className="card"+(item.status==="조치완료"?" done":"");
 
     div.innerHTML=`
       <div class="time">🕒 접수: ${new Date(item.time).toLocaleString()}</div>
-
       ${
-        item.status==="조치완료" && item.completeTime
-        ? `<div class="time">✅ 완료: ${new Date(item.completeTime).toLocaleString()}</div>`
+        item.status==="조치완료"
+        ? `<div class="time">✅ 완료: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : "시간기록없음"}</div>`
         : ""
       }
-
       🏠 ${item.address||"주소없음"}<br>
       📞 ${item.phone||"번호없음"}<br>
       📝 ${item.symptom||"내용없음"}<br>
       <div class="coord">위도: ${item.lat} / 경도: ${item.lng}</div>
-
-      <!-- ✅ 지도보기 직접 생성 -->
-      <a class="maplink"
-         href="https://map.kakao.com/link/map/구조위치,${item.lat},${item.lng}"
-         target="_blank">
-         📍 지도보기
-      </a><br>
-
+      <a class="maplink" href="https://map.kakao.com/link/map/구조위치,${item.lat},${item.lng}" target="_blank">📍 지도보기</a><br>
       ${
         item.status==="조치완료"
         ? "✅ 조치완료"
         : `<button class="complete-btn" onclick="completeCase('${item.id}')">조치완료 처리</button>`
       }
     `;
-
     listArea.appendChild(div);
   });
 }
 
+initMap();
 loadData();
 setInterval(loadData,10000);
+
+</script>
 
 </script>
 
