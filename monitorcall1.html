@@ -8,27 +8,17 @@
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
 
 <style>
-body {
-  margin:0;
-  font-family:Arial;
-  background:#111;
-  color:#fff;
-}
-header {
-  background:#b71c1c;
-  padding:15px;
-  text-align:center;
-  font-size:20px;
-}
-.container {
-  padding:15px;
-}
+body { margin:0; font-family:Arial; background:#111; color:#fff; }
+header { background:#b71c1c; padding:15px; text-align:center; font-size:20px; }
+.container { padding:15px; }
+
 .form-box {
   background:#222;
   padding:12px;
   margin-bottom:15px;
   border-radius:6px;
 }
+
 input, textarea {
   width:100%;
   padding:8px;
@@ -36,6 +26,7 @@ input, textarea {
   border-radius:4px;
   border:none;
 }
+
 button {
   width:100%;
   padding:10px;
@@ -46,31 +37,39 @@ button {
   font-size:16px;
   cursor:pointer;
 }
+
 #map {
   width:100%;
   height:300px;
   margin-bottom:15px;
   border-radius:6px;
 }
+
 .card {
   background:#1e1e1e;
   padding:12px;
   margin-bottom:10px;
   border-radius:6px;
+  transition:0.2s;
 }
+
 .card.done {
   background:#2b2b2b;
   opacity:0.6;
 }
-.time {
-  color:#ffcc00;
-  font-size:14px;
+
+.card.active {
+  border:2px solid #ffeb3b;
+  box-shadow:0 0 10px #ffeb3b;
 }
-.complete-btn {
-  background:#2e7d32;
-}
-.status {
-  margin-top:10px;
+
+.time { color:#ffcc00; font-size:14px; }
+.complete-btn { background:#2e7d32; }
+.status { margin-top:10px; font-weight:bold; }
+
+.progress-label {
+  margin-top:6px;
+  color:#ffeb3b;
   font-weight:bold;
 }
 </style>
@@ -121,31 +120,10 @@ function initMap() {
 /**************** 지도 이동 ****************/
 function moveMap(lat, lng) {
   const moveLatLng = new kakao.maps.LatLng(lat, lng);
+  map.setLevel(3);
   map.setCenter(moveLatLng);
   marker.setPosition(moveLatLng);
 }
-
-/**************** 주소 → 좌표 변환 ****************/
-const addressInput = document.getElementById("address");
-let debounceTimer;
-
-addressInput.addEventListener("input", function() {
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => {
-    const address = addressInput.value.trim();
-    if (!address) return;
-
-    geocoder.addressSearch(address, function(result, status) {
-      if (status === kakao.maps.services.Status.OK) {
-        const lat = parseFloat(result[0].y);
-        const lng = parseFloat(result[0].x);
-        moveMap(lat, lng);
-        document.getElementById("lat").value = lat;
-        document.getElementById("lng").value = lng;
-      }
-    });
-  }, 600);
-});
 
 /**************** 등록 ****************/
 async function submitData() {
@@ -259,36 +237,54 @@ async function loadData() {
 
       if (item.status === "조치완료") {
         div.classList.add("done");
+        div.style.cursor = "default";
+      } else {
+        div.style.cursor = "pointer";
       }
 
       div.innerHTML = `
-        <div class="time">
-          🕒 접수시간: ${new Date(item.time).toLocaleString()}
-        </div>
-
+        <div class="time">🕒 접수시간: ${new Date(item.time).toLocaleString()}</div>
         🏠 신고주소: ${item.address || "주소없음"}<br>
         📍 위도: ${item.lat || "-"}<br>
         📍 경도: ${item.lng || "-"}<br>
         📞 ${item.phone || "번호없음"}<br>
         📝 증상: ${item.symptom || "내용없음"}<br>
-
-        ${item.completedTime ? `
-          <div class="time" style="color:#4caf50; margin-top:6px;">
-            ✅ 처리완료시간: ${new Date(item.completedTime).toLocaleString()}
-          </div>
-        ` : ""}
-
         <div class="status">
           ${
             item.status === "조치완료"
               ? "✅ 조치완료"
-              : `<button class="complete-btn"
-                   onclick="completeCase('${item.id}')">
-                   조치완료
-                 </button>`
+              : `<button class="complete-btn" onclick="completeCase('${item.id}')">조치완료</button>`
           }
         </div>
       `;
+
+      div.addEventListener("click", function(e) {
+
+        if (e.target.tagName === "BUTTON") return;
+        if (item.status === "조치완료") return;
+
+        if (item.lat && item.lng) {
+
+          document.querySelectorAll(".card").forEach(card => {
+            card.classList.remove("active");
+            const label = card.querySelector(".progress-label");
+            if (label) label.remove();
+          });
+
+          div.classList.add("active");
+
+          const progress = document.createElement("div");
+          progress.className = "progress-label";
+          progress.innerText = "🚑 진행중";
+          div.appendChild(progress);
+
+          moveMap(parseFloat(item.lat), parseFloat(item.lng));
+
+        } else {
+          alert("좌표 정보 없음");
+        }
+
+      });
 
       area.appendChild(div);
     });
