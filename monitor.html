@@ -43,10 +43,28 @@ const API_URL="https://script.google.com/macros/s/AKfycbybwt7-vC5W8NUmve94LLsdlI
 const listArea=document.getElementById("listArea");
 
 /******** 조치완료 처리 ********/
-async function completeCase(id){
-  if(!confirm("조치완료 처리하시겠습니까?")) return;
-  await fetch(`${API_URL}?action=complete&id=${id}`);
-  loadData();
+async function completeCase(id) {
+
+  if (!confirm("조치완료 처리하시겠습니까?")) return;
+
+  try {
+    await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "complete",
+        id: id,
+        completeTime: new Date().toISOString()
+      })
+    });
+
+    alert("조치완료 처리되었습니다.");
+
+    loadData();   // 🔥 다시 불러오기
+
+  } catch (err) {
+    alert("처리 실패");
+    console.error(err);
+  }
 }
 
 /******** 목록 불러오기 ********/
