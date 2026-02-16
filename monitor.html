@@ -42,29 +42,22 @@ header {
   font-size:14px; 
 }
 
-.phone { 
-  color:#4fc3f7; 
-}
-
-.maplink { 
-  color:#81c784; 
-  text-decoration:none; 
-}
-
 .status {
   margin-top:8px;
   font-weight:bold;
 }
 
-.symptom {
-  margin-top:6px;
-  color:#ff8a65;
-  white-space:pre-line;
+.complete-btn {
+  background:#2e7d32;
+  color:#fff;
+  border:none;
+  border-radius:4px;
+  padding:6px 10px;
+  cursor:pointer;
 }
 
-.address {
-  margin-top:6px;
-  color:#90caf9;
+.complete-btn:hover {
+  background:#1b5e20;
 }
 </style>
 </head>
@@ -81,7 +74,7 @@ header {
 
 const API_URL = "https://script.google.com/macros/s/AKfycbybwt7-vC5W8NUmve94LLsdlIRFHoiw3wcIrWk9GZFRHnmZJ_0TEsihhz7oX8al_BYR_A/exec";
 
-/**************** 목록 ****************/
+/**************** 목록 불러오기 ****************/
 async function loadData() {
 
   try {
@@ -143,9 +136,32 @@ async function loadData() {
   }
 }
 
-initMap();
+/**************** 조치완료 처리 ****************/
+async function completeCase(id) {
+
+  if (!confirm("조치완료 처리하시겠습니까?")) return;
+
+  try {
+
+    const res = await fetch(API_URL + "?action=complete&id=" + id);
+    const result = await res.json();
+
+    if (result.result === "success") {
+      alert("조치완료 처리되었습니다.");
+      loadData();
+    } else {
+      alert("처리 실패");
+    }
+
+  } catch {
+    alert("상태 변경 실패");
+  }
+}
+
+/**************** 초기 실행 ****************/
 loadData();
 setInterval(loadData, 10000);
+
 </script>
 </body>
 </html>
