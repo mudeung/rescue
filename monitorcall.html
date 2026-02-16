@@ -70,7 +70,7 @@ button {
   background:#2e7d32;
 }
 .status {
-  margin-top:8px;
+  margin-top:10px;
   font-weight:bold;
 }
 </style>
@@ -266,17 +266,17 @@ async function loadData() {
           🕒 접수시간: ${new Date(item.time).toLocaleString()}
         </div>
 
-        ${item.completedTime ? `
-          <div class="time" style="color:#4caf50;">
-            ✅ 완료시간: ${new Date(item.completedTime).toLocaleString()}
-          </div>
-        ` : ""}
-
         🏠 신고주소: ${item.address || "주소없음"}<br>
         📍 위도: ${item.lat || "-"}<br>
         📍 경도: ${item.lng || "-"}<br>
         📞 ${item.phone || "번호없음"}<br>
         📝 증상: ${item.symptom || "내용없음"}<br>
+
+        ${item.completedTime ? `
+          <div class="time" style="color:#4caf50; margin-top:6px;">
+            ✅ 처리완료시간: ${new Date(item.completedTime).toLocaleString()}
+          </div>
+        ` : ""}
 
         <div class="status">
           ${
