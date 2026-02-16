@@ -77,8 +77,8 @@ button {
     <textarea id="condition" placeholder="증상 입력"></textarea>
     <input type="text" id="phone" placeholder="연락처 입력">
 
-    <!-- ✅ 주소 입력 (선택사항) -->
-    <input type="text" id="address" placeholder="신고위치 주소 입력 (선택)">
+    <!-- 주소 입력 (선택사항) -->
+    <input type="text" id="address" placeholder="주소 입력 (선택사항)">
 
     <input type="number" step="any" id="lat" placeholder="위도 직접 입력 (선택)">
     <input type="number" step="any" id="lng" placeholder="경도 직접 입력 (선택)">
@@ -100,33 +100,71 @@ let geocoder;
 
 /**************** 지도 초기화 ****************/
 function initMap() {
+
   const container = document.getElementById("map");
+
   const options = {
     center: new kakao.maps.LatLng(35.1345, 126.9902),
     level: 5
   };
+
   map = new kakao.maps.Map(container, options);
 
   marker = new kakao.maps.Marker({
     position: map.getCenter()
   });
+
   marker.setMap(map);
 
   geocoder = new kakao.maps.services.Geocoder();
 }
 
+/**************** 지도 이동 ****************/
 function moveMap(lat, lng) {
   const moveLatLng = new kakao.maps.LatLng(lat, lng);
   map.setCenter(moveLatLng);
   marker.setPosition(moveLatLng);
 }
 
+/**************** 주소 입력 즉시 지도 이동 ****************/
+
+const addressInput = document.getElementById("address");
+
+let debounceTimer;
+
+addressInput.addEventListener("input", function() {
+
+  clearTimeout(debounceTimer);
+
+  debounceTimer = setTimeout(() => {
+
+    const address = addressInput.value.trim();
+    if (!address) return;
+
+    geocoder.addressSearch(address, function(result, status) {
+
+      if (status === kakao.maps.services.Status.OK) {
+
+        const lat = parseFloat(result[0].y);
+        const lng = parseFloat(result[0].x);
+
+        moveMap(lat, lng);
+
+        document.getElementById("lat").value = lat;
+        document.getElementById("lng").value = lng;
+
+      }
+
+    });
+
+  }, 600); // 입력 멈춘 후 0.6초 뒤 실행
+});
+
 /**************** 등록 ****************/
 async function submitData() {
 
   const condition = document.getElementById("condition").value;
   const phone = document.getElementById("phone").value;
-  const address = document.getElementById("address").value;
   let lat = document.getElementById("lat").value;
   let lng = document.getElementById("lng").value;
 
@@ -135,33 +173,21 @@ async function submitData() {
     return;
   }
 
-  /* 1️⃣ 주소 입력했을 경우 */
-  if (address) {
-    geocoder.addressSearch(address, function(result, status) {
-      if (status === kakao.maps.services.Status.OK) {
-        const lat = result[0].y;
-        const lng = result[0].x;
-        sendData(lat, lng, condition, phone);
-      } else {
-        alert("주소 변환 실패");
-      }
-    });
-    return;
-  }
-
-  /* 2️⃣ 좌표 직접 입력 */
+  // 좌표 직접 입력 또는 주소 변환된 좌표 사용
   if (lat && lng) {
     sendData(parseFloat(lat), parseFloat(lng), condition, phone);
     return;
   }
 
-  /* 3️⃣ GPS 자동 */
+  // GPS 자동
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(position => {
-      sendData(position.coords.latitude,
-               position.coords.longitude,
-               condition,
-               phone);
+      sendData(
+        position.coords.latitude,
+        position.coords.longitude,
+        condition,
+        phone
+      );
     });
   } else {
     alert("위치 정보 사용 불가");
@@ -174,6 +200,7 @@ async function sendData(lat, lng, condition, phone) {
   `https://map.kakao.com/link/map/구조위치,${lat},${lng}`;
 
   try {
+
     const res = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -183,14 +210,19 @@ async function sendData(lat, lng, condition, phone) {
     const result = await res.json();
 
     if (result.result === "success") {
+
       alert("등록 완료");
+
       moveMap(lat, lng);
+
       document.getElementById("condition").value = "";
       document.getElementById("phone").value = "";
       document.getElementById("address").value = "";
       document.getElementById("lat").value = "";
       document.getElementById("lng").value = "";
+
       loadData();
+
     } else {
       alert("등록 실패");
     }
@@ -206,6 +238,11 @@ async function loadData() {
   const res = await fetch(API_URL);
   const data = await res.json();
   const area = document.getElementById("listArea");
+
+  if (!data.length) {
+    area.innerHTML = "현재 접수된 신고 없음";
+    return;
+  }
 
   area.innerHTML = "";
 
@@ -245,3 +282,4 @@ setInterval(loadData, 10000);
 </script>
 </body>
 </html>
+
