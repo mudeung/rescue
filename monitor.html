@@ -32,7 +32,6 @@ header {
   transition:0.3s;
 }
 
-/* 완료된 건 */
 .card.done {
   background:#2b2b2b;
   opacity:0.6;
@@ -60,7 +59,12 @@ header {
 .symptom {
   margin-top:6px;
   color:#ff8a65;
-  white-space:pre-line;   /* 줄바꿈 자동 처리 */
+  white-space:pre-line;
+}
+
+.address {
+  margin-top:6px;
+  color:#90caf9;
 }
 </style>
 </head>
@@ -96,7 +100,6 @@ async function loadData() {
       const div = document.createElement("div");
       div.className = "card";
 
-      /* 완료 상태 반영 */
       if (item.status === "조치완료") {
         div.classList.add("done");
       }
@@ -104,6 +107,10 @@ async function loadData() {
       div.innerHTML = `
         <div class="time">
           🕒 ${new Date(item.time).toLocaleString()}
+        </div>
+
+        <div class="address">
+          🏠 신고주소: ${item.address || "주소없음"}
         </div>
 
         📍 위도: ${item.lat || "-"} <br>
@@ -141,8 +148,6 @@ async function loadData() {
 }
 
 loadData();
-
-/* 10초마다 자동 새로고침 */
 setInterval(loadData, 10000);
 
 </script>
