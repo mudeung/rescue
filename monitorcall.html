@@ -101,8 +101,9 @@ button {
 const API_URL = "https://script.google.com/macros/s/AKfycbybwt7-vC5W8NUmve94LLsdlIRFHoiw3wcIrWk9GZFRHnmZJ_0TEsihhz7oX8al_BYR_A/exec";
 
 let map;
-let marker;
 let geocoder;
+let rescueMarker = null;
+let infoWindow = null;
 
 /**************** 지도 초기화 ****************/
 function initMap() {
@@ -112,17 +113,42 @@ function initMap() {
     level: 5
   };
   map = new kakao.maps.Map(container, options);
-  marker = new kakao.maps.Marker({ position: map.getCenter() });
-  marker.setMap(map);
   geocoder = new kakao.maps.services.Geocoder();
 }
 
-/**************** 지도 이동 ****************/
+/**************** 지도 이동 + 구조위치 표시 ****************/
 function moveMap(lat, lng) {
+
   const moveLatLng = new kakao.maps.LatLng(lat, lng);
   map.setLevel(3);
   map.setCenter(moveLatLng);
-  marker.setPosition(moveLatLng);
+
+  // 기존 마커 제거
+  if (rescueMarker) {
+    rescueMarker.setMap(null);
+  }
+
+  if (infoWindow) {
+    infoWindow.close();
+  }
+
+  // 🚨 구조 위치 마커 생성
+  rescueMarker = new kakao.maps.Marker({
+    position: moveLatLng
+  });
+
+  rescueMarker.setMap(map);
+
+  // 인포윈도우 생성
+  infoWindow = new kakao.maps.InfoWindow({
+    content: `
+      <div style="padding:8px; font-size:13px; color:#000; font-weight:bold;">
+        🚨 구조위치
+      </div>
+    `
+  });
+
+  infoWindow.open(map, rescueMarker);
 }
 
 /**************** 등록 ****************/
