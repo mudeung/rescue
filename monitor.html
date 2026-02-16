@@ -73,109 +73,180 @@ button {
 const API_URL="https://script.google.com/macros/s/AKfycbybwt7-vC5W8NUmve94LLsdlIRFHoiw3wcIrWk9GZFRHnmZJ_0TEsihhz7oX8al_BYR_A/exec";
 
 let map;
+let marker;
 let geocoder;
-let currentLat=null;
-let currentLng=null;
 
-/******** 지도 초기화 ********/
 function initMap(){
   map=new kakao.maps.Map(document.getElementById("map"),{
     center:new kakao.maps.LatLng(35.1345,126.9902),
-    level:6
+    level:5
   });
 
-  geocoder=new kakao.maps.services.Geocoder();
+  marker=new kakao.maps.Marker({ position: map.getCenter() });
+  marker.setMap(map);
 
-  // 현재 위치 가져오기
+  geocoder=new kakao.maps.services.Geocoder();
+}
+
+function moveMap(lat,lng){
+  const loc=new kakao.maps.LatLng(lat,lng);
+  map.setCenter(loc);
+  marker.setPosition(loc);
+}
+
+/******** 주소 → 좌표 ********/
+document.getElementById("address").addEventListener("input",function(){
+  const address=this.value.trim();
+  if(!address) return;
+
+  geocoder.addressSearch(address,function(result,status){
+    if(status===kakao.maps.services.Status.OK){
+      const lat=parseFloat(result[0].y);
+      const lng=parseFloat(result[0].x);
+
+      document.getElementById("lat").value=lat;
+      document.getElementById("lng").value=lng;
+      moveMap(lat,lng);
+    }
+  });
+});
+
+/******** 등록 ********/
+async function submitData(){
+
+  const condition=document.getElementById("condition").value;
+  const phone=document.getElementById("phone").value;
+  const address=document.getElementById("address").value;
+  let lat=document.getElementById("lat").value;
+  let lng=document.getElementById("lng").value;
+
+  if(!condition){
+    alert("증상 입력 필수");
+    return;
+  }
+
+  if(lat && lng){
+    sendData(parseFloat(lat),parseFloat(lng),condition,phone,address);
+    return;
+  }
+
   if(navigator.geolocation){
     navigator.geolocation.getCurrentPosition(pos=>{
-      currentLat=pos.coords.latitude;
-      currentLng=pos.coords.longitude;
+      sendData(
+        pos.coords.latitude,
+        pos.coords.longitude,
+        condition,
+        phone,
+        address
+      );
     });
   }
 }
 
-/******** 주소 → 좌표 ********/
-function searchAddress(){
-  const addr=document.getElementById("address").value;
-  geocoder.addressSearch(addr,function(result,status){
-    if(status===kakao.maps.services.Status.OK){
-      const lat=result[0].y;
-      const lng=result[0].x;
+async function sendData(lat,lng,condition,phone,address){
 
-      document.getElementById("lat").value=lat;
-      document.getElementById("lng").value=lng;
+  const kakaoMapURL=`https://map.kakao.com/link/map/구조위치,${lat},${lng}`;
 
+  try{
+    const res=await fetch(API_URL,{
+      method:"POST",
+      headers:{ "Content-Type":"text/plain;charset=utf-8" },
+      body:JSON.stringify({
+        kakaoMapURL,
+        lat,
+        lng,
+        address,
+        symptom:condition,
+        phone
+      })
+    });
+
+    const result=await res.json();
+
+    if(result.result==="success"){
+      alert("등록 완료");
       moveMap(lat,lng);
-    } else {
-      alert("주소 검색 실패");
+      document.getElementById("condition").value="";
+      document.getElementById("phone").value="";
+      document.getElementById("address").value="";
+      document.getElementById("lat").value="";
+      document.getElementById("lng").value="";
+      loadData();
     }
-  });
-}
 
-/******** 좌표 → 주소 ********/
-function searchCoord(){
-  const lat=document.getElementById("lat").value;
-  const lng=document.getElementById("lng").value;
-
-  geocoder.coord2Address(lng,lat,function(result,status){
-    if(status===kakao.maps.services.Status.OK){
-      document.getElementById("address").value=result[0].address.address_name;
-      moveMap(lat,lng);
-    } else {
-      alert("좌표 변환 실패");
-    }
-  });
-}
-
-/******** 지도 이동 ********/
-function moveMap(lat,lng){
-  const loc=new kakao.maps.LatLng(lat,lng);
-  map.setLevel(3);
-  map.setCenter(loc);
-
-  new kakao.maps.Marker({
-    map:map,
-    position:loc
-  });
-}
-
-/******** 자동 길찾기 실행 ********/
-function startNavigation(destLat,destLng){
-  if(!currentLat || !currentLng){
-    alert("현재 위치를 가져올 수 없습니다.");
-    return;
+  }catch{
+    alert("네트워크 오류");
   }
-
-  const url=`https://map.kakao.com/link/from/내위치,${currentLat},${currentLng}/to/구조위치,${destLat},${destLng}`;
-  window.open(url,"_blank");
 }
 
-/******** 신고 목록 ********/
+/******** 조치완료 ********/
+async function completeCase(id){
+
+  if(!confirm("조치완료 처리하시겠습니까?")) return;
+
+  const res=await fetch(API_URL+"?action=complete&id="+id);
+  const result=await res.json();
+
+  if(result.result==="success"){
+    alert("조치완료 처리되었습니다.");
+    loadData();
+  }
+}
+
+/******** 목록 ********/
 async function loadData(){
+
   try{
     const res=await fetch(API_URL);
     const data=await res.json();
     const area=document.getElementById("listArea");
+
+    if(!data.length){
+      area.innerHTML="현재 접수된 신고가 없습니다.";
+      return;
+    }
+
     area.innerHTML="";
 
-    data.forEach(item=>{
-
-      if(item.status==="조치완료") return;
+    data.reverse().forEach(item=>{
 
       const div=document.createElement("div");
       div.className="card";
 
-      div.innerHTML=`
-        🕒 ${new Date(item.time).toLocaleString()}<br>
-        🏠 ${item.address}<br>
-        📞 ${item.phone}<br>
-        📝 ${item.symptom}
-      `;
+      if(item.status==="조치완료"){
+        div.classList.add("done");
+      }
 
-      div.addEventListener("click",function(){
-        startNavigation(item.lat,item.lng);
-      });
+      div.innerHTML=`
+        <div class="time">
+          🕒 접수시간: ${new Date(item.time).toLocaleString()}
+        </div>
+
+        🏠 신고주소: ${item.address || "주소없음"}<br>
+        📍 위도: ${item.lat || "-"}<br>
+        📍 경도: ${item.lng || "-"}<br>
+        📞 ${item.phone || "번호없음"}<br>
+        📝 증상: ${item.symptom || "내용없음"}<br>
+
+        ${
+          item.completedTime
+          ? `<div class="time" style="color:#4caf50; margin-top:6px;">
+               ✅ 처리완료시간: ${new Date(item.completedTime).toLocaleString()}
+             </div>`
+          : ""
+        }
+
+        <div class="status">
+          ${
+            item.status==="조치완료"
+            ? "✅ 조치완료"
+            : `<button class="complete-btn"
+                 onclick="completeCase('${item.id}')">
+                 조치완료
+               </button>`
+          }
+        </div>
+      `;
 
       area.appendChild(div);
     });
