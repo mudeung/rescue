@@ -235,47 +235,70 @@ async function sendData(lat, lng, condition, phone) {
 /**************** 목록 ****************/
 async function loadData() {
 
-  const res = await fetch(API_URL);
-  const data = await res.json();
-  const area = document.getElementById("listArea");
+  try {
+    const res = await fetch(API_URL);
+    const data = await res.json();
+    const area = document.getElementById("listArea");
 
-  if (!data.length) {
-    area.innerHTML = "현재 접수된 신고 없음";
-    return;
-  }
-
-  area.innerHTML = "";
-
-  data.reverse().forEach(item => {
-
-    const div = document.createElement("div");
-    div.className = "card";
-
-    if (item.status === "조치완료") {
-      div.classList.add("done");
+    if (!data.length) {
+      area.innerHTML = "현재 접수된 신고가 없습니다.";
+      return;
     }
 
-    div.innerHTML = `
-      <div class="time">
-        🕒 ${new Date(item.time).toLocaleString()}
-      </div>
+    area.innerHTML = "";
 
-      <div class="coord"
-        onclick="moveMap(${item.lat}, ${item.lng})">
-        📍 ${item.lat}, ${item.lng}
-      </div>
+    data.reverse().forEach(item => {
 
-      🩺 ${item.condition || "미입력"}<br>
-      📞 ${item.phone || "번호없음"}<br>
-      🗺 <a class="maplink"
-        href="${item.mapURL}" target="_blank">지도보기</a>
-    `;
+      const div = document.createElement("div");
+      div.className = "card";
 
-    area.appendChild(div);
-  });
+      if (item.status === "조치완료") {
+        div.classList.add("done");
+      }
+
+      div.innerHTML = `
+        <div class="time">
+          🕒 ${new Date(item.time).toLocaleString()}
+        </div>
+
+        <div class="address">
+          🏠 신고주소: ${item.address || "주소없음"}
+        </div>
+
+        📍 위도: ${item.lat || "-"} <br>
+        📍 경도: ${item.lng || "-"} <br>
+
+        📞 <span class="phone">
+          ${item.phone || "번호없음"}
+        </span><br>
+
+        <div class="symptom">
+          📝 증상: ${item.symptom || "내용없음"}
+        </div>
+
+        🗺 <a class="maplink"
+          href="${item.mapURL || '#'}" target="_blank">
+          지도보기
+        </a>
+
+        <div class="status">
+          ${
+            item.status === "조치완료"
+              ? "✅ 조치완료"
+              : "🟡 처리중"
+          }
+        </div>
+      `;
+
+      area.appendChild(div);
+    });
+
+  } catch (err) {
+    document.getElementById("listArea").innerHTML =
+      "데이터 불러오기 실패";
+  }
 }
 
-initMap();
 loadData();
 setInterval(loadData, 10000);
 
