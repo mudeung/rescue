@@ -81,9 +81,11 @@ header {
 
 const API_URL = "https://script.google.com/macros/s/AKfycbybwt7-vC5W8NUmve94LLsdlIRFHoiw3wcIrWk9GZFRHnmZJ_0TEsihhz7oX8al_BYR_A/exec";
 
+/**************** 목록 ****************/
 async function loadData() {
 
   try {
+
     const res = await fetch(API_URL);
     const data = await res.json();
     const area = document.getElementById("listArea");
@@ -106,34 +108,29 @@ async function loadData() {
 
       div.innerHTML = `
         <div class="time">
-          🕒 ${new Date(item.time).toLocaleString()}
+          🕒 접수시간: ${new Date(item.time).toLocaleString()}
         </div>
 
-        <div class="address">
-          🏠 신고주소: ${item.address || "주소없음"}
-        </div>
+        🏠 신고주소: ${item.address || "주소없음"}<br>
+        📍 위도: ${item.lat || "-"}<br>
+        📍 경도: ${item.lng || "-"}<br>
+        📞 ${item.phone || "번호없음"}<br>
+        📝 증상: ${item.symptom || "내용없음"}<br>
 
-        📍 위도: ${item.lat || "-"} <br>
-        📍 경도: ${item.lng || "-"} <br>
-
-        📞 <span class="phone">
-          ${item.phone || "번호없음"}
-        </span><br>
-
-        <div class="symptom">
-          📝 증상: ${item.symptom || "내용없음"}
-        </div>
-
-        🗺 <a class="maplink"
-          href="${item.mapURL || '#'}" target="_blank">
-          지도보기
-        </a>
+        ${item.completedTime ? `
+          <div class="time" style="color:#4caf50; margin-top:6px;">
+            ✅ 처리완료시간: ${new Date(item.completedTime).toLocaleString()}
+          </div>
+        ` : ""}
 
         <div class="status">
           ${
             item.status === "조치완료"
               ? "✅ 조치완료"
-              : "🟡 처리중"
+              : `<button class="complete-btn"
+                   onclick="completeCase('${item.id}')">
+                   조치완료
+                 </button>`
           }
         </div>
       `;
@@ -141,16 +138,14 @@ async function loadData() {
       area.appendChild(div);
     });
 
-  } catch (err) {
-    document.getElementById("listArea").innerHTML =
-      "데이터 불러오기 실패";
+  } catch {
+    document.getElementById("listArea").innerHTML = "데이터 불러오기 실패";
   }
 }
 
+initMap();
 loadData();
 setInterval(loadData, 10000);
-
 </script>
-
 </body>
 </html>
