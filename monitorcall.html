@@ -15,8 +15,10 @@ input,textarea{width:100%;padding:8px;margin-bottom:8px;border-radius:4px;border
 button{padding:8px 12px;background:#e53935;color:#fff;border:none;border-radius:4px;cursor:pointer;}
 #map{width:100%;height:320px;margin-bottom:15px;border-radius:6px;}
 .card{background:#1e1e1e;padding:12px;margin-bottom:10px;border-radius:6px;transition:0.2s;}
+.card.done{background:#2b2b2b;opacity:0.6;}
 .card.active{border:2px solid #ffeb3b;box-shadow:0 0 10px #ffeb3b;}
 .progress-label{margin-top:6px;color:#ffeb3b;font-weight:bold;}
+.complete-btn{background:#2e7d32;margin-top:6px;}
 .time{color:#ffcc00;font-size:14px;}
 .coord{font-size:12px;color:#aaa;}
 .maplink{color:#4fc3f7;font-size:12px;}
@@ -46,12 +48,12 @@ button{padding:8px 12px;background:#e53935;color:#fff;border:none;border-radius:
 </div>
 
 <script>
-const API_URL="https://script.google.com/macros/s/AKfycbybwt7-vC5W8NUmve94LLsdlIRFHoiw3wcIrWk9GZFRHnmZJ_0TEsihhz7oX8al_BYR_A/exec";
+
+const API_URL="여기에_본인_AppsScript_URL";
 
 let map,geocoder;
 let activeMarker=null;
 let infoWindow=null;
-let activeLat=null,activeLng=null;
 
 /******** 지도 초기화 ********/
 function initMap(){
@@ -61,34 +63,7 @@ function initMap(){
   });
 
   geocoder=new kakao.maps.services.Geocoder();
-
-  kakao.maps.event.addListener(map,'click',function(){
-    if(activeLat && activeLng){
-      openKakaoNavigation(activeLat,activeLng);
-    }
-  });
 }
-
-/******** 길찾기 ********/
-function openKakaoNavigation(lat,lng){
-  window.open(`https://map.kakao.com/link/to/구조위치,${lat},${lng}`,"_blank");
-}
-
-/******** 주소 → 좌표 ********/
-document.getElementById("address").addEventListener("input",function(){
-  const address=this.value.trim();
-  if(!address) return;
-
-  geocoder.addressSearch(address,function(result,status){
-    if(status===kakao.maps.services.Status.OK){
-      const lat=parseFloat(result[0].y);
-      const lng=parseFloat(result[0].x);
-      document.getElementById("lat").value=lat;
-      document.getElementById("lng").value=lng;
-      map.setCenter(new kakao.maps.LatLng(lat,lng));
-    }
-  });
-});
 
 /******** 등록 ********/
 async function submitData(){
@@ -126,14 +101,19 @@ async function sendData(lat,lng,condition,phone,address){
   document.getElementById("address").value="";
   document.getElementById("lat").value="";
   document.getElementById("lng").value="";
+
   loadData();
 }
 
-/******** 진행중 마커만 표시 ********/
-function showActiveMarker(lat,lng){
+/******** 조치완료 ********/
+async function completeCase(id){
+  if(!confirm("조치완료 처리하시겠습니까?")) return;
+  await fetch(API_URL+"?action=complete&id="+id);
+  loadData();
+}
 
-  activeLat=lat;
-  activeLng=lng;
+/******** 진행중 마커 ********/
+function showActiveMarker(lat,lng){
 
   if(activeMarker) activeMarker.setMap(null);
   if(infoWindow) infoWindow.close();
@@ -148,27 +128,22 @@ function showActiveMarker(lat,lng){
 
   activeMarker.setMap(map);
 
-  kakao.maps.event.addListener(activeMarker,'click',function(){
-    openKakaoNavigation(lat,lng);
-  });
-
   infoWindow=new kakao.maps.InfoWindow({
     content:`<div style="padding:8px;color:red;font-weight:bold;">
-      🚨 진행중 구조위치<br>👉 클릭하면 길찾기
+      🚨 진행중 구조위치
     </div>`
   });
 
   infoWindow.open(map,activeMarker);
-
   map.setLevel(3);
   map.setCenter(new kakao.maps.LatLng(lat,lng));
 }
 
-/******** 목록 ********/
+/******** 목록 로드 ********/
 async function loadData(){
 
   const res=await fetch(API_URL);
-  const data=await res.json();
+  let data=await res.json();
   const area=document.getElementById("listArea");
   area.innerHTML="";
 
@@ -177,35 +152,38 @@ async function loadData(){
     return;
   }
 
-  data.reverse().forEach(item=>{
+  data.sort((a,b)=> new Date(b.time)-new Date(a.time));
+
+  data.forEach(item=>{
 
     const div=document.createElement("div");
     div.className="card";
+    if(item.status==="조치완료") div.classList.add("done");
 
     div.innerHTML=`
-      <div class="time">🕒 ${new Date(item.time).toLocaleString()}</div>
+      <div class="time">🕒 접수: ${new Date(item.time).toLocaleString()}</div>
+
+      ${
+        item.status==="조치완료" && item.completeTime
+        ? `<div class="time">✅ 완료: ${new Date(item.completeTime).toLocaleString()}</div>`
+        : ""
+      }
+
       🏠 ${item.address||"주소없음"}<br>
       📞 ${item.phone||"번호없음"}<br>
       📝 ${item.symptom||"내용없음"}<br>
       <div class="coord">위도: ${item.lat} / 경도: ${item.lng}</div>
-      <a class="maplink" href="${item.kakaoMapURL}" target="_blank">지도보기</a>
+      <a class="maplink" href="${item.kakaoMapURL}" target="_blank">지도보기</a><br>
+
+      ${
+        item.status==="조치완료"
+        ? "✅ 조치완료"
+        : `<button class="complete-btn" onclick="completeCase('${item.id}')">조치완료 처리</button>`
+      }
     `;
 
     div.addEventListener("click",function(){
-
-      document.querySelectorAll(".card").forEach(c=>{
-        c.classList.remove("active");
-        const l=c.querySelector(".progress-label");
-        if(l) l.remove();
-      });
-
-      div.classList.add("active");
-
-      const label=document.createElement("div");
-      label.className="progress-label";
-      label.innerText="🚑 진행중";
-      div.appendChild(label);
-
+      if(item.status==="조치완료") return;
       showActiveMarker(item.lat,item.lng);
     });
 
@@ -216,7 +194,9 @@ async function loadData(){
 initMap();
 loadData();
 setInterval(loadData,10000);
+
 </script>
 
 </body>
 </html>
+
