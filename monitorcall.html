@@ -116,7 +116,7 @@ async function sendData(lat,lng){
 
 /******** 조치완료 처리 ********/
 async function completeCase(id){
-  if(!confirm("조치완료 처리하시겠습니까?")) return;
+  if(!confirm("구조대원이 현장에 도착했습니까?")) return;
   try{
     await fetch(API_URL,{
       method:"POST",
@@ -138,17 +138,17 @@ async function loadData(){
 
   data.forEach(item=>{
     const div=document.createElement("div");
-    div.className="card"+(item.status==="조치완료"?" done":"");
+    div.className="card"+(item.status==="현장도착"?" done":"");
 
     div.innerHTML=`
       <div class="time">🕒 접수: ${new Date(item.time).toLocaleString()}</div>
-      ${item.status==="조치완료"?`<div class="time">✅ 완료: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : "시간기록없음"}</div>`:""}
+      ${item.status==="현장도착"?`<div class="time">✅ 완료: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : "시간기록없음"}</div>`:""}
       🏠 ${item.address||"주소없음"}<br>
       📞 ${item.phone||"번호없음"}<br>
       📝 ${item.symptom||"내용없음"}<br>
       <div class="coord">위도: ${item.lat} / 경도: ${item.lng}</div>
       <a class="maplink" href="https://map.kakao.com/link/map/구조요청 위치,${item.lat},${item.lng}" target="_blank">📍 지도보기</a><br>
-      ${item.status==="조치완료"?"":`<button class="complete-btn" onclick="completeCase('${item.id}')">조치완료 처리</button>`}
+      ${item.status==="현장도착"?"":`<button class="complete-btn" onclick="completeCase('${item.id}')">🚑 구조대원 현장도착</button>`}
     `;
 
     // 카드 클릭 시 선택 강조 + 지도 마커 표시
