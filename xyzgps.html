@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>🆘 현장 좌표 변환기</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Kakao Map -->
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424"></script>
+
+<!-- proj4 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.js"></script>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  padding-bottom:120px;
+  font-family:system-ui,Arial;
+  background:#0f172a;
+  color:#fff;
+}
+.header{
+  padding:14px;
+  text-align:center;
+  font-size:18px;
+  font-weight:700;
+  background:#020617;
+}
+.card{
+  background:#020617;
+  border-radius:16px;
+  padding:14px;
+  margin:12px;
+}
+select,input{
+  width:100%;
+  min-height:56px;
+  padding:18px;
+  margin-top:10px;
+  font-size:18px;
+  border-radius:14px;
+  border:none;
+  background:#1e293b;
+  color:#fff;
+}
+pre{
+  white-space:pre-wrap;
+  line-height:1.6;
+  font-size:15px;
+  background:#020617;
+  border:1px solid #1e293b;
+  border-radius:14px;
+  padding:14px;
+}
+#map{
+  height:260px;
+  margin:12px;
+  border-radius:16px;
+  overflow:hidden;
+  position:relative;
+}
+#coordOverlay{
+  position:absolute;
+  top:10px;
+  left:50%;
+  transform:translateX(-50%);
+  background:rgba(2,6,23,.85);
+  padding:10px 14px;
+  border-radius:12px;
+  font-size:14px;
+  border:1px solid #1e293b;
+  z-index:10;
+  text-align:center;
+}
+.action-bar{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#020617;
+  display:flex;
+  gap:10px;
+  padding:10px;
+}
+.action-bar button{
+  flex:1;
+  padding:18px;
+  font-size:15px;
+  font-weight:700;
+  border:none;
+  border-radius:16px;
+}
+.primary{background:linear-gradient(135deg,#22c55e,#16a34a);color:#020617}
+.share{background:#0ea5e9;color:#020617}
+.copy{background:#facc15;color:#020617}
+</style>
+</head>
+
+<body>
+
+<div class="header">🆘 현장 좌표 변환기</div>
+
+<div class="card">
+  <select id="mode">
+    <option value="dd">도좌표 (DD)</option>
+    <option value="dms">도분초 (DMS)</option>
+  </select>
+  <input id="lat" placeholder="위도 (35.131486 / 35 7 53.35)">
+  <input id="lon" placeholder="경도 (126.947881 / 126 56 52.37)">
+</div>
+
+<div class="card">
+  <input id="np" placeholder="국가지점번호 (예: 960 1940)">
+</div>
+
+<div class="card">
+  <pre id="result">좌표 입력 후 [변환]을 누르세요</pre>
+</div>
+
+<div id="map">
+  <div id="coordOverlay">📍 위치 대기중</div>
+</div>
+
+<div class="action-bar">
+  <button class="primary" onclick="convert()">📍 변환</button>
+  <button class="copy" onclick="copyCoords()">📋 복사</button>
+  <button class="share" onclick="shareAll()">📤 공유</button>
+</div>
+
+<script>
+/* EPSG */
+proj4.defs("EPSG:5179",
+"+proj=tmerc +lat_0=38 +lon_0=127.5 +k=0.9996 +x_0=1000000 +y_0=2000000 +ellps=GRS80 +units=m +no_defs");
+
+/* DOM */
+const latInput = document.getElementById("lat");
+const lonInput = document.getElementById("lon");
+const np = document.getElementById("np");
+const mode = document.getElementById("mode");
+const result = document.getElementById("result");
+
+/* 유틸 */
+function dmsToDD(v){
+  const p=v.trim().split(/\s+/).map(Number);
+  return p[0]+p[1]/60+p[2]/3600;
+}
+function toDMS(d){
+  const D=Math.floor(d);
+  const M=Math.floor((d-D)*60);
+  const S=(((d-D)*60-M)*60).toFixed(2);
+  return `${D}° ${M}′ ${S}″`;
+}
+function national(x,y){
+  return `${Math.floor(x/100)} ${Math.floor(y/100)}`;
+}
+function calcDistance(lat1, lon1, lat2, lon2){
+  const R=6371000;
+  const r=d=>d*Math.PI/180;
+  const dLat=r(lat2-lat1);
+  const dLon=r(lon2-lon1);
+  const a=Math.sin(dLat/2)**2+
+          Math.cos(r(lat1))*Math.cos(r(lat2))*
+          Math.sin(dLon/2)**2;
+  return Math.round(R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)));
+}
+
+/* 지도 */
+let map, marker, myMarker, myLat, myLon;
+
+function initMap(){
+  const center=new kakao.maps.LatLng(35.131486,126.947881);
+  map=new kakao.maps.Map(mapDiv,{center,level:4});
+
+  marker=new kakao.maps.Marker({
+    image:new kakao.maps.MarkerImage(
+      "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png",
+      new kakao.maps.Size(30,42)
+    )
+  });
+  marker.setMap(map);
+
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(pos=>{
+      myLat=pos.coords.latitude;
+      myLon=pos.coords.longitude;
+      const myPos=new kakao.maps.LatLng(myLat,myLon);
+
+      myMarker=new kakao.maps.Marker({
+        position:myPos,
+        image:new kakao.maps.MarkerImage(
+          "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
+          new kakao.maps.Size(24,35)
+        )
+      });
+      myMarker.setMap(map);
+      map.setCenter(myPos);
+      updateOverlay(myLat,myLon);
+    });
+  }
+}
+
+function updateOverlay(lat,lon){
+  coordOverlay.innerHTML=
+    `📍 현재 좌표<br>위도 ${lat.toFixed(6)}<br>경도 ${lon.toFixed(6)}`;
+}
+
+/* 변환 */
+function convert(){
+  let lat,lon;
+
+  if(np.value){
+    const p=np.value.trim().split(/\s+/).map(Number);
+    if(p.length!==2) return alert("국가지점번호 오류");
+    const wgs=proj4("EPSG:5179","WGS84",[p[0]*100,p[1]*100]);
+    lon=wgs[0]; lat=wgs[1];
+  }else{
+    if(mode.value==="dd"){
+      lat=parseFloat(latInput.value);
+      lon=parseFloat(lonInput.value);
+    }else{
+      lat=dmsToDD(latInput.value);
+      lon=dmsToDD(lonInput.value);
+    }
+  }
+
+  if(isNaN(lat)||isNaN(lon)) return alert("좌표 오류");
+
+  const utm=proj4("WGS84","EPSG:5179",[lon,lat]);
+  const x=Math.floor(utm[0]);
+  const y=Math.floor(utm[1]);
+
+  let distText="";
+  if(myLat&&myLon){
+    distText=`\n📏 내 위치까지 거리: ${calcDistance(myLat,myLon,lat,lon)} m`;
+  }
+
+  result.textContent=
+`🆘 좌표 위치
+
+WGS84
+위도: ${lat.toFixed(6)}
+경도: ${lon.toFixed(6)}
+
+도분초
+${toDMS(lat)} / ${toDMS(lon)}
+
+UTM-K
+E ${x}  N ${y}
+
+국가지점번호
+${national(x,y)}
+${distText}`;
+
+  const pos=new kakao.maps.LatLng(lat,lon);
+  marker.setPosition(pos);
+  map.setCenter(pos);
+  updateOverlay(lat,lon);
+}
+
+/* 복사 */
+function copyCoords(){
+  if(!result.textContent.includes("위도")) return alert("먼저 변환하세요");
+  navigator.clipboard.writeText(result.textContent)
+    .then(()=>alert("📋 좌표 복사 완료"));
+}
+
+/* 공유 */
+function shareAll(){
+  if(!result.textContent.includes("위도")) return alert("먼저 변환하세요");
+  const m=result.textContent.match(/위도:\s([0-9.\-]+)[\s\S]*?경도:\s([0-9.\-]+)/);
+  const lat=m[1], lon=m[2];
+  const msg=`🆘 위치 공유\n\n${result.textContent}\n📍 https://map.kakao.com/link/map/${lat},${lon}`;
+  navigator.share?navigator.share({text:msg}):alert(msg);
+}
+
+const mapDiv=document.getElementById("map");
+initMap();
+</script>
+
+</body>
+</html>
