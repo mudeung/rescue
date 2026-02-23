@@ -24,12 +24,6 @@ header{background:#b71c1c;padding:15px;text-align:center;font-size:20px;}
   cursor:pointer;
 }
 .complete-btn:hover{opacity:0.8;}
-.record-box{
-  margin-top:8px;
-  background:#2a2a2a;
-  padding:8px;
-  border-radius:4px;
-}
 </style>
 </head>
 <body>
@@ -47,73 +41,78 @@ const listArea=document.getElementById("listArea");
 /******** 🚑 현장도착 ********/
 async function completeCase(id){
   if(!confirm("구조대원이 현장에 도착했습니까?")) return;
-
-  await fetch(API_URL,{
-    method:"POST",
-    headers:{ "Content-Type":"text/plain;charset=utf-8" },
-    body:JSON.stringify({
-      action:"complete",
-      id:id
-    })
-  });
-
-  loadData();
+  try{
+    await fetch(API_URL,{
+      method:"POST",
+      headers:{ "Content-Type":"text/plain;charset=utf-8" },
+      body:JSON.stringify({
+        action:"complete",
+        id:id,
+        completeTime:new Date().toISOString()
+      })
+    });
+    loadData();
+  }catch(err){
+    alert("처리 실패");
+    console.error(err);
+  }
 }
 
 /******** ✅ 사고처리 완료 ********/
 async function finishCase(id){
   if(!confirm("사고처리를 완료하시겠습니까?")) return;
-
-  await fetch(API_URL,{
-    method:"POST",
-    headers:{ "Content-Type":"text/plain;charset=utf-8" },
-    body:JSON.stringify({
-      action:"finish",
-      id:id
-    })
-  });
-
-  loadData();
+  try{
+    await fetch(API_URL,{
+      method:"POST",
+      headers:{ "Content-Type":"text/plain;charset=utf-8" },
+      body:JSON.stringify({
+        action:"finish",
+        id:id,
+        finishTime:new Date().toISOString()
+      })
+    });
+    loadData();
+  }catch(err){
+    alert("처리 실패");
+    console.error(err);
+  }
 }
 
 /******** 목록 불러오기 ********/
 async function loadData(){
-
   const res=await fetch(API_URL);
   const data=await res.json();
   listArea.innerHTML="";
-
   if(!data.length){
     listArea.innerHTML="현재 접수된 신고가 없습니다.";
     return;
   }
 
-  data.sort((a,b)=>new Date(b.작성시간)-new Date(a.작성시간));
+  data.sort((a,b)=>new Date(b.time)-new Date(a.time));
 
   data.forEach(item=>{
-
     const div=document.createElement("div");
+
+    // 사고처리 완료만 흐림 처리
     div.className="card"+(item.status==="사고처리완료"?" done":"");
 
     div.innerHTML=`
-      <div class="time">🕒 접수: ${new Date(item.작성시간).toLocaleString()}</div>
+      <div class="time">🕒 접수: ${new Date(item.time).toLocaleString()}</div>
 
-      ${item.status==="현장도착" || item.status==="사고처리완료"
-        ? `<div class="time">🚑 현장도착: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : ""}</div>`
+      ${item.status==="현장도착"?
+        `<div class="time">🚑 현장도착: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : ""}</div>`
         : ""}
 
-      ${item.status==="사고처리완료"
-        ? `<div class="time">✅ 사고처리 완료: ${item.finishTime ? new Date(item.finishTime).toLocaleString() : ""}</div>`
+      ${item.status==="사고처리완료"?
+        `<div class="time">🚑 현장도착: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : ""}</div>
+         <div class="time">✅ 사고처리 완료: ${item.finishTime ? new Date(item.finishTime).toLocaleString() : ""}</div>`
         : ""}
 
-      🏠 ${item.주소||"주소없음"}<br>
-      📞 ${item.연락처||"번호없음"}<br>
-      📝 ${item.증상||"내용없음"}<br>
-      <div class="coord">위도: ${item.위도} / 경도: ${item.경도}</div>
-      <a class="maplink" href="https://map.kakao.com/link/map/구조요청 위치,${item.위도},${item.경도}" target="_blank">📍 지도보기</a>
-      
-      ${item.GCS ? `<div class="record-box">🧠 GCS: ${item.GCS}</div>` : ""}
-      ${item.record ? `<div class="record-box">📝 처치기록: ${item.record}</div>` : ""}
+      🏠 ${item.address||"주소없음"}<br>
+      📞 ${item.phone||"번호없음"}<br>
+      📝 ${item.symptom||"내용없음"}<br>
+      <div class="coord">위도: ${item.lat} / 경도: ${item.lng}</div>
+      <a class="maplink" href="https://map.kakao.com/link/map/구조요청 위치,${item.lat},${item.lng}" target="_blank">📍 지도보기</a><br>
 
       ${
         item.status==="사고처리완료"
