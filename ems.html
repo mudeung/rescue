@@ -2,200 +2,131 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>🚑 무등산 특수구조팀 통합 시스템</title>
+<title>🚑 응급처치 현장 기록</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
 
 <style>
-body{margin:0;font-family:Arial;background:#111;color:#fff;}
-header{background:#b71c1c;padding:15px;text-align:center;font-size:20px;}
-.container{padding:15px;}
-input,select,textarea,button{
-  width:100%;padding:12px;margin:6px 0;
-  border-radius:6px;border:none;font-size:16px;
-}
-button{background:#2e7d32;color:#fff;cursor:pointer;}
-.card{background:#1e1e1e;padding:12px;margin:8px 0;border-radius:6px;}
-.red{background:#7f0000;}
-.green{background:#1b5e20;}
-.gray{background:#424242;}
-#map{width:100%;height:250px;margin:10px 0;}
-.smallBtn{
-  width:48%;
-  display:inline-block;
-  margin-top:6px;
-}
+body{font-family:Arial;background:#f4f6f8;margin:0;padding:20px;}
+.container{max-width:900px;margin:auto;background:#fff;padding:20px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.1);}
+h1{text-align:center;color:#b71c1c;}
+label{font-weight:bold;display:block;margin-top:10px;}
+input,textarea{width:100%;padding:8px;margin-top:5px;border:1px solid #ccc;border-radius:6px;}
+textarea{min-height:80px;}
+button{margin-top:15px;padding:14px 18px;border:none;border-radius:6px;font-weight:bold;cursor:pointer;background:#1976d2;color:#fff;font-size:16px;width:100%;}
+.gps-btn{background:#6a1b9a;margin-top:5px;}
 </style>
+
+<script>
+
+const SCRIPT_URL = "YOUR_SCRIPT_URL"; // ← 웹앱 URL 입력
+
+function getFormData(){
+  return {
+    arrivalTime: document.getElementById("arrivalTime").value,
+    patientName: document.getElementById("patientName").value,
+    phone: document.getElementById("phone").value,
+    coordinates: document.getElementById("coordinates").value,
+    patientStatus: document.getElementById("patientStatus").value,
+    treatment: document.getElementById("treatment").value,
+    crew: document.getElementById("crew").value
+  };
+}
+
+function sendAndShare(){
+
+  const data = getFormData();
+
+  const message = `
+🚑 응급처치 현장 기록
+
+도착시간: ${data.arrivalTime}
+환자이름: ${data.patientName}
+연락처: ${data.phone}
+좌표: ${data.coordinates}
+
+[환자상태]
+${data.patientStatus}
+
+[응급처치]
+${data.treatment}
+
+출동대원: ${data.crew}
+  `;
+
+  fetch(SCRIPT_URL,{
+    method:"POST",
+    body: JSON.stringify(data)
+  })
+  .then(res=>res.json())
+  .then(response=>{
+
+    if(response.status === "saved"){
+
+      if(navigator.share){
+        navigator.share({
+          title:"응급처치 기록",
+          text:message
+        });
+      }else{
+        navigator.clipboard.writeText(message);
+        alert("저장 완료. 공유 기능이 지원되지 않아 내용이 복사되었습니다.");
+      }
+
+    }else{
+      alert("Google Sheet 저장 실패");
+    }
+
+  })
+  .catch(error=>{
+    alert("오류 발생: " + error);
+  });
+}
+
+function getGPS(){
+  navigator.geolocation.getCurrentPosition(function(position){
+    const lat = position.coords.latitude.toFixed(6);
+    const lon = position.coords.longitude.toFixed(6);
+    document.getElementById("coordinates").value = lat + ", " + lon;
+  }, function(){
+    alert("위치 정보를 가져올 수 없습니다.");
+  });
+}
+
+</script>
 </head>
+
 <body>
 
-<header>🚨 무등산 특수구조팀 통합 시스템</header>
 <div class="container">
+  <h1>🚑 응급처치 현장 기록</h1>
 
-<h3>📍 구조 신고</h3>
+  <label>도착시간</label>
+  <input type="datetime-local" id="arrivalTime">
 
-<form id="rescueForm">
-<input type="text" id="name" placeholder="이름" required>
-<input type="tel" id="phone" placeholder="연락처" required>
-<input type="text" id="address" placeholder="위치 설명">
-<select id="symptom">
-<option>의식저하</option>
-<option>골절의심</option>
-<option>호흡곤란</option>
-<option>기타</option>
-</select>
+  <label>환자 이름</label>
+  <input type="text" id="patientName">
 
-<button type="button" id="gpsBtn">GPS 위치 가져오기</button>
-<div id="map"></div>
+  <label>연락처</label>
+  <input type="tel" id="phone">
 
-<button type="submit">신고 접수</button>
-</form>
+  <label>좌표</label>
+  <input type="text" id="coordinates">
+  <button type="button" class="gps-btn" onclick="getGPS()">📍 현재 위치 자동 입력</button>
 
-<hr>
+  <label>환자 상태</label>
+  <textarea id="patientStatus"></textarea>
 
-<h3>📡 실시간 접수 현황</h3>
-<div id="listArea">로딩중...</div>
+  <label>응급처치 내용</label>
+  <textarea id="treatment"></textarea>
+
+  <label>출동 구조대원</label>
+  <input type="text" id="crew">
+
+  <button type="button" onclick="sendAndShare()">
+   📤 자동 전송 + 기록 공유
+  </button>
 
 </div>
 
-<script>
-const API_URL="https://script.google.com/macros/s/AKfycbyRvv6h0Q5u0f5HHkT_mLhRlmKiOMMpBKljFzVPkTj7d1bGQmAj1S0YTvPUb9ujSSahxw/exec";
-let map, geocoder, previewMarker=null;
-
-const conditionEl=document.getElementById("condition");
-const phoneEl=document.getElementById("phone");
-const addressEl=document.getElementById("address");
-const latEl=document.getElementById("lat");
-const lngEl=document.getElementById("lng");
-const listArea=document.getElementById("listArea");
-
-/******** 지도 초기화 ********/
-function initMap(){
-  map=new kakao.maps.Map(document.getElementById("map"),{
-    center:new kakao.maps.LatLng(35.1345,126.9902),
-    level:6
-  });
-  geocoder=new kakao.maps.services.Geocoder();
-}
-
-/******** 등록 ********/
-async function submitData(){
-  if(!conditionEl.value.trim()){ alert("증상 입력 필수"); return; }
-
-  let lat=latEl.value, lng=lngEl.value;
-  if(lat && lng){
-    sendData(parseFloat(lat),parseFloat(lng));
-    return;
-  }
-
-  if(navigator.geolocation)
-    navigator.geolocation.getCurrentPosition(pos=>
-      sendData(pos.coords.latitude,pos.coords.longitude)
-    );
-}
-
-async function sendData(lat,lng){
-  await fetch(API_URL,{
-    method:"POST",
-    headers:{ "Content-Type":"text/plain;charset=utf-8" },
-    body:JSON.stringify({
-      lat,lng,
-      address:addressEl.value,
-      symptom:conditionEl.value,
-      phone:phoneEl.value
-    })
-  });
-
-  conditionEl.value=phoneEl.value=addressEl.value=latEl.value=lngEl.value="";
-  if(previewMarker) previewMarker.setMap(null);
-  loadData();
-}
-
-/******** 🚑 현장도착 입력창 표시 ********/
-function showCompleteForm(id){
-  const formDiv=document.getElementById("form_"+id);
-  formDiv.style.display="block";
-}
-
-/******** 🚑 현장도착 저장 ********/
-async function completeCase(id){
-  const gcs=document.getElementById("gcs_"+id).value;
-  const record=document.getElementById("record_"+id).value;
-
-  if(!gcs){ alert("GCS 입력 필수"); return; }
-
-  await fetch(API_URL,{
-    method:"POST",
-    headers:{ "Content-Type":"text/plain;charset=utf-8" },
-    body:JSON.stringify({
-      action:"complete",
-      id:id,
-      GCS:gcs,
-      record:record
-    })
-  });
-
-  loadData();
-}
-
-/******** ✅ 사고처리 완료 ********/
-async function finishCase(id){
-  await fetch(API_URL,{
-    method:"POST",
-    headers:{ "Content-Type":"text/plain;charset=utf-8" },
-    body:JSON.stringify({
-      action:"finish",
-      id:id
-    })
-  });
-  loadData();
-}
-
-/******** 목록 불러오기 ********/
-async function loadData(){
-  const res=await fetch(API_URL);
-  const data=await res.json();
-  listArea.innerHTML="";
-
-  if(!data.length){
-    listArea.innerHTML="현재 접수된 신고가 없습니다.";
-    return;
-  }
-
-  data.reverse().forEach(item=>{
-
-    const div=document.createElement("div");
-    div.className="card"+(item.status==="사고처리완료"?" done":"");
-
-    div.innerHTML=`
-      <div class="time">🕒 접수: ${new Date(item.작성시간).toLocaleString()}</div>
-      🏠 ${item.주소||""}<br>
-      📞 ${item.연락처||""}<br>
-      📝 ${item.증상||""}<br>
-      상태: ${item.status||""}<br>
-
-      ${
-        item.status==="접수완료"
-        ? `<button class="complete-btn" onclick="showCompleteForm('${item.id}')">🚑 현장도착</button>
-
-           <div id="form_${item.id}" style="display:none;margin-top:8px;">
-             <input type="number" id="gcs_${item.id}" placeholder="GCS (3~15)">
-             <textarea id="record_${item.id}" placeholder="응급처치 기록"></textarea>
-             <button onclick="completeCase('${item.id}')">저장 후 현장도착 처리</button>
-           </div>`
-        : item.status==="현장도착"
-          ? `<button class="complete-btn" onclick="finishCase('${item.id}')">✅ 사고처리 완료</button>`
-          : ""
-      }
-    `;
-
-    listArea.appendChild(div);
-  });
-}
-
-initMap();
-loadData();
-setInterval(loadData,10000);
-</script>
 </body>
 </html>
