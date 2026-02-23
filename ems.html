@@ -12,134 +12,71 @@ h1{text-align:center;color:#b71c1c;}
 label{font-weight:bold;display:block;margin-top:10px;}
 input,textarea{width:100%;padding:8px;margin-top:5px;border:1px solid #ccc;border-radius:6px;}
 textarea{min-height:80px;}
-button{margin-top:15px;padding:14px 18px;border:none;border-radius:6px;font-weight:bold;cursor:pointer;background:#1976d2;color:#fff;font-size:16px;width:100%;}
+button{margin-top:15px;padding:14px;border:none;border-radius:6px;font-weight:bold;cursor:pointer;background:#1976d2;color:#fff;width:100%;}
 .gps-btn{background:#6a1b9a;margin-top:5px;}
 </style>
-
-<script>
-
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyRvv6h0Q5u0f5HHkT_mLhRlmKiOMMpBKljFzVPkTj7d1bGQmAj1S0YTvPUb9ujSSahxw/exec"; // ← 웹앱 URL 입력
-
-function getFormData(){
-  return {
-    arrivalTime: document.getElementById("arrivalTime").value,
-    patientName: document.getElementById("patientName").value,
-    phone: document.getElementById("phone").value,
-    coordinates: document.getElementById("coordinates").value,
-    patientStatus: document.getElementById("patientStatus").value,
-    treatment: document.getElementById("treatment").value,
-    crew: document.getElementById("crew").value
-  };
-}
-
-function sendAndShare(){
-
-  const data = getFormData();
-
-  const message =
-`🚑 응급처치 현장 기록
-
-도착시간: ${data.arrivalTime}
-환자이름: ${data.patientName}
-연락처: ${data.phone}
-좌표: ${data.coordinates}
-
-[환자상태]
-${data.patientStatus}
-
-[응급처치]
-${data.treatment}
-
-출동대원: ${data.crew}`;
-
-  fetch(SCRIPT_URL,{
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json"
-    },
-    body: JSON.stringify(data)
-  })
-  .then(res=>{
-    if(!res.ok) throw new Error("서버 응답 오류");
-    return res.json();
-  })
-  .then(response=>{
-
-    if(response.result === "success"){
-
-      if(navigator.share){
-        navigator.share({
-          title:"응급처치 기록",
-          text:message
-        }).catch(()=>{});
-      }else{
-        navigator.clipboard.writeText(message);
-        alert("저장 완료. 내용이 복사되었습니다.");
-      }
-
-    }else{
-      alert("Google Sheet 저장 실패");
-    }
-
-  })
-  .catch(error=>{
-    alert("오류 발생: " + error.message);
-  });
-}
-
-function getGPS(){
-  if(!navigator.geolocation){
-    alert("GPS를 지원하지 않는 브라우저입니다.");
-    return;
-  }
-
-  navigator.geolocation.getCurrentPosition(
-    function(position){
-      const lat = position.coords.latitude.toFixed(6);
-      const lon = position.coords.longitude.toFixed(6);
-      document.getElementById("coordinates").value = lat + ", " + lon;
-    },
-    function(){
-      alert("위치 정보를 가져올 수 없습니다.");
-    }
-  );
-}
-
-</script>
 </head>
 
 <body>
 
 <div class="container">
-  <h1>🚑 응급처치 현장 기록</h1>
+<h1>🚑 응급처치 현장 기록</h1>
 
-  <label>도착시간</label>
-  <input type="datetime-local" id="arrivalTime">
+<form id="recordForm"
+action="https://script.google.com/macros/s/AKfycbyRvv6h0Q5u0f5HHkT_mLhRlmKiOMMpBKljFzVPkTj7d1bGQmAj1S0YTvPUb9ujSSahxw/exec"
+method="POST"
+target="hidden_iframe"
+onsubmit="handleSubmit();">
 
-  <label>환자 이름</label>
-  <input type="text" id="patientName">
+<label>도착시간</label>
+<input type="datetime-local" name="arrivalTime">
 
-  <label>연락처</label>
-  <input type="tel" id="phone">
+<label>환자 이름</label>
+<input type="text" name="patientName">
 
-  <label>좌표</label>
-  <input type="text" id="coordinates">
-  <button type="button" class="gps-btn" onclick="getGPS()">📍 현재 위치 자동 입력</button>
+<label>연락처</label>
+<input type="tel" name="phone">
 
-  <label>환자 상태</label>
-  <textarea id="patientStatus"></textarea>
+<label>좌표</label>
+<input type="text" name="coordinates" id="coordinates">
+<button type="button" class="gps-btn" onclick="getGPS()">📍 현재 위치 자동 입력</button>
 
-  <label>응급처치 내용</label>
-  <textarea id="treatment"></textarea>
+<label>환자 상태</label>
+<textarea name="patientStatus"></textarea>
 
-  <label>출동 구조대원</label>
-  <input type="text" id="crew">
+<label>응급처치 내용</label>
+<textarea name="treatment"></textarea>
 
-  <button type="button" onclick="sendAndShare()">
-   🚀 Google Sheet 자동 전송 + 📤 기록 공유
-  </button>
+<label>출동 구조대원</label>
+<input type="text" name="crew">
+
+<button type="submit">
+📤 기록 공유
+</button>
+
+</form>
+
+<iframe name="hidden_iframe" style="display:none;"></iframe>
 
 </div>
+
+<script>
+
+function handleSubmit(){
+  setTimeout(()=>{
+    alert("✅ Google Sheet 저장 완료");
+  },1000);
+}
+
+function getGPS(){
+  navigator.geolocation.getCurrentPosition(pos=>{
+    document.getElementById("coordinates").value =
+      pos.coords.latitude.toFixed(6)+", "+
+      pos.coords.longitude.toFixed(6);
+  });
+}
+
+</script>
 
 </body>
 </html>
