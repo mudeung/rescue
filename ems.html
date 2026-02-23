@@ -18,7 +18,7 @@ button{margin-top:15px;padding:14px 18px;border:none;border-radius:6px;font-weig
 
 <script>
 
-const SCRIPT_URL = "YOUR_SCRIPT_URL"; // ← 웹앱 URL 입력
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyRvv6h0Q5u0f5HHkT_mLhRlmKiOMMpBKljFzVPkTj7d1bGQmAj1S0YTvPUb9ujSSahxw/exec"; // ← 웹앱 URL 입력
 
 function getFormData(){
   return {
@@ -36,8 +36,8 @@ function sendAndShare(){
 
   const data = getFormData();
 
-  const message = `
-🚑 응급처치 현장 기록
+  const message =
+`🚑 응급처치 현장 기록
 
 도착시간: ${data.arrivalTime}
 환자이름: ${data.patientName}
@@ -50,26 +50,31 @@ ${data.patientStatus}
 [응급처치]
 ${data.treatment}
 
-출동대원: ${data.crew}
-  `;
+출동대원: ${data.crew}`;
 
   fetch(SCRIPT_URL,{
     method:"POST",
+    headers:{
+      "Content-Type":"application/json"
+    },
     body: JSON.stringify(data)
   })
-  .then(res=>res.json())
+  .then(res=>{
+    if(!res.ok) throw new Error("서버 응답 오류");
+    return res.json();
+  })
   .then(response=>{
 
-    if(response.status === "saved"){
+    if(response.result === "success"){
 
       if(navigator.share){
         navigator.share({
           title:"응급처치 기록",
           text:message
-        });
+        }).catch(()=>{});
       }else{
         navigator.clipboard.writeText(message);
-        alert("저장 완료. 공유 기능이 지원되지 않아 내용이 복사되었습니다.");
+        alert("저장 완료. 내용이 복사되었습니다.");
       }
 
     }else{
@@ -78,18 +83,26 @@ ${data.treatment}
 
   })
   .catch(error=>{
-    alert("오류 발생: " + error);
+    alert("오류 발생: " + error.message);
   });
 }
 
 function getGPS(){
-  navigator.geolocation.getCurrentPosition(function(position){
-    const lat = position.coords.latitude.toFixed(6);
-    const lon = position.coords.longitude.toFixed(6);
-    document.getElementById("coordinates").value = lat + ", " + lon;
-  }, function(){
-    alert("위치 정보를 가져올 수 없습니다.");
-  });
+  if(!navigator.geolocation){
+    alert("GPS를 지원하지 않는 브라우저입니다.");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    function(position){
+      const lat = position.coords.latitude.toFixed(6);
+      const lon = position.coords.longitude.toFixed(6);
+      document.getElementById("coordinates").value = lat + ", " + lon;
+    },
+    function(){
+      alert("위치 정보를 가져올 수 없습니다.");
+    }
+  );
 }
 
 </script>
@@ -123,7 +136,7 @@ function getGPS(){
   <input type="text" id="crew">
 
   <button type="button" onclick="sendAndShare()">
-   📤 자동 전송 + 기록 공유
+   🚀 Google Sheet 자동 전송 + 📤 기록 공유
   </button>
 
 </div>
