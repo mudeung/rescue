@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>🚨 무등산 특수구조팀 실시간 산악사고 신고공유</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
 body{margin:0;font-family:Arial;background:#111;color:#fff;}
 header{background:#b71c1c;padding:15px;text-align:center;font-size:20px;}
@@ -13,7 +14,6 @@ header{background:#b71c1c;padding:15px;text-align:center;font-size:20px;}
 .time{color:#ffcc00;font-size:14px;}
 .coord{font-size:12px;color:#aaa;}
 .maplink{color:#4fc3f7;font-size:13px;text-decoration:none;}
-.maplink:hover{text-decoration:underline;}
 .complete-btn{
   background:#2e7d32;
   margin-top:8px;
@@ -35,77 +35,70 @@ header{background:#b71c1c;padding:15px;text-align:center;font-size:20px;}
 </div>
 
 <script>
-const API_URL="hhttps://script.google.com/macros/s/AKfycbxm_oLeGMIGh5PRokCURztVx6-1Ijug2KtuGbsFH-cZVOKE5LgaKDnLbTgFl2sWWDdkwA/exec";
+const API_URL="https://script.google.com/macros/s/배포된웹앱URL/exec";
 const listArea=document.getElementById("listArea");
 
 /******** 🚑 현장도착 ********/
 async function completeCase(id){
   if(!confirm("구조대원이 현장에 도착했습니까?")) return;
-  try{
-    await fetch(API_URL,{
-      method:"POST",
-      headers:{ "Content-Type":"text/plain;charset=utf-8" },
-      body:JSON.stringify({
-        action:"complete",
-        id:id,
-        completeTime:new Date().toISOString()
-      })
-    });
-    loadData();
-  }catch(err){
-    alert("처리 실패");
-    console.error(err);
-  }
+
+  await fetch(API_URL,{
+    method:"POST",
+    headers:{ "Content-Type":"text/plain;charset=utf-8" },
+    body:JSON.stringify({
+      action:"complete",
+      id:id,
+      completeTime:new Date().toISOString()
+    })
+  });
+
+  loadData();
 }
 
 /******** ✅ 사고처리 완료 ********/
 async function finishCase(id){
   if(!confirm("사고처리를 완료하시겠습니까?")) return;
-  try{
-    await fetch(API_URL,{
-      method:"POST",
-      headers:{ "Content-Type":"text/plain;charset=utf-8" },
-      body:JSON.stringify({
-        action:"finish",
-        id:id,
-        finishTime:new Date().toISOString()
-      })
-    });
-    loadData();
-  }catch(err){
-    alert("처리 실패");
-    console.error(err);
-  }
+
+  await fetch(API_URL,{
+    method:"POST",
+    headers:{ "Content-Type":"text/plain;charset=utf-8" },
+    body:JSON.stringify({
+      action:"finish",
+      id:id,
+      finishTime:new Date().toISOString()
+    })
+  });
+
+  loadData();
 }
 
 /******** 목록 불러오기 ********/
 async function loadData(){
   const res=await fetch(API_URL);
   const data=await res.json();
+
   listArea.innerHTML="";
+
   if(!data.length){
     listArea.innerHTML="현재 접수된 신고가 없습니다.";
     return;
   }
 
-  data.sort((a,b)=>new Date(b.time)-new Date(a.time));
+  data.sort((a,b)=>new Date(b.작성시간)-new Date(a.작성시간));
 
   data.forEach(item=>{
     const div=document.createElement("div");
-
-    // 사고처리 완료만 흐림 처리
     div.className="card"+(item.status==="사고처리완료"?" done":"");
 
     div.innerHTML=`
-      <div class="time">🕒 접수: ${new Date(item.time).toLocaleString()}</div>
+      <div class="time">🕒 접수: ${new Date(item.작성시간).toLocaleString()}</div>
 
-      ${item.status==="현장도착"?
-        `<div class="time">🚑 현장도착: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : ""}</div>`
+      ${item.status==="현장도착"||item.status==="사고처리완료"
+        ? `<div class="time">🚑 현장도착: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : ""}</div>`
         : ""}
 
-      ${item.status==="사고처리완료"?
-        `<div class="time">🚑 현장도착: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : ""}</div>
-         <div class="time">✅ 사고처리 완료: ${item.finishTime ? new Date(item.finishTime).toLocaleString() : ""}</div>`
+      ${item.status==="사고처리완료"
+        ? `<div class="time">✅ 사고처리 완료: ${item.finishTime ? new Date(item.finishTime).toLocaleString() : ""}</div>`
         : ""}
 
       🏠 ${item.address||"주소없음"}<br>
