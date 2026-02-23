@@ -208,39 +208,48 @@ function calculateGCS() {
 });
 calculateGCS();
 
-  
 /* GPS */
-getLocation.onclick = () => {
+document.getElementById("getLocation").onclick = () => {
   navigator.geolocation.getCurrentPosition(p => {
+
     const lat = p.coords.latitude;
     const lng = p.coords.longitude;
     const txt = `위도:${lat}, 경도:${lng}`;
-    locationDisplay.textContent = txt;
-    hiddenCoordinate.value = txt;
+
+    document.getElementById("locationDisplay").textContent = txt;
+    document.getElementById("hiddenCoordinate").value = txt;
 
     const loc = new kakao.maps.LatLng(lat, lng);
     const map = new kakao.maps.Map(document.getElementById("map"), {
       center: loc,
       level: 3
     });
+
     new kakao.maps.Marker({ position: loc, map });
+
+  }, () => {
+    alert("위치 권한을 허용해주세요.");
   });
 };
 
 /* 저장 + 전송 + 공유 */
-recordForm.onsubmit = async e => {
+document.getElementById("recordForm").onsubmit = async e => {
+
   e.preventDefault();
 
   let data = {}, text = "";
-  new FormData(recordForm).forEach((v,k)=>{
+
+  new FormData(e.target).forEach((v,k)=>{
     data[k]=v;
     text+=`${k}: ${v}\n`;
   });
 
-  data["GCS"] = gcsResult.textContent;
-  text += `GCS: ${gcsResult.textContent}`;
+  const gcsText = document.getElementById("gcsResult").textContent;
+  data["GCS"] = gcsText;
+  text += `GCS: ${gcsText}`;
 
-  savedData.innerHTML = `<div class="board-item">${text}</div>`;
+  document.getElementById("savedData").innerHTML =
+    `<div class="board-item">${text}</div>`;
 
   const blob = new Blob([text], {type:"text/plain"});
   const a = document.createElement("a");
@@ -250,6 +259,9 @@ recordForm.onsubmit = async e => {
 
   fetch(GOOGLE_SCRIPT_URL,{
     method:"POST",
+    headers:{
+      "Content-Type":"text/plain;charset=utf-8"
+    },
     body:JSON.stringify(data)
   }).catch(()=>{});
 
@@ -260,7 +272,6 @@ recordForm.onsubmit = async e => {
     });
   }
 };
-</script>
 
 </body>
 </html>
