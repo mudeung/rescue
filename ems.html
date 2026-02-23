@@ -181,97 +181,74 @@ class="w-full bg-blue-600 text-white py-4 rounded">
 </div>
 
 <script>
-const GOOGLE_SCRIPT_URL =
-"https://script.google.com/macros/s/AKfycbyRvv6h0Q5u0f5HHkT_mLhRlmKiOMMpBKljFzVPkTj7d1bGQmAj1S0YTvPUb9ujSSahxw/exec";
+const GOOGLE_SCRIPT_URL="https://script.google.com/macros/s/AKfycbyRvv6h0Q5u0f5HHkT_mLhRlmKiOMMpBKljFzVPkTj7d1bGQmAj1S0YTvPUb9ujSSahxw/exec";
 
-/* ===== GCS 계산 ===== */
-function calculateGCS() {
-    const e = parseInt(document.getElementById("eye").value);
-    const v = parseInt(document.getElementById("verbal").value);
-    const m = parseInt(document.getElementById("motor").value);
+/* GCS */
+function calculateGCS(){
+  const e=parseInt(document.getElementById("eye").value);
+  const v=parseInt(document.getElementById("verbal").value);
+  const m=parseInt(document.getElementById("motor").value);
 
-    const total = e + v + m;
+  const total=e+v+m;
 
-    let state = '';
-    if (total === 15) state = '정상-alert';
-    else if (total >= 13) state = '졸림-drowsy';
-    else if (total >= 9) state = '혼미-stupor';
-    else if (total >= 4) state = '반혼수-semicoma';
-    else state = '혼수-coma';
+  let state='';
+  if(total===15) state='정상';
+  else if(total>=13) state='졸림';
+  else if(total>=9) state='혼미';
+  else if(total>=4) state='반혼수';
+  else state='혼수';
 
-    document.getElementById("gcsResult").innerText = `${total}점 (${state})`;
-    document.getElementById("gcsResultContainer").style.display = "block";
+  document.getElementById("gcsResult").innerText=`${total}점 (${state})`;
+  document.getElementById("gcsResultContainer").style.display="block";
 }
 
-["eye","verbal","motor"].forEach(id => {
-    document.getElementById(id).addEventListener("change", calculateGCS);
+["eye","verbal","motor"].forEach(id=>{
+  document.getElementById(id).addEventListener("change",calculateGCS);
 });
 calculateGCS();
 
 /* GPS */
-document.getElementById("getLocation").onclick = () => {
-  navigator.geolocation.getCurrentPosition(p => {
+document.getElementById("getLocation").onclick=()=>{
+  navigator.geolocation.getCurrentPosition(p=>{
+    const lat=p.coords.latitude;
+    const lng=p.coords.longitude;
+    const txt=`위도:${lat}, 경도:${lng}`;
 
-    const lat = p.coords.latitude;
-    const lng = p.coords.longitude;
-    const txt = `위도:${lat}, 경도:${lng}`;
+    document.getElementById("locationDisplay").textContent=txt;
+    document.getElementById("hiddenCoordinate").value=txt;
 
-    document.getElementById("locationDisplay").textContent = txt;
-    document.getElementById("hiddenCoordinate").value = txt;
-
-    const loc = new kakao.maps.LatLng(lat, lng);
-    const map = new kakao.maps.Map(document.getElementById("map"), {
-      center: loc,
-      level: 3
+    const loc=new kakao.maps.LatLng(lat,lng);
+    const map=new kakao.maps.Map(document.getElementById("map"),{
+      center:loc,level:3
     });
-
-    new kakao.maps.Marker({ position: loc, map });
-
-  }, () => {
-    alert("위치 권한을 허용해주세요.");
+    new kakao.maps.Marker({position:loc,map});
   });
 };
 
-/* 저장 + 전송 + 공유 */
-document.getElementById("recordForm").onsubmit = async e => {
-
+/* 저장 */
+document.getElementById("recordForm").onsubmit=async e=>{
   e.preventDefault();
 
-  let data = {}, text = "";
-
+  let data={},text="";
   new FormData(e.target).forEach((v,k)=>{
     data[k]=v;
     text+=`${k}: ${v}\n`;
   });
 
-  const gcsText = document.getElementById("gcsResult").textContent;
-  data["GCS"] = gcsText;
-  text += `GCS: ${gcsText}`;
+  const gcsText=document.getElementById("gcsResult").textContent;
+  data["GCS"]=gcsText;
+  text+=`GCS: ${gcsText}`;
 
-  document.getElementById("savedData").innerHTML =
+  document.getElementById("savedData").innerHTML=
     `<div class="board-item">${text}</div>`;
-
-  const blob = new Blob([text], {type:"text/plain"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "무등산_환자기록.txt";
-  a.click();
 
   fetch(GOOGLE_SCRIPT_URL,{
     method:"POST",
-    headers:{
-      "Content-Type":"text/plain;charset=utf-8"
-    },
+    headers:{"Content-Type":"text/plain;charset=utf-8"},
     body:JSON.stringify(data)
-  }).catch(()=>{});
-
-  if(navigator.share){
-    navigator.share({
-      title:"무등산 산악사고 기록",
-      text:text
-    });
-  }
+  });
 };
-
+</script>
+  
 </body>
 </html>
