@@ -60,133 +60,142 @@ button{background:#2e7d32;color:#fff;cursor:pointer;}
 
 <script>
 const API_URL="https://script.google.com/macros/s/AKfycbyRvv6h0Q5u0f5HHkT_mLhRlmKiOMMpBKljFzVPkTj7d1bGQmAj1S0YTvPUb9ujSSahxw/exec";
-let currentLat="",currentLng="";
+let map, geocoder, previewMarker=null;
 
-/* GPS */
-document.getElementById("gpsBtn").onclick=()=>{
-  navigator.geolocation.getCurrentPosition(p=>{
-    currentLat=p.coords.latitude;
-    currentLng=p.coords.longitude;
+const conditionEl=document.getElementById("condition");
+const phoneEl=document.getElementById("phone");
+const addressEl=document.getElementById("address");
+const latEl=document.getElementById("lat");
+const lngEl=document.getElementById("lng");
+const listArea=document.getElementById("listArea");
 
-    const loc=new kakao.maps.LatLng(currentLat,currentLng);
-    const map=new kakao.maps.Map(document.getElementById("map"),{
-      center:loc,level:3
-    });
-    new kakao.maps.Marker({position:loc,map});
+/******** 지도 초기화 ********/
+function initMap(){
+  map=new kakao.maps.Map(document.getElementById("map"),{
+    center:new kakao.maps.LatLng(35.1345,126.9902),
+    level:6
   });
-};
-
-/* 신고 접수 */
-document.getElementById("rescueForm").onsubmit=async e=>{
-  e.preventDefault();
-
-  const data={
-    "이름":name.value,
-    "연락처":phone.value,
-    "주소":address.value,
-    "위도":currentLat,
-    "경도":currentLng,
-    "증상":symptom.value
-  };
-
-  await fetch(API_URL,{
-    method:"POST",
-    headers:{"Content-Type":"text/plain;charset=utf-8"},
-    body:JSON.stringify(data)
-  });
-
-  alert("신고 접수 완료");
-  loadData();
-};
-
-/* 목록 */
-async function loadData(){
-  const res=await fetch(API_URL);
-  const data=await res.json();
-  const area=document.getElementById("listArea");
-  area.innerHTML="";
-
-  data.reverse().forEach(item=>{
-
-    let cls="red";
-    if(item.status==="현장도착") cls="green";
-    if(item.status==="사고처리완료") cls="gray";
-
-    const div=document.createElement("div");
-    div.className="card "+cls;
-
-    div.innerHTML=`
-      🕒 ${new Date(item.작성시간).toLocaleString()}<br>
-      👤 ${item.이름}<br>
-      📞 ${item.연락처}<br>
-      📍 ${item.주소}<br>
-      증상: ${item.증상}<br>
-      상태: ${item.status}<br>
-    `;
-
-    /* 현장도착 */
-    if(item.status==="접수완료"){
-      const gcsInput=document.createElement("input");
-      gcsInput.placeholder="GCS 입력 (예: 14)";
-      gcsInput.id="gcs_"+item.id;
-
-      const record=document.createElement("textarea");
-      record.placeholder="응급처치 기록";
-      record.id="record_"+item.id;
-
-      const btn=document.createElement("button");
-      btn.innerText="현장도착";
-      btn.className="smallBtn";
-      btn.onclick=()=>updateComplete(item.id);
-
-      div.appendChild(gcsInput);
-      div.appendChild(record);
-      div.appendChild(btn);
-    }
-
-    /* 처리완료 */
-    if(item.status==="현장도착"){
-      const btn2=document.createElement("button");
-      btn2.innerText="처리완료";
-      btn2.className="smallBtn";
-      btn2.onclick=()=>updateStatus(item.id,"finish");
-      div.appendChild(btn2);
-    }
-
-    area.appendChild(div);
-  });
+  geocoder=new kakao.maps.services.Geocoder();
 }
 
-async function updateComplete(id){
+/******** 등록 ********/
+async function submitData(){
+  if(!conditionEl.value.trim()){ alert("증상 입력 필수"); return; }
+
+  let lat=latEl.value, lng=lngEl.value;
+  if(lat && lng){
+    sendData(parseFloat(lat),parseFloat(lng));
+    return;
+  }
+
+  if(navigator.geolocation)
+    navigator.geolocation.getCurrentPosition(pos=>
+      sendData(pos.coords.latitude,pos.coords.longitude)
+    );
+}
+
+async function sendData(lat,lng){
+  await fetch(API_URL,{
+    method:"POST",
+    headers:{ "Content-Type":"text/plain;charset=utf-8" },
+    body:JSON.stringify({
+      lat,lng,
+      address:addressEl.value,
+      symptom:conditionEl.value,
+      phone:phoneEl.value
+    })
+  });
+
+  conditionEl.value=phoneEl.value=addressEl.value=latEl.value=lngEl.value="";
+  if(previewMarker) previewMarker.setMap(null);
+  loadData();
+}
+
+/******** 🚑 현장도착 입력창 표시 ********/
+function showCompleteForm(id){
+  const formDiv=document.getElementById("form_"+id);
+  formDiv.style.display="block";
+}
+
+/******** 🚑 현장도착 저장 ********/
+async function completeCase(id){
   const gcs=document.getElementById("gcs_"+id).value;
   const record=document.getElementById("record_"+id).value;
 
+  if(!gcs){ alert("GCS 입력 필수"); return; }
+
   await fetch(API_URL,{
     method:"POST",
-    headers:{"Content-Type":"text/plain;charset=utf-8"},
+    headers:{ "Content-Type":"text/plain;charset=utf-8" },
     body:JSON.stringify({
-      id:id,
       action:"complete",
+      id:id,
       GCS:gcs,
-      기록:record
+      record:record
     })
   });
 
   loadData();
 }
 
-async function updateStatus(id,action){
+/******** ✅ 사고처리 완료 ********/
+async function finishCase(id){
   await fetch(API_URL,{
     method:"POST",
-    headers:{"Content-Type":"text/plain;charset=utf-8"},
-    body:JSON.stringify({id:id,action:action})
+    headers:{ "Content-Type":"text/plain;charset=utf-8" },
+    body:JSON.stringify({
+      action:"finish",
+      id:id
+    })
   });
   loadData();
 }
 
+/******** 목록 불러오기 ********/
+async function loadData(){
+  const res=await fetch(API_URL);
+  const data=await res.json();
+  listArea.innerHTML="";
+
+  if(!data.length){
+    listArea.innerHTML="현재 접수된 신고가 없습니다.";
+    return;
+  }
+
+  data.reverse().forEach(item=>{
+
+    const div=document.createElement("div");
+    div.className="card"+(item.status==="사고처리완료"?" done":"");
+
+    div.innerHTML=`
+      <div class="time">🕒 접수: ${new Date(item.작성시간).toLocaleString()}</div>
+      🏠 ${item.주소||""}<br>
+      📞 ${item.연락처||""}<br>
+      📝 ${item.증상||""}<br>
+      상태: ${item.status||""}<br>
+
+      ${
+        item.status==="접수완료"
+        ? `<button class="complete-btn" onclick="showCompleteForm('${item.id}')">🚑 현장도착</button>
+
+           <div id="form_${item.id}" style="display:none;margin-top:8px;">
+             <input type="number" id="gcs_${item.id}" placeholder="GCS (3~15)">
+             <textarea id="record_${item.id}" placeholder="응급처치 기록"></textarea>
+             <button onclick="completeCase('${item.id}')">저장 후 현장도착 처리</button>
+           </div>`
+        : item.status==="현장도착"
+          ? `<button class="complete-btn" onclick="finishCase('${item.id}')">✅ 사고처리 완료</button>`
+          : ""
+      }
+    `;
+
+    listArea.appendChild(div);
+  });
+}
+
+initMap();
 loadData();
 setInterval(loadData,10000);
 </script>
-
 </body>
 </html>
