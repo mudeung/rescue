@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🚑 무등산 산악사고 기록</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=여기에_카카오앱키"></script>
+</head>
+
+<body class="bg-gray-100 p-4">
+
+<h1 class="text-2xl font-bold text-center text-red-600 mb-4">
+🚑 무등산 산악사고 기록
+</h1>
+
+<form id="recordForm" class="bg-white p-4 rounded shadow">
+
+<input name="출동대원" placeholder="출동대원" class="w-full border p-2 mb-2" required>
+<input name="사고장소" placeholder="사고장소" class="w-full border p-2 mb-2" required>
+<input name="주증상" placeholder="주증상" class="w-full border p-2 mb-2" required>
+<input name="연락처" placeholder="연락처" class="w-full border p-2 mb-2" required>
+
+<button type="button" id="getLocation" class="bg-green-600 text-white px-3 py-2 rounded mb-2">
+GPS 가져오기
+</button>
+
+<div id="coordBox" class="mb-2 text-sm text-gray-600">위도:, 경도:</div>
+<input type="hidden" id="lat">
+<input type="hidden" id="lng">
+
+<button class="w-full bg-red-600 text-white py-3 rounded">
+🚨 상황판 전송
+</button>
+
+</form>
+
+<script>
+
+const API_URL="https://script.google.com/macros/s/AKfycbybwt7-vC5W8NUmve94LLsdlIRFHoiw3wcIrWk9GZFRHnmZJ_0TEsihhz7oX8al_BYR_A/exec";
+
+getLocation.onclick=()=>{
+navigator.geolocation.getCurrentPosition(p=>{
+lat.value=p.coords.latitude;
+lng.value=p.coords.longitude;
+coordBox.textContent=`위도:${lat.value}, 경도:${lng.value}`;
+});
+};
+
+recordForm.onsubmit=async e=>{
+e.preventDefault();
+
+const data={
+id:Date.now().toString(),
+time:new Date().toISOString(),
+address:recordForm.사고장소.value,
+phone:recordForm.연락처.value,
+symptom:recordForm.주증상.value,
+lat:lat.value,
+lng:lng.value,
+status:"접수완료"
+};
+
+await fetch(API_URL,{
+method:"POST",
+headers:{ "Content-Type":"text/plain;charset=utf-8" },
+body:JSON.stringify(data)
+});
+
+alert("🚑 상황판 전송 완료");
+recordForm.reset();
+};
+
+</script>
+</body>
+</html>
