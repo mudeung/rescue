@@ -2,75 +2,134 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
+<title>🚨 무등산 특수구조팀 실시간 산악사고 신고공유</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🚑 무등산 산악사고 기록</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=여기에_카카오앱키"></script>
+<style>
+body{margin:0;font-family:Arial;background:#111;color:#fff;}
+header{background:#b71c1c;padding:15px;text-align:center;font-size:20px;}
+.container{padding:15px;}
+.card{background:#1e1e1e;padding:12px;margin-bottom:10px;border-radius:6px;}
+.card.done{background:#2b2b2b;opacity:0.6;}
+.time{color:#ffcc00;font-size:14px;}
+.coord{font-size:12px;color:#aaa;}
+.maplink{color:#4fc3f7;font-size:13px;text-decoration:none;}
+.maplink:hover{text-decoration:underline;}
+.complete-btn{
+  background:#2e7d32;
+  margin-top:8px;
+  color:#fff;
+  border:none;
+  padding:6px 10px;
+  border-radius:4px;
+  cursor:pointer;
+}
+.complete-btn:hover{opacity:0.8;}
+</style>
 </head>
+<body>
 
-<body class="bg-gray-100 p-4">
+<header>🚨 무등산 특수구조팀 실시간 산악사고 신고공유</header>
 
-<h1 class="text-2xl font-bold text-center text-red-600 mb-4">
-🚑 무등산 산악사고 기록
-</h1>
-
-<form id="recordForm" class="bg-white p-4 rounded shadow">
-
-<input name="출동대원" placeholder="출동대원" class="w-full border p-2 mb-2" required>
-<input name="사고장소" placeholder="사고장소" class="w-full border p-2 mb-2" required>
-<input name="주증상" placeholder="주증상" class="w-full border p-2 mb-2" required>
-<input name="연락처" placeholder="연락처" class="w-full border p-2 mb-2" required>
-
-<button type="button" id="getLocation" class="bg-green-600 text-white px-3 py-2 rounded mb-2">
-GPS 가져오기
-</button>
-
-<div id="coordBox" class="mb-2 text-sm text-gray-600">위도:, 경도:</div>
-<input type="hidden" id="lat">
-<input type="hidden" id="lng">
-
-<button class="w-full bg-red-600 text-white py-3 rounded">
-🚨 상황판 전송
-</button>
-
-</form>
+<div class="container">
+  <div id="listArea">로딩중...</div>
+</div>
 
 <script>
+const API_URL="hhttps://script.google.com/macros/s/AKfycbxm_oLeGMIGh5PRokCURztVx6-1Ijug2KtuGbsFH-cZVOKE5LgaKDnLbTgFl2sWWDdkwA/exec";
+const listArea=document.getElementById("listArea");
 
-const API_URL="https://script.google.com/macros/s/AKfycbybwt7-vC5W8NUmve94LLsdlIRFHoiw3wcIrWk9GZFRHnmZJ_0TEsihhz7oX8al_BYR_A/exec";
+/******** 🚑 현장도착 ********/
+async function completeCase(id){
+  if(!confirm("구조대원이 현장에 도착했습니까?")) return;
+  try{
+    await fetch(API_URL,{
+      method:"POST",
+      headers:{ "Content-Type":"text/plain;charset=utf-8" },
+      body:JSON.stringify({
+        action:"complete",
+        id:id,
+        completeTime:new Date().toISOString()
+      })
+    });
+    loadData();
+  }catch(err){
+    alert("처리 실패");
+    console.error(err);
+  }
+}
 
-getLocation.onclick=()=>{
-navigator.geolocation.getCurrentPosition(p=>{
-lat.value=p.coords.latitude;
-lng.value=p.coords.longitude;
-coordBox.textContent=`위도:${lat.value}, 경도:${lng.value}`;
-});
-};
+/******** ✅ 사고처리 완료 ********/
+async function finishCase(id){
+  if(!confirm("사고처리를 완료하시겠습니까?")) return;
+  try{
+    await fetch(API_URL,{
+      method:"POST",
+      headers:{ "Content-Type":"text/plain;charset=utf-8" },
+      body:JSON.stringify({
+        action:"finish",
+        id:id,
+        finishTime:new Date().toISOString()
+      })
+    });
+    loadData();
+  }catch(err){
+    alert("처리 실패");
+    console.error(err);
+  }
+}
 
-recordForm.onsubmit=async e=>{
-e.preventDefault();
+/******** 목록 불러오기 ********/
+async function loadData(){
+  const res=await fetch(API_URL);
+  const data=await res.json();
+  listArea.innerHTML="";
+  if(!data.length){
+    listArea.innerHTML="현재 접수된 신고가 없습니다.";
+    return;
+  }
 
-const data={
-id:Date.now().toString(),
-time:new Date().toISOString(),
-address:recordForm.사고장소.value,
-phone:recordForm.연락처.value,
-symptom:recordForm.주증상.value,
-lat:lat.value,
-lng:lng.value,
-status:"접수완료"
-};
+  data.sort((a,b)=>new Date(b.time)-new Date(a.time));
 
-await fetch(API_URL,{
-method:"POST",
-headers:{ "Content-Type":"text/plain;charset=utf-8" },
-body:JSON.stringify(data)
-});
+  data.forEach(item=>{
+    const div=document.createElement("div");
 
-alert("🚑 상황판 전송 완료");
-recordForm.reset();
-};
+    // 사고처리 완료만 흐림 처리
+    div.className="card"+(item.status==="사고처리완료"?" done":"");
 
+    div.innerHTML=`
+      <div class="time">🕒 접수: ${new Date(item.time).toLocaleString()}</div>
+
+      ${item.status==="현장도착"?
+        `<div class="time">🚑 현장도착: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : ""}</div>`
+        : ""}
+
+      ${item.status==="사고처리완료"?
+        `<div class="time">🚑 현장도착: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : ""}</div>
+         <div class="time">✅ 사고처리 완료: ${item.finishTime ? new Date(item.finishTime).toLocaleString() : ""}</div>`
+        : ""}
+
+      🏠 ${item.address||"주소없음"}<br>
+      📞 ${item.phone||"번호없음"}<br>
+      📝 ${item.symptom||"내용없음"}<br>
+      <div class="coord">위도: ${item.lat} / 경도: ${item.lng}</div>
+      <a class="maplink" href="https://map.kakao.com/link/map/구조요청 위치,${item.lat},${item.lng}" target="_blank">📍 지도보기</a><br>
+
+      ${
+        item.status==="사고처리완료"
+        ? ""
+        : item.status==="현장도착"
+          ? `<button class="complete-btn" onclick="finishCase('${item.id}')">✅ 사고처리 완료</button>`
+          : `<button class="complete-btn" onclick="completeCase('${item.id}')">🚑 구조대원 현장도착</button>`
+      }
+    `;
+
+    listArea.appendChild(div);
+  });
+}
+
+loadData();
+setInterval(loadData,10000);
 </script>
+
 </body>
 </html>
