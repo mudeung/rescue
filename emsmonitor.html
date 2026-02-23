@@ -11,29 +11,74 @@ header{background:#b71c1c;padding:15px;text-align:center;font-size:20px;}
 .card{background:#1e1e1e;padding:12px;margin-bottom:10px;border-radius:6px;}
 .card.done{background:#2b2b2b;opacity:0.6;}
 .time{color:#ffcc00;font-size:14px;}
-.status{margin-top:6px;font-weight:bold;}
+.coord{font-size:12px;color:#aaa;}
+.maplink{color:#4fc3f7;font-size:13px;text-decoration:none;}
+.maplink:hover{text-decoration:underline;}
 .complete-btn{
-  background:#2e7d32;margin-top:8px;color:#fff;border:none;
-  padding:6px 10px;border-radius:4px;cursor:pointer;
+  background:#2e7d32;
+  margin-top:8px;
+  color:#fff;
+  border:none;
+  padding:6px 10px;
+  border-radius:4px;
+  cursor:pointer;
 }
-.finish-btn{
-  background:#1565c0;margin-top:8px;margin-left:6px;color:#fff;border:none;
-  padding:6px 10px;border-radius:4px;cursor:pointer;
+.complete-btn:hover{opacity:0.8;}
+.record-box{
+  margin-top:8px;
+  background:#2a2a2a;
+  padding:8px;
+  border-radius:4px;
 }
 </style>
 </head>
 <body>
 
 <header>🚨 무등산 특수구조팀 실시간 산악사고 신고공유</header>
+
 <div class="container">
   <div id="listArea">로딩중...</div>
 </div>
 
 <script>
-const API_URL="https://script.google.com/macros/s/AKfycbyRvv6h0Q5u0f5HHkT_mLhRlmKiOMMpBKljFzVPkTj7d1bGQmAj1S0YTvPUb9ujSSahxw/exec";
+const API_URL="https://script.google.com/macros/s/AKfycbybwt7-vC5W8NUmve94LLsdlIRFHoiw3wcIrWk9GZFRHnmZJ_0TEsihhz7oX8al_BYR_A/exec";
 const listArea=document.getElementById("listArea");
 
+/******** 🚑 현장도착 ********/
+async function completeCase(id){
+  if(!confirm("구조대원이 현장에 도착했습니까?")) return;
+
+  await fetch(API_URL,{
+    method:"POST",
+    headers:{ "Content-Type":"text/plain;charset=utf-8" },
+    body:JSON.stringify({
+      action:"complete",
+      id:id
+    })
+  });
+
+  loadData();
+}
+
+/******** ✅ 사고처리 완료 ********/
+async function finishCase(id){
+  if(!confirm("사고처리를 완료하시겠습니까?")) return;
+
+  await fetch(API_URL,{
+    method:"POST",
+    headers:{ "Content-Type":"text/plain;charset=utf-8" },
+    body:JSON.stringify({
+      action:"finish",
+      id:id
+    })
+  });
+
+  loadData();
+}
+
+/******** 목록 불러오기 ********/
 async function loadData(){
+
   const res=await fetch(API_URL);
   const data=await res.json();
   listArea.innerHTML="";
@@ -46,52 +91,41 @@ async function loadData(){
   data.sort((a,b)=>new Date(b.작성시간)-new Date(a.작성시간));
 
   data.forEach(item=>{
-    const div=document.createElement("div");
-    div.className="card";
 
-    if(item.status==="사고처리완료"){
-      div.classList.add("done");
-    }
+    const div=document.createElement("div");
+    div.className="card"+(item.status==="사고처리완료"?" done":"");
 
     div.innerHTML=`
-      <div class="time">🕒 ${new Date(item.작성시간).toLocaleString()}</div>
-      👤 ${item.이름||""}<br>
-      📞 ${item.연락처||""}<br>
-      📍 ${item.주소||""}<br>
-      📝 ${item.증상||""}<br>
-      🧠 GCS : ${item.GCS||""}<br>
-      <div class="status">상태 : ${item.status||""}</div>
+      <div class="time">🕒 접수: ${new Date(item.작성시간).toLocaleString()}</div>
+
+      ${item.status==="현장도착" || item.status==="사고처리완료"
+        ? `<div class="time">🚑 현장도착: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : ""}</div>`
+        : ""}
+
+      ${item.status==="사고처리완료"
+        ? `<div class="time">✅ 사고처리 완료: ${item.finishTime ? new Date(item.finishTime).toLocaleString() : ""}</div>`
+        : ""}
+
+      🏠 ${item.주소||"주소없음"}<br>
+      📞 ${item.연락처||"번호없음"}<br>
+      📝 ${item.증상||"내용없음"}<br>
+      <div class="coord">위도: ${item.위도} / 경도: ${item.경도}</div>
+      <a class="maplink" href="https://map.kakao.com/link/map/구조요청 위치,${item.위도},${item.경도}" target="_blank">📍 지도보기</a>
+      
+      ${item.GCS ? `<div class="record-box">🧠 GCS: ${item.GCS}</div>` : ""}
+      ${item.record ? `<div class="record-box">📝 처치기록: ${item.record}</div>` : ""}
+
+      ${
+        item.status==="사고처리완료"
+        ? ""
+        : item.status==="현장도착"
+          ? `<button class="complete-btn" onclick="finishCase('${item.id}')">✅ 사고처리 완료</button>`
+          : `<button class="complete-btn" onclick="completeCase('${item.id}')">🚑 구조대원 현장도착</button>`
+      }
     `;
-
-    // 현장도착 버튼
-    if(item.status==="접수완료"){
-      const btn=document.createElement("button");
-      btn.className="complete-btn";
-      btn.innerText="현장도착";
-      btn.onclick=()=>updateStatus(item.id,"complete");
-      div.appendChild(btn);
-    }
-
-    // 처리완료 버튼
-    if(item.status==="현장도착"){
-      const btn2=document.createElement("button");
-      btn2.className="finish-btn";
-      btn2.innerText="사고처리완료";
-      btn2.onclick=()=>updateStatus(item.id,"finish");
-      div.appendChild(btn2);
-    }
 
     listArea.appendChild(div);
   });
-}
-
-async function updateStatus(id,action){
-  await fetch(API_URL,{
-    method:"POST",
-    headers:{"Content-Type":"text/plain;charset=utf-8"},
-    body:JSON.stringify({id,action})
-  });
-  loadData();
 }
 
 loadData();
