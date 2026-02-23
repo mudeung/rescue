@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>🚨 무등산 특수구조팀 실시간 산악사고 신고공유</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
 body{margin:0;font-family:Arial;background:#111;color:#fff;}
 header{background:#b71c1c;padding:15px;text-align:center;font-size:20px;}
@@ -12,162 +11,26 @@ header{background:#b71c1c;padding:15px;text-align:center;font-size:20px;}
 .card{background:#1e1e1e;padding:12px;margin-bottom:10px;border-radius:6px;}
 .card.done{background:#2b2b2b;opacity:0.6;}
 .time{color:#ffcc00;font-size:14px;}
-.coord{font-size:12px;color:#aaa;}
-.maplink{color:#4fc3f7;font-size:13px;text-decoration:none;}
 .complete-btn{
-  background:#2e7d32;
-  margin-top:8px;
-  color:#fff;
-  border:none;
-  padding:6px 10px;
-  border-radius:4px;
-  cursor:pointer;
+  background:#2e7d32;margin-top:8px;color:#fff;border:none;
+  padding:6px 10px;border-radius:4px;cursor:pointer;
 }
-.complete-btn:hover{opacity:0.8;}
 </style>
 </head>
 <body>
 
 <header>🚨 무등산 특수구조팀 실시간 산악사고 신고공유</header>
-
 <div class="container">
   <div id="listArea">로딩중...</div>
 </div>
 
 <script>
-const API_URL="https://script.google.com/macros/s/<script>
-const GOOGLE_SCRIPT_URL =
-"https://script.google.com/macros/s/AKfycbyRvv6h0Q5u0f5HHkT_mLhRlmKiOMMpBKljFzVPkTj7d1bGQmAj1S0YTvPUb9ujSSahxw/exec";
-
-/* ===== GCS 계산 ===== */
-function calculateGCS() {
-    const e = parseInt(document.getElementById("eye").value);
-    const v = parseInt(document.getElementById("verbal").value);
-    const m = parseInt(document.getElementById("motor").value);
-
-    const total = e + v + m;
-
-    let state = '';
-    if (total === 15) state = '정상-alert';
-    else if (total >= 13) state = '졸림-drowsy';
-    else if (total >= 9) state = '혼미-stupor';
-    else if (total >= 4) state = '반혼수-semicoma';
-    else state = '혼수-coma';
-
-    document.getElementById("gcsResult").innerText = `${total}점 (${state})`;
-    document.getElementById("gcsResultContainer").style.display = "block";
-}
-
-["eye","verbal","motor"].forEach(id => {
-    document.getElementById(id).addEventListener("change", calculateGCS);
-});
-calculateGCS();
-
-/* GPS */
-document.getElementById("getLocation").onclick = () => {
-  navigator.geolocation.getCurrentPosition(p => {
-
-    const lat = p.coords.latitude;
-    const lng = p.coords.longitude;
-    const txt = `위도:${lat}, 경도:${lng}`;
-
-    document.getElementById("locationDisplay").textContent = txt;
-    document.getElementById("hiddenCoordinate").value = txt;
-
-    const loc = new kakao.maps.LatLng(lat, lng);
-    const map = new kakao.maps.Map(document.getElementById("map"), {
-      center: loc,
-      level: 3
-    });
-
-    new kakao.maps.Marker({ position: loc, map });
-
-  }, () => {
-    alert("위치 권한을 허용해주세요.");
-  });
-};
-
-/* 저장 + 전송 + 공유 */
-document.getElementById("recordForm").onsubmit = async e => {
-
-  e.preventDefault();
-
-  let data = {}, text = "";
-
-  new FormData(e.target).forEach((v,k)=>{
-    data[k]=v;
-    text+=`${k}: ${v}\n`;
-  });
-
-  const gcsText = document.getElementById("gcsResult").textContent;
-  data["GCS"] = gcsText;
-  text += `GCS: ${gcsText}`;
-
-  document.getElementById("savedData").innerHTML =
-    `<div class="board-item">${text}</div>`;
-
-  const blob = new Blob([text], {type:"text/plain"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "무등산_환자기록.txt";
-  a.click();
-
-  fetch(GOOGLE_SCRIPT_URL,{
-    method:"POST",
-    headers:{
-      "Content-Type":"text/plain;charset=utf-8"
-    },
-    body:JSON.stringify(data)
-  }).catch(()=>{});
-
-  if(navigator.share){
-    navigator.share({
-      title:"무등산 산악사고 기록",
-      text:text
-    });
-  }
-};/exec";
+const API_URL="여기에_웹앱_URL_붙여넣기";
 const listArea=document.getElementById("listArea");
 
-/******** 🚑 현장도착 ********/
-async function completeCase(id){
-  if(!confirm("구조대원이 현장에 도착했습니까?")) return;
-
-  await fetch(API_URL,{
-    method:"POST",
-    headers:{ "Content-Type":"text/plain;charset=utf-8" },
-    body:JSON.stringify({
-      action:"complete",
-      id:id,
-      completeTime:new Date().toISOString()
-    })
-  });
-
-  loadData();
-}
-
-/******** ✅ 사고처리 완료 ********/
-async function finishCase(id){
-  if(!confirm("사고처리를 완료하시겠습니까?")) return;
-
-  await fetch(API_URL,{
-    method:"POST",
-    headers:{ "Content-Type":"text/plain;charset=utf-8" },
-    body:JSON.stringify({
-      action:"finish",
-      id:id,
-      finishTime:new Date().toISOString()
-    })
-  });
-
-  loadData();
-}
-
-/******** 목록 불러오기 ********/
 async function loadData(){
   const res=await fetch(API_URL);
   const data=await res.json();
-
   listArea.innerHTML="";
 
   if(!data.length){
@@ -179,32 +42,13 @@ async function loadData(){
 
   data.forEach(item=>{
     const div=document.createElement("div");
-    div.className="card"+(item.status==="사고처리완료"?" done":"");
+    div.className="card";
 
     div.innerHTML=`
-      <div class="time">🕒 접수: ${new Date(item.작성시간).toLocaleString()}</div>
-
-      ${item.status==="현장도착"||item.status==="사고처리완료"
-        ? `<div class="time">🚑 현장도착: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : ""}</div>`
-        : ""}
-
-      ${item.status==="사고처리완료"
-        ? `<div class="time">✅ 사고처리 완료: ${item.finishTime ? new Date(item.finishTime).toLocaleString() : ""}</div>`
-        : ""}
-
-      🏠 ${item.address||"주소없음"}<br>
-      📞 ${item.phone||"번호없음"}<br>
-      📝 ${item.symptom||"내용없음"}<br>
-      <div class="coord">위도: ${item.lat} / 경도: ${item.lng}</div>
-      <a class="maplink" href="https://map.kakao.com/link/map/구조요청 위치,${item.lat},${item.lng}" target="_blank">📍 지도보기</a><br>
-
-      ${
-        item.status==="사고처리완료"
-        ? ""
-        : item.status==="현장도착"
-          ? `<button class="complete-btn" onclick="finishCase('${item.id}')">✅ 사고처리 완료</button>`
-          : `<button class="complete-btn" onclick="completeCase('${item.id}')">🚑 구조대원 현장도착</button>`
-      }
+      <div class="time">🕒 ${new Date(item.작성시간).toLocaleString()}</div>
+      🏠 ${item.address||""}<br>
+      📞 ${item.phone||""}<br>
+      📝 ${item.symptom||""}<br>
     `;
 
     listArea.appendChild(div);
