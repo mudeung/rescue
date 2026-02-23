@@ -115,26 +115,44 @@ async function sendData(lat,lng){
   loadData();
 }
 
-/******** 🚑 현장도착 처리 ********/
+/******** 🚑 현장도착 ********/
 async function completeCase(id){
   if(!confirm("구조대원이 현장에 도착했습니까?")) return;
-  await fetch(API_URL,{
-    method:"POST",
-    headers:{ "Content-Type":"text/plain;charset=utf-8" },
-    body:JSON.stringify({ action:"complete", id:id, completeTime: new Date().toISOString() })
-  });
-  loadData();
+  try{
+    await fetch(API_URL,{
+      method:"POST",
+      headers:{ "Content-Type":"text/plain;charset=utf-8" },
+      body:JSON.stringify({
+        action:"complete",
+        id:id,
+        completeTime:new Date().toISOString()
+      })
+    });
+    loadData();
+  }catch(err){
+    alert("처리 실패");
+    console.error(err);
+  }
 }
 
-/******** ✅ 사고처리 완료 처리 ********/
+/******** ✅ 사고처리 완료 ********/
 async function finishCase(id){
   if(!confirm("사고처리를 완료하시겠습니까?")) return;
-  await fetch(API_URL,{
-    method:"POST",
-    headers:{ "Content-Type":"text/plain;charset=utf-8" },
-    body:JSON.stringify({ action:"finish", id:id, finishTime: new Date().toISOString() })
-  });
-  loadData();
+  try{
+    await fetch(API_URL,{
+      method:"POST",
+      headers:{ "Content-Type":"text/plain;charset=utf-8" },
+      body:JSON.stringify({
+        action:"finish",
+        id:id,
+        finishTime:new Date().toISOString()
+      })
+    });
+    loadData();
+  }catch(err){
+    alert("처리 실패");
+    console.error(err);
+  }
 }
 
 /******** 목록 불러오기 ********/
@@ -142,7 +160,10 @@ async function loadData(){
   const res=await fetch(API_URL);
   const data=await res.json();
   listArea.innerHTML="";
-  if(!data.length){ listArea.innerHTML="현재 접수된 신고가 없습니다."; return; }
+  if(!data.length){
+    listArea.innerHTML="현재 접수된 신고가 없습니다.";
+    return;
+  }
 
   data.sort((a,b)=>new Date(b.time)-new Date(a.time));
 
@@ -154,15 +175,22 @@ async function loadData(){
 
     div.innerHTML=`
       <div class="time">🕒 접수: ${new Date(item.time).toLocaleString()}</div>
+
       ${item.status==="현장도착"?
-        `<div class="time">🚑 현장도착: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : ""}</div>`:""}
+        `<div class="time">🚑 현장도착: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : ""}</div>`
+        : ""}
+
       ${item.status==="사고처리완료"?
-        `<div class="time">✅ 사고처리 완료: ${item.finishTime ? new Date(item.finishTime).toLocaleString() : ""}</div>`:""}
+        `<div class="time">🚑 현장도착: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : ""}</div>
+         <div class="time">✅ 사고처리 완료: ${item.finishTime ? new Date(item.finishTime).toLocaleString() : ""}</div>`
+        : ""}
+
       🏠 ${item.address||"주소없음"}<br>
       📞 ${item.phone||"번호없음"}<br>
       📝 ${item.symptom||"내용없음"}<br>
       <div class="coord">위도: ${item.lat} / 경도: ${item.lng}</div>
       <a class="maplink" href="https://map.kakao.com/link/map/구조요청 위치,${item.lat},${item.lng}" target="_blank">📍 지도보기</a><br>
+
       ${
         item.status==="사고처리완료"
         ? ""
@@ -171,19 +199,6 @@ async function loadData(){
           : `<button class="complete-btn" onclick="completeCase('${item.id}')">🚑 구조대원 현장도착</button>`
       }
     `;
-
-    div.addEventListener("click", ()=>{
-      if(selectedCard) selectedCard.style.border="none";
-      if(selectedMarker) selectedMarker.setMap(null);
-
-      div.style.border="2px solid #ffeb3b";
-      selectedCard=div;
-
-      const pos=new kakao.maps.LatLng(item.lat,item.lng);
-      selectedMarker=new kakao.maps.Marker({ map, position:pos });
-      map.setCenter(pos);
-      map.setLevel(3);
-    });
 
     listArea.appendChild(div);
   });
