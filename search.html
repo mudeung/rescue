@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>도형 중심 이동 예제</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+    <style>
+        body { margin:0; }
+        #map { width: 100%; height: 500px; }
+        .controls {
+            padding:10px;
+            background:#f4f4f4;
+        }
+        button {
+            margin-right:10px;
+            padding:6px 10px;
+            cursor:pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="controls">
+    <button onclick="moveCircle()">🔵 원 중심으로 이동</button>
+    <button onclick="moveRectangle()">🟥 사각형 중심으로 이동</button>
+    <button onclick="showAll()">📍 전체 영역 보기</button>
+</div>
+
+<div id="map"></div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+    // 1️⃣ 지도 생성 (서울)
+    var map = L.map('map').setView([37.5665, 126.9780], 13);
+
+    // 2️⃣ 지도 타일 추가
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // 3️⃣ 원 생성
+    var circle = L.circle([35.098418, 126.883268], {
+        color: 'blue',
+        fillColor: '#30a3ec',
+        fillOpacity: 0.5,
+        radius: 100
+    }).addTo(map).bindPopup("서울 시청 근처 원");
+
+    // 4️⃣ 사각형 생성
+    var bounds = [
+        [35.098374, 126.883267],
+        [35.098374, 126.883267]
+    ];
+
+    var rectangle = L.rectangle(bounds, {
+        color: "red",
+        weight: 2
+    }).addTo(map).bindPopup("서울 중심 사각형");
+
+    // 🔵 원 중심 이동
+    function moveCircle() {
+        map.flyTo(circle.getLatLng(), 16);
+    }
+
+    // 🟥 사각형 중심 이동
+    function moveRectangle() {
+        var center = rectangle.getBounds().getCenter();
+        map.flyTo(center, 16);
+    }
+
+    // 📍 전체 영역 보기
+    function showAll() {
+        var group = L.featureGroup([circle, rectangle]);
+        map.fitBounds(group.getBounds());
+    }
+
+</script>
+
+</body>
+</html>
