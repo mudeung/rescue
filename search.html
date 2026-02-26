@@ -3,54 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>무등산 특수산악구조팀 구조활동 지도</title>
+<title>무등산 구조활동 지도</title>
 <style>
-*{
-    box-sizing:border-box;
-    -webkit-tap-highlight-color: transparent;
-}
-body{
-    margin:0;
-    font-family:Arial, sans-serif;
-    background:#0f172a;
-    color:#f1f5f9;
-    overflow:hidden;
-}
-header{
-    background:#1e3a8a;
-    padding:15px;
-    text-align:center;
-    font-size:18px;
-    font-weight:bold;
-    letter-spacing:1px;
-    box-shadow:0 3px 10px rgba(0,0,0,0.4);
-}
-#controls{
-    position:absolute;
-    top:70px;
-    left:10px;
-    z-index:1000;
-}
-#controls button{
-    display:block;
-    margin-bottom:8px;
-    padding:8px 12px;
-    border:none;
-    border-radius:6px;
-    background:#1e40af;
-    color:white;
-    font-size:13px;
-    cursor:pointer;
-}
-#map{
-    width:100%;
-    height:calc(100vh - 60px);
-}
+*{box-sizing:border-box;-webkit-tap-highlight-color: transparent;}
+body{margin:0;font-family:Arial, sans-serif;background:#0f172a;color:#f1f5f9;overflow:hidden;}
+header{background:#1e3a8a;padding:15px;text-align:center;font-size:18px;font-weight:bold;letter-spacing:1px;box-shadow:0 3px 10px rgba(0,0,0,0.4);}
+#controls{position:absolute;top:70px;left:10px;z-index:1000;}
+#controls button{display:block;margin-bottom:8px;padding:8px 12px;border:none;border-radius:6px;background:#1e40af;color:white;font-size:13px;cursor:pointer;}
+#map{width:100%;height:calc(100vh - 60px);}
 </style>
 </head>
 <body>
 
-<header>무등산 특수산악구조팀 저/중/고지대 구조활동 지도</header>
+<header>무등산 구조활동 지도</header>
 
 <div id="controls">
     <button onclick="startMeasure()">📏 측정 시작</button>
@@ -73,48 +38,19 @@ var map = new kakao.maps.Map(document.getElementById('map'), {
 map.setZoomable(true);
 map.setDraggable(true);
 
-/* -------------------- 지대별 원 데이터 -------------------- */
 var circleData = [
-    { lat:35.121000, lng:127.002681, radius:300, color:"#0000FF", name:"고지대-원효:서석대" },
-    { lat:35.117408, lng:127.002317, radius:300, color:"#0000FF", name:"고지대-원효:입석대" },
-    { lat:35.116332, lng:126.998781, radius:300, color:"#0000FF", name:"고지대-원효:장불재" },
-    { lat:35.122537, lng:126.992581, radius:300, color:"#0000FF", name:"고지대-원효:중봉" },
-    { lat:35.126846, lng:126.993461, radius:300, color:"#0000FF", name:"고지대-원효:얼음바위" },
-    { lat:35.119166, lng:126.994473, radius:300, color:"#0000FF", name:"고지대-원효:용추삼거리" },   
-    { lat:35.136860, lng:126.981961, radius:300, color:"#FFFF00", name:"중지대-원효:늦재삼거리" },
-    { lat:35.131065, lng:126.977755, radius:300, color:"#FFFF00", name:"중지대-원효:토끼등" },
-    { lat:35.133099, lng:126.985547, radius:300, color:"#FFFF00", name:"중지대-원효:동화사터" },
-    { lat:35.123940, lng:126.982866, radius:300, color:"#FFFF00", name:"중지대-원효:백운암터" },
-    { lat:35.125883, lng:126.978439, radius:300, color:"#FFFF00", name:"중지재-원효:봉황대" },
-    { lat:35.138809, lng:126.986800, radius:300, color:"#FFFF00", name:"중지재-원효:물통거리" },
-    { lat:35.141982, lng:126.983762, radius:300, color:"#FFFF00", name:"중지대-원효:늦재삼거리" },
-    { lat:35.144595, lng:126.988845, radius:300, color:"#00AA00", name:"중지대-원효:원효광장" },
-    { lat:35.141437, lng:126.995007, radius:300, color:"#00AA00", name:"중지대-원효:무등산장" },    
-    { lat:35.147757, lng:126.985220, radius:300, color:"#00AA00", name:"중지대-원효:원효사입구" },
-    { lat:35.121645, lng:126.967070, radius:300, color:"#FFFF00", name:"중지대-증심:운소봉" },
-    { lat:35.114570, lng:126.987328, radius:300, color:"#FFFF00", name:"중지대-증심:용추폭포삼거리" },
-    { lat:35.138202, lng:126.977384, radius:300, color:"#FFFF00", name:"중지대-증심:바람재" },      
-    { lat:35.119082, lng:126.984469, radius:300, color:"#FFFF00", name:"중지대-증심:중머리재" },
-    { lat:35.117489, lng:126.981037, radius:300, color:"#FFFF00", name:"중지대-증심:서인봉" },
-    { lat:35.125583, lng:126.972202, radius:300, color:"#FFFF00", name:"중지대-증심:당산나무" },
-    { lat:35.120585, lng:126.969019, radius:300, color:"#FFFF00", name:"중지대-증심:새인봉" },
-    { lat:35.119564, lng:126.972893, radius:300, color:"#00AA00", name:"중지대-증심:새인봉갈림길" },    
-    { lat:35.116201, lng:126.970673, radius:300, color:"#00AA00", name:"저지대-증심:선주암갈림길" },
-    { lat:35.122200, lng:126.971525, radius:300, color:"#FFFF00", name:"저지대-증심:약사사" },
-    { lat:35.127789, lng:126.969612, radius:300, color:"#00AA00", name:"저지대-증심:증심사입구" },
-    { lat:35.132837, lng:126.969636, radius:300, color:"#00AA00", name:"저지대-증심:덕산골" }, 
-    { lat:35.131413, lng:126.963440, radius:300, color:"#00AA00", name:"저지대-증심:증심교" },      
-    { lat:35.099325, lng:126.964050, radius:300, color:"#00AA00", name:"저지대-증심:제2수원지입구" },    
-    { lat:35.162281, lng:126.980286, radius:300, color:"#FFFFFF", name:"원효지구:원효분소" },
-    { lat:35.131429, lng:126.948076, radius:300, color:"#FFFFFF", name:"증심지구:무등산사무소" },
-    { lat:35.133163, lng:126.960296, radius:300, color:"#00AA00", name:"증심지구:증심센터" }
+    { lat:35.121000, lng:127.002681, radius:300, color:"#0000FF", zone:'high', name:"고지대-원효:서석대" },
+    { lat:35.117408, lng:127.002317, radius:300, color:"#0000FF", zone:'high', name:"고지대-원효:입석대" },
+    { lat:35.136860, lng:126.981961, radius:300, color:"#FFFF00", zone:'middle', name:"중지대-원효:늦재삼거리" },
+    { lat:35.131065, lng:126.977755, radius:300, color:"#FFFF00", zone:'middle', name:"중지대-원효:토끼등" },
+    { lat:35.116201, lng:126.970673, radius:300, color:"#00AA00", zone:'low', name:"저지대-증심:선주암갈림길" }
 ];
 
-/* -------------------- 지도 및 원/마커 생성 -------------------- */
 var bounds = new kakao.maps.LatLngBounds();
 var infowindow = new kakao.maps.InfoWindow({ removable: true });
 var selectedCircle = null;
-var circles = [];  // 전체 원 저장
+var circles = [];
+var zoneVisibility = {high:true, middle:true, low:true};
 
 circleData.forEach(function(data){
     var position = new kakao.maps.LatLng(data.lat, data.lng);
@@ -155,11 +91,8 @@ circleData.forEach(function(data){
     circles.push({circle:circle, zone:data.zone});
     bounds.extend(position);
 });
-
 map.setBounds(bounds);
 
-/* -------------------- 지대별 필터 -------------------- */
-var zoneVisibility = {high:true, middle:true, low:true};
 function toggleZone(zone){
     zoneVisibility[zone] = !zoneVisibility[zone];
     circles.forEach(function(item){
@@ -169,14 +102,11 @@ function toggleZone(zone){
     });
 }
 
-/* -------------------- 거리측정 기능 -------------------- */
+/* ---------------- 거리측정 ---------------- */
 var drawingFlag = false;
-var clickLine = null;
-var moveLine = null;
-var dots = [];
-
-function startMeasure(){ drawingFlag = true; }
-function stopMeasure(){ drawingFlag = false; if(moveLine){ moveLine.setMap(null); moveLine=null; } }
+var clickLine=null, moveLine=null, dots=[];
+function startMeasure(){ drawingFlag=true; }
+function stopMeasure(){ drawingFlag=false; if(moveLine){ moveLine.setMap(null); moveLine=null; } }
 function resetMeasure(){
     drawingFlag=false;
     if(clickLine){ clickLine.setMap(null); clickLine=null; }
