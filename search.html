@@ -2,45 +2,56 @@
 <html>
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
 <title>무등산 특수산악구조팀 고/중/저 지대별 현장조사 자료</title>
 
 <style>
-   *{
-        box-sizing:border-box;
-        -webkit-tap-highlight-color: transparent;
-    }
+*{
+    box-sizing:border-box;
+    -webkit-tap-highlight-color: transparent;
+}
 
-    body{
-        margin:0;
-        font-family:Arial, sans-serif;
-        background:#0f172a;
-        color:#f1f5f9;
-        overflow:hidden; /* 모바일에서 스크롤 제거 */
-    }
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:#0f172a;
+    color:#f1f5f9;
+    overflow:hidden;
+}
 
-    header{
-        background:#1e3a8a;
-        padding:15px;
-        text-align:center;
-        font-size:18px;
-        font-weight:bold;
-        letter-spacing:1px;
-        box-shadow:0 3px 10px rgba(0,0,0,0.4);
-    }
+header{
+    background:#1e3a8a;
+    padding:15px;
+    text-align:center;
+    font-size:18px;
+    font-weight:bold;
+    letter-spacing:1px;
+    box-shadow:0 3px 10px rgba(0,0,0,0.4);
+}
 
-    /* ✅ 모바일 높이 자동 대응 */
-    #map{
-        width:100%;
-        height:calc(100vh - 60px);
-    }
+#controls{
+    position:absolute;
+    top:70px;
+    left:10px;
+    z-index:1000;
+}
 
-    /* 작은 화면 대응 */
-    @media (max-width:768px){
-        header{
-            font-size:15px;
-            padding:12px;
-        }
-    }
+#controls button{
+    display:block;
+    margin-bottom:8px;
+    padding:8px 12px;
+    border:none;
+    border-radius:6px;
+    background:#1e40af;
+    color:white;
+    font-size:13px;
+}
+
+#map{
+    width:100%;
+    height:calc(100vh - 60px);
+}
 </style>
 </head>
 
@@ -49,6 +60,11 @@
 <header>
 무등산 특수산악구조팀 저/중/고지대 구조활동 지역 조사자료
 </header>
+
+<div id="controls">
+    <button onclick="startMeasure()">📏 거리측정 시작</button>
+    <button onclick="resetMeasure()">초기화</button>
+</div>
 
 <div id="map"></div>
 
@@ -62,10 +78,10 @@ var options = {
 };
 
 var map = new kakao.maps.Map(container, options);
-
-/* ✅ 모바일에서 지도 확대/축소 부드럽게 */
 map.setZoomable(true);
 map.setDraggable(true);
+
+/* -------------------- 기존 원형 데이터 -------------------- */
 
 var circleData = [
     { lat:35.121000, lng:127.002681, radius:300, color:"#0000FF", name:"고지대-원효:서석대" },
@@ -105,7 +121,6 @@ var circleData = [
 
 var bounds = new kakao.maps.LatLngBounds();
 var infowindow = new kakao.maps.InfoWindow({ removable: true });
-
 var selectedCircle = null;
 
 circleData.forEach(function(data) {
@@ -119,8 +134,7 @@ circleData.forEach(function(data) {
         strokeColor: data.color,
         strokeOpacity: 0.9,
         fillColor: data.color,
-        fillOpacity: 0.4,
-        zIndex: 1
+        fillOpacity: 0.4
     });
 
     circle.setMap(map);
@@ -133,24 +147,18 @@ circleData.forEach(function(data) {
 
     function selectLocation() {
 
-        // 이전 선택 복구
         if (selectedCircle) {
             selectedCircle.circle.setOptions({
                 strokeColor: selectedCircle.originalColor,
                 fillColor: selectedCircle.originalColor,
-                fillOpacity: 0.4,
-                strokeOpacity: 0.9,
-                zIndex: 1
+                fillOpacity: 0.4
             });
         }
 
-        // 현재 원 강조
         circle.setOptions({
             strokeColor: "#FFD700",
             fillColor: "#FFD700",
-            fillOpacity: 0.6,
-            strokeOpacity: 1,
-            zIndex: 10
+            fillOpacity: 0.6
         });
 
         selectedCircle = {
@@ -179,25 +187,106 @@ circleData.forEach(function(data) {
     bounds.extend(position);
 });
 
-// 지도 빈 공간 클릭 시 선택 해제
-kakao.maps.event.addListener(map, 'click', function() {
-
-    if (selectedCircle) {
-        selectedCircle.circle.setOptions({
-            strokeColor: selectedCircle.originalColor,
-            fillColor: selectedCircle.originalColor,
-            fillOpacity: 0.4,
-            strokeOpacity: 0.9,
-            zIndex: 1
-        });
-
-        selectedCircle = null;
-        infowindow.close();
-    }
-});
-
 map.setBounds(bounds);
 
+/* -------------------- 거리측정 기능 -------------------- */
+
+var drawingFlag = false;
+var moveLine;
+var clickLine;
+var dots = [];
+
+function startMeasure(){
+    drawingFlag = true;
+    alert("지도 클릭으로 거리측정 시작\n더블클릭하면 종료됩니다.");
+}
+
+function resetMeasure(){
+    drawingFlag = false;
+
+    if(clickLine) clickLine.setMap(null);
+    if(moveLine) moveLine.setMap(null);
+
+    dots.forEach(dot=>{
+        dot.circle.setMap(null);
+        dot.overlay.setMap(null);
+    });
+
+    dots = [];
+    clickLine = null;
+    moveLine = null;
+}
+
+kakao.maps.event.addListener(map, 'click', function(mouseEvent){
+
+    if(!drawingFlag) return;
+
+    var clickPosition = mouseEvent.latLng;
+
+    if(!clickLine){
+        clickLine = new kakao.maps.Polyline({
+            map: map,
+            path: [clickPosition],
+            strokeWeight: 4,
+            strokeColor: '#FF0000',
+            strokeOpacity: 0.9
+        });
+    }else{
+        var path = clickLine.getPath();
+        path.push(clickPosition);
+        clickLine.setPath(path);
+    }
+
+    addDot(clickPosition, clickLine.getLength());
+});
+
+kakao.maps.event.addListener(map, 'mousemove', function(mouseEvent){
+
+    if(!drawingFlag || !clickLine) return;
+
+    var mousePosition = mouseEvent.latLng;
+    var path = clickLine.getPath();
+    var movePath = [path[path.length-1], mousePosition];
+
+    if(!moveLine){
+        moveLine = new kakao.maps.Polyline({
+            strokeWeight: 4,
+            strokeColor: '#FF0000',
+            strokeOpacity: 0.5,
+            strokeStyle: 'dash'
+        });
+    }
+
+    moveLine.setPath(movePath);
+    moveLine.setMap(map);
+});
+
+kakao.maps.event.addListener(map, 'dblclick', function(){
+    drawingFlag = false;
+    if(moveLine) moveLine.setMap(null);
+});
+
+function addDot(position, distance){
+
+    var circle = new kakao.maps.Circle({
+        center: position,
+        radius: 3,
+        strokeWeight: 2,
+        strokeColor: '#FF0000',
+        fillColor: '#FF0000',
+        fillOpacity: 1
+    });
+    circle.setMap(map);
+
+    var overlay = new kakao.maps.CustomOverlay({
+        content: '<div style="background:#fff;padding:4px;font-size:12px;border-radius:4px;">총거리 : '+distance.toFixed(0)+'m</div>',
+        position: position,
+        yAnchor: 1
+    });
+    overlay.setMap(map);
+
+    dots.push({circle:circle, overlay:overlay});
+}
 </script>
 
 </body>
