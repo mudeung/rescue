@@ -1,87 +1,114 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8" />
-    <title>도형 중심 이동 예제</title>
+<meta charset="utf-8">
+<title>카카오 지도 - 고급 원 예제</title>
 
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-
-    <style>
-        body { margin:0; }
-        #map { width: 100%; height: 800px; }
-        .controls {
-            padding:10px;
-            background:#f4f4f4;
-        }
-        button {
-            margin-right:10px;
-            padding:6px 10px;
-            cursor:pointer;
-        }
-    </style>
+<style>
+    body { margin:0; }
+    #map { width:100%; height:800px; }
+</style>
 </head>
-<body>
 
-<div class="controls">
-    <button onclick="moveCircle()">🔵 원 중심으로 이동</button>
-    <button onclick="moveRectangle()">🟥 사각형 중심으로 이동</button>
-    <button onclick="showAll()">📍 전체 영역 보기</button>
-</div>
+<body>
 
 <div id="map"></div>
 
-<!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_APP_KEY"></script>
 
 <script>
-    // 1️⃣ 지도 생성 (무등산국립공원사무소)
-    var map = L.map('map').setView([35.11608457, 126.99648417], 13); //장불재
-    var map = L.map('map').setView([35.11704437, 126.99298745], 13); //입석대
-    var map = L.map('map').setView([35.11936091, 126.99357965], 13); //서석대
-    var map = L.map('map').setView([35.12621958, 126.98531780], 13); //얼음바위
-    var map = L.map('map').setView([35.13657494, 126.97688899], 13); //늦재전망대
-    
-    // 2️⃣ 지도 타일 추가
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+    var container = document.getElementById('map');
+    var options = {
+        center: new kakao.maps.LatLng(35.12, 126.98),
+        level: 6
+    };
+    var map = new kakao.maps.Map(container, options);
 
-    // 3️⃣ 원 생성
-    var circle = L.circle([35.098418, 126.883268], {
-        color: 'blue',
-        fillColor: '#30a3ec',
-        fillOpacity: 0.5,
-        radius: 100
-    }).addTo(map).bindPopup("무등산고지대");
-
-    // 4️⃣ 사각형 생성
-    var bounds = [
-        [35.098374, 126.883267],
-        [35.098374, 126.883267]
+    // ✅ 원 데이터 (색상 + 이동할 URL 포함)
+    var circleData = [
+        {
+            lat: 35.12120437,
+            lng: 126.00035380,
+            radius: 100,
+            color: "#FF0000",
+            name: "지점: 서석대",
+            url: "detailA.html"
+        },
+        {
+            lat: 35.11753131,
+            lng: 126.99931712,
+            radius: 100,
+            color: "#0000FF",
+            name: "지점: 입석대",
+            url: "detailB.html"
+        },
+        {
+            lat: 35.11608907,
+            lng: 126.99641012,
+            radius: 100,
+            color: "#00AA00",
+            name: "지점: 장불재",
+            url: "detailC.html"
+        },
+         {
+            lat: 35.12683224,
+            lng: 126.98322217,
+            radius: 100,
+            color: "#0000FF",
+            name: "지점: 얼음바위",
+            url: "detailB.html"
+        },
+        {
+            lat: 35.13604358,
+            lng: 126.97935796,
+            radius: 100,
+            color: "#0000FF",
+            name: "지점: 늦재삼거리",
+            url: "detailB.html"
+        }
     ];
 
-    var rectangle = L.rectangle(bounds, {
-        color: "red",
-        weight: 2
-    }).addTo(map).bindPopup("중심 사각형");
+    var bounds = new kakao.maps.LatLngBounds();
 
-    // 🔵 원 중심 이동
-    function moveCircle() {
-        map.flyTo(circle.getLatLng(), 16);
-    }
+    circleData.forEach(function(data) {
 
-    // 🟥 사각형 중심 이동
-    function moveRectangle() {
-        var center = rectangle.getBounds().getCenter();
-        map.flyTo(center, 16);
-    }
+        var position = new kakao.maps.LatLng(data.lat, data.lng);
+
+        // 🔵 원 생성 (색상 다르게)
+        var circle = new kakao.maps.Circle({
+            center: position,
+            radius: data.radius,
+            strokeWeight: 2,
+            strokeColor: data.color,
+            strokeOpacity: 0.9,
+            fillColor: data.color,
+            fillOpacity: 0.4
+        });
+
+        circle.setMap(map);
+
+        // 📍 마커 생성
+        var marker = new kakao.maps.Marker({
+            position: position,
+            map: map,
+            title: data.name
+        });
+
+        // 🖱 원 클릭 시 상세 페이지 이동
+        kakao.maps.event.addListener(circle, 'click', function() {
+            window.location.href = data.url;
+        });
+
+        // 🖱 마커 클릭 시 상세 페이지 이동
+        kakao.maps.event.addListener(marker, 'click', function() {
+            window.location.href = data.url;
+        });
+
+        bounds.extend(position);
+    });
 
     // 📍 전체 영역 보기
-    function showAll() {
-        var group = L.featureGroup([circle, rectangle]);
-        map.fitBounds(group.getBounds());
-    }
+    map.setBounds(bounds);
 
 </script>
 
