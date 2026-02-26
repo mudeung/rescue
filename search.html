@@ -62,8 +62,9 @@ header{
 </header>
 
 <div id="controls">
-    <button onclick="startMeasure()">📏 거리측정 시작</button>
-    <button onclick="resetMeasure()">초기화</button>
+    <button onclick="startMeasure()">📏 측정 시작</button>
+    <button onclick="stopMeasure()">⛔ 측정 종료</button>
+    <button onclick="resetMeasure()">🔄 초기화</button>
 </div>
 
 <div id="map"></div>
@@ -81,7 +82,7 @@ var map = new kakao.maps.Map(container, options);
 map.setZoomable(true);
 map.setDraggable(true);
 
-/* -------------------- 기존 원형 데이터 -------------------- */
+/* -------------------- 원형 데이터 -------------------- */
 
 var circleData = [
     { lat:35.121000, lng:127.002681, radius:300, color:"#0000FF", name:"고지대-원효:서석대" },
@@ -189,23 +190,38 @@ circleData.forEach(function(data) {
 
 map.setBounds(bounds);
 
-/* -------------------- 거리측정 기능 -------------------- */
+/* -------------------- 거리측정 기능 (버튼제어) -------------------- */
 
 var drawingFlag = false;
-var moveLine;
-var clickLine;
+var moveLine = null;
+var clickLine = null;
 var dots = [];
 
 function startMeasure(){
     drawingFlag = true;
-    alert("지도 클릭으로 거리측정 시작\n더블클릭하면 종료됩니다.");
+}
+
+function stopMeasure(){
+    drawingFlag = false;
+    if(moveLine){
+        moveLine.setMap(null);
+        moveLine = null;
+    }
 }
 
 function resetMeasure(){
+
     drawingFlag = false;
 
-    if(clickLine) clickLine.setMap(null);
-    if(moveLine) moveLine.setMap(null);
+    if(clickLine){
+        clickLine.setMap(null);
+        clickLine = null;
+    }
+
+    if(moveLine){
+        moveLine.setMap(null);
+        moveLine = null;
+    }
 
     dots.forEach(dot=>{
         dot.circle.setMap(null);
@@ -213,8 +229,6 @@ function resetMeasure(){
     });
 
     dots = [];
-    clickLine = null;
-    moveLine = null;
 }
 
 kakao.maps.event.addListener(map, 'click', function(mouseEvent){
@@ -259,11 +273,6 @@ kakao.maps.event.addListener(map, 'mousemove', function(mouseEvent){
 
     moveLine.setPath(movePath);
     moveLine.setMap(map);
-});
-
-kakao.maps.event.addListener(map, 'dblclick', function(){
-    drawingFlag = false;
-    if(moveLine) moveLine.setMap(null);
 });
 
 function addDot(position, distance){
