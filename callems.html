@@ -202,11 +202,13 @@ addressEl.addEventListener("change",function(){
   });
 });
 
-/* ===== 경과시간 계산 ===== */
-function getElapsedTime(time){
-  const diff=Math.floor((new Date()-new Date(time))/1000);
-  const m=Math.floor(diff/60);
-  const s=diff%60;
+/* ===== 경과시간 계산 (완료 시점까지 멈춤) ===== */
+function getElapsedTime(startTime, endTime=null){
+  const start = new Date(startTime);
+  const end = endTime ? new Date(endTime) : new Date();
+  const diff = Math.floor((end - start)/1000);
+  const m = Math.floor(diff/60);
+  const s = diff%60;
   return `${m}분 ${s}초 경과`;
 }
 
@@ -284,11 +286,12 @@ async function loadData(){
 
     const div=document.createElement("div");
     div.className="card"+(item.status==="사고처리완료"?" done":"");
-    div.setAttribute("data-time", item.time); // ★ 필수
+    div.setAttribute("data-time", item.time);
+    if(item.finishTime) div.setAttribute("data-finish-time", item.finishTime);
 
     div.innerHTML=`
       <div class="time">🕒 접수: ${new Date(item.time).toLocaleString()}</div>
-      <div class="time elapsed">⏱ ${getElapsedTime(item.time)}</div>
+      <div class="time elapsed">⏱ ${getElapsedTime(item.time, item.finishTime)}</div>
       ${item.status==="현장도착"? `<div class="time">🚑 현장도착: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : ""}</div>` : ""}
       ${item.status==="사고처리완료"? `<div class="time">🚑 현장도착: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : ""}</div><div class="time">✅ 사고처리 완료: ${item.finishTime ? new Date(item.finishTime).toLocaleString() : ""}</div>` : ""}
       🏠 ${item.address||"주소없음"}<br>
@@ -300,7 +303,7 @@ async function loadData(){
     `;
     listArea.appendChild(div);
 
-    checkOverdue(item,div); // 3분 초과 체크
+    checkOverdue(item,div);
   });
 }
 
@@ -309,9 +312,9 @@ setInterval(()=>{
   document.querySelectorAll(".card").forEach(card=>{
     const elapsedEl = card.querySelector(".time.elapsed");
     const timeAttr = card.getAttribute("data-time");
-    if(elapsedEl && timeAttr){
-      elapsedEl.innerText = "⏱ " + getElapsedTime(timeAttr);
-    }
+    const finishTimeAttr = card.getAttribute("data-finish-time");
+    if(!elapsedEl || !timeAttr) return;
+    elapsedEl.innerText = "⏱ " + getElapsedTime(timeAttr, finishTimeAttr);
   });
 },1000);
 
