@@ -282,64 +282,53 @@ async function finishCase(id){
   }
 }
 
-/* ===== 데이터 로드 ===== */
+/******** 목록 불러오기 ********/
 async function loadData(){
-  try{
-    const res=await fetch(API_URL);
-    let data=await res.json();
-    listArea.innerHTML="";
-
-    data.sort((a,b)=>{
-      if(a.type==="응급환자" && b.type!=="응급환자") return -1;
-      if(a.type!=="응급환자" && b.type==="응급환자") return 1;
-      return new Date(b.time)-new Date(a.time);
-    });
-
-    if(currentFilter!=="전체") data=data.filter(i=>i.type===currentFilter);
-
-    const emergencyCases=data.filter(i=>i.type==="응급환자" && i.status!=="사고처리완료");
-    if(emergencyCases.length>previousEmergencyCount) document.getElementById("alertSound").play();
-    previousEmergencyCount=emergencyCases.length;
-
-    if(!data.length){ listArea.innerHTML="현재 접수된 신고가 없습니다."; return; }
-
-    data.forEach(item=>{
-      const div=document.createElement("div");
-      div.setAttribute("data-time", new Date(item.time).toISOString());
-
-      let typeClass="other";
-      if(item.type==="응급환자") typeClass="emergency";
-      else if(item.type==="구조출동") typeClass="help";
-      else if(item.type==="조난") typeClass="lost";
-
-      div.className="card "+typeClass+(item.status==="사고처리완료"?" done":"");
-      if(item.type==="응급환자" && item.status!=="사고처리완료") div.classList.add("active-blink");
-      checkOverdue(item,div);
-
-      let btns = '';
-      if(item.status!=="사고처리완료"){
-        btns = `
-          <button class="card-btn complete-btn" onclick="completeCase('${item.id}')">🏁 현장도착</button>
-          <button class="card-btn finish-btn" onclick="finishCase('${item.id}')">✅ 사고처리 완료</button>
-        `;
-      }
-
-      div.innerHTML=`
-<div class="time">🕒 접수: ${new Date(item.time).toLocaleString()}</div>
-<div class="time elapsed">⏱ ${getElapsedTime(item.time)}</div>
-📂 ${item.type||""}<br>
-🏠 ${item.address||""}<br>
-📞 ${item.phone||""}<br>
-📝 ${item.symptom||""}
-${btns}
-      `;
-      listArea.appendChild(div);
-    });
-
-  }catch(err){
-    console.error(err);
-    listArea.innerHTML="데이터를 불러오는 중 오류가 발생했습니다.";
+  const res=await fetch(API_URL);
+  const data=await res.json();
+  listArea.innerHTML="";
+  if(!data.length){
+    listArea.innerHTML="현재 접수된 신고가 없습니다.";
+    return;
   }
+
+  data.sort((a,b)=>new Date(b.time)-new Date(a.time));
+
+  data.forEach(item=>{
+    const div=document.createElement("div");
+
+    // 사고처리 완료만 흐림 처리
+    div.className="card"+(item.status==="사고처리완료"?" done":"");
+
+    div.innerHTML=`
+      <div class="time">🕒 접수: ${new Date(item.time).toLocaleString()}</div>
+
+      ${item.status==="현장도착"?
+        `<div class="time">🚑 현장도착: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : ""}</div>`
+        : ""}
+
+      ${item.status==="사고처리완료"?
+        `<div class="time">🚑 현장도착: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : ""}</div>
+         <div class="time">✅ 사고처리 완료: ${item.finishTime ? new Date(item.finishTime).toLocaleString() : ""}</div>`
+        : ""}
+
+      🏠 ${item.address||"주소없음"}<br>
+      📞 ${item.phone||"번호없음"}<br>
+      📝 ${item.symptom||"내용없음"}<br>
+      <div class="coord">위도: ${item.lat} / 경도: ${item.lng}</div>
+      <a class="maplink" href="https://map.kakao.com/link/map/구조요청 위치,${item.lat},${item.lng}" target="_blank">📍 지도보기</a><br>
+
+      ${
+        item.status==="사고처리완료"
+        ? ""
+        : item.status==="현장도착"
+          ? `<button class="complete-btn" onclick="finishCase('${item.id}')">✅ 사고처리 완료</button>`
+          : `<button class="complete-btn" onclick="completeCase('${item.id}')">🚑 구조대원 현장도착</button>`
+      }
+    `;
+
+    listArea.appendChild(div);
+  });
 }
 
 /* ===== 경과시간 갱신 ===== */
