@@ -16,7 +16,7 @@ button{padding:8px 12px;background:#e53935;color:#fff;border:none;border-radius:
 #map{width:100%;height:320px;margin-bottom:15px;border-radius:6px;}
 .card{background:#1e1e1e;padding:12px;margin-bottom:10px;border-radius:6px;transition:0.2s;}
 .card.done{opacity:0.6;background:#2b2b2b;}
-.time{color:#ffcc00;font-size:14px;}
+.time{color:#ffcc00;font-size:14px; margin-bottom: 4px; display:block;}
 
 /* ===== 유형 버튼 ===== */
 .type-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
@@ -51,6 +51,19 @@ button{padding:8px 12px;background:#e53935;color:#fff;border:none;border-radius:
 border-left:6px solid #ff0000 !important;
 background:#3a0000 !important;
 }
+
+/* ===== 카드 버튼 ===== */
+.card button.card-btn{
+  margin-top:6px;
+  margin-right:6px;
+  padding:4px 8px;
+  font-size:13px;
+  border:none;
+  border-radius:4px;
+  cursor:pointer;
+}
+button.complete-btn{background:#00c853;}
+button.finish-btn{background:#2962ff;}
 </style>
 </head>
 
@@ -229,6 +242,46 @@ function setFilter(type,btn){
   loadData();
 }
 
+/* ===== 🚑 현장도착 ===== */
+async function completeCase(id){
+  if(!confirm("구조대원이 현장에 도착했습니까?")) return;
+  try{
+    await fetch(API_URL,{
+      method:"POST",
+      headers:{ "Content-Type":"text/plain;charset=utf-8" },
+      body:JSON.stringify({
+        action:"complete",
+        id:id,
+        completeTime:new Date().toISOString()
+      })
+    });
+    loadData();
+  }catch(err){
+    alert("처리 실패");
+    console.error(err);
+  }
+}
+
+/* ===== ✅ 사고처리 완료 ===== */
+async function finishCase(id){
+  if(!confirm("사고처리를 완료하시겠습니까?")) return;
+  try{
+    await fetch(API_URL,{
+      method:"POST",
+      headers:{ "Content-Type":"text/plain;charset=utf-8" },
+      body:JSON.stringify({
+        action:"finish",
+        id:id,
+        finishTime:new Date().toISOString()
+      })
+    });
+    loadData();
+  }catch(err){
+    alert("처리 실패");
+    console.error(err);
+  }
+}
+
 /* ===== 데이터 로드 ===== */
 async function loadData(){
   try{
@@ -263,6 +316,14 @@ async function loadData(){
       if(item.type==="응급환자" && item.status!=="사고처리완료") div.classList.add("active-blink");
       checkOverdue(item,div);
 
+      let btns = '';
+      if(item.status!=="사고처리완료"){
+        btns = `
+          <button class="card-btn complete-btn" onclick="completeCase('${item.id}')">🏁 현장도착</button>
+          <button class="card-btn finish-btn" onclick="finishCase('${item.id}')">✅ 사고처리 완료</button>
+        `;
+      }
+
       div.innerHTML=`
 <div class="time">🕒 접수: ${new Date(item.time).toLocaleString()}</div>
 <div class="time elapsed">⏱ ${getElapsedTime(item.time)}</div>
@@ -270,6 +331,7 @@ async function loadData(){
 🏠 ${item.address||""}<br>
 📞 ${item.phone||""}<br>
 📝 ${item.symptom||""}
+${btns}
       `;
       listArea.appendChild(div);
     });
