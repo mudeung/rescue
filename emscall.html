@@ -55,24 +55,35 @@ function getElapsedTime(startTime, endTime=null){
   return `${m}분 ${s}초 경과`;
 }
 
-/* ===== 3분 초과 체크 ===== */
-function checkOverdue(item,div){
-  if(item.type!=="응급환자") return;
-  if(!item.status || item.status==="사고처리완료") return;
+/* ===== 3분 초과 체크 및 알림 ===== */
+function checkOverdue(item, div) {
+  if(item.type !== "응급환자") return;
+  if(!item.status || item.status === "사고처리완료") return;
 
-  const diffSeconds=Math.floor((new Date()-new Date(item.time))/1000);
-  if(diffSeconds>=180){
+  const diffSeconds = Math.floor((new Date() - new Date(item.time)) / 1000);
+  if(diffSeconds >= 180) { // 3분 경과
     div.classList.add("blink");
+
+    // 한 번만 알림 등록
     if(!alertedOverdueIds.has(item.id)){
       alertedOverdueIds.add(item.id);
-      const interval=setInterval(()=>{
-        if(div.classList.contains("done")){
+
+      // 30초 간격 반복 재생
+      const interval = setInterval(()=>{
+        if(div.classList.contains("done")) {
           clearInterval(interval);
           alertedOverdueIds.delete(item.id);
           return;
         }
-        document.getElementById("alertSound").play();
-      },30000);
+        const alertSound = document.getElementById("alertSound");
+        alertSound.currentTime = 0; // 처음부터 재생
+        alertSound.play();
+      }, 30000);
+
+      // 즉시 한번 재생
+      const alertSound = document.getElementById("alertSound");
+      alertSound.currentTime = 0;
+      alertSound.play();
     }
   }
 }
