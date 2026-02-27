@@ -114,7 +114,6 @@ const API_URL="https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6
 let map, geocoder, previewMarker=null;
 let selectedType="";
 let currentFilter="전체";
-let previousEmergencyCount=0;
 let alertedOverdueIds=new Set();
 
 const conditionEl=document.getElementById("condition");
@@ -217,7 +216,6 @@ function checkOverdue(item,div){
   if(!item.status || item.status==="사고처리완료") return;
 
   const diffSeconds=Math.floor((new Date()-new Date(item.time))/1000);
-
   if(diffSeconds>=180){
     div.classList.add("overdue");
     if(!alertedOverdueIds.has(item.id)){
@@ -249,17 +247,10 @@ async function completeCase(id){
     await fetch(API_URL,{
       method:"POST",
       headers:{ "Content-Type":"text/plain;charset=utf-8" },
-      body:JSON.stringify({
-        action:"complete",
-        id:id,
-        completeTime:new Date().toISOString()
-      })
+      body:JSON.stringify({action:"complete",id:id,completeTime:new Date().toISOString()})
     });
     loadData();
-  }catch(err){
-    alert("처리 실패");
-    console.error(err);
-  }
+  }catch(err){alert("처리 실패"); console.error(err);}
 }
 
 /* ===== ✅ 사고처리 완료 ===== */
@@ -269,17 +260,10 @@ async function finishCase(id){
     await fetch(API_URL,{
       method:"POST",
       headers:{ "Content-Type":"text/plain;charset=utf-8" },
-      body:JSON.stringify({
-        action:"finish",
-        id:id,
-        finishTime:new Date().toISOString()
-      })
+      body:JSON.stringify({action:"finish",id:id,finishTime:new Date().toISOString()})
     });
     loadData();
-  }catch(err){
-    alert("처리 실패");
-    console.error(err);
-  }
+  }catch(err){alert("처리 실패"); console.error(err);}
 }
 
 /******** 목록 불러오기 ********/
@@ -295,39 +279,28 @@ async function loadData(){
   data.sort((a,b)=>new Date(b.time)-new Date(a.time));
 
   data.forEach(item=>{
-    const div=document.createElement("div");
+    // 필터 적용
+    if(currentFilter!=="전체" && item.type!==currentFilter) return;
 
-    // 사고처리 완료만 흐림 처리
+    const div=document.createElement("div");
     div.className="card"+(item.status==="사고처리완료"?" done":"");
+    div.setAttribute("data-time", item.time); // ★ 필수
 
     div.innerHTML=`
       <div class="time">🕒 접수: ${new Date(item.time).toLocaleString()}</div>
-
-      ${item.status==="현장도착"?
-        `<div class="time">🚑 현장도착: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : ""}</div>`
-        : ""}
-
-      ${item.status==="사고처리완료"?
-        `<div class="time">🚑 현장도착: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : ""}</div>
-         <div class="time">✅ 사고처리 완료: ${item.finishTime ? new Date(item.finishTime).toLocaleString() : ""}</div>`
-        : ""}
-
+      <div class="time elapsed">⏱ ${getElapsedTime(item.time)}</div>
+      ${item.status==="현장도착"? `<div class="time">🚑 현장도착: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : ""}</div>` : ""}
+      ${item.status==="사고처리완료"? `<div class="time">🚑 현장도착: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : ""}</div><div class="time">✅ 사고처리 완료: ${item.finishTime ? new Date(item.finishTime).toLocaleString() : ""}</div>` : ""}
       🏠 ${item.address||"주소없음"}<br>
       📞 ${item.phone||"번호없음"}<br>
       📝 ${item.symptom||"내용없음"}<br>
       <div class="coord">위도: ${item.lat} / 경도: ${item.lng}</div>
       <a class="maplink" href="https://map.kakao.com/link/map/구조요청 위치,${item.lat},${item.lng}" target="_blank">📍 지도보기</a><br>
-
-      ${
-        item.status==="사고처리완료"
-        ? ""
-        : item.status==="현장도착"
-          ? `<button class="complete-btn" onclick="finishCase('${item.id}')">✅ 사고처리 완료</button>`
-          : `<button class="complete-btn" onclick="completeCase('${item.id}')">🚑 구조대원 현장도착</button>`
-      }
+      ${item.status==="사고처리완료" ? "" : item.status==="현장도착" ? `<button class="complete-btn" onclick="finishCase('${item.id}')">✅ 사고처리 완료</button>` : `<button class="complete-btn" onclick="completeCase('${item.id}')">🚑 구조대원 현장도착</button>`}
     `;
-
     listArea.appendChild(div);
+
+    checkOverdue(item,div); // 3분 초과 체크
   });
 }
 
@@ -337,7 +310,7 @@ setInterval(()=>{
     const elapsedEl = card.querySelector(".time.elapsed");
     const timeAttr = card.getAttribute("data-time");
     if(elapsedEl && timeAttr){
-      elapsedEl.innerText = "⏱ " + getElapsedTime(new Date(timeAttr));
+      elapsedEl.innerText = "⏱ " + getElapsedTime(timeAttr);
     }
   });
 },1000);
