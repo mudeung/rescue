@@ -190,31 +190,6 @@ addressEl.addEventListener("change",function(){
   });
 });
 
-/* ===== 현장도착/사고처리 완료 ===== */
-async function completeCase(id){
-  if(!confirm("구조대원이 현장에 도착했습니까?")) return;
-  try{
-    await fetch(API_URL,{
-      method:"POST",
-      headers:{ "Content-Type":"text/plain;charset=utf-8" },
-      body:JSON.stringify({ action:"complete", id:id, completeTime:new Date().toISOString() })
-    });
-    loadData();
-  }catch(err){ console.error(err); alert("처리 실패"); }
-}
-
-async function finishCase(id){
-  if(!confirm("사고처리를 완료하시겠습니까?")) return;
-  try{
-    await fetch(API_URL,{
-      method:"POST",
-      headers:{ "Content-Type":"text/plain;charset=utf-8" },
-      body:JSON.stringify({ action:"finish", id:id, finishTime:new Date().toISOString() })
-    });
-    loadData();
-  }catch(err){ console.error(err); alert("처리 실패"); }
-}
-
 /* ===== 경과시간 계산 ===== */
 function getElapsedTime(time){
   const diff=Math.floor((new Date()-new Date(time))/1000);
@@ -277,6 +252,7 @@ async function loadData(){
 
     data.forEach(item=>{
       const div=document.createElement("div");
+      div.setAttribute("data-time", new Date(item.time).toISOString());
 
       let typeClass="other";
       if(item.type==="응급환자") typeClass="emergency";
@@ -289,7 +265,7 @@ async function loadData(){
 
       div.innerHTML=`
 <div class="time">🕒 접수: ${new Date(item.time).toLocaleString()}</div>
-<div class="time">⏱ ${getElapsedTime(item.time)}</div>
+<div class="time elapsed">⏱ ${getElapsedTime(item.time)}</div>
 📂 ${item.type||""}<br>
 🏠 ${item.address||""}<br>
 📞 ${item.phone||""}<br>
@@ -307,10 +283,11 @@ async function loadData(){
 /* ===== 경과시간 갱신 ===== */
 setInterval(()=>{
   document.querySelectorAll(".card").forEach(card=>{
-    const timeEls=card.querySelectorAll(".time");
-    if(timeEls.length<2) return;
-    const timeText=timeEls[0].innerText.replace("🕒 접수: ","");
-    timeEls[1].innerText="⏱ "+getElapsedTime(new Date(timeText));
+    const elapsedEl = card.querySelector(".time.elapsed");
+    const timeAttr = card.getAttribute("data-time");
+    if(elapsedEl && timeAttr){
+      elapsedEl.innerText = "⏱ " + getElapsedTime(new Date(timeAttr));
+    }
   });
 },1000);
 
