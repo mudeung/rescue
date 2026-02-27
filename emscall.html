@@ -28,14 +28,11 @@ button{padding:8px 12px;background:#e53935;color:#fff;border:none;border-radius:
 <body>
 
 <header>🆘 무등산 특수구조팀 실시간 산악사고 신고접수</header>
-
-<audio id="alertSound">
-  <source src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" type="audio/ogg">
-</audio>
-
+  
 <div class="container">
-<div id="map"></div>
 
+<div id="map"></div>
+  
 <div class="form-box">
   <h3>📌 위치구조 신고요청 등록</h3>
   <textarea id="condition" placeholder="증상 입력"></textarea>
@@ -53,15 +50,15 @@ button{padding:8px 12px;background:#e53935;color:#fff;border:none;border-radius:
     </button>
   </div>
 </div>
-
+  
 <div id="listArea">로딩중...</div>
+
 </div>
 
 <script>
 const API_URL="https://script.google.com/macros/s/AKfycbybwt7-vC5W8NUmve94LLsdlIRFHoiw3wcIrWk9GZFRHnmZJ_0TEsihhz7oX8al_BYR_A/exec";
 
 let map, geocoder, previewMarker=null;
-const alertedOverdueIds = new Set(); // 10분 경과 알림 트래킹
 
 /******** 지도 초기화 ********/
 function initMap(){
@@ -140,7 +137,10 @@ async function completeCase(id){
       })
     });
     loadData();
-  }catch(err){ alert("처리 실패"); console.error(err); }
+  }catch(err){
+    alert("처리 실패");
+    console.error(err);
+  }
 }
 
 /******** ✅ 사고처리 완료 ********/
@@ -157,7 +157,10 @@ async function finishCase(id){
       })
     });
     loadData();
-  }catch(err){ alert("처리 실패"); console.error(err); }
+  }catch(err){
+    alert("처리 실패");
+    console.error(err);
+  }
 }
 
 /******** 경과시간 계산 (완료 시점까지 멈춤) ********/
@@ -184,7 +187,6 @@ async function loadData(){
     div.className="card"+(item.status==="사고처리완료"?" done":"");
     div.setAttribute("data-time", item.time);
     if(item.finishTime) div.setAttribute("data-finish-time", item.finishTime);
-    if(item.type === "응급환자") div.setAttribute("data-type", "응급환자");
 
     div.innerHTML=`
       <div class="time">🕒 접수: ${new Date(item.time).toLocaleString()}</div>
@@ -209,33 +211,14 @@ async function loadData(){
   });
 }
 
-/******** 경과시간 갱신 및 응급환자 10분 초과 알림 ********/
+/******** 경과시간 갱신 ********/
 setInterval(()=>{
   document.querySelectorAll(".card").forEach(card=>{
     const elapsedEl = card.querySelector(".time.elapsed");
     const timeAttr = card.getAttribute("data-time");
     const finishTimeAttr = card.getAttribute("data-finish-time");
-    const typeAttr = card.getAttribute("data-type");
     if(!elapsedEl || !timeAttr) return;
-
-    // 경과시간 갱신
     elapsedEl.innerText = "⏱ " + getElapsedTime(timeAttr, finishTimeAttr);
-
-    // 응급환자 10분 초과 체크
-    if(typeAttr === "응급환자" && !finishTimeAttr){
-      const diffSec = Math.floor((new Date() - new Date(timeAttr))/1000);
-      if(diffSec >= 600 && !alertedOverdueIds.has(card)){
-        alertedOverdueIds.add(card);
-        const interval = setInterval(()=>{
-          if(card.classList.contains("done")){
-            clearInterval(interval);
-            alertedOverdueIds.delete(card);
-            return;
-          }
-          document.getElementById("alertSound").play();
-        },30000); // 30초마다 알림
-      }
-    }
   });
 },1000);
 
