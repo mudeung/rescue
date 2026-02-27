@@ -197,6 +197,47 @@ document.getElementById("alertSound").play();
 }
 }
 
+/******** 🚑 현장도착 ********/
+async function completeCase(id){
+  if(!confirm("구조대원이 현장에 도착했습니까?")) return;
+  try{
+    await fetch(API_URL,{
+      method:"POST",
+      headers:{ "Content-Type":"text/plain;charset=utf-8" },
+      body:JSON.stringify({
+        action:"complete",
+        id:id,
+        completeTime:new Date().toISOString()
+      })
+    });
+    loadData();
+  }catch(err){
+    alert("처리 실패");
+    console.error(err);
+  }
+}
+
+/******** ✅ 사고처리 완료 ********/
+async function finishCase(id){
+  if(!confirm("사고처리를 완료하시겠습니까?")) return;
+  try{
+    await fetch(API_URL,{
+      method:"POST",
+      headers:{ "Content-Type":"text/plain;charset=utf-8" },
+      body:JSON.stringify({
+        action:"finish",
+        id:id,
+        finishTime:new Date().toISOString()
+      })
+    });
+    loadData();
+  }catch(err){
+    alert("처리 실패");
+    console.error(err);
+  }
+}
+  
+  
 /* 데이터 로드 */
 async function loadData(){
 const res=await fetch(API_URL);
