@@ -13,16 +13,44 @@ header{background:#b71c1c;padding:15px;text-align:center;font-size:20px;}
 .form-box{background:#222;padding:12px;margin-bottom:15px;border-radius:6px;}
 input,textarea{width:100%;padding:8px;margin-bottom:8px;border-radius:6px;border:none;}
 button{padding:8px 12px;background:#e53935;color:#fff;border:none;border-radius:4px;cursor:pointer;}
-.card{background:#1e1e1e;padding:12px;margin-bottom:10px;border-radius:6px;}
-.card.done{opacity:0.5;}
+#map{width:100%;height:320px;margin-bottom:15px;border-radius:6px;}
+.card{background:#1e1e1e;padding:12px;margin-bottom:10px;border-radius:6px;transition:0.2s;}
+.card.done{opacity:0.6;background:#2b2b2b;}
+.time{color:#ffcc00;font-size:14px;}
+
+/* ===== 유형 버튼 ===== */
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.type-btn{padding:12px;border:none;border-radius:8px;font-size:15px;font-weight:bold;cursor:pointer;color:#fff;transition:0.2s;}
+.type-btn.emergency{background:#4a1c1c;}
+.type-btn.dispatch{background:#1c2f4a;}
+.type-btn.lost{background:#4a461c;}
+.type-btn.other{background:#3a3a3a;}
+.type-btn.active{outline:3px solid #fff;transform:scale(1.05);}
+
+/* ===== 카드 색상 ===== */
 .card.emergency{border-left:6px solid #ff1744;background:#2a0f14;}
 .card.help{border-left:6px solid #00e5ff;background:#0f2025;}
 .card.lost{border-left:6px solid #ffea00;background:#2a2a0f;}
 .card.other{border-left:6px solid #9e9e9e;}
-.card.overdue{border-left:6px solid #ff0000 !important;background:#3a0000 !important;}
-@keyframes blink{0%{box-shadow:0 0 5px #ff1744;}50%{box-shadow:0 0 20px #ff1744;}100%{box-shadow:0 0 5px #ff1744;}}
-.card.emergency.active-blink{animation:blink 1s infinite;}
-.time{color:#ffcc00;font-size:13px;}
+
+/* ===== 필터 ===== */
+.filter-bar{display:flex;overflow-x:auto;gap:6px;margin-bottom:10px;}
+.filter-btn{flex:0 0 auto;padding:6px 10px;border:none;border-radius:20px;background:#333;color:#fff;cursor:pointer;font-size:13px;}
+.filter-btn.active{background:#e53935;}
+
+/* ===== 응급환자 깜빡임 ===== */
+@keyframes blinkEmergency{
+0%{box-shadow:0 0 5px #ff1744;}
+50%{box-shadow:0 0 20px #ff1744;}
+100%{box-shadow:0 0 5px #ff1744;}
+}
+.card.emergency.active-blink{animation:blinkEmergency 1s infinite;}
+
+/* ===== 3분 초과 ===== */
+.card.overdue{
+border-left:6px solid #ff0000 !important;
+background:#3a0000 !important;
+}
 </style>
 </head>
 
@@ -36,92 +64,160 @@ button{padding:8px 12px;background:#e53935;color:#fff;border:none;border-radius:
 
 <div class="container">
 
+<div id="map"></div>
+
 <div class="form-box">
-<h3>📌 신고 등록</h3>
+<h3>📌 위치구조 신고요청 등록</h3>
 
-<select id="type">
-<option value="">사고유형 선택</option>
-<option value="응급환자">🚑 응급환자</option>
-<option value="구조출동">🚓 구조출동</option>
-<option value="조난">🆘 조난</option>
-<option value="기타">✏ 기타</option>
-</select>
+<div class="type-grid">
+<button type="button" class="type-btn emergency" data-type="응급환자">🚑 응급환자</button>
+<button type="button" class="type-btn dispatch" data-type="구조출동">🚓 구조출동</button>
+<button type="button" class="type-btn lost" data-type="조난">🆘 조난</button>
+<button type="button" class="type-btn other" data-type="기타">✏ 기타</button>
+</div>
 
-<textarea id="condition" placeholder="증상"></textarea>
-<input type="text" id="phone" placeholder="연락처">
-<input type="text" id="address" placeholder="주소">
-<input type="number" id="lat" placeholder="위도">
-<input type="number" id="lng" placeholder="경도">
-<button onclick="submitData()">등록</button>
+<textarea id="condition" placeholder="증상 입력"></textarea>
+<input type="text" id="phone" placeholder="연락처 입력">
+<input type="text" id="address" placeholder="신고 주소 입력">
+<input type="number" step="any" id="lat" placeholder="위도">
+<input type="number" step="any" id="lng" placeholder="경도">
+<button onclick="submitData()">구조 요청 등록</button>
+</div>
+
+<div class="filter-bar">
+<button class="filter-btn active" onclick="setFilter('전체',this)">전체</button>
+<button class="filter-btn" onclick="setFilter('응급환자',this)">🚑 응급환자</button>
+<button class="filter-btn" onclick="setFilter('구조출동',this)">🚓 구조출동</button>
+<button class="filter-btn" onclick="setFilter('조난',this)">🆘 조난</button>
+<button class="filter-btn" onclick="setFilter('기타',this)">✏ 기타</button>
 </div>
 
 <div id="listArea">로딩중...</div>
-
 </div>
 
 <script>
 const API_URL="YOUR_GOOGLE_SCRIPT_URL";
-let alertedOverdueIds=new Set();
+
+let map, geocoder;
+let selectedType="";
+let currentFilter="전체";
 let previousEmergencyCount=0;
+let alertedOverdueIds=new Set();
 
+const conditionEl=document.getElementById("condition");
+const phoneEl=document.getElementById("phone");
+const addressEl=document.getElementById("address");
+const latEl=document.getElementById("lat");
+const lngEl=document.getElementById("lng");
+const listArea=document.getElementById("listArea");
+
+/* 지도 */
+function initMap(){
+map=new kakao.maps.Map(document.getElementById("map"),{
+center:new kakao.maps.LatLng(35.1345,126.9902),
+level:6});
+geocoder=new kakao.maps.services.Geocoder();
+}
+
+/* 유형 선택 */
+document.querySelectorAll(".type-btn").forEach(btn=>{
+btn.addEventListener("click",function(){
+document.querySelectorAll(".type-btn").forEach(b=>b.classList.remove("active"));
+this.classList.add("active");
+selectedType=this.dataset.type;
+});
+});
+
+/* 등록 */
 async function submitData(){
-const type=document.getElementById("type").value;
-if(!type){alert("유형 선택 필수");return;}
+if(!selectedType){alert("사고 유형 선택 필수");return;}
+if(!conditionEl.value.trim()){alert("증상 입력 필수");return;}
+let lat=latEl.value,lng=lngEl.value;
+if(lat && lng){sendData(lat,lng);return;}
+if(navigator.geolocation)
+navigator.geolocation.getCurrentPosition(pos=>sendData(pos.coords.latitude,pos.coords.longitude));
+}
 
+async function sendData(lat,lng){
 await fetch(API_URL,{
 method:"POST",
 headers:{ "Content-Type":"text/plain;charset=utf-8" },
 body:JSON.stringify({
-type:type,
-lat:lat.value,
-lng:lng.value,
-address:address.value,
-symptom:condition.value,
-phone:phone.value
+lat,lng,
+type:selectedType,
+address:addressEl.value,
+symptom:conditionEl.value,
+phone:phoneEl.value
 })
 });
-
+selectedType="";
+document.querySelectorAll(".type-btn").forEach(b=>b.classList.remove("active"));
+conditionEl.value=phoneEl.value=addressEl.value=latEl.value=lngEl.value="";
 loadData();
 }
 
-function getElapsed(time){
-const diff=Math.floor((new Date()-new Date(time))/1000);
-return Math.floor(diff/60)+"분 "+(diff%60)+"초";
+/* 필터 */
+function setFilter(type,btn){
+currentFilter=type;
+document.querySelectorAll(".filter-btn").forEach(b=>b.classList.remove("active"));
+btn.classList.add("active");
+loadData();
 }
 
+/* 경과시간 */
+function getElapsedTime(time){
+const diff=Math.floor((new Date()-new Date(time))/1000);
+const m=Math.floor(diff/60);
+const s=diff%60;
+return `${m}분 ${s}초 경과`;
+}
+
+/* 3분 초과 체크 */
 function checkOverdue(item,div){
 if(item.type!=="응급환자") return;
 if(item.status==="사고처리완료") return;
 
-const diff=Math.floor((new Date()-new Date(item.time))/1000);
-if(diff>=180){
+const diffSeconds=Math.floor((new Date()-new Date(item.time))/1000);
+
+if(diffSeconds>=180){
 div.classList.add("overdue");
 
 if(!alertedOverdueIds.has(item.id)){
 alertedOverdueIds.add(item.id);
-setInterval(()=>{
-if(div.classList.contains("done")) return;
+
+const interval=setInterval(()=>{
+if(div.classList.contains("done")){
+clearInterval(interval);
+alertedOverdueIds.delete(item.id);
+return;
+}
 document.getElementById("alertSound").play();
 },30000);
 }
 }
 }
 
+/* 데이터 로드 */
 async function loadData(){
 const res=await fetch(API_URL);
 let data=await res.json();
-document.getElementById("listArea").innerHTML="";
+listArea.innerHTML="";
 
 data.sort((a,b)=>{
-if(a.type==="응급환자"&&b.type!=="응급환자")return -1;
-if(a.type!=="응급환자"&&b.type==="응급환자")return 1;
+if(a.type==="응급환자" && b.type!=="응급환자") return -1;
+if(a.type!=="응급환자" && b.type==="응급환자") return 1;
 return new Date(b.time)-new Date(a.time);
 });
 
-const emergencyCount=data.filter(i=>i.type==="응급환자"&&i.status!=="사고처리완료").length;
-if(emergencyCount>previousEmergencyCount)
+if(currentFilter!=="전체")
+data=data.filter(i=>i.type===currentFilter);
+
+const emergencyCases=data.filter(i=>i.type==="응급환자" && i.status!=="사고처리완료");
+if(emergencyCases.length>previousEmergencyCount)
 document.getElementById("alertSound").play();
-previousEmergencyCount=emergencyCount;
+previousEmergencyCount=emergencyCases.length;
+
+if(!data.length){listArea.innerHTML="현재 접수된 신고가 없습니다.";return;}
 
 data.forEach(item=>{
 const div=document.createElement("div");
@@ -133,26 +229,34 @@ else if(item.type==="조난") typeClass="lost";
 
 div.className="card "+typeClass+(item.status==="사고처리완료"?" done":"");
 
-if(item.type==="응급환자"&&item.status!=="사고처리완료")
+if(item.type==="응급환자" && item.status!=="사고처리완료")
 div.classList.add("active-blink");
 
 checkOverdue(item,div);
 
 div.innerHTML=`
-<div class="time">🕒 ${new Date(item.time).toLocaleString()}</div>
-<div class="time">⏱ ${getElapsed(item.time)}</div>
-📂 ${item.type}<br>
+<div class="time">🕒 접수: ${new Date(item.time).toLocaleString()}</div>
+<div class="time">⏱ ${getElapsedTime(item.time)}</div>
+📂 ${item.type||""}<br>
 🏠 ${item.address||""}<br>
 📞 ${item.phone||""}<br>
 📝 ${item.symptom||""}
 `;
 
-document.getElementById("listArea").appendChild(div);
+listArea.appendChild(div);
 });
 }
 
+initMap();
 loadData();
 setInterval(loadData,10000);
+setInterval(()=>{
+document.querySelectorAll(".card").forEach(card=>{
+const timeText=card.querySelector(".time").innerText.replace("🕒 접수: ","");
+const elapsedEl=card.querySelectorAll(".time")[1];
+if(elapsedEl) elapsedEl.innerText="⏱ "+getElapsedTime(new Date(timeText));
+});
+},1000);
 </script>
 
 </body>
