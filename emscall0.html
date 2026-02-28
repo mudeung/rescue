@@ -31,25 +31,27 @@ const listArea=document.getElementById("listArea");
 async function loadData(){
   try{
     const res=await fetch(API_URL);
-    const data=await res.json();
+    const data=await res.json(); // 2차원 배열
 
-    if(!data.length){
+    if(!data.length || data.length < 2){
       listArea.innerHTML="저장된 데이터가 없습니다.";
       return;
     }
 
-    let headers = Object.keys(data[0]);
+    const headers = data[1];  // ✅ 2행을 헤더로 사용
+    const rows = data.slice(2); // ✅ 3행부터 데이터
 
     let html="<table><tr>";
+
     headers.forEach(h=>{
       html+=`<th>${h}</th>`;
     });
     html+="</tr>";
 
-    data.forEach(row=>{
+    rows.forEach(row=>{
       html+="<tr>";
-      headers.forEach(h=>{
-        html+=`<td>${row[h] ?? ""}</td>`;
+      headers.forEach((_,i)=>{
+        html+=`<td>${row[i] ?? ""}</td>`;
       });
       html+="</tr>";
     });
