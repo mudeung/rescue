@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>🆘 무등산 특수구조팀 실시간 산악사고 신고공유</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{margin:0;font-family:Arial;background:#111;color:#fff;}
+header{background:#b71c1c;padding:15px;text-align:center;font-size:20px;}
+.container{padding:15px;}
+table{
+  width:100%;
+  border-collapse:collapse;
+  background:#1e1e1e;
+}
+th,td{
+  border:1px solid #444;
+  padding:8px;
+  font-size:13px;
+  text-align:center;
+}
+th{background:#b71c1c;}
+tr:nth-child(even){background:#2b2b2b;}
+button{
+  background:#2e7d32;
+  color:#fff;
+  border:none;
+  padding:5px 8px;
+  border-radius:4px;
+  cursor:pointer;
+}
+button:hover{opacity:0.8;}
+.maplink{color:#4fc3f7;text-decoration:none;}
+.maplink:hover{text-decoration:underline;}
+</style>
+</head>
+
+<body>
+
+<header>🆘 무등산 특수구조팀 실시간 산악사고 신고공유</header>
+
+<div class="container">
+<div id="listArea">로딩중...</div>
+</div>
+
+<script>
+const API_URL="https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
+const listArea=document.getElementById("listArea");
+
+/* ===== 경과시간 계산 ===== */
+function getElapsedTime(startTime, endTime=null){
+  const start = new Date(startTime);
+  const end = endTime ? new Date(endTime) : new Date();
+  const diff = Math.floor((end - start)/1000);
+  const m = Math.floor(diff/60);
+  const s = diff%60;
+  return `${m}분 ${s}초`;
+}
+
+/* ===== 현장도착 처리 ===== */
+async function completeCase(id){
+  if(!confirm("구조대원이 현장에 도착했습니까?")) return;
+  await fetch(API_URL,{
+    method:"POST",
+    headers:{ "Content-Type":"text/plain;charset=utf-8" },
+    body:JSON.stringify({
+      action:"complete",
+      id:id,
+      completeTime:new Date().toISOString()
+    })
+  });
+  loadData();
+}
+
+/* ===== 사고처리 완료 ===== */
+async function finishCase(id){
+  if(!confirm("사고처리를 완료하시겠습니까?")) return;
+  await fetch(API_URL,{
+    method:"POST",
+    headers:{ "Content-Type":"text/plain;charset=utf-8" },
+    body:JSON.stringify({
+      action:"finish",
+      id:id,
+      finishTime:new Date().toISOString()
+    })
+  });
+  loadData();
+}
+
+/******** 목록 불러오기 ********/
+async function loadData(){
+  const res=await fetch(API_URL);
+  const data=await res.json();
+
+  if(!data.length){
+    listArea.innerHTML="현재 접수된 신고가 없습니다.";
+    return;
+  }
+
+  data.sort((a,b)=>new Date(b.time)-new Date(a.time));
+
+  let html=`
+    <table>
+      <tr>
+        <th>접수시간</th>
+        <th>경과시간</th>
+        <th>주소</th>
+        <th>전화</th>
+        <th>내용</th>
+        <th>위치</th>
+        <th>상태</th>
+        <th>처리</th>
+      </tr>
+  `;
+
+  data.forEach(item=>{
+    html+=`
+      <tr>
+        <td>${new Date(item.time).toLocaleString()}</td>
+        <td>${getElapsedTime(item.time,item.finishTime)}</td>
+        <td>${item.address||""}</td>
+        <td>${item.phone||""}</td>
+        <td>${item.symptom||""}</td>
+        <td>
+          위도:${item.lat}<br>
+          경도:${item.lng}<br>
+          <a class="maplink" href="https://map.kakao.com/link/map/구조요청 위치,${item.lat},${item.lng}" target="_blank">지도보기</a>
+        </td>
+        <td>${item.status||""}</td>
+        <td>
+          ${
+            item.status==="사고처리완료"
+            ? "완료"
+            : item.status==="현장도착"
+            ? `<button onclick="finishCase('${item.id}')">사고처리 완료</button>`
+            : `<button onclick="completeCase('${item.id}')">현장도착</button>`
+          }
+        </td>
+      </tr>
+    `;
+  });
+
+  html+="</table>";
+  listArea.innerHTML=html;
+}
+
+/* 자동 새로고침 */
+loadData();
+setInterval(loadData,10000);
+</script>
+
+</body>
+</html>
