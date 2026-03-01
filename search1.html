@@ -182,3 +182,45 @@ function loadRecords(){
 
 </body>
 </html>
+
+
+
+
+function doPost(e) {
+  const sheet = SpreadsheetApp
+      .openById("여기에_스프레드시트_ID")
+      .getSheetByName("Sheet1");
+
+  const data = JSON.parse(e.postData.contents);
+
+  sheet.appendRow([
+    new Date(),
+    data.lat,
+    data.lng,
+    data.memo || ""
+  ]);
+
+  return ContentService
+    .createTextOutput(JSON.stringify({result:"saved"}))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doGet() {
+  const sheet = SpreadsheetApp
+      .openById("여기에_스프레드시트_ID")
+      .getSheetByName("Sheet1");
+
+  const rows = sheet.getDataRange().getValues();
+  rows.shift(); // 헤더 제거
+
+  const result = rows.map(row => ({
+    time: row[0],
+    lat: row[1],
+    lng: row[2],
+    memo: row[3]
+  }));
+
+  return ContentService
+    .createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
+}
