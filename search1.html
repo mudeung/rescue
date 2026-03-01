@@ -3,80 +3,120 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>무등산 특수산악구조팀 현장조사 기록지</title>
+<title>무등산 특수산악구조팀 통합 기록 시스템</title>
 
 <style>
 *{box-sizing:border-box;}
 body{margin:0;font-family:Arial;background:#0f172a;color:#fff;}
 header{background:#1e3a8a;padding:15px;text-align:center;font-weight:bold;}
-#controls{position:absolute;top:70px;left:10px;z-index:1000;}
-#controls button{display:block;margin-bottom:8px;padding:8px 12px;border:none;border-radius:6px;background:#1e40af;color:white;font-size:13px;cursor:pointer;}
-#map{width:100%;height:calc(100vh - 60px);}
+
+#controls{
+    position:absolute;
+    top:70px;
+    left:10px;
+    z-index:1000;
+    background:#1e293b;
+    padding:12px;
+    border-radius:8px;
+    width:230px;
+}
+
+#controls textarea{
+    width:100%;
+    height:70px;
+    margin-bottom:8px;
+    padding:6px;
+    border-radius:6px;
+    border:none;
+    resize:none;
+}
+
+#controls button{
+    display:block;
+    width:100%;
+    margin-bottom:6px;
+    padding:8px;
+    border:none;
+    border-radius:6px;
+    background:#1e40af;
+    color:white;
+    font-size:13px;
+    cursor:pointer;
+}
+
+#map{
+    width:100%;
+    height:calc(100vh - 60px);
+}
 </style>
 </head>
 
 <body>
 
-<header>무등산 특수산악구조팀 현장조사 기록지</header>
+<header>무등산 특수산악구조팀 통합 기록 시스템</header>
 
 <div id="controls">
+
+    <textarea id="memo" placeholder="현장 기록 입력"></textarea>
+
     <button onclick="getCurrentLocation()">📍 현위치 저장</button>
     <button onclick="startTracking()">🟢 실시간 추적 시작</button>
     <button onclick="stopTracking()">🔴 실시간 추적 종료</button>
+    <button onclick="loadRecords()">📂 기록 불러오기</button>
+
 </div>
 
 <div id="map"></div>
 
-<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424"></script>
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_KAKAO_APP_KEY"></script>
 
 <script>
 
 var map = new kakao.maps.Map(document.getElementById('map'), {
-    center: new kakao.maps.LatLng(35.131482, 126.947906),
+    center: new kakao.maps.LatLng(35.124019, 126.008190),
     level: 4
 });
 
 var trackingId = null;
 var userMarker = null;
+var polyline = new kakao.maps.Polyline({
+    map: map,
+    path: [],
+    strokeWeight: 4,
+    strokeColor: '#FF0000',
+    strokeOpacity: 0.8
+});
 
-/* ---------------- 현재위치 1회 저장 ---------------- */
+/* ---------- 위치 저장 ---------- */
 
 function getCurrentLocation(){
-    if(navigator.geolocation){
-        navigator.geolocation.getCurrentPosition(function(position){
-
-            saveAndDisplay(position.coords.latitude, position.coords.longitude);
-
-        }, function(){
-            alert("GPS 위치를 가져올 수 없습니다.");
-        });
-    }
+    navigator.geolocation.getCurrentPosition(function(position){
+        saveAndDisplay(position.coords.latitude, position.coords.longitude);
+    });
 }
 
-/* ---------------- 실시간 추적 ---------------- */
+/* ---------- 실시간 추적 ---------- */
 
 function startTracking(){
-    if(navigator.geolocation){
-        trackingId = navigator.geolocation.watchPosition(function(position){
-
-            saveAndDisplay(position.coords.latitude, position.coords.longitude);
-
-        });
-        alert("실시간 추적 시작");
-    }
+    trackingId = navigator.geolocation.watchPosition(function(position){
+        saveAndDisplay(position.coords.latitude, position.coords.longitude);
+    });
+    alert("실시간 기록 시작");
 }
 
 function stopTracking(){
     if(trackingId){
         navigator.geolocation.clearWatch(trackingId);
         trackingId = null;
-        alert("실시간 추적 종료");
+        alert("실시간 기록 종료");
     }
 }
 
-/* ---------------- 공통 처리 함수 ---------------- */
+/* ---------- 저장 + 지도표시 ---------- */
 
 function saveAndDisplay(lat, lng){
+
+    var memoText = document.getElementById("memo").value;
 
     var locPosition = new kakao.maps.LatLng(lat, lng);
 
@@ -89,20 +129,53 @@ function saveAndDisplay(lat, lng){
         });
     }
 
+    var path = polyline.getPath();
+    path.push(locPosition);
+    polyline.setPath(path);
+
     map.panTo(locPosition);
 
-    // Google Apps Script로 전송
     fetch("YOUR_GOOGLE_SCRIPT_URL",{
         method:"POST",
         body: JSON.stringify({
             lat:lat,
             lng:lng,
-            name:"무등산구조대"
+            memo:memoText
         })
-    })
+    });
+}
+
+/* ---------- 기록 불러오기 ---------- */
+
+function loadRecords(){
+
+    fetch("YOUR_GOOGLE_SCRIPT_URL")
     .then(res=>res.json())
-    .then(data=>console.log("저장완료:",data))
-    .catch(err=>console.log("전송실패",err));
+    .then(data=>{
+
+        data.forEach(item=>{
+
+            var position = new kakao.maps.LatLng(item.lat, item.lng);
+
+            var marker = new kakao.maps.Marker({
+                map: map,
+                position: position
+            });
+
+            var infowindow = new kakao.maps.InfoWindow({
+                content:`<div style="padding:5px;color:black;">
+                ${item.memo}<br>
+                ${item.time}
+                </div>`
+            });
+
+            kakao.maps.event.addListener(marker,'click',function(){
+                infowindow.open(map,marker);
+            });
+
+        });
+
+    });
 }
 
 </script>
