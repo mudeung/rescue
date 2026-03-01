@@ -78,6 +78,7 @@ var map = new kakao.maps.Map(document.getElementById('map'), {
 });
 
 var trackingId = null;
+var currentMarker = null;   // ✅ 현재 위치 핀
 var polyline = new kakao.maps.Polyline({
     map: map,
     path: [],
@@ -86,15 +87,11 @@ var polyline = new kakao.maps.Polyline({
     strokeOpacity: 0.8
 });
 
-/* 🔵 내 위치 파란 점 */
-var currentCircle = null;      // 정확도 원
-var currentDot = null;         // 중심 파란 점
-
-/* ---------- 위치 저장 ---------- */
+/* ---------- 현재 위치 1회 ---------- */
 
 function getCurrentLocation(){
     navigator.geolocation.getCurrentPosition(function(position){
-        saveAndDisplay(position);
+        updateLocation(position);
     });
 }
 
@@ -102,7 +99,7 @@ function getCurrentLocation(){
 
 function startTracking(){
     trackingId = navigator.geolocation.watchPosition(function(position){
-        saveAndDisplay(position);
+        updateLocation(position);
     });
     alert("실시간 기록 시작");
 }
@@ -115,57 +112,34 @@ function stopTracking(){
     }
 }
 
-/* ---------- 저장 + 지도표시 ---------- */
+/* ---------- 위치 표시 + 저장 ---------- */
 
-function saveAndDisplay(position){
+function updateLocation(position){
 
     var lat = position.coords.latitude;
     var lng = position.coords.longitude;
-    var accuracy = position.coords.accuracy;
     var memoText = document.getElementById("memo").value;
 
     var locPosition = new kakao.maps.LatLng(lat, lng);
 
-    /* 🔵 중심 파란 점 */
-    if(currentDot){
-        currentDot.setPosition(locPosition);
+    // ✅ 현재 위치 핀 생성 또는 이동
+    if(currentMarker){
+        currentMarker.setPosition(locPosition);
     }else{
-        currentDot = new kakao.maps.Circle({
-            center: locPosition,
-            radius: 5,
-            strokeWeight: 2,
-            strokeColor: '#ffffff',
-            fillColor: '#1e90ff',
-            fillOpacity: 1,
-            map: map
+        currentMarker = new kakao.maps.Marker({
+            map: map,
+            position: locPosition
         });
     }
 
-    /* 🔵 정확도 원 */
-    if(currentCircle){
-        currentCircle.setPosition(locPosition);
-        currentCircle.setRadius(accuracy);
-    }else{
-        currentCircle = new kakao.maps.Circle({
-            center: locPosition,
-            radius: accuracy,
-            strokeWeight: 1,
-            strokeColor: '#1e90ff',
-            strokeOpacity: 0.6,
-            fillColor: '#1e90ff',
-            fillOpacity: 0.2,
-            map: map
-        });
-    }
-
-    /* 이동 경로 */
+    // 이동 경로
     var path = polyline.getPath();
     path.push(locPosition);
     polyline.setPath(path);
 
     map.panTo(locPosition);
 
-    /* 구글 저장 */
+    // 구글 저장
     fetch("YOUR_GOOGLE_SCRIPT_URL",{
         method:"POST",
         body: JSON.stringify({
