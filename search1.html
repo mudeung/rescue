@@ -56,35 +56,32 @@ header{background:#1e3a8a;padding:15px;text-align:center;font-weight:bold;}
 <header>무등산 특수산악구조팀 통합 기록 시스템</header>
 
 <div id="controls">
-
     <textarea id="memo" placeholder="현장 기록 입력"></textarea>
-
     <button onclick="checkCurrentLocation()">📍 현위치 확인</button>
-    <button onclick="getCurrentLocation()">💾 현위치 저장</button>
+    <button onclick="saveCurrentLocation()">💾 현위치 저장</button>
     <button onclick="startTracking()">🟢 실시간 추적 시작</button>
     <button onclick="stopTracking()">🔴 실시간 추적 종료</button>
     <button onclick="loadRecords()">📂 기록 불러오기</button>
-
 </div>
 
 <div id="map"></div>
 
-<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424"></script>
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=카카오앱키입력"></script>
 
 <script>
 
-var map = new kakao.maps.Map(document.getElementById('map'), {
+const WEB_APP_URL = "여기에_정상작동_URL_입력";
+
+let map = new kakao.maps.Map(document.getElementById('map'), {
     center: new kakao.maps.LatLng(35.131477, 126.947891),
     level: 4
 });
 
-var trackingId = null;
-var currentMarker = null;
-var directionOverlay = null;
-var lastLat = null;
-var lastLng = null;
+let currentMarker = null;
+let trackingId = null;
+let isSaving = false;
 
-var polyline = new kakao.maps.Polyline({
+let polyline = new kakao.maps.Polyline({
     map: map,
     path: [],
     strokeWeight: 4,
@@ -92,29 +89,32 @@ var polyline = new kakao.maps.Polyline({
     strokeOpacity: 0.8
 });
 
-/* 📍 현위치 확인 (저장 안함) */
+/* 위치 확인 */
 function checkCurrentLocation(){
-    navigator.geolocation.getCurrentPosition(function(position){
-        updateLocation(position, false);
-    });
+    navigator.geolocation.getCurrentPosition(pos=>{
+        updateMap(pos);
+    }, errorHandler, {enableHighAccuracy:true});
 }
 
-/* 💾 현위치 저장 */
-function getCurrentLocation(){
-    navigator.geolocation.getCurrentPosition(function(position){
-        updateLocation(position, true);
-    });
+/* 위치 저장 */
+function saveCurrentLocation(){
+    navigator.geolocation.getCurrentPosition(pos=>{
+        updateMap(pos);
+        sendToSheet(pos);
+    }, errorHandler, {enableHighAccuracy:true});
 }
 
-/* 🟢 실시간 추적 */
+/* 실시간 시작 */
 function startTracking(){
-    trackingId = navigator.geolocation.watchPosition(function(position){
-        updateLocation(position, true);
-    });
+    if(trackingId) return;
+    trackingId = navigator.geolocation.watchPosition(pos=>{
+        updateMap(pos);
+        sendToSheet(pos);
+    }, errorHandler, {enableHighAccuracy:true});
     alert("실시간 추적 시작");
 }
 
-/* 🔴 실시간 종료 */
+/* 실시간 종료 */
 function stopTracking(){
     if(trackingId){
         navigator.geolocation.clearWatch(trackingId);
@@ -123,103 +123,93 @@ function stopTracking(){
     }
 }
 
-/* 📌 위치 업데이트 + 방향 표시 */
-function updateLocation(position, saveToSheet){
+/* 지도 업데이트 */
+function updateMap(position){
+    const lat = position.coords.latitude;
+    const lng = position.coords.longitude;
+    const loc = new kakao.maps.LatLng(lat,lng);
 
-    var lat = position.coords.latitude;
-    var lng = position.coords.longitude;
-    var memoText = document.getElementById("memo").value;
-
-    var locPosition = new kakao.maps.LatLng(lat, lng);
-
-    /* 현재 위치 핀 */
     if(currentMarker){
-        currentMarker.setPosition(locPosition);
+        currentMarker.setPosition(loc);
     }else{
-        currentMarker = new kakao.maps.Marker({
-            map: map,
-            position: locPosition
-        });
+        currentMarker = new kakao.maps.Marker({map:map, position:loc});
     }
 
-    /* 이동 경로 */
-    var path = polyline.getPath();
-    path.push(locPosition);
+    let path = polyline.getPath();
+    path.push(loc);
     polyline.setPath(path);
 
-    /* 🧭 이동 방향 계산 */
-    if(lastLat && lastLng){
-        var angle = Math.atan2(lng - lastLng, lat - lastLat) * 180 / Math.PI;
-
-        var arrow = `<div style="
-            transform: rotate(${angle}deg);
-            font-size:24px;
-            color:red;
-        ">▲</div>`;
-
-        if(directionOverlay){
-            directionOverlay.setPosition(locPosition);
-            directionOverlay.setContent(arrow);
-        }else{
-            directionOverlay = new kakao.maps.CustomOverlay({
-                position: locPosition,
-                content: arrow,
-                yAnchor: 1.5
-            });
-            directionOverlay.setMap(map);
-        }
-    }
-
-    lastLat = lat;
-    lastLng = lng;
-
-    map.panTo(locPosition);
-
-    /* 구글 저장 */
-    if(saveToSheet){
-        fetch("https://script.google.com/macros/s/AKfycbyQSj47r-l2fSmBePIC11bAGtICM4eoQ7_WXXH3DuEkytDfyf524ROm0PLIQJSJmgikow/exec",{
-            method:"POST",
-            body: JSON.stringify({
-                lat:lat,
-                lng:lng,
-                memo:memoText
-            })
-        });
-    }
+    map.panTo(loc);
 }
 
-/* 📂 기록 불러오기 */
+/* 서버 전송 (안정화 버전) */
+function sendToSheet(position){
+
+    if(isSaving) return;
+    isSaving = true;
+
+    const payload = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+        memo: document.getElementById("memo").value
+    };
+
+    fetch(WEB_APP_URL,{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(res=>{
+        if(!res.ok) throw new Error("서버 응답 오류");
+        return res.json();
+    })
+    .then(data=>{
+        console.log("저장 완료:",data);
+    })
+    .catch(err=>{
+        console.error("저장 실패:",err);
+        alert("저장 실패 - 네트워크 확인");
+    })
+    .finally(()=>{
+        isSaving = false;
+    });
+}
+
+/* 기록 불러오기 */
 function loadRecords(){
 
-    fetch("https://script.google.com/macros/s/AKfycbyQSj47r-l2fSmBePIC11bAGtICM4eoQ7_WXXH3DuEkytDfyf524ROm0PLIQJSJmgikow/exec")
+    fetch(WEB_APP_URL)
     .then(res=>res.json())
     .then(data=>{
-
         data.forEach(item=>{
+            let pos = new kakao.maps.LatLng(item.lat,item.lng);
+            let marker = new kakao.maps.Marker({map:map,position:pos});
 
-            var position = new kakao.maps.LatLng(item.lat, item.lng);
-
-            var marker = new kakao.maps.Marker({
-                map: map,
-                position: position
-            });
-
-            var infowindow = new kakao.maps.InfoWindow({
+            let infowindow = new kakao.maps.InfoWindow({
                 content:`<div style="padding:5px;color:black;">
-                ${item.memo}<br>${item.time}
+                ${item.memo}<br>${new Date(item.time).toLocaleString()}
                 </div>`
             });
 
             kakao.maps.event.addListener(marker,'click',function(){
                 infowindow.open(map,marker);
             });
-
         });
-
+    })
+    .catch(err=>{
+        console.error("불러오기 실패:",err);
+        alert("기록 불러오기 실패");
     });
 }
 
-</script>
+/* 위치 오류 */
+function errorHandler(err){
+    alert("GPS 오류 또는 권한 차단");
+    console.error(err);
+}
 
+</script>
 </body>
 </html>
