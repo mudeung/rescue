@@ -24,6 +24,7 @@ header{background:#1e3a8a;padding:15px;text-align:center;font-size:18px;font-wei
     <button onclick="startMeasure()">📏 거리 측정 시작</button>
     <button onclick="stopMeasure()">⛔ 거리 측정 종료</button>
     <button onclick="resetMeasure()">🔄 거리 측정 리셋</button>
+    <button onclick="loadRecords()">📥 기록 불러오기</button>
 </div>
 
 <div id="map"></div>
@@ -71,13 +72,15 @@ var circleData = [
     { lat:35.162281, lng:126.980286, radius:300, color:"#FFFFFF", name:"원효지구:원효분소", zone:"low" },
     { lat:35.131429, lng:126.948076, radius:300, color:"#FFFFFF", name:"증심지구:무등산사무소", zone:"low" },
     { lat:35.133163, lng:126.960296, radius:300, color:"#00AA00", name:"증심지구:증심센터", zone:"low" }
-    ];
+];
 
 var bounds = new kakao.maps.LatLngBounds();
 var infowindow = new kakao.maps.InfoWindow({ removable: true });
 var selectedCircle = null;
 var circles = [];
 var zoneVisibility = {high:true, middle:true, low:true};
+var recordMarkers = [];
+var WEB_APP_URL = "YOUR_WEB_APP_URL_HERE"; // 기록 불러오기 URL
 
 circleData.forEach(function(data){
     var position = new kakao.maps.LatLng(data.lat, data.lng);
@@ -173,6 +176,36 @@ function addDot(position, distance){
     var overlay = new kakao.maps.CustomOverlay({ content:'<div style="background:#FF0000;padding:4px;font-size:12px;border-radius:4px;">총거리 : '+distance.toFixed(0)+'m</div>', position:position, yAnchor:1 });
     overlay.setMap(map);
     dots.push({circle:circle, overlay:overlay});
+}
+
+/* ---------------- 기록 불러오기 ---------------- */
+function loadRecords(){
+    recordMarkers.forEach(m=>m.setMap(null));
+    recordMarkers = [];
+
+    fetch(WEB_APP_URL)
+    .then(res=>res.json())
+    .then(data=>{
+        data.forEach(item=>{
+            let pos = new kakao.maps.LatLng(item.lat,item.lng);
+            let marker = new kakao.maps.Marker({map:map,position:pos});
+            recordMarkers.push(marker);
+
+            let infowindow = new kakao.maps.InfoWindow({
+                content:`<div style="padding:5px;color:black;">
+                ${item.memo}<br>${new Date(item.time).toLocaleString()}
+                </div>`
+            });
+
+            kakao.maps.event.addListener(marker,'click',function(){
+                infowindow.open(map,marker);
+            });
+        });
+    })
+    .catch(err=>{
+        console.error("불러오기 실패:",err);
+        alert("기록 불러오기 실패");
+    });
 }
 </script>
 
