@@ -59,7 +59,8 @@ header{background:#1e3a8a;padding:15px;text-align:center;font-weight:bold;}
 
     <textarea id="memo" placeholder="현장 기록 입력"></textarea>
 
-    <button onclick="getCurrentLocation()">📍 현위치 저장</button>
+    <button onclick="checkCurrentLocation()">📍 현위치 확인</button>
+    <button onclick="getCurrentLocation()">💾 현위치 저장</button>
     <button onclick="startTracking()">🟢 실시간 추적 시작</button>
     <button onclick="stopTracking()">🔴 실시간 추적 종료</button>
     <button onclick="loadRecords()">📂 기록 불러오기</button>
@@ -78,7 +79,11 @@ var map = new kakao.maps.Map(document.getElementById('map'), {
 });
 
 var trackingId = null;
-var currentMarker = null;   // ✅ 현재 위치 핀
+var currentMarker = null;
+var directionOverlay = null;
+var lastLat = null;
+var lastLng = null;
+
 var polyline = new kakao.maps.Polyline({
     map: map,
     path: [],
@@ -87,34 +92,39 @@ var polyline = new kakao.maps.Polyline({
     strokeOpacity: 0.8
 });
 
-/* ---------- 현재 위치 1회 ---------- */
+/* 📍 현위치 확인 (저장 안함) */
+function checkCurrentLocation(){
+    navigator.geolocation.getCurrentPosition(function(position){
+        updateLocation(position, false);
+    });
+}
 
+/* 💾 현위치 저장 */
 function getCurrentLocation(){
     navigator.geolocation.getCurrentPosition(function(position){
-        updateLocation(position);
+        updateLocation(position, true);
     });
 }
 
-/* ---------- 실시간 추적 ---------- */
-
+/* 🟢 실시간 추적 */
 function startTracking(){
     trackingId = navigator.geolocation.watchPosition(function(position){
-        updateLocation(position);
+        updateLocation(position, true);
     });
-    alert("실시간 기록 시작");
+    alert("실시간 추적 시작");
 }
 
+/* 🔴 실시간 종료 */
 function stopTracking(){
     if(trackingId){
         navigator.geolocation.clearWatch(trackingId);
         trackingId = null;
-        alert("실시간 기록 종료");
+        alert("실시간 추적 종료");
     }
 }
 
-/* ---------- 위치 표시 + 저장 ---------- */
-
-function updateLocation(position){
+/* 📌 위치 업데이트 + 방향 표시 */
+function updateLocation(position, saveToSheet){
 
     var lat = position.coords.latitude;
     var lng = position.coords.longitude;
@@ -122,7 +132,7 @@ function updateLocation(position){
 
     var locPosition = new kakao.maps.LatLng(lat, lng);
 
-    // ✅ 현재 위치 핀 생성 또는 이동
+    /* 현재 위치 핀 */
     if(currentMarker){
         currentMarker.setPosition(locPosition);
     }else{
@@ -132,26 +142,53 @@ function updateLocation(position){
         });
     }
 
-    // 이동 경로
+    /* 이동 경로 */
     var path = polyline.getPath();
     path.push(locPosition);
     polyline.setPath(path);
 
+    /* 🧭 이동 방향 계산 */
+    if(lastLat && lastLng){
+        var angle = Math.atan2(lng - lastLng, lat - lastLat) * 180 / Math.PI;
+
+        var arrow = `<div style="
+            transform: rotate(${angle}deg);
+            font-size:24px;
+            color:red;
+        ">▲</div>`;
+
+        if(directionOverlay){
+            directionOverlay.setPosition(locPosition);
+            directionOverlay.setContent(arrow);
+        }else{
+            directionOverlay = new kakao.maps.CustomOverlay({
+                position: locPosition,
+                content: arrow,
+                yAnchor: 1.5
+            });
+            directionOverlay.setMap(map);
+        }
+    }
+
+    lastLat = lat;
+    lastLng = lng;
+
     map.panTo(locPosition);
 
-    // 구글 저장
-    fetch("YOUR_GOOGLE_SCRIPT_URL",{
-        method:"POST",
-        body: JSON.stringify({
-            lat:lat,
-            lng:lng,
-            memo:memoText
-        })
-    });
+    /* 구글 저장 */
+    if(saveToSheet){
+        fetch("YOUR_GOOGLE_SCRIPT_URL",{
+            method:"POST",
+            body: JSON.stringify({
+                lat:lat,
+                lng:lng,
+                memo:memoText
+            })
+        });
+    }
 }
 
-/* ---------- 기록 불러오기 ---------- */
-
+/* 📂 기록 불러오기 */
 function loadRecords(){
 
     fetch("https://script.google.com/macros/s/AKfycbzTy7OsrpW5dkIhPmdFkdIVsxfCcUUSi9lJbaeREcBsyaRWvHZkOELZISvWXjZhjXLe/exec")
@@ -169,8 +206,7 @@ function loadRecords(){
 
             var infowindow = new kakao.maps.InfoWindow({
                 content:`<div style="padding:5px;color:black;">
-                ${item.memo}<br>
-                ${item.time}
+                ${item.memo}<br>${item.time}
                 </div>`
             });
 
