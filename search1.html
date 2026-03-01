@@ -180,23 +180,45 @@ function sendToSheet(position){
 /* 기록 불러오기 */
 function loadRecords(){
 
+    // 기존 마커 제거
+    recordMarkers.forEach(m => m.setMap(null));
+    recordMarkers = [];
+
     fetch(WEB_APP_URL)
-    .then(res=>res.json())
+    .then(res=>{
+        if(!res.ok) throw new Error("GET 실패");
+        return res.json();
+    })
     .then(data=>{
+
+        if(!Array.isArray(data)){
+            throw new Error("JSON 형식 오류");
+        }
+
         data.forEach(item=>{
-            let pos = new kakao.maps.LatLng(item.lat,item.lng);
-            let marker = new kakao.maps.Marker({map:map,position:pos});
+
+            let pos = new kakao.maps.LatLng(Number(item.lat), Number(item.lng));
+
+            let marker = new kakao.maps.Marker({
+                map:map,
+                position:pos
+            });
+
+            recordMarkers.push(marker);
 
             let infowindow = new kakao.maps.InfoWindow({
                 content:`<div style="padding:5px;color:black;">
-                ${item.memo}<br>${new Date(item.time).toLocaleString()}
+                ${item.memo || ""}<br>
+                ${new Date(item.time).toLocaleString()}
                 </div>`
             });
 
             kakao.maps.event.addListener(marker,'click',function(){
                 infowindow.open(map,marker);
             });
+
         });
+
     })
     .catch(err=>{
         console.error("불러오기 실패:",err);
