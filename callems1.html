@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>🆘 무등산특수구조팀 실시간 산악사고 신고접수(OCR 포함 전체코드)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+
+<style>
+body{margin:0;font-family:Arial;background:#111;color:#fff;}
+header{background:#b71c1c;padding:15px;text-align:center;font-size:20px;}
+.container{padding:15px;}
+.form-box{background:#222;padding:12px;margin-bottom:15px;border-radius:6px;}
+input,textarea{width:100%;padding:8px;margin-bottom:8px;border-radius:6px;border:none;}
+button{padding:8px 12px;background:#e53935;color:#fff;border:none;border-radius:4px;cursor:pointer;}
+#map{width:100%;height:320px;margin-bottom:15px;border-radius:6px;}
+.maplink{color:#4fc3f7;font-size:12px;text-decoration:none;}
+.card{background:#1e1e1e;padding:12px;margin-bottom:10px;border-radius:6px;}
+.time{color:#ffcc00;font-size:14px;margin-bottom:4px;display:block;}
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.type-btn{padding:12px;border:none;border-radius:8px;font-size:15px;font-weight:bold;cursor:pointer;color:#fff;}
+.type-btn.emergency{background:#4a1c1c;}
+.type-btn.dispatch{background:#1c2f4a;}
+.type-btn.lost{background:#4a461c;}
+.type-btn.other{background:#3a3a3a;}
+.type-btn.active{outline:3px solid #fff;transform:scale(1.05);}
+</style>
+</head>
+
+<body>
+
+<header>🆘 무등산특수구조팀 실시간 산악사고 신고접수(OCR 포함 전체코드)</header>
+
+<div class="container">
+
+<div id="map"></div>
+
+<div class="form-box">
+<h3>📌 산악사고 구조/구급/산불 신고접수</h3>
+
+<!-- 📷 OCR 업로드 -->
+<input type="file" id="imageUpload" accept="image/*">
+<div id="ocrStatus" style="font-size:12px;color:#ffcc00;margin-bottom:8px;"></div>
+
+<div class="type-grid">
+<button type="button" class="type-btn emergency" data-type="응급환자">🚑 응급환자</button>
+<button type="button" class="type-btn dispatch" data-type="구조출동">🚓 구조출동</button>
+<button type="button" class="type-btn lost" data-type="조난">🆘 조난</button>
+<button type="button" class="type-btn other" data-type="기타">✏ 기타</button>
+</div>
+
+<textarea id="condition" placeholder="구조요청사항/사고증상 입력"></textarea>
+<input type="text" id="phone" placeholder="연락처 입력">
+<input type="text" id="address" placeholder="신고장소 입력">
+<input type="number" step="any" id="lat" placeholder="위도">
+<input type="number" step="any" id="lng" placeholder="경도">
+<button onclick="submitData()">구조요청 등록</button>
+</div>
+
+<div id="listArea"></div>
+
+</div>
+
+<script>
+
+const API_URL="https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
+
+let map, geocoder, previewMarker=null;
+let selectedType="";
+
+const conditionEl=document.getElementById("condition");
+const phoneEl=document.getElementById("phone");
+const addressEl=document.getElementById("address");
+const latEl=document.getElementById("lat");
+const lngEl=document.getElementById("lng");
+
+/* 지도 */
+function initMap(){
+  map=new kakao.maps.Map(document.getElementById("map"),{
+    center:new kakao.maps.LatLng(35.1345,126.9902),
+    level:6
+  });
+  geocoder=new kakao.maps.services.Geocoder();
+}
+initMap();
+
+/* 유형 선택 */
+document.querySelectorAll(".type-btn").forEach(btn=>{
+  btn.addEventListener("click",function(){
+    document.querySelectorAll(".type-btn").forEach(b=>b.classList.remove("active"));
+    this.classList.add("active");
+    selectedType=this.dataset.type;
+  });
+});
+
+/* 제출 */
+async function submitData(){
+  if(!selectedType){alert("사고 유형 선택"); return;}
+  if(!conditionEl.value.trim()){alert("내용 입력"); return;}
+
+  await fetch(API_URL,{
+    method:"POST",
+    headers:{ "Content-Type":"text/plain;charset=utf-8" },
+    body:JSON.stringify({
+      lat:latEl.value,
+      lng:lngEl.value,
+      type:selectedType,
+      address:addressEl.value,
+      symptom:conditionEl.value,
+      phone:phoneEl.value
+    })
+  });
+
+  alert("등록 완료");
+}
+
+/***************************************************
+ 📷 OCR 처리
+***************************************************/
+document.getElementById("imageUpload").addEventListener("change", async function(e){
+
+  const file=e.target.files[0];
+  if(!file) return;
+
+  document.getElementById("ocrStatus").innerText="📷 이미지 분석중...";
+
+  const reader=new FileReader();
+
+  reader.onload=async function(){
+
+    try{
+      const { data:{text} } = await Tesseract.recognize(
+        reader.result,
+        'kor+eng'
+      );
+
+      autoFillFromText(text);
+      document.getElementById("ocrStatus").innerText="✅ 자동 입력 완료";
+
+    }catch(err){
+      document.getElementById("ocrStatus").innerText="❌ 인식 실패";
+    }
+  };
+
+  reader.readAsDataURL(file);
+});
+
+
+/***************************************************
+ 🧠 텍스트 분석
+***************************************************/
+function autoFillFromText(text){
+
+  // 전화번호
+  const phoneMatch=text.match(/01[0-9][-\s]?\d{3,4}[-\s]?\d{4}/);
+  if(phoneMatch){
+    phoneEl.value=phoneMatch[0].replace(/\s/g,"");
+  }
+
+  // 주소
+  const addressMatch=text.match(/[가-힣0-9\s]+(로|길|동|읍|면|리)\s?[0-9-]*/);
+  if(addressMatch){
+    addressEl.value=addressMatch[0];
+
+    geocoder.addressSearch(addressEl.value,function(result,status){
+      if(status===kakao.maps.services.Status.OK){
+        const lat=parseFloat(result[0].y);
+        const lng=parseFloat(result[0].x);
+
+        latEl.value=lat;
+        lngEl.value=lng;
+
+        const pos=new kakao.maps.LatLng(lat,lng);
+        map.setCenter(pos);
+        map.setLevel(3);
+
+        if(previewMarker) previewMarker.setMap(null);
+        previewMarker=new kakao.maps.Marker({ map, position:pos });
+      }
+    });
+  }
+
+  // 내용
+  conditionEl.value=text;
+
+  // 유형 자동선택
+  if(text.includes("의식")||text.includes("출혈")||text.includes("호흡")){
+    selectedType="응급환자";
+  }else if(text.includes("조난")||text.includes("길잃")){
+    selectedType="조난";
+  }else{
+    selectedType="기타";
+  }
+
+  document.querySelectorAll(".type-btn").forEach(b=>{
+    b.classList.remove("active");
+    if(b.dataset.type===selectedType){
+      b.classList.add("active");
+    }
+  });
+}
+
+</script>
+
+</body>
+</html>
