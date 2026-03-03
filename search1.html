@@ -103,25 +103,6 @@ function saveCurrentLocation(){
     }, errorHandler, {enableHighAccuracy:true});
 }
 
-/* 실시간 시작 */
-function startTracking(){
-    if(trackingId) return;
-    trackingId = navigator.geolocation.watchPosition(pos=>{
-        updateMap(pos);
-        sendToSheet(pos);
-    }, errorHandler, {enableHighAccuracy:true});
-    alert("실시간 추적 시작");
-}
-
-/* 실시간 종료 */
-function stopTracking(){
-    if(trackingId){
-        navigator.geolocation.clearWatch(trackingId);
-        trackingId = null;
-        alert("실시간 추적 종료");
-    }
-}
-
 /* 지도 업데이트 */
 function updateMap(position){
     const lat = position.coords.latitude;
