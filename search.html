@@ -130,16 +130,19 @@ circleData.forEach(function(data){
 
     kakao.maps.event.addListener(marker, 'click', function(){
         infowindow.setContent(`
-    <div style="
+   <div style="
     padding:10px;
     font-size:10px;
     color:#000;
     max-width:650px;
-    overflow-y:auto;
-    overflow-wrap:break-word;
-    white-space:pre-wrap;
-    line-height:1.5;
+    height:200px;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
 ">
+글자 가운데 정렬
+</div>
         <strong style="font-size:11px;">${data.name}</strong>
     </div>
 `);
@@ -265,16 +268,19 @@ function loadRecords(){
             let infowindow = new kakao.maps.InfoWindow({
                 removable: true,
                 content: `
-                    <div style="
-            padding:10px;
-            font-size:10px;
-            color:#000;
-            max-width:650px;
-            overflow-y:auto;
-            overflow-wrap:break-word;
-            white-space:pre-wrap;
-            line-height:1.5;
-        ">
+                   <div style="
+    padding:10px;
+    font-size:10px;
+    color:#000;
+    max-width:650px;
+    height:200px;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+">
+글자 가운데 정렬
+</div>
                         <strong>📍 현장 기록</strong><br><br>
                         ${item.memo ? item.memo : "내용 없음"}<br><br>
                         <small>
