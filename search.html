@@ -21,23 +21,27 @@ header{background:#1e3a8a;padding:15px;text-align:center;font-size:18px;font-wei
     <button onclick="toggleZone('high')">🔵 고지대 ON/OFF</button>
     <button onclick="toggleZone('middle')">🟡 중지대 ON/OFF</button>
     <button onclick="toggleZone('low')">🟢 저지대 ON/OFF</button>
-    <button onclick="startMeasure()">📏 거리 측정 시작</button>
-    <button onclick="stopMeasure()">⛔ 거리 측정 종료</button>
-    <button onclick="resetMeasure()">🔄 거리 측정 리셋</button>
     <button onclick="loadRecords()">📥 기록 불러오기</button>
+    <button onclick="startRectangleMode()">⬜ 사각형 그리기</button>
+    <button onclick="deleteLastRectangle()">🗑 마지막 사각형 삭제</button>
+    <button onclick="deleteAllRectangles()">❌ 전체 사각형 삭제</button>
 </div>
 
 <div id="map"></div>
 
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424"></script>
+
 <script>
+// ================= 지도 생성 =================
 var map = new kakao.maps.Map(document.getElementById('map'), {
     center: new kakao.maps.LatLng(35.124019, 126.008190),
     level: 4
 });
+
 map.setZoomable(true);
 map.setDraggable(true);
 
+// ================= 지대 원 데이터 =================
 var circleData = [
     { lat:35.121000, lng:127.002681, radius:300, color:"#0000FF", name:"고지대원효:서석대", zone:"high" },
     { lat:35.117408, lng:127.002317, radius:300, color:"#0000FF", name:"고지대원효:입석대", zone:"high" },
@@ -78,16 +82,14 @@ var circleData = [
     { lat:35.133163, lng:126.960296, radius:300, color:"#00AA00", name:"증심지구:증심센터", zone:"low" }
 ];
 
-var bounds = new kakao.maps.LatLngBounds();
-var infowindow = new kakao.maps.InfoWindow({ removable: true });
-var selectedCircle = null;
 var circles = [];
 var zoneVisibility = {high:true, middle:true, low:true};
-var recordMarkers = [];
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyQSj47r-l2fSmBePIC11bAGtICM4eoQ7_WXXH3DuEkytDfyf524ROm0PLIQJSJmgikow/exec"; // Google Apps Script URL
+var bounds = new kakao.maps.LatLngBounds();
+var infowindow = new kakao.maps.InfoWindow({ removable: true });
 
 circleData.forEach(function(data){
     var position = new kakao.maps.LatLng(data.lat, data.lng);
+
     var circle = new kakao.maps.Circle({
         center: position,
         radius: data.radius,
@@ -95,38 +97,29 @@ circleData.forEach(function(data){
         strokeColor: data.color,
         strokeOpacity: 0.9,
         fillColor: data.color,
-        fillOpacity: 0.4,
-        clickable: true,
-        zIndex: 1
+        fillOpacity: 0.4
     });
+
     circle.setMap(map);
 
-    var marker = new kakao.maps.Marker({ position: position, map: map, title: data.name });
+    var marker = new kakao.maps.Marker({
+        position: position,
+        map: map,
+        title: data.name
+    });
 
-    function selectLocation(){
-        if(selectedCircle){
-            selectedCircle.circle.setOptions({
-                strokeColor: selectedCircle.originalColor,
-                fillColor: selectedCircle.originalColor,
-                fillOpacity: 0.4
-            });
-        }
-        circle.setOptions({ strokeColor:"#FFD700", fillColor:"#FFD700", fillOpacity:0.6 });
-        selectedCircle = { circle:circle, originalColor:data.color };
-        map.setLevel(3);
-        map.panTo(position);
-        infowindow.setContent(`<div style="padding:8px;font-size:13px;color:#000;"><strong>${data.name}</strong><br>위도:${data.lat}<br>경도:${data.lng}</div>`);
+    kakao.maps.event.addListener(marker, 'click', function(){
+        infowindow.setContent(`<div style="padding:8px;color:#000;"><strong>${data.name}</strong></div>`);
         infowindow.open(map, marker);
-    }
-
-    kakao.maps.event.addListener(marker, 'click', selectLocation);
-    kakao.maps.event.addListener(circle, 'click', selectLocation);
+    });
 
     circles.push({circle:circle, zone:data.zone});
     bounds.extend(position);
 });
+
 map.setBounds(bounds);
 
+// ================= 지대 토글 =================
 function toggleZone(zone){
     zoneVisibility[zone] = !zoneVisibility[zone];
     circles.forEach(function(item){
@@ -136,53 +129,87 @@ function toggleZone(zone){
     });
 }
 
-/* ---------------- 거리측정 ---------------- */
-var drawingFlag = false;
-var clickLine=null, moveLine=null, dots=[];
-function startMeasure(){ drawingFlag=true; }
-function stopMeasure(){ drawingFlag=false; if(moveLine){ moveLine.setMap(null); moveLine=null; } }
-function resetMeasure(){
-    drawingFlag=false;
-    if(clickLine){ clickLine.setMap(null); clickLine=null; }
-    if(moveLine){ moveLine.setMap(null); moveLine=null; }
-    dots.forEach(dot=>{ dot.circle.setMap(null); dot.overlay.setMap(null); });
-    dots=[];
+// ================= 사각형 기능 =================
+var drawingMode = false;
+var startPoint = null;
+var rectangles = [];
+
+function startRectangleMode(){
+    alert("지도에서 시작점 클릭 → 끝점 클릭");
+    drawingMode = true;
 }
 
-kakao.maps.event.addListener(map,'click', function(mouseEvent){
-    if(!drawingFlag) return;
-    var clickPosition = mouseEvent.latLng;
-    if(!clickLine){
-        clickLine = new kakao.maps.Polyline({ map:map, path:[clickPosition], strokeWeight:4, strokeColor:'#FF0000', strokeOpacity:0.9 });
+kakao.maps.event.addListener(map, 'click', function(mouseEvent){
+
+    if(!drawingMode) return;
+
+    if(!startPoint){
+        startPoint = mouseEvent.latLng;
     }else{
-        var path = clickLine.getPath();
-        path.push(clickPosition);
-        clickLine.setPath(path);
+
+        var endPoint = mouseEvent.latLng;
+
+        var bounds = new kakao.maps.LatLngBounds(
+            new kakao.maps.LatLng(
+                Math.min(startPoint.getLat(), endPoint.getLat()),
+                Math.min(startPoint.getLng(), endPoint.getLng())
+            ),
+            new kakao.maps.LatLng(
+                Math.max(startPoint.getLat(), endPoint.getLat()),
+                Math.max(startPoint.getLng(), endPoint.getLng())
+            )
+        );
+
+        var rectangle = new kakao.maps.Rectangle({
+            bounds: bounds,
+            strokeWeight: 3,
+            strokeColor: '#FF0000',
+            strokeOpacity: 0.9,
+            fillColor: '#FF0000',
+            fillOpacity: 0.3
+        });
+
+        rectangle.setMap(map);
+        rectangles.push(rectangle);
+
+        startPoint = null;
+        drawingMode = false;
+
+        alert("사각형이 생성되었습니다.");
     }
-    addDot(clickPosition, clickLine.getLength());
 });
 
-kakao.maps.event.addListener(map,'mousemove', function(mouseEvent){
-    if(!drawingFlag || !clickLine) return;
-    var mousePosition = mouseEvent.latLng;
-    var path = clickLine.getPath();
-    var movePath = [path[path.length-1], mousePosition];
-    if(!moveLine){
-        moveLine = new kakao.maps.Polyline({ strokeWeight:4, strokeColor:'#FF0000', strokeOpacity:0.5, strokeStyle:'dash' });
+// ================= 사각형 삭제 =================
+function deleteLastRectangle(){
+    if(rectangles.length === 0){
+        alert("삭제할 사각형이 없습니다.");
+        return;
     }
-    moveLine.setPath(movePath);
-    moveLine.setMap(map);
-});
 
-function addDot(position, distance){
-    var circle = new kakao.maps.Circle({center:position, radius:3, strokeWeight:2, strokeColor:'#FF0000', fillColor:'#FF0000', fillOpacity:1});
-    circle.setMap(map);
-    var overlay = new kakao.maps.CustomOverlay({ content:'<div style="background:#FF0000;padding:4px;font-size:12px;border-radius:4px;">총거리 : '+distance.toFixed(0)+'m</div>', position:position, yAnchor:1 });
-    overlay.setMap(map);
-    dots.push({circle:circle, overlay:overlay});
+    let last = rectangles.pop();
+    last.setMap(null);
+    alert("마지막 사각형 삭제 완료");
 }
 
-/* ---------------- 기록 불러오기 ---------------- */
+function deleteAllRectangles(){
+    if(rectangles.length === 0){
+        alert("삭제할 사각형이 없습니다.");
+        return;
+    }
+
+    rectangles.forEach(function(rect){
+        rect.setMap(null);
+    });
+
+    rectangles = [];
+    alert("모든 사각형 삭제 완료");
+}
+
+// ================= 기록 불러오기 =================
+const WEB_APP_URL = "여기에_구글스크립트_URL";
+
+var recordMarkers = [];
+
 function loadRecords(){
     recordMarkers.forEach(m=>m.setMap(null));
     recordMarkers = [];
@@ -194,24 +221,13 @@ function loadRecords(){
             let pos = new kakao.maps.LatLng(item.lat,item.lng);
             let marker = new kakao.maps.Marker({map:map,position:pos});
             recordMarkers.push(marker);
-
-            let infowindow = new kakao.maps.InfoWindow({
-                content:`<div style="padding:5px;color:black;">
-                ${item.memo}<br>${new Date(item.time).toLocaleString()}
-                </div>`
-            });
-
-            kakao.maps.event.addListener(marker,'click',function(){
-                infowindow.open(map,marker);
-            });
         });
     })
     .catch(err=>{
-        console.error("불러오기 실패:",err);
         alert("기록 불러오기 실패");
     });
 }
-</script>
 
+</script>
 </body>
 </html>
