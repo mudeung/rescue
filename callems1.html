@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>🆘 무등산특수구조팀 실시간 산악사고 신고접수 (정밀OCR 최종통합)</title>
+<title>🆘 무등산특수구조팀 실시간 산악사고 신고접수 (OCR 주소/전화 전용)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
@@ -21,7 +21,7 @@ button{padding:8px 12px;background:#e53935;color:#fff;border:none;border-radius:
 
 <body>
 
-<header>🆘 무등산특수구조팀 실시간 산악사고 신고접수 (정밀OCR)</header>
+<header>🆘 무등산특수구조팀 실시간 산악사고 신고접수 (OCR 주소/전화 전용)</header>
 
 <div class="container">
 
@@ -33,7 +33,7 @@ button{padding:8px 12px;background:#e53935;color:#fff;border:none;border-radius:
 <input type="file" id="imageUpload" accept="image/*">
 <div id="ocrStatus" style="font-size:12px;color:#ffcc00;"></div>
 
-<textarea id="condition" placeholder="구조요청사항/사고내용 입력"></textarea>
+<textarea id="condition" placeholder="구조요청사항 / 사고내용 입력 (자동입력 안됨)"></textarea>
 <input type="text" id="phone" placeholder="연락처 입력">
 <input type="text" id="address" placeholder="신고장소 입력">
 <input type="number" step="any" id="lat" placeholder="위도">
@@ -56,7 +56,9 @@ const addressEl=document.getElementById("address");
 const latEl=document.getElementById("lat");
 const lngEl=document.getElementById("lng");
 
-/* ===== 지도 ===== */
+/* =========================
+   지도 초기화
+========================= */
 function initMap(){
   map=new kakao.maps.Map(document.getElementById("map"),{
     center:new kakao.maps.LatLng(35.1345,126.9902),
@@ -66,15 +68,15 @@ function initMap(){
 }
 initMap();
 
-/* =============================
-   📷 정밀 OCR 처리
-============================= */
+/* =========================
+   📷 OCR 처리
+========================= */
 document.getElementById("imageUpload").addEventListener("change",async function(e){
 
   const file=e.target.files[0];
   if(!file) return;
 
-  document.getElementById("ocrStatus").innerText="📷 이미지 정밀 분석중...";
+  document.getElementById("ocrStatus").innerText="📷 이미지 분석중...";
 
   const reader=new FileReader();
 
@@ -96,16 +98,12 @@ document.getElementById("imageUpload").addEventListener("change",async function(
         const { data:{text} } = await Tesseract.recognize(
           canvas,
           'kor+eng',
-          {
-            oem:1,
-            psm:6,
-            tessedit_char_whitelist:'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ가-힣-() '
-          }
+          { oem:1, psm:6 }
         );
 
         analyzeAndFill(text);
 
-        document.getElementById("ocrStatus").innerText="✅ 자동 입력 완료";
+        document.getElementById("ocrStatus").innerText="✅ 주소/전화 자동입력 완료";
 
       }catch(err){
         console.error(err);
@@ -118,7 +116,9 @@ document.getElementById("imageUpload").addEventListener("change",async function(
   reader.readAsDataURL(file);
 });
 
-/* ===== 전처리 ===== */
+/* =========================
+   이미지 전처리 (가독성 향상)
+========================= */
 function preprocess(canvas){
   const ctx=canvas.getContext("2d");
   const imgData=ctx.getImageData(0,0,canvas.width,canvas.height);
@@ -133,9 +133,9 @@ function preprocess(canvas){
   ctx.putImageData(imgData,0,0);
 }
 
-/* =============================
-   🧠 전체 분석 후 정확 분리
-============================= */
+/* =========================
+   주소 + 전화번호만 분석
+========================= */
 function analyzeAndFill(text){
 
   let cleaned=text
@@ -150,67 +150,62 @@ function analyzeAndFill(text){
 
   let detectedPhone="";
   let detectedAddress="";
-  let remaining=cleaned;
 
-  /* 1️⃣ 전화번호 우선 탐색 */
+  /* 전화번호 */
   const phoneRegex=/01\d[-\s]?\d{3,4}[-\s]?\d{4}/;
 
   for(let line of lines){
     const match=line.match(phoneRegex);
     if(match){
       let raw=match[0].replace(/\D/g,"");
+
       if(raw.length===11){
         detectedPhone=raw.replace(/(\d{3})(\d{4})(\d{4})/,'$1-$2-$3');
       }else if(raw.length===10){
         detectedPhone=raw.replace(/(\d{3})(\d{3})(\d{4})/,'$1-$2-$3');
       }
-      remaining=remaining.replace(match[0],"");
       break;
     }
   }
 
-  /* 2️⃣ 주소 정밀 탐색 */
+  /* 주소 */
   const addressRegex=/(서울|부산|대구|인천|광주|대전|울산|세종|경기|강원|충북|충남|전북|전남|경북|경남|제주).*?(시|군|구).*?(로|길|동|읍|면|리)\s?\d*/;
 
   for(let line of lines){
     const match=line.match(addressRegex);
     if(match){
       detectedAddress=match[0];
-      remaining=remaining.replace(match[0],"");
       break;
     }
   }
 
-  /* 3️⃣ 남은 텍스트 = 사고내용 */
-  remaining=remaining.replace(/\n{2,}/g,"\n").trim();
-
   if(detectedPhone) phoneEl.value=detectedPhone;
-  if(detectedAddress) addressEl.value=detectedAddress;
-  if(remaining) conditionEl.value=remaining;
+
+  if(detectedAddress){
+    addressEl.value=detectedAddress;
+
+    geocoder.addressSearch(detectedAddress,function(result,status){
+      if(status===kakao.maps.services.Status.OK){
+        const lat=parseFloat(result[0].y);
+        const lng=parseFloat(result[0].x);
+
+        latEl.value=lat;
+        lngEl.value=lng;
+
+        const pos=new kakao.maps.LatLng(lat,lng);
+        map.setCenter(pos);
+        map.setLevel(3);
+
+        if(previewMarker) previewMarker.setMap(null);
+        previewMarker=new kakao.maps.Marker({ map, position:pos });
+      }
+    });
+  }
 }
 
-/* ===== 주소 → 좌표 ===== */
-addressEl.addEventListener("change",function(){
-  const address=this.value.trim();
-  if(!address) return;
-  geocoder.addressSearch(address,function(result,status){
-    if(status===kakao.maps.services.Status.OK){
-      const lat=parseFloat(result[0].y);
-      const lng=parseFloat(result[0].x);
-      latEl.value=lat;
-      lngEl.value=lng;
-
-      const pos=new kakao.maps.LatLng(lat,lng);
-      map.setCenter(pos);
-      map.setLevel(3);
-
-      if(previewMarker) previewMarker.setMap(null);
-      previewMarker=new kakao.maps.Marker({ map, position:pos });
-    } else alert("주소 검색 실패");
-  });
-});
-
-/* ===== 등록 ===== */
+/* =========================
+   등록
+========================= */
 async function submitData(){
 
   if(!conditionEl.value.trim()){
@@ -245,6 +240,7 @@ async function sendData(lat,lng){
   });
 
   alert("등록 완료");
+
   conditionEl.value="";
   phoneEl.value="";
   addressEl.value="";
