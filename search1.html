@@ -24,6 +24,16 @@ header{background:#1e3a8a;padding:15px;text-align:center;font-weight:bold;}
     z-index:2000;
 }
 
+/* 깜빡임 효과 */
+@keyframes blinkFast {
+    0% {opacity:1;}
+    50% {opacity:0.3;}
+    100% {opacity:1;}
+}
+.blinking {
+    animation: blinkFast 1s infinite;
+}
+
 #controls{
     position:absolute;
     top:70px;
@@ -48,7 +58,7 @@ header{background:#1e3a8a;padding:15px;text-align:center;font-weight:bold;}
 #controls button{
     display:block;
     width:100%;
-    height:40px;
+    height:42px;
     margin-bottom:8px;
     border:none;
     border-radius:6px;
@@ -65,7 +75,7 @@ header{background:#1e3a8a;padding:15px;text-align:center;font-weight:bold;}
 }
 
 #networkStatus, #gpsStatus{
-    font-size:12px;
+    font-size:13px;
     margin-bottom:6px;
     padding:6px;
     border-radius:6px;
@@ -101,7 +111,7 @@ header{background:#1e3a8a;padding:15px;text-align:center;font-weight:bold;}
 
 <script>
 
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyQSj47r-l2fSmBePIC11bAGtICM4eoQ7_WXXH3DuEkytDfyf524ROm0PLIQJSJmgikow/exec";
+const WEB_APP_URL = "여기에_웹앱_URL";
 
 let map = new kakao.maps.Map(document.getElementById('map'), {
     center: new kakao.maps.LatLng(35.131477, 126.947891),
@@ -126,37 +136,30 @@ function getDistance(lat1, lon1, lat2, lon2) {
     const R = 6371000;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-
     const a =
         Math.sin(dLat / 2) ** 2 +
         Math.cos(lat1 * Math.PI / 180) *
         Math.cos(lat2 * Math.PI / 180) *
         Math.sin(dLon / 2) ** 2;
-
     return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
 }
 
-/* 저장 버튼 활성/비활성 */
 function setSaveButtonEnabled(enabled){
-    const btn = document.getElementById("saveBtn");
-    btn.disabled = !enabled;
+    document.getElementById("saveBtn").disabled = !enabled;
 }
 
-/* 네트워크 상태 */
+/* 네트워크 */
 function updateNetworkStatus(){
     const networkDiv = document.getElementById("networkStatus");
-
     if(navigator.onLine){
         networkDiv.innerText = "🌐 네트워크: 온라인";
         networkDiv.style.background = "#16a34a";
-        setSaveButtonEnabled(true);
     }else{
         networkDiv.innerText = "🌐 네트워크: 오프라인";
         networkDiv.style.background = "#dc2626";
         setSaveButtonEnabled(false);
     }
 }
-
 window.addEventListener("online", updateNetworkStatus);
 window.addEventListener("offline", updateNetworkStatus);
 updateNetworkStatus();
@@ -174,25 +177,40 @@ function saveCurrentLocation(){
     }, errorHandler, {enableHighAccuracy:true});
 }
 
-/* 지도 업데이트 + GPS 정확도 */
+/* 지도 업데이트 */
 function updateMap(position){
     const lat = position.coords.latitude;
     const lng = position.coords.longitude;
     const accuracy = Math.round(position.coords.accuracy);
 
     const gpsDiv = document.getElementById("gpsStatus");
-    gpsDiv.innerText = `📡 GPS 정확도: ${accuracy} m`;
+    gpsDiv.classList.remove("blinking");
 
-    if(accuracy <= 5){
+    let signalIcon = "";
+
+    if(accuracy <= 10){
+        signalIcon = "📶📶📶📶";
         gpsDiv.style.background = "#16a34a";
-    }else if(accuracy <= 20){
-        gpsDiv.style.background = "#f59e0b";
+        setSaveButtonEnabled(true);
+
+    }else if(accuracy <= 30){
+        signalIcon = "📶📶📶";
+        gpsDiv.style.background = "#eab308";
+        setSaveButtonEnabled(true);
+
+    }else if(accuracy <= 50){
+        signalIcon = "📶📶";
+        gpsDiv.style.background = "#f97316";
+        setSaveButtonEnabled(true);
+
     }else{
+        signalIcon = "📶";
         gpsDiv.style.background = "#dc2626";
-        gpsDiv.innerText += " (정확도 낮음 - 저장 차단)";
+        gpsDiv.classList.add("blinking");
         setSaveButtonEnabled(false);
-        return;
     }
+
+    gpsDiv.innerText = `${signalIcon} GPS 정확도: ${accuracy} m`;
 
     const loc = new kakao.maps.LatLng(lat,lng);
 
@@ -217,8 +235,8 @@ function sendToSheet(position){
         return;
     }
 
-    if(position.coords.accuracy > 20){
-        alert("GPS 정확도가 낮아 저장할 수 없습니다. (20m 이하 필요)");
+    if(position.coords.accuracy > 50){
+        alert("GPS 정확도가 낮아 저장할 수 없습니다. (50m 이하 필요)");
         return;
     }
 
