@@ -136,11 +136,13 @@ function sendToSheet(position){
 
     fetch(WEB_APP_URL,{
         method:"POST",
-        body: JSON.stringify(payload)   // 헤더 제거 (CORS 해결)
+        body: JSON.stringify(payload)
     })
     .then(res=>res.json())
     .then(data=>{
         console.log("저장 완료:",data);
+        alert("현위치를 저장하였습니다.");
+        document.getElementById("memo").value = "";
     })
     .catch(err=>{
         console.error("저장 실패:",err);
