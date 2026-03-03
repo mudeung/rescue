@@ -129,7 +129,11 @@ circleData.forEach(function(data){
     });
 
     kakao.maps.event.addListener(marker, 'click', function(){
-        infowindow.setContent(`<div style="padding:8px;color:#000;"><strong>${data.name}</strong></div>`);
+        infowindow.setContent(`
+    <div style="padding:15px; font-size:12px; color:#000;">
+        <strong style="font-size:18px;">${data.name}</strong>
+    </div>
+`);
         infowindow.open(map, marker);
     });
 
