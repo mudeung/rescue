@@ -21,7 +21,7 @@ button{padding:8px 12px;background:#e53935;color:#fff;border:none;border-radius:
 
 <body>
 
-<header>🆘 무등산특수구조팀 실시간 산악사고 신고접수(정밀OCR)</header>
+<header>🆘 무등산특수구조팀 실시간 산악사고 신고접수 (현장정밀OCR)</header>
 
 <div class="container">
 
@@ -46,7 +46,7 @@ button{padding:8px 12px;background:#e53935;color:#fff;border:none;border-radius:
 
 <script>
 
-const API_URL="YOUR_SCRIPT_URL";
+const API_URL="https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
 
 let map, geocoder, previewMarker;
 
@@ -56,7 +56,7 @@ const addressEl=document.getElementById("address");
 const latEl=document.getElementById("lat");
 const lngEl=document.getElementById("lng");
 
-/* ===== 지도 ===== */
+/* ================= 지도 ================= */
 function initMap(){
   map=new kakao.maps.Map(document.getElementById("map"),{
     center:new kakao.maps.LatLng(35.1345,126.9902),
@@ -66,9 +66,7 @@ function initMap(){
 }
 initMap();
 
-/* =============================
-   📷 정밀 OCR 처리
-============================= */
+/* ================= OCR ================= */
 document.getElementById("imageUpload").addEventListener("change",async function(e){
 
   const file=e.target.files[0];
@@ -77,7 +75,6 @@ document.getElementById("imageUpload").addEventListener("change",async function(
   document.getElementById("ocrStatus").innerText="📷 이미지 정밀 분석중...";
 
   const reader=new FileReader();
-
   reader.onload=async function(){
 
     const img=new Image();
@@ -104,7 +101,6 @@ document.getElementById("imageUpload").addEventListener("change",async function(
         );
 
         analyzeAndFill(text);
-
         document.getElementById("ocrStatus").innerText="✅ 자동 입력 완료";
 
       }catch(err){
@@ -118,7 +114,7 @@ document.getElementById("imageUpload").addEventListener("change",async function(
   reader.readAsDataURL(file);
 });
 
-/* ===== 전처리 ===== */
+/* ================= 전처리 ================= */
 function preprocess(canvas){
   const ctx=canvas.getContext("2d");
   const imgData=ctx.getImageData(0,0,canvas.width,canvas.height);
@@ -133,9 +129,7 @@ function preprocess(canvas){
   ctx.putImageData(imgData,0,0);
 }
 
-/* =============================
-   🧠 전체 분석 후 정확 분리
-============================= */
+/* ================= 핵심 정밀 분석 ================= */
 function analyzeAndFill(text){
 
   let cleaned=text
@@ -150,46 +144,72 @@ function analyzeAndFill(text){
 
   let detectedPhone="";
   let detectedAddress="";
+  let detectedContent="";
   let remaining=cleaned;
 
-  /* 1️⃣ 전화번호 우선 탐색 */
+  /* 1️⃣ 전화번호 */
   const phoneRegex=/01\d[-\s]?\d{3,4}[-\s]?\d{4}/;
-
   for(let line of lines){
-    const match=line.match(phoneRegex);
+    if(/신고자.*전화|전화번호|연락처/.test(line)){
+      const match=line.match(phoneRegex);
+      if(match){
+        let raw=match[0].replace(/\D/g,"");
+        detectedPhone=raw.replace(/(\d{3})(\d{3,4})(\d{4})/,'$1-$2-$3');
+        remaining=remaining.replace(match[0],"");
+        break;
+      }
+    }
+  }
+
+  if(!detectedPhone){
+    const match=cleaned.match(phoneRegex);
     if(match){
       let raw=match[0].replace(/\D/g,"");
-      if(raw.length===11){
-        detectedPhone=raw.replace(/(\d{3})(\d{4})(\d{4})/,'$1-$2-$3');
-      }else if(raw.length===10){
-        detectedPhone=raw.replace(/(\d{3})(\d{3})(\d{4})/,'$1-$2-$3');
-      }
+      detectedPhone=raw.replace(/(\d{3})(\d{3,4})(\d{4})/,'$1-$2-$3');
       remaining=remaining.replace(match[0],"");
-      break;
     }
   }
 
-  /* 2️⃣ 주소 정밀 탐색 */
-  const addressRegex=/(서울|부산|대구|인천|광주|대전|울산|세종|경기|강원|충북|충남|전북|전남|경북|경남|제주).*?(시|군|구).*?(로|길|동|읍|면|리)\s?\d*/;
-
+  /* 2️⃣ 주소 (무등산 우선) */
+  const mudeungRegex=/(무등산|서석대|입석대|장불재|중봉|늦재|중머리재|용추삼거리).*/;
   for(let line of lines){
-    const match=line.match(addressRegex);
-    if(match){
-      detectedAddress=match[0];
-      remaining=remaining.replace(match[0],"");
+    if(/긴급구조.*위치|사고.*위치|위치/.test(line)){
+      detectedAddress=line.replace(/.*위치[:：]?\s*/,'');
+      break;
+    }
+    const m=line.match(mudeungRegex);
+    if(m){
+      detectedAddress=m[0];
       break;
     }
   }
 
-  /* 3️⃣ 남은 텍스트 = 사고내용 */
-  remaining=remaining.replace(/\n{2,}/g,"\n").trim();
+  /* 3️⃣ 내용 */
+  for(let line of lines){
+    if(/신고내용|사고내용|요청사항/.test(line)){
+      detectedContent=line.replace(/.*(신고내용|사고내용|요청사항)[:：]?\s*/,'');
+      break;
+    }
+  }
 
+  /* 4️⃣ 남은 텍스트 정리 */
+  remaining=remaining
+    .replace(detectedPhone,"")
+    .replace(detectedAddress,"")
+    .replace(detectedContent,"")
+    .replace(/신고자전화번호|긴급구조위치|신고내용/g,"")
+    .replace(/\n{2,}/g,"\n")
+    .trim();
+
+  if(!detectedContent) detectedContent=remaining;
+
+  /* === 최종 입력 === */
   if(detectedPhone) phoneEl.value=detectedPhone;
   if(detectedAddress) addressEl.value=detectedAddress;
-  if(remaining) conditionEl.value=remaining;
+  if(detectedContent) conditionEl.value=detectedContent;
 }
 
-/* ===== 주소 → 좌표 ===== */
+/* ================= 주소 → 좌표 ================= */
 addressEl.addEventListener("change",function(){
   const address=this.value.trim();
   if(!address) return;
@@ -210,7 +230,7 @@ addressEl.addEventListener("change",function(){
   });
 });
 
-/* ===== 등록 ===== */
+/* ================= 등록 ================= */
 async function submitData(){
 
   if(!conditionEl.value.trim()){
