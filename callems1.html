@@ -142,10 +142,6 @@ style="width:250px;padding:10px;border-radius:6px;border:none;margin-bottom:10px
 <button onclick="adminLogin()" style="background:#424242;margin-left:15px;">관리자모드</button>
 </header>
 
-<audio id="alertSound">
-<source src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg">
-</audio>
-
 <div class="container">
 
 <div id="map"></div>
@@ -171,17 +167,30 @@ style="width:250px;padding:10px;border-radius:6px;border:none;margin-bottom:10px
 
 </div>
 
+<h3>🚨 진행중 사건</h3>
 <div id="listArea">로딩중...</div>
+
+<div style="margin-top:20px;">
+<button onclick="toggleFinished()" style="background:#424242;width:100%;">
+📂 완료된 사건 보기
+</button>
+
+<div id="finishedArea" style="display:none;margin-top:10px;"></div>
+</div>
 
 </div>
 
 <script>
 
-/* 비밀번호 */
 const ACCESS_PASSWORD="knps";
 const ADMIN_PASSWORD="rescue119";
+const API_URL="https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
 
 let isAdmin=false;
+let showFinished=false;
+let selectedType="";
+
+const listArea=document.getElementById("listArea");
 
 function checkPassword(){
 
@@ -208,8 +217,6 @@ document.getElementById("loginOverlay").style.display="none";
 
 });
 
-/* 관리자모드 */
-
 function adminLogin(){
 
 const pw=prompt("관리자 비밀번호 입력");
@@ -228,39 +235,22 @@ alert("관리자 비밀번호 오류");
 
 }
 
-/* API */
-
-const API_URL="https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
-
-let map,geocoder;
-let selectedType="";
-
-const conditionEl=document.getElementById("condition");
-const phoneEl=document.getElementById("phone");
-const addressEl=document.getElementById("address");
-const latEl=document.getElementById("lat");
-const lngEl=document.getElementById("lng");
-const listArea=document.getElementById("listArea");
-
 /* 지도 */
+
+let map;
 
 function initMap(){
 
 map=new kakao.maps.Map(document.getElementById("map"),{
-
 center:new kakao.maps.LatLng(35.1345,126.9902),
 level:6
-
 });
-
-geocoder=new kakao.maps.services.Geocoder();
 
 }
 
-/* 유형선택 */
+/* 사고 유형 선택 */
 
 document.querySelectorAll(".type-btn").forEach(btn=>{
-
 btn.addEventListener("click",function(){
 
 document.querySelectorAll(".type-btn").forEach(b=>b.classList.remove("active"));
@@ -269,43 +259,31 @@ this.classList.add("active");
 selectedType=this.dataset.type;
 
 });
-
 });
 
-/* 등록 */
+/* 신고 등록 */
 
 async function submitData(){
 
 if(!selectedType){
-
 alert("사고 유형 선택");
 return;
-
 }
 
 await fetch(API_URL,{
-
 method:"POST",
 headers:{ "Content-Type":"text/plain;charset=utf-8" },
-
 body:JSON.stringify({
 
-lat:latEl.value,
-lng:lngEl.value,
+lat:document.getElementById("lat").value,
+lng:document.getElementById("lng").value,
 type:selectedType,
-address:addressEl.value,
-symptom:conditionEl.value,
-phone:phoneEl.value
+address:document.getElementById("address").value,
+symptom:document.getElementById("condition").value,
+phone:document.getElementById("phone").value
 
 })
-
 });
-
-conditionEl.value="";
-phoneEl.value="";
-addressEl.value="";
-latEl.value="";
-lngEl.value="";
 
 loadData();
 
@@ -316,17 +294,9 @@ loadData();
 async function completeCase(id){
 
 await fetch(API_URL,{
-
 method:"POST",
 headers:{ "Content-Type":"text/plain;charset=utf-8" },
-
-body:JSON.stringify({
-
-action:"complete",
-id:id
-
-})
-
+body:JSON.stringify({action:"complete",id:id})
 });
 
 loadData();
@@ -338,17 +308,9 @@ loadData();
 async function finishCase(id){
 
 await fetch(API_URL,{
-
 method:"POST",
 headers:{ "Content-Type":"text/plain;charset=utf-8" },
-
-body:JSON.stringify({
-
-action:"finish",
-id:id
-
-})
-
+body:JSON.stringify({action:"finish",id:id})
 });
 
 loadData();
@@ -360,33 +322,21 @@ loadData();
 async function deleteCase(id){
 
 if(!isAdmin){
-
 alert("관리자만 삭제 가능합니다.");
 return;
-
 }
 
-if(!confirm("삭제하시겠습니까?")) return;
-
 await fetch(API_URL,{
-
 method:"POST",
 headers:{ "Content-Type":"text/plain;charset=utf-8" },
-
-body:JSON.stringify({
-
-action:"delete",
-id:id
-
-})
-
+body:JSON.stringify({action:"delete",id:id})
 });
 
 loadData();
 
 }
 
-/* 목록 */
+/* 진행 사건 불러오기 */
 
 async function loadData(){
 
@@ -394,6 +344,8 @@ const res=await fetch(API_URL);
 const data=await res.json();
 
 listArea.innerHTML="";
+
+data.sort((a,b)=> new Date(b.time)-new Date(a.time));
 
 data.forEach(item=>{
 
@@ -409,12 +361,13 @@ div.innerHTML=`
 📝 ${item.symptom||""}<br>
 
 <a class="maplink" target="_blank"
-href="https://map.kakao.com/link/map/${item.lat},${item.lng}">📍 지도보기</a>
+href="https://map.kakao.com/link/map/${item.lat},${item.lng}">
+📍 지도보기
+</a>
 
 <br>
 
 <button class="complete-btn" onclick="completeCase('${item.id}')">🚑 현장도착</button>
-
 <button class="finish-btn" onclick="finishCase('${item.id}')">✅ 처리완료</button>
 
 ${isAdmin ? `<button class="delete-btn" onclick="deleteCase('${item.id}')">🗑 관리자삭제</button>` : ""}
@@ -424,6 +377,57 @@ ${isAdmin ? `<button class="delete-btn" onclick="deleteCase('${item.id}')">🗑 
 listArea.appendChild(div);
 
 });
+
+}
+
+/* 완료 사건 불러오기 */
+
+async function toggleFinished(){
+
+showFinished=!showFinished;
+
+const area=document.getElementById("finishedArea");
+
+if(showFinished){
+
+area.style.display="block";
+
+const res=await fetch(API_URL+"?action=finished");
+const data=await res.json();
+
+area.innerHTML="";
+
+data.sort((a,b)=> new Date(b.time)-new Date(a.time));
+
+data.forEach(item=>{
+
+const div=document.createElement("div");
+div.className="card done";
+
+div.innerHTML=`
+
+<div class="time">🕒 ${new Date(item.time).toLocaleString()}</div>
+
+🏠 ${item.address||""}<br>
+📞 ${item.phone||""}<br>
+📝 ${item.symptom||""}<br>
+
+<a class="maplink" target="_blank"
+href="https://map.kakao.com/link/map/${item.lat},${item.lng}">
+📍 지도보기
+</a>
+
+`;
+
+area.appendChild(div);
+
+});
+
+}else{
+
+area.style.display="none";
+
+}
 
 }
 
