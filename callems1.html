@@ -8,114 +8,28 @@
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
 
 <style>
-
 body{margin:0;font-family:Arial;background:#111;color:#fff;}
-
-header{
-background:#b71c1c;
-padding:15px;
-text-align:center;
-font-size:20px;
-}
-
+header{background:#b71c1c;padding:15px;text-align:center;font-size:20px;}
 .container{padding:15px;}
-
-.form-box{
-background:#222;
-padding:12px;
-margin-bottom:15px;
-border-radius:6px;
-}
-
-input,textarea{
-width:100%;
-padding:8px;
-margin-bottom:8px;
-border-radius:6px;
-border:none;
-}
-
-button{
-padding:8px 12px;
-background:#e53935;
-color:#fff;
-border:none;
-border-radius:4px;
-cursor:pointer;
-}
-
-#map{
-width:100%;
-height:320px;
-margin-bottom:15px;
-border-radius:6px;
-}
-
-.maplink{
-color:#4fc3f7;
-font-size:12px;
-text-decoration:none;
-}
-
-.card{
-background:#1e1e1e;
-padding:12px;
-margin-bottom:10px;
-border-radius:6px;
-}
-
-.card.done{
-opacity:0.6;
-background:#2b2b2b;
-}
-
-.time{
-color:#ffcc00;
-font-size:14px;
-margin-bottom:4px;
-display:block;
-}
-
-.type-grid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:8px;
-margin-bottom:10px;
-}
-
-.type-btn{
-padding:12px;
-border:none;
-border-radius:8px;
-font-size:15px;
-font-weight:bold;
-cursor:pointer;
-color:#fff;
-}
-
+.form-box{background:#222;padding:12px;margin-bottom:15px;border-radius:6px;}
+input,textarea{width:100%;padding:8px;margin-bottom:8px;border-radius:6px;border:none;}
+button{padding:8px 12px;background:#e53935;color:#fff;border:none;border-radius:4px;cursor:pointer;}
+#map{width:100%;height:320px;margin-bottom:15px;border-radius:6px;}
+.maplink{color:#4fc3f7;font-size:12px;text-decoration:none;}
+.card{background:#1e1e1e;padding:12px;margin-bottom:10px;border-radius:6px;}
+.card.done{opacity:0.6;background:#2b2b2b;}
+.time{color:#ffcc00;font-size:14px;margin-bottom:4px;display:block;}
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.type-btn{padding:12px;border:none;border-radius:8px;font-size:15px;font-weight:bold;cursor:pointer;color:#fff;}
 .type-btn.emergency{background:#4a1c1c;}
 .type-btn.dispatch{background:#1c2f4a;}
 .type-btn.lost{background:#4a461c;}
 .type-btn.other{background:#3a3a3a;}
-
-.type-btn.active{
-outline:3px solid #fff;
-}
-
-.card button{
-margin-top:6px;
-margin-right:6px;
-padding:4px 8px;
-font-size:13px;
-border:none;
-border-radius:4px;
-cursor:pointer;
-}
-
+.type-btn.active{outline:3px solid #fff;}
+.card button{margin-top:6px;margin-right:6px;padding:4px 8px;font-size:13px;border:none;border-radius:4px;cursor:pointer;}
 .complete-btn{background:#00c853;}
 .finish-btn{background:#2962ff;}
 .delete-btn{background:#d50000;}
-
 </style>
 </head>
 
@@ -125,16 +39,11 @@ cursor:pointer;
 <div id="loginOverlay"
 style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;
 display:flex;justify-content:center;align-items:center;z-index:9999;flex-direction:column;">
-
 <h2>🔐 무등산특수구조팀 신고접수 관리자 접속인증</h2>
-
 <input type="password" id="passwordInput" placeholder="비밀번호 입력"
 style="width:250px;padding:10px;border-radius:6px;border:none;margin-bottom:10px;">
-
 <button onclick="checkPassword()">접속하기</button>
-
 <p id="loginError" style="color:red;margin-top:10px;"></p>
-
 </div>
 
 <header>
@@ -147,41 +56,33 @@ style="width:250px;padding:10px;border-radius:6px;border:none;margin-bottom:10px
 <div id="map"></div>
 
 <div class="form-box">
-
 <h3>📌 산악사고 신고접수</h3>
-
 <div class="type-grid">
 <button class="type-btn emergency" data-type="응급환자">🚑 응급환자</button>
 <button class="type-btn dispatch" data-type="구조출동">🚓 구조출동</button>
 <button class="type-btn lost" data-type="조난">🆘 조난</button>
 <button class="type-btn other" data-type="기타">✏ 기타</button>
 </div>
-
 <textarea id="condition" placeholder="구조요청사항 입력"></textarea>
 <input type="text" id="phone" placeholder="연락처">
 <input type="text" id="address" placeholder="신고장소">
 <input type="number" id="lat" placeholder="위도">
 <input type="number" id="lng" placeholder="경도">
-
 <button onclick="submitData()">구조요청 등록</button>
-
 </div>
 
 <h3>🚨 진행중 사건</h3>
 <div id="listArea">로딩중...</div>
 
-<div style="margin-top:20px;">
-<button onclick="toggleFinished()" style="background:#424242;width:100%;">
-📂 완료된 사건 보기
-</button>
-
+<!-- 완료 사건 영역 (관리자만 보이도록) -->
+<div id="finishedSection" style="margin-top:20px; display:none;">
+<button onclick="toggleFinished()" style="background:#424242;width:100%;">📂 완료된 사건 보기</button>
 <div id="finishedArea" style="display:none;margin-top:10px;"></div>
 </div>
 
 </div>
 
 <script>
-
 const ACCESS_PASSWORD="knps";
 const ADMIN_PASSWORD="rescue119";
 const API_URL="https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
@@ -193,242 +94,164 @@ let selectedType="";
 const listArea=document.getElementById("listArea");
 
 function checkPassword(){
-
-const input=document.getElementById("passwordInput").value;
-
-if(input===ACCESS_PASSWORD){
-
-document.getElementById("loginOverlay").style.display="none";
-sessionStorage.setItem("authorized","true");
-
-}else{
-
-document.getElementById("loginError").innerText="비밀번호 오류";
-
-}
-
+    const input=document.getElementById("passwordInput").value;
+    if(input===ACCESS_PASSWORD){
+        document.getElementById("loginOverlay").style.display="none";
+        sessionStorage.setItem("authorized","true");
+    }else{
+        document.getElementById("loginError").innerText="비밀번호 오류";
+    }
 }
 
 window.addEventListener("load",function(){
-
-if(sessionStorage.getItem("authorized")==="true"){
-document.getElementById("loginOverlay").style.display="none";
-}
-
+    if(sessionStorage.getItem("authorized")==="true"){
+        document.getElementById("loginOverlay").style.display="none";
+    }
 });
 
 function adminLogin(){
-
-const pw=prompt("관리자 비밀번호 입력");
-
-if(pw===ADMIN_PASSWORD){
-
-isAdmin=true;
-alert("관리자 모드 활성화");
-loadData();
-
-}else{
-
-alert("관리자 비밀번호 오류");
-
-}
-
+    const pw=prompt("관리자 비밀번호 입력");
+    if(pw===ADMIN_PASSWORD){
+        isAdmin=true;
+        alert("관리자 모드 활성화");
+        document.getElementById("finishedSection").style.display="block";
+        loadData();
+    }else{
+        alert("관리자 비밀번호 오류");
+    }
 }
 
 /* 지도 */
-
 let map;
-
 function initMap(){
-
-map=new kakao.maps.Map(document.getElementById("map"),{
-center:new kakao.maps.LatLng(35.1345,126.9902),
-level:6
-});
-
+    map=new kakao.maps.Map(document.getElementById("map"),{
+        center:new kakao.maps.LatLng(35.1345,126.9902),
+        level:6
+    });
 }
 
 /* 사고 유형 선택 */
-
 document.querySelectorAll(".type-btn").forEach(btn=>{
-btn.addEventListener("click",function(){
-
-document.querySelectorAll(".type-btn").forEach(b=>b.classList.remove("active"));
-this.classList.add("active");
-
-selectedType=this.dataset.type;
-
-});
+    btn.addEventListener("click",function(){
+        document.querySelectorAll(".type-btn").forEach(b=>b.classList.remove("active"));
+        this.classList.add("active");
+        selectedType=this.dataset.type;
+    });
 });
 
 /* 신고 등록 */
-
 async function submitData(){
-
-if(!selectedType){
-alert("사고 유형 선택");
-return;
-}
-
-await fetch(API_URL,{
-method:"POST",
-headers:{ "Content-Type":"text/plain;charset=utf-8" },
-body:JSON.stringify({
-
-lat:document.getElementById("lat").value,
-lng:document.getElementById("lng").value,
-type:selectedType,
-address:document.getElementById("address").value,
-symptom:document.getElementById("condition").value,
-phone:document.getElementById("phone").value
-
-})
-});
-
-loadData();
-
+    if(!selectedType){
+        alert("사고 유형 선택");
+        return;
+    }
+    await fetch(API_URL,{
+        method:"POST",
+        headers:{ "Content-Type":"text/plain;charset=utf-8" },
+        body:JSON.stringify({
+            lat:document.getElementById("lat").value,
+            lng:document.getElementById("lng").value,
+            type:selectedType,
+            address:document.getElementById("address").value,
+            symptom:document.getElementById("condition").value,
+            phone:document.getElementById("phone").value
+        })
+    });
+    loadData();
 }
 
 /* 현장도착 */
-
 async function completeCase(id){
-
-await fetch(API_URL,{
-method:"POST",
-headers:{ "Content-Type":"text/plain;charset=utf-8" },
-body:JSON.stringify({action:"complete",id:id})
-});
-
-loadData();
-
+    await fetch(API_URL,{
+        method:"POST",
+        headers:{ "Content-Type":"text/plain;charset=utf-8" },
+        body:JSON.stringify({action:"complete",id:id})
+    });
+    loadData();
 }
 
 /* 처리완료 */
-
 async function finishCase(id){
-
-await fetch(API_URL,{
-method:"POST",
-headers:{ "Content-Type":"text/plain;charset=utf-8" },
-body:JSON.stringify({action:"finish",id:id})
-});
-
-loadData();
-
+    await fetch(API_URL,{
+        method:"POST",
+        headers:{ "Content-Type":"text/plain;charset=utf-8" },
+        body:JSON.stringify({action:"finish",id:id})
+    });
+    loadData();
 }
 
 /* 관리자 삭제 */
-
 async function deleteCase(id){
-
-if(!isAdmin){
-alert("관리자만 삭제 가능합니다.");
-return;
-}
-
-await fetch(API_URL,{
-method:"POST",
-headers:{ "Content-Type":"text/plain;charset=utf-8" },
-body:JSON.stringify({action:"delete",id:id})
-});
-
-loadData();
-
+    if(!isAdmin){
+        alert("관리자만 삭제 가능합니다.");
+        return;
+    }
+    await fetch(API_URL,{
+        method:"POST",
+        headers:{ "Content-Type":"text/plain;charset=utf-8" },
+        body:JSON.stringify({action:"delete",id:id})
+    });
+    loadData();
 }
 
 /* 진행 사건 불러오기 */
-
 async function loadData(){
-
-const res=await fetch(API_URL);
-const data=await res.json();
-
-listArea.innerHTML="";
-
-data.sort((a,b)=> new Date(b.time)-new Date(a.time));
-
-data.forEach(item=>{
-
-const div=document.createElement("div");
-div.className="card";
-
-div.innerHTML=`
-
-<div class="time">🕒 ${new Date(item.time).toLocaleString()}</div>
-
-🏠 ${item.address||""}<br>
-📞 ${item.phone||""}<br>
-📝 ${item.symptom||""}<br>
-
-<a class="maplink" target="_blank"
-href="https://map.kakao.com/link/map/${item.lat},${item.lng}">
-📍 지도보기
-</a>
-
-<br>
-
-<button class="complete-btn" onclick="completeCase('${item.id}')">🚑 현장도착</button>
-<button class="finish-btn" onclick="finishCase('${item.id}')">✅ 처리완료</button>
-
-${isAdmin ? `<button class="delete-btn" onclick="deleteCase('${item.id}')">🗑 관리자삭제</button>` : ""}
-
-`;
-
-listArea.appendChild(div);
-
-});
-
+    const res=await fetch(API_URL);
+    const data=await res.json();
+    listArea.innerHTML="";
+    data.sort((a,b)=> new Date(b.time)-new Date(a.time));
+    data.forEach(item=>{
+        const div=document.createElement("div");
+        div.className="card";
+        div.innerHTML=`
+            <div class="time">🕒 ${new Date(item.time).toLocaleString()}</div>
+            🏠 ${item.address||""}<br>
+            📞 ${item.phone||""}<br>
+            📝 ${item.symptom||""}<br>
+            <a class="maplink" target="_blank"
+            href="https://map.kakao.com/link/map/${item.lat},${item.lng}">
+            📍 지도보기
+            </a><br>
+            <button class="complete-btn" onclick="completeCase('${item.id}')">🚑 현장도착</button>
+            <button class="finish-btn" onclick="finishCase('${item.id}')">✅ 처리완료</button>
+            ${isAdmin ? `<button class="delete-btn" onclick="deleteCase('${item.id}')">🗑 관리자삭제</button>` : ""}
+        `;
+        listArea.appendChild(div);
+    });
 }
 
 /* 완료 사건 불러오기 */
-
 async function toggleFinished(){
-
-showFinished=!showFinished;
-
-const area=document.getElementById("finishedArea");
-
-if(showFinished){
-
-area.style.display="block";
-
-const res=await fetch(API_URL+"?action=finished");
-const data=await res.json();
-
-area.innerHTML="";
-
-data.sort((a,b)=> new Date(b.time)-new Date(a.time));
-
-data.forEach(item=>{
-
-const div=document.createElement("div");
-div.className="card done";
-
-div.innerHTML=`
-
-<div class="time">🕒 ${new Date(item.time).toLocaleString()}</div>
-
-🏠 ${item.address||""}<br>
-📞 ${item.phone||""}<br>
-📝 ${item.symptom||""}<br>
-
-<a class="maplink" target="_blank"
-href="https://map.kakao.com/link/map/${item.lat},${item.lng}">
-📍 지도보기
-</a>
-
-`;
-
-area.appendChild(div);
-
-});
-
-}else{
-
-area.style.display="none";
-
-}
-
+    if(!isAdmin){
+        alert("관리자만 확인 가능합니다.");
+        return;
+    }
+    showFinished=!showFinished;
+    const area=document.getElementById("finishedArea");
+    if(showFinished){
+        area.style.display="block";
+        const res=await fetch(API_URL+"?action=finished");
+        const data=await res.json();
+        area.innerHTML="";
+        data.sort((a,b)=> new Date(b.time)-new Date(a.time));
+        data.forEach(item=>{
+            const div=document.createElement("div");
+            div.className="card done";
+            div.innerHTML=`
+                <div class="time">🕒 ${new Date(item.time).toLocaleString()}</div>
+                🏠 ${item.address||""}<br>
+                📞 ${item.phone||""}<br>
+                📝 ${item.symptom||""}<br>
+                <a class="maplink" target="_blank"
+                href="https://map.kakao.com/link/map/${item.lat},${item.lng}">
+                📍 지도보기
+                </a>
+            `;
+            area.appendChild(div);
+        });
+    }else{
+        area.style.display="none";
+    }
 }
 
 initMap();
