@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🚑 무등산 산악사고 기록</title>
+<title>🚑 무등산특수구조팀 구조출동 기록지</title>
 
 <!-- Tailwind CDN -->
 <script src="https://cdn.tailwindcss.com"></script>
@@ -108,16 +108,16 @@ button{
 </style>
 </head>
 <body id="mainBody">
-
+ 
 <div class="container mx-auto max-w-2xl p-4">
 
-  <h1 class="header">🚑 무등산 산악사고 기록</h1>
+  <h1 class="header">🚑 무등산특수구조팀 구조출동 기록지</h1>
 
-  <form id="recordForm">
+  <form id="recordForm">   
 
-    <!-- 현장정보 -->
+    <!-- 현장도착 -->
     <div class="card">
-      <h2>현장도착</h2>
+      <h2>현장정보</h2>
       <input type="datetime-local" name="도착시간" required>
       <input type="text" name="사고장소" placeholder="사고장소" required>
       <input type="text" name="주증상" placeholder="환자 증상" required>
@@ -199,6 +199,29 @@ button{
 </div>
 
 <script>
+
+/* ===== 🔐 비밀번호 설정 ===== */
+const ACCESS_PASSWORD = "knps";   // 🔥 원하는 비밀번호로 변경하세요
+
+function checkPassword(){
+  const input = document.getElementById("passwordInput").value;
+  const error = document.getElementById("loginError");
+
+  if(input === ACCESS_PASSWORD){
+    document.getElementById("loginOverlay").style.display="none";
+    sessionStorage.setItem("authorized_record","true");
+  }else{
+    error.textContent="❌ 비밀번호가 올바르지 않습니다.";
+  }
+}
+
+/* 세션 유지 (새로고침해도 유지) */
+window.addEventListener("load",function(){
+  if(sessionStorage.getItem("authorized_record")==="true"){
+    document.getElementById("loginOverlay").style.display="none";
+  }
+});  
+  
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxm_oLeGMIGh5PRokCURztVx6-1Ijug2KtuGbsFH-cZVOKE5LgaKDnLbTgFl2sWWDdkwA/exec";
 
 // 🔊 중증 음성
