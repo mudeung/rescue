@@ -285,17 +285,58 @@ calculateGCS();
 
 // GPS
 document.getElementById("getLocation").onclick = ()=>{
-  navigator.geolocation.getCurrentPosition(p=>{
-    const lat=p.coords.latitude;
-    const lng=p.coords.longitude;
-    const txt=`위도:${lat}, 경도:${lng}`;
-    document.getElementById("locationDisplay").textContent=txt;
-    document.getElementById("hiddenCoordinate").value=txt;
 
-    const loc = new kakao.maps.LatLng(lat,lng);
-    const map = new kakao.maps.Map(document.getElementById("map"), {center:loc, level:3});
-    new kakao.maps.Marker({position:loc,map:map});
-  });
+  // 🚨 인앱 브라우저 대응
+  if(isInAppBrowser()){
+    if(confirm("⚠️ 카카오/네이버 앱에서는 GPS가 제한됩니다.\n\n👉 크롬 또는 사파리로 여시겠습니까?")){
+      openExternalBrowser();
+    }
+    return;
+  }
+
+  if(!navigator.geolocation){
+    alert("이 기기는 위치 기능을 지원하지 않습니다.");
+    return;
+  }
+
+  alert("📡 GPS 수신 중...");
+
+  navigator.geolocation.getCurrentPosition(
+    (p)=>{
+      const lat=p.coords.latitude;
+      const lng=p.coords.longitude;
+      const txt=`위도:${lat}, 경도:${lng}`;
+
+      document.getElementById("locationDisplay").textContent=txt;
+      document.getElementById("hiddenCoordinate").value=txt;
+
+      const loc = new kakao.maps.LatLng(lat,lng);
+      const map = new kakao.maps.Map(document.getElementById("map"), {
+        center:loc,
+        level:3
+      });
+
+      new kakao.maps.Marker({position:loc,map:map});
+    },
+
+    (err)=>{
+      console.error(err);
+
+      if(err.code === 1){
+        alert("❌ 위치 권한이 거부되었습니다.\n설정에서 위치 권한을 허용해주세요.");
+      }else if(err.code === 2){
+        alert("❌ GPS 신호를 찾을 수 없습니다.\n야외에서 다시 시도하세요.");
+      }else{
+        alert("❌ 위치를 가져올 수 없습니다.");
+      }
+    },
+
+    {
+      enableHighAccuracy:true,
+      timeout:15000,
+      maximumAge:0
+    }
+  );
 };
 
 // 기록 저장 + 공유
@@ -323,6 +364,29 @@ document.getElementById("recordForm").onsubmit = async e=>{
     navigator.share({title:"무등산 산악사고 기록", text:text});
   }
 };
+
+<!-- ✅ head 안에 추가 -->
+function isInAppBrowser(){
+  const ua = navigator.userAgent.toLowerCase();
+  return (
+    ua.includes("kakaotalk") ||
+    ua.includes("naver") ||
+    ua.includes("instagram") ||
+    ua.includes("fbav") ||
+    ua.includes("line")
+  );
+}
+
+function openExternalBrowser(){
+  const url = window.location.href;
+
+  if(/android/i.test(navigator.userAgent)){
+    location.href = "intent://" + url.replace(/^https?:\/\//,'') + "#Intent;scheme=https;package=com.android.chrome;end";
+  }else{
+    location.href = url;
+  }
+}  
+  
 </script>
 </body>
 </html>
