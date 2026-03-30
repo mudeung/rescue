@@ -50,7 +50,7 @@ button{padding:8px 12px;background:#e53935;color:#fff;border:none;border-radius:
 <script>
 const API_URL="https://script.google.com/macros/s/AKfycbybwt7-vC5W8NUmve94LLsdlIRFHoiw3wcIrWk9GZFRHnmZJ_0TEsihhz7oX8al_BYR_A/exec";
 
-let map, geocoder, previewMarker=null, selectedMarker=null, selectedCard=null;
+let map, geocoder, previewMarker=null;
 
 const conditionEl=document.getElementById("condition");
 const phoneEl=document.getElementById("phone");
@@ -89,6 +89,25 @@ addressEl.addEventListener("change",function(){
   });
 });
 
+/******** 입력값 저장/복원 ********/
+window.addEventListener("load", () => {
+  conditionEl.value = localStorage.getItem("condition") || "";
+  phoneEl.value = localStorage.getItem("phone") || "";
+  addressEl.value = localStorage.getItem("address") || "";
+  latEl.value = localStorage.getItem("lat") || "";
+  lngEl.value = localStorage.getItem("lng") || "";
+});
+
+[conditionEl, phoneEl, addressEl, latEl, lngEl].forEach(el => {
+  el.addEventListener("input", () => {
+    localStorage.setItem("condition", conditionEl.value);
+    localStorage.setItem("phone", phoneEl.value);
+    localStorage.setItem("address", addressEl.value);
+    localStorage.setItem("lat", latEl.value);
+    localStorage.setItem("lng", lngEl.value);
+  });
+});
+
 /******** 등록 ********/
 async function submitData(){
   if(!conditionEl.value.trim()){ alert("증상 입력 필수"); return; }
@@ -110,7 +129,15 @@ async function sendData(lat,lng){
       kakaoMapURL:`https://map.kakao.com/link/map/구조요청 위치,${lat},${lng}`
     })
   });
+
+  // 입력 초기화
   conditionEl.value=phoneEl.value=addressEl.value=latEl.value=lngEl.value="";
+  localStorage.removeItem("condition");
+  localStorage.removeItem("phone");
+  localStorage.removeItem("address");
+  localStorage.removeItem("lat");
+  localStorage.removeItem("lng");
+
   if(previewMarker) previewMarker.setMap(null);
   loadData();
 }
