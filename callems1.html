@@ -2,120 +2,256 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>🚑 구조 상황판</title>
+<title>🆘 무등산특수구조팀 실시간 산악사고 신고접수</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_KEY&libraries=services"></script>
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
 
 <style>
-body{margin:0;background:#111;color:#fff;font-family:Arial;}
-header{background:#b71c1c;padding:15px;text-align:center;}
-.container{padding:10px;}
-.card{background:#1e1e1e;padding:10px;margin-bottom:8px;border-radius:6px;}
-.card.done{opacity:0.6;}
-.time{color:#ffcc00;font-size:13px;}
-.elapsed{color:#00e676;}
-button{padding:6px 10px;margin:3px;border:none;border-radius:4px;cursor:pointer;}
-.complete-btn{background:#00c853;}
-.finish-btn{background:#2962ff;}
-.delete-btn{background:#d50000;}
-.restore-btn{background:#00b0ff;}
+body{margin:0;font-family:Arial;background:#111;color:#fff;}
+header{background:#b71c1c;padding:15px;text-align:center;font-size:20px;}
+.container{padding:15px;}
+.form-box{background:#222;padding:12px;margin-bottom:15px;border-radius:6px;}
+input,textarea{width:100%;padding:8px;margin-bottom:8px;border-radius:6px;border:none;}
+button{padding:8px 12px;background:#e53935;color:#fff;border:none;border-radius:4px;cursor:pointer;}
+#map{width:100%;height:320px;margin-bottom:15px;border-radius:6px;}
+
+.card{background:#1e1e1e;padding:12px;margin-bottom:10px;border-radius:6px;}
+.card.done{opacity:0.6;background:#2b2b2b;}
+
+.time{color:#ffcc00;font-size:14px;margin-bottom:4px;display:block;}
+
+.card.emergency{border-left:6px solid #ff1744;}
+.card.overdue{background:#3a0000;}
+
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.type-btn{padding:12px;border-radius:8px;font-weight:bold;cursor:pointer;color:#fff;}
+.type-btn.active{outline:3px solid #fff;}
+.type-btn.emergency{background:#4a1c1c;}
+.type-btn.dispatch{background:#1c2f4a;}
+.type-btn.lost{background:#4a461c;}
+.type-btn.other{background:#3a3a3a;}
 </style>
 </head>
 
 <body>
 
-<header>🚑 구조 상황판</header>
+<header>🆘 무등산특수구조팀 신고접수</header>
 
 <div class="container">
-<div id="listArea">로딩중...</div>
+
+<div id="map"></div>
+
+<div class="form-box">
+<div class="type-grid">
+<button class="type-btn emergency" data-type="응급환자">🚑 응급환자</button>
+<button class="type-btn dispatch" data-type="구조출동">🚓 구조출동</button>
+<button class="type-btn lost" data-type="조난">🆘 조난</button>
+<button class="type-btn other" data-type="기타">✏ 기타</button>
 </div>
 
+<textarea id="condition" placeholder="상황 입력"></textarea>
+<input id="phone" placeholder="연락처">
+<input id="address" placeholder="주소">
+<input id="lat" placeholder="위도">
+<input id="lng" placeholder="경도">
+
+<button onclick="submitData()">신고접수</button>
+</div>
+
+<div id="listArea"></div>
+
+</div>
+
+<audio id="alertSound">
+<source src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg">
+</audio>
+
 <script>
+
 const API_URL="https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
 
-let isAdmin=false;
+let map, geocoder;
+let selectedType="";
+let alerted=new Set();
 
-/******** 관리자 ********/
-function adminLogin(){
-  if(prompt("관리자 비밀번호") === "rescue119"){
-    isAdmin=true;
-    alert("관리자 활성화");
-    loadData();
+const conditionEl=document.getElementById("condition");
+const phoneEl=document.getElementById("phone");
+const addressEl=document.getElementById("address");
+const latEl=document.getElementById("lat");
+const lngEl=document.getElementById("lng");
+const listArea=document.getElementById("listArea");
+
+/* 지도 */
+function initMap(){
+  map=new kakao.maps.Map(document.getElementById("map"),{
+    center:new kakao.maps.LatLng(35.1345,126.9902),
+    level:6
+  });
+  geocoder=new kakao.maps.services.Geocoder();
+}
+
+/* 유형 선택 */
+document.querySelectorAll(".type-btn").forEach(btn=>{
+  btn.onclick=function(){
+    document.querySelectorAll(".type-btn").forEach(b=>b.classList.remove("active"));
+    this.classList.add("active");
+    selectedType=this.dataset.type;
+  };
+});
+
+/* 신고 */
+async function submitData(){
+  if(!selectedType){alert("유형 선택");return;}
+  if(!conditionEl.value){alert("내용 입력");return;}
+
+  let lat=latEl.value,lng=lngEl.value;
+
+  if(!lat||!lng){
+    navigator.geolocation.getCurrentPosition(pos=>{
+      sendData(pos.coords.latitude,pos.coords.longitude);
+    });
+  }else{
+    sendData(lat,lng);
   }
 }
 
-/******** 상태 변경 ********/
-async function update(id,action){
+async function sendData(lat,lng){
   await fetch(API_URL,{
     method:"POST",
-    body:JSON.stringify({action,id})
+    headers:{ "Content-Type":"text/plain" },
+    body:JSON.stringify({
+      lat,lng,
+      type:selectedType,
+      address:addressEl.value,
+      symptom:conditionEl.value,
+      phone:phoneEl.value
+    })
+  });
+
+  loadData();
+}
+
+/* 경과시간 */
+function getElapsed(start,end){
+  const s=new Date(start);
+  const e=end?new Date(end):new Date();
+  const d=Math.floor((e-s)/1000);
+  return Math.floor(d/60)+"분";
+}
+
+/* 3분 초과 */
+function checkOverdue(item,div){
+  if(item.type!=="응급환자") return;
+  if(item.status==="완료") return;
+
+  const diff=(new Date()-new Date(item.time))/1000;
+
+  if(diff>180){
+    div.classList.add("overdue");
+
+    if(!alerted.has(item.id)){
+      alerted.add(item.id);
+
+      document.getElementById("alertSound").play();
+
+      if(navigator.vibrate) navigator.vibrate([500,300,500]);
+
+      if(Notification.permission==="granted"){
+        new Notification("🚨 응급환자 3분 초과");
+      }
+    }
+  }
+}
+
+/* 삭제 */
+async function deleteCase(id){
+  await fetch(API_URL,{
+    method:"POST",
+    body:JSON.stringify({action:"delete",id})
   });
   loadData();
 }
 
-/******** 경과시간 ********/
-function getElapsed(start,end){
-  const s=new Date(start);
-  const e=end ? new Date(end) : new Date();
-  const diff=Math.floor((e-s)/1000);
-  const m=Math.floor(diff/60);
-  return `${m}분`;
+/* 도착 */
+async function completeCase(id){
+  await fetch(API_URL,{
+    method:"POST",
+    body:JSON.stringify({action:"complete",id})
+  });
+  loadData();
 }
 
-/******** 목록 ********/
+/* 완료 */
+async function finishCase(id){
+  await fetch(API_URL,{
+    method:"POST",
+    body:JSON.stringify({action:"finish",id})
+  });
+  loadData();
+}
+
+/* 목록 */
 async function loadData(){
   const res=await fetch(API_URL);
   const data=await res.json();
 
-  const list=document.getElementById("listArea");
-  list.innerHTML="";
+  listArea.innerHTML="";
 
-  const ongoing = data
-    .filter(i => i.status !== "완료" && i.status !== "삭제")
-    .sort((a,b)=> new Date(b.time) - new Date(a.time));
+  data.sort((a,b)=>{
+    if(a.type==="응급환자") return -1;
+    if(b.type==="응급환자") return 1;
+    return new Date(b.time)-new Date(a.time);
+  });
 
-  const finished = data
-    .filter(i => i.status === "완료")
-    .sort((a,b)=> new Date(b.finishTime||b.time) - new Date(a.finishTime||a.time));
-
-  [...ongoing, ...finished].forEach(item=>{
-
+  data.forEach(item=>{
     const div=document.createElement("div");
+
     div.className="card"+(item.status==="완료"?" done":"");
 
+    if(item.type==="응급환자" && item.status!=="완료"){
+      div.classList.add("emergency");
+    }
+
     div.innerHTML=`
-    🕒 ${new Date(item.time).toLocaleString()}<br>
-    ⏱ ${getElapsed(item.time,item.finishTime)}<br>
-    🏠 ${item.address}<br>
-    📞 ${item.phone}<br>
-    📝 ${item.symptom}<br>
+      ${item.type}<br>
+      ${item.address}<br>
+      ${item.symptom}<br>
+      상태:${item.status}<br>
+      ⏱ ${getElapsed(item.time,item.finishTime)}<br>
 
-    ${
-      item.status==="완료"
-      ? ""
-      : item.status==="현장도착"
-      ? `<button class="finish-btn" onclick="update('${item.id}','finish')">완료</button>`
-      : `<button class="complete-btn" onclick="update('${item.id}','complete')">도착</button>`
-    }
+      ${
+        item.status==="완료" ? ""
+        : item.status==="현장도착"
+        ? `<button onclick="finishCase('${item.id}')">완료</button>`
+        : `<button onclick="completeCase('${item.id}')">도착</button>`
+      }
 
-    ${
-      isAdmin
-      ? `
-      <button class="delete-btn" onclick="update('${item.id}','delete')">삭제</button>
-      <button class="restore-btn" onclick="update('${item.id}','restore')">복구</button>
-      `
-      : ""
-    }
+      <button onclick="deleteCase('${item.id}')">삭제</button>
     `;
 
-    list.appendChild(div);
+    listArea.appendChild(div);
+
+    checkOverdue(item,div);
+
+    // 지도 마커
+    if(item.lat && item.lng){
+      new kakao.maps.Marker({
+        map:map,
+        position:new kakao.maps.LatLng(item.lat,item.lng)
+      });
+    }
   });
 }
 
-/******** 실행 ********/
+/* 초기 */
+initMap();
 loadData();
-setInterval(loadData,10000);
+setInterval(loadData,5000);
+
+if(Notification.permission!=="granted"){
+  Notification.requestPermission();
+}
+
 </script>
 
 </body>
