@@ -265,9 +265,9 @@ async function loadData(){
       🏠 ${item.address}<br>
       📞 ${item.phone}<br>
       📝 ${item.symptom}<br>
-      <a class="maplink" href="${item.kakaoMapURL}" target="_blank">📍 카카오맵 바로가기</a><br>
-      ${
-        item.status==="접수"
+       <div class="coord">위도: ${item.lat} / 경도: ${item.lng}</div>
+       <a class="maplink" href="https://map.kakao.com/link/map/구조요청 위치,${item.lat},${item.lng}" target="_blank">📍 지도보기</a><br>
+         ${item.status==="접수"
         ? `<button onclick="completeCase('${item.id}')">🚑 현장도착</button>`
         : item.status==="현장도착"
         ? `<button onclick="finishCase('${item.id}')">✅ 처리완료</button>`
