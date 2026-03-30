@@ -21,26 +21,41 @@ button{padding:6px 10px;margin:3px;border:none;border-radius:4px;cursor:pointer;
 
 <body>
 
-<header>🚑 구조 상황판</header>
+<header>
+🚑 구조 상황판
+<button onclick="adminLogin()">관리자</button>
+</header>
 
 <div class="container">
+
 <div id="listArea">로딩중...</div>
+
+<h3 onclick="toggleFinished()" style="cursor:pointer;">📂 완료 사건 (관리자)</h3>
+<div id="finishedArea" style="display:none;"></div>
+
 </div>
 
 <script>
 const API_URL="https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
 
-let currentFilter="전체";
+let isAdmin=false;
+let showFinished=false;
 
-/******** 경과시간 계산 ********/
+/******** 관리자 ********/
+function adminLogin(){
+  if(prompt("관리자 비밀번호") === "rescue119"){
+    isAdmin=true;
+    alert("관리자 모드 활성화");
+  }
+}
+
+/******** 경과시간 ********/
 function getElapsedTime(start,end){
   const s=new Date(start);
   const e=end ? new Date(end) : new Date();
   const diff=Math.floor((e-s)/1000);
-
   const m=Math.floor(diff/60);
   const h=Math.floor(m/60);
-
   if(h>0) return `${h}시간 ${m%60}분`;
   return `${m}분`;
 }
@@ -74,7 +89,7 @@ async function finishCase(id){
   loadData();
 }
 
-/******** 목록 불러오기 ********/
+/******** 진행 목록 ********/
 async function loadData(){
   const res=await fetch(API_URL);
   const data=await res.json();
@@ -87,48 +102,21 @@ async function loadData(){
     return;
   }
 
-  /* 🔥 진행 / 완료 분리 */
   const ongoing = data
     .filter(item => item.status !== "사고처리완료")
     .sort((a,b)=> new Date(b.time) - new Date(a.time));
 
-  const finished = data
-    .filter(item => item.status === "사고처리완료")
-    .sort((a,b)=> {
-      const tA = new Date(a.finishTime || a.completeTime || a.time).getTime();
-      const tB = new Date(b.finishTime || b.completeTime || b.time).getTime();
-      return tB - tA;
-    });
-
-  /* 🔥 합쳐서 출력 */
-  [...ongoing, ...finished].forEach(item=>{
+  ongoing.forEach(item=>{
 
     const div=document.createElement("div");
-    div.className="card"+(item.status==="사고처리완료"?" done":"");
-
-    /* 🔥 완료 최근 강조 */
-    if(item.status==="사고처리완료" && item.finishTime){
-      if(new Date() - new Date(item.finishTime) < 600000){
-        div.style.border="2px solid red";
-      }
-    }
-
-    /* ⚠ 데이터 이상 */
-    if(item.status==="사고처리완료" && !item.finishTime){
-      div.style.border="2px solid orange";
-    }
+    div.className="card";
 
     div.innerHTML=`
       <div class="time">🕒 접수: ${new Date(item.time).toLocaleString()}</div>
-      <div class="time elapsed">⏱ ${getElapsedTime(item.time, item.finishTime)}</div>
+      <div class="time elapsed">⏱ ${getElapsedTime(item.time)}</div>
 
       ${item.status==="현장도착" ? `
         <div class="time">🚑 현장도착: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : ""}</div>
-      ` : ""}
-
-      ${item.status==="사고처리완료" ? `
-        <div class="time">🚑 현장도착: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : ""}</div>
-        <div class="time">✅ 사고처리 완료: ${item.finishTime ? new Date(item.finishTime).toLocaleString() : ""}</div>
       ` : ""}
 
       🏠 ${item.address||"주소없음"}<br><br>
@@ -140,18 +128,67 @@ async function loadData(){
       target="_blank">📍 지도보기</a><br><br>
 
       ${
-        item.status==="사고처리완료"
-        ? ""
-        : item.status==="현장도착"
+        item.status==="현장도착"
         ? `<button class="complete-btn" onclick="finishCase('${item.id}')">✅ 사고처리 완료</button>`
-        : `<button class="complete-btn" onclick="completeCase('${item.id}')">🚑 구조대원 현장도착</button>`
+        : `<button class="complete-btn" onclick="completeCase('${item.id}')">🚑 현장도착</button>`
       }
     `;
 
     listArea.appendChild(div);
-
     checkOverdue(item,div);
   });
+}
+
+/******** 완료 목록 ********/
+async function loadFinished(){
+
+  if(!isAdmin){
+    alert("관리자만 확인 가능합니다.");
+    return;
+  }
+
+  const res=await fetch(API_URL);
+  const data=await res.json();
+
+  const area=document.getElementById("finishedArea");
+  area.innerHTML="";
+
+  const finished = data
+    .filter(item => item.status === "사고처리완료")
+    .sort((a,b)=>{
+      const tA = new Date(a.finishTime || a.time).getTime();
+      const tB = new Date(b.finishTime || b.time).getTime();
+      return tB - tA;
+    });
+
+  finished.forEach(item=>{
+
+    const div=document.createElement("div");
+    div.className="card done";
+
+    if(item.finishTime && (new Date() - new Date(item.finishTime) < 600000)){
+      div.style.border="2px solid red";
+    }
+
+    div.innerHTML=`
+      <div class="time">🕒 완료: ${new Date(item.finishTime || item.time).toLocaleString()}</div>
+      🏠 ${item.address||""}<br>
+      📞 ${item.phone||""}<br>
+      📝 ${item.symptom||""}<br>
+    `;
+
+    area.appendChild(div);
+  });
+}
+
+/******** 토글 ********/
+function toggleFinished(){
+  showFinished=!showFinished;
+
+  const area=document.getElementById("finishedArea");
+  area.style.display = showFinished ? "block" : "none";
+
+  if(showFinished) loadFinished();
 }
 
 /******** 실행 ********/
