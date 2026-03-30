@@ -2,8 +2,10 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>🆘 무등산특수구조팀 상황판</title>
+<title>🚑 구조 상황판</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_KEY&libraries=services"></script>
 
 <style>
 body{margin:0;background:#111;color:#fff;font-family:Arial;}
@@ -14,181 +16,101 @@ header{background:#b71c1c;padding:15px;text-align:center;}
 .time{color:#ffcc00;font-size:13px;}
 .elapsed{color:#00e676;}
 button{padding:6px 10px;margin:3px;border:none;border-radius:4px;cursor:pointer;}
-.complete-btn{background:#00c853;color:#fff;}
-.maplink{color:#4fc3f7;}
+.complete-btn{background:#00c853;}
+.finish-btn{background:#2962ff;}
+.delete-btn{background:#d50000;}
+.restore-btn{background:#00b0ff;}
 </style>
 </head>
 
 <body>
 
-<header>
-🚑 구조 상황판
-<button onclick="adminLogin()">관리자</button>
-</header>
+<header>🚑 구조 상황판</header>
 
 <div class="container">
-
 <div id="listArea">로딩중...</div>
-
-<h3 onclick="toggleFinished()" style="cursor:pointer;">📂 완료 사건 (관리자)</h3>
-<div id="finishedArea" style="display:none;"></div>
-
 </div>
 
 <script>
-const API_URL="https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
+const API_URL="YOUR_SCRIPT_URL";
 
 let isAdmin=false;
-let showFinished=false;
 
 /******** 관리자 ********/
 function adminLogin(){
   if(prompt("관리자 비밀번호") === "rescue119"){
     isAdmin=true;
-    alert("관리자 모드 활성화");
-  }
-}
-
-/******** 경과시간 ********/
-function getElapsedTime(start,end){
-  const s=new Date(start);
-  const e=end ? new Date(end) : new Date();
-  const diff=Math.floor((e-s)/1000);
-  const m=Math.floor(diff/60);
-  const h=Math.floor(m/60);
-  if(h>0) return `${h}시간 ${m%60}분`;
-  return `${m}분`;
-}
-
-/******** 지연 경고 ********/
-function checkOverdue(item,div){
-  const start=new Date(item.time);
-  const now=new Date();
-  const diff=(now-start)/60000;
-
-  if(item.status!=="사고처리완료"){
-    if(diff>30) div.style.border="2px solid red";
-    else if(diff>15) div.style.border="2px solid orange";
+    alert("관리자 활성화");
+    loadData();
   }
 }
 
 /******** 상태 변경 ********/
-async function completeCase(id){
+async function update(id,action){
   await fetch(API_URL,{
     method:"POST",
-    body:JSON.stringify({action:"complete",id})
+    body:JSON.stringify({action,id})
   });
   loadData();
 }
 
-async function finishCase(id){
-  await fetch(API_URL,{
-    method:"POST",
-    body:JSON.stringify({action:"finish",id})
-  });
-  loadData();
+/******** 경과시간 ********/
+function getElapsed(start,end){
+  const s=new Date(start);
+  const e=end ? new Date(end) : new Date();
+  const diff=Math.floor((e-s)/1000);
+  const m=Math.floor(diff/60);
+  return `${m}분`;
 }
 
-/******** 진행 목록 ********/
+/******** 목록 ********/
 async function loadData(){
   const res=await fetch(API_URL);
   const data=await res.json();
 
-  const listArea=document.getElementById("listArea");
-  listArea.innerHTML="";
-
-  if(!data.length){
-    listArea.innerHTML="현재 접수된 신고가 없습니다.";
-    return;
-  }
+  const list=document.getElementById("listArea");
+  list.innerHTML="";
 
   const ongoing = data
-    .filter(item => item.status !== "사고처리완료")
+    .filter(i => i.status !== "완료" && i.status !== "삭제")
     .sort((a,b)=> new Date(b.time) - new Date(a.time));
 
-  ongoing.forEach(item=>{
+  const finished = data
+    .filter(i => i.status === "완료")
+    .sort((a,b)=> new Date(b.finishTime||b.time) - new Date(a.finishTime||a.time));
+
+  [...ongoing, ...finished].forEach(item=>{
 
     const div=document.createElement("div");
-    div.className="card";
+    div.className="card"+(item.status==="완료"?" done":"");
 
     div.innerHTML=`
-      <div class="time">🕒 접수: ${new Date(item.time).toLocaleString()}</div>
-      <div class="time elapsed">⏱ ${getElapsedTime(item.time)}</div>
+    🕒 ${new Date(item.time).toLocaleString()}<br>
+    ⏱ ${getElapsed(item.time,item.finishTime)}<br>
+    🏠 ${item.address}<br>
+    📞 ${item.phone}<br>
+    📝 ${item.symptom}<br>
 
-      ${item.status==="현장도착" ? `
-        <div class="time">🚑 현장도착: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : ""}</div>
-      ` : ""}
-
-      🏠 ${item.address||"주소없음"}<br><br>
-      📞 ${item.phone||"번호없음"}<br><br>
-      📝 ${item.symptom||"내용없음"}<br><br>
-
-      <a class="maplink"
-      href="https://map.kakao.com/link/map/구조요청 위치,${item.lat},${item.lng}"
-      target="_blank">📍 지도보기</a><br><br>
-
-      ${
-        item.status==="현장도착"
-        ? `<button class="complete-btn" onclick="finishCase('${item.id}')">✅ 사고처리 완료</button>`
-        : `<button class="complete-btn" onclick="completeCase('${item.id}')">🚑 현장도착</button>`
-      }
-    `;
-
-    listArea.appendChild(div);
-    checkOverdue(item,div);
-  });
-}
-
-/******** 완료 목록 ********/
-async function loadFinished(){
-
-  if(!isAdmin){
-    alert("관리자만 확인 가능합니다.");
-    return;
-  }
-
-  const res=await fetch(API_URL);
-  const data=await res.json();
-
-  const area=document.getElementById("finishedArea");
-  area.innerHTML="";
-
-  const finished = data
-    .filter(item => item.status === "사고처리완료")
-    .sort((a,b)=>{
-      const tA = new Date(a.finishTime || a.time).getTime();
-      const tB = new Date(b.finishTime || b.time).getTime();
-      return tB - tA;
-    });
-
-  finished.forEach(item=>{
-
-    const div=document.createElement("div");
-    div.className="card done";
-
-    if(item.finishTime && (new Date() - new Date(item.finishTime) < 600000)){
-      div.style.border="2px solid red";
+    ${
+      item.status==="완료"
+      ? ""
+      : item.status==="현장도착"
+      ? `<button class="finish-btn" onclick="update('${item.id}','finish')">완료</button>`
+      : `<button class="complete-btn" onclick="update('${item.id}','complete')">도착</button>`
     }
 
-    div.innerHTML=`
-      <div class="time">🕒 완료: ${new Date(item.finishTime || item.time).toLocaleString()}</div>
-      🏠 ${item.address||""}<br>
-      📞 ${item.phone||""}<br>
-      📝 ${item.symptom||""}<br>
+    ${
+      isAdmin
+      ? `
+      <button class="delete-btn" onclick="update('${item.id}','delete')">삭제</button>
+      <button class="restore-btn" onclick="update('${item.id}','restore')">복구</button>
+      `
+      : ""
+    }
     `;
 
-    area.appendChild(div);
+    list.appendChild(div);
   });
-}
-
-/******** 토글 ********/
-function toggleFinished(){
-  showFinished=!showFinished;
-
-  const area=document.getElementById("finishedArea");
-  area.style.display = showFinished ? "block" : "none";
-
-  if(showFinished) loadFinished();
 }
 
 /******** 실행 ********/
