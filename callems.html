@@ -33,12 +33,6 @@ button{padding:8px 12px;background:#e53935;color:#fff;border:none;border-radius:
 
 <body>
 
-<!-- 🔐 관리자 로그인 -->
-<div id="adminBox" style="padding:10px;background:#000;text-align:center;">
-  <input type="password" id="adminPw" placeholder="관리자 비밀번호">
-  <button onclick="adminLogin()">관리자 로그인</button>
-  <span id="adminStatus" style="margin-left:10px;color:#00e676;"></span>
-</div>
 
 <header>🆘 무등산특수구조팀 신고접수</header>
 
@@ -75,21 +69,7 @@ button{padding:8px 12px;background:#e53935;color:#fff;border:none;border-radius:
 
 const API_URL="https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
 
-/* 🔐 관리자 비밀번호 */
-const ADMIN_PASSWORD = "knps";
 
-let isAdmin = false;
-
-function adminLogin(){
-  const pw = document.getElementById("adminPw").value;
-
-  if(pw === ADMIN_PASSWORD){
-    isAdmin = true;
-    document.getElementById("adminStatus").innerText = "✔ 관리자모드";
-  }else{
-    alert("비밀번호 틀림");
-  }
-}
 
 let map, geocoder;
 let selectedType="";
