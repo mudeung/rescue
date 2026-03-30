@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>🆘 무등산특수구조팀 상황판</title>
+<title>🆘 무등산특수구조팀 상황판 관리자 모드</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
@@ -74,7 +74,7 @@ async function update(id,action){
     loadData();
 }
 
-/* 데이터 */
+/* 진행 데이터 */
 async function loadData(){
     const res=await fetch(API_URL);
     const data=await res.json();
@@ -115,7 +115,7 @@ async function loadData(){
 
         list.appendChild(div);
 
-        /* 지도 */
+        /* 지도 마커 */
         if(item.lat){
             const marker=new kakao.maps.Marker({
                 map:map,
@@ -128,14 +128,14 @@ async function loadData(){
     if(showFinished) loadFinished();
 }
 
-/* 완료 */
+/* 완료 영역 토글 */
 async function toggleFinished(){
     showFinished=!showFinished;
     document.getElementById("finishedArea").style.display = showFinished?"block":"none";
     if(showFinished) loadFinished();
 }
 
-/* 완료 데이터 */
+/* 완료 데이터 (🔥 최신순 정렬 포함) */
 async function loadFinished(){
     const res=await fetch(API_URL);
     const data=await res.json();
@@ -144,10 +144,13 @@ async function loadFinished(){
     const area=document.getElementById("finishedArea");
     area.innerHTML="";
 
-    data.forEach(item=>{
+    const finished = data
+        .filter(item => item.status === "완료")
+        .sort((a,b)=> new Date(b.finishTime || b.time) - new Date(a.finishTime || a.time));
 
-        if(item.status!=="완료") return;
+    finished.forEach(item=>{
 
+        /* 검색 */
         if(keyword){
             const text=(item.address+item.phone).toLowerCase();
             if(!text.includes(keyword)) return;
@@ -156,8 +159,13 @@ async function loadFinished(){
         const div=document.createElement("div");
         div.className="card done";
 
+        /* 🔥 최근 10분 강조 */
+        if(new Date() - new Date(item.finishTime) < 600000){
+            div.style.border="2px solid red";
+        }
+
         div.innerHTML=`
-        🕒 ${new Date(item.time).toLocaleString()}<br>
+        🕒 ${new Date(item.finishTime || item.time).toLocaleString()}<br>
         🏠 ${item.address}<br>
         📞 ${item.phone}<br>
         📝 ${item.symptom}<br>
