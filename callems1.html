@@ -90,14 +90,6 @@ function initMap(){
   });
 }
 
-// 단일 마커 이미지 사용
-function getMarkerImage(){
-  return new kakao.maps.MarkerImage(
-    "http://t1.daumcdn.net/localimg/localimages/07/2012/marker_red.png",
-    new kakao.maps.Size(24,35)
-  );
-}
-
 function parseKST(dateStr){
   if(!dateStr) return null;
   const d = new Date(dateStr);
@@ -129,13 +121,14 @@ function renderData(data){
   let cntEmergency=0,cntDispatch=0,cntLost=0,cntOther=0;
 
   data.forEach(item=>{
-    const lat=parseFloat(item.lat);
-    const lng=parseFloat(item.lng);
-    if(!isNaN(lat)&&!isNaN(lng)){
-      const marker=new kakao.maps.Marker({
-        map,
-        position:new kakao.maps.LatLng(lat,lng),
-        image:getMarkerImage()
+    // lat/lng 필드 유연하게 처리
+    const lat=parseFloat(item.lat || item.latitude);
+    const lng=parseFloat(item.lng || item.longitude);
+
+    if(!isNaN(lat) && !isNaN(lng)){
+      const marker = new kakao.maps.Marker({
+        map: map,
+        position: new kakao.maps.LatLng(lat,lng)
       });
       marker.item=item;
       kakao.maps.event.addListener(marker,'click',()=>showModal(item));
@@ -186,6 +179,7 @@ async function loadData(){
   try{
     const res=await fetch(API_URL+"?action=list");
     let data=await res.json();
+    console.log(data); // 데이터 확인
     if(!Array.isArray(data)) data=[];
     allData=data;
     renderData(allData);
