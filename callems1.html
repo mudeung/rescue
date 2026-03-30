@@ -20,12 +20,10 @@ button{padding:6px 10px;margin:3px;border:none;border-radius:4px;cursor:pointer;
 </head>
 
 <body>
-    
+
 <!-- 🔐 로그인 -->
-<div id="loginOverlay" style="
-position:fixed;top:0;left:0;width:100%;height:100%;
-background:#000;display:flex;justify-content:center;align-items:center;
-z-index:9999;flex-direction:column;">
+<div id="loginOverlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;
+display:flex;justify-content:center;align-items:center;z-index:9999;flex-direction:column;">
   <h2>🔐 관리자 접속</h2>
 
   <div style="display:flex;gap:5px;">
@@ -37,7 +35,7 @@ z-index:9999;flex-direction:column;">
   <button onclick="checkPassword()">접속</button>
   <p id="loginError" style="color:red;"></p>
 </div>  
-    
+
 <header>
 🚑 구조 상황판 관리자 모드
 <button onclick="adminLogin()">관리자</button>
@@ -173,7 +171,7 @@ function toggleFinished(){
     if(showFinished) loadFinished();
 }
 
-/* 완료 (🔥 최신순 정렬 핵심) */
+/* 완료 (🔥 완벽 역순 정렬) */
 async function loadFinished(){
     const res=await fetch(API_URL);
     const data=await res.json();
@@ -185,7 +183,11 @@ async function loadFinished(){
 
     const finished = data
         .filter(item => item.status === "완료")
-        .sort((a,b)=> new Date(b.finishTime || b.time) - new Date(a.finishTime || a.time));
+        .sort((a,b)=> {
+            const tA = new Date(a.finishTime || a.completeTime || a.time).getTime();
+            const tB = new Date(b.finishTime || b.completeTime || b.time).getTime();
+            return tB - tA;
+        });
 
     finished.forEach(item=>{
 
@@ -200,6 +202,11 @@ async function loadFinished(){
         /* 🔥 최근 10분 강조 */
         if(item.finishTime && (new Date() - new Date(item.finishTime) < 600000)){
             div.style.border="2px solid red";
+        }
+
+        /* ⚠ 데이터 이상 표시 */
+        if(!item.finishTime){
+            div.style.border="2px solid orange";
         }
 
         div.innerHTML=`
