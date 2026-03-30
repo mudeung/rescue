@@ -1,235 +1,38 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
-<title>🆘 무등산특수구조팀 상황판 관리자 모드</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
-
-<style>
-body{margin:0;background:#111;color:#fff;font-family:Arial;}
-header{background:#b71c1c;padding:15px;text-align:center;}
-.container{padding:10px;}
-button{padding:6px 10px;margin:3px;border:none;border-radius:4px;cursor:pointer;}
-#map{height:300px;margin-bottom:10px;}
-.card{background:#1e1e1e;padding:10px;margin-bottom:8px;border-radius:6px;}
-.card.done{opacity:0.6;}
-.search{width:100%;padding:8px;margin-bottom:10px;border-radius:6px;border:none;}
-</style>
-</head>
-
-<body>
-
-<!-- 🔐 로그인 -->
-<div id="loginOverlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;
-display:flex;justify-content:center;align-items:center;z-index:9999;flex-direction:column;">
-  <h2>🔐 관리자 접속</h2>
-
-  <div style="display:flex;gap:5px;">
-    <input type="password" id="passwordInput" placeholder="비밀번호 입력"
-    style="width:200px;padding:10px;border-radius:6px;border:none;">
-    <button onclick="togglePassword()">👁</button>
-  </div>
-
-  <button onclick="checkPassword()">접속</button>
-  <p id="loginError" style="color:red;"></p>
-</div>  
-
-<header>
-🚑 구조 상황판 관리자 모드
-<button onclick="adminLogin()">관리자</button>
-</header>
-
-<div class="container">
-
-<input id="searchInput" class="search" placeholder="📞 전화번호 / 주소 검색" oninput="loadData()">
-
-<div id="map"></div>
-
-<h3>🚨 진행중</h3>
-<div id="listArea"></div>
-
-<h3 onclick="toggleFinished()" style="cursor:pointer;">📂 완료 (클릭)</h3>
-<div id="finishedArea" style="display:none;"></div>
-
-</div>
-
-<script>
-const ACCESS_PASSWORD="knps";
-const API_URL="https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
-
-let isAdmin=false;
-let map;
-let markers=[];
-let showFinished=false;
-
-/* 👁 비밀번호 보기 */
-function togglePassword(){
-    const input=document.getElementById("passwordInput");
-    input.type = input.type === "password" ? "text" : "password";
-}
-
-/* 로그인 */
-function checkPassword(){
-    const input=document.getElementById("passwordInput").value;
-    if(input===ACCESS_PASSWORD){
-        document.getElementById("loginOverlay").style.display="none";
-        sessionStorage.setItem("authorized","true");
-    }else{
-        document.getElementById("loginError").innerText="❌ 비밀번호 오류";
-    }
-}
-
-window.addEventListener("load",function(){
-    if(sessionStorage.getItem("authorized")==="true"){
-        document.getElementById("loginOverlay").style.display="none";
-    }
-});
-
-/* 관리자 */
-function adminLogin(){
-    if(prompt("관리자 비밀번호")==="rescue119"){
-        isAdmin=true;
-        alert("관리자 활성화");
-        loadData();
-    }
-}
-
-/* 지도 */
-function initMap(){
-    map=new kakao.maps.Map(document.getElementById("map"),{
-        center:new kakao.maps.LatLng(35.1595,126.8526),
-        level:6
-    });
-}
-
-/* 상태 변경 */
-async function update(id,action){
-    await fetch(API_URL,{
-        method:"POST",
-        body:JSON.stringify({action,id})
-    });
-    loadData();
-}
-
-/* 진행 */
+/******** 목록 불러오기 ********/
 async function loadData(){
-    const res=await fetch(API_URL);
-    const data=await res.json();
+  const res=await fetch(API_URL);
+  const data=await res.json();
+  listArea.innerHTML="";
+  if(!data.length){
+    listArea.innerHTML="현재 접수된 신고가 없습니다.";
+    return;
+  }
 
-    const keyword=document.getElementById("searchInput").value.toLowerCase();
-    const list=document.getElementById("listArea");
+  data.sort((a,b)=>new Date(b.time)-new Date(a.time));
 
-    list.innerHTML="";
-    markers.forEach(m=>m.setMap(null));
-    markers=[];
+  data.forEach(item=>{
+    // 필터 적용
+    if(currentFilter!=="전체" && item.type!==currentFilter) return;
 
-    data.forEach(item=>{
+    const div=document.createElement("div");
+    div.className="card"+(item.status==="사고처리완료"?" done":"");
+    div.setAttribute("data-time", item.time);
+    if(item.finishTime) div.setAttribute("data-finish-time", item.finishTime);
 
-        if(item.status==="삭제") return;
+    div.innerHTML=`
+      <div class="time">🕒 접수: ${new Date(item.time).toLocaleString()}</div>
+      <div class="time elapsed">⏱ ${getElapsedTime(item.time, item.finishTime)}</div>
+      ${item.status==="현장도착"? `<div class="time">🚑 현장도착: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : ""}</div>` : ""}
+      ${item.status==="사고처리완료"? `<div class="time">🚑 현장도착: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : ""}</div><div class="time">✅ 사고처리 완료: ${item.finishTime ? new Date(item.finishTime).toLocaleString() : ""}</div>` : ""}
+      🏠 ${item.address||"주소없음"}<br><br>
+      📞 ${item.phone||"번호없음"}<br><br>
+      📝 ${item.symptom||"내용없음"}<br><br>
+      <div class="coord">위도: ${item.lat} / 경도: ${item.lng}</div>
+      <a class="maplink" href="https://map.kakao.com/link/map/구조요청 위치,${item.lat},${item.lng}" target="_blank">📍 지도보기</a><br><br>
+      ${item.status==="사고처리완료" ? "" : item.status==="현장도착" ? `<button class="complete-btn" onclick="finishCase('${item.id}')">✅ 사고처리 완료</button>` : `<button class="complete-btn" onclick="completeCase('${item.id}')">🚑 구조대원 현장도착</button>`}
+    `;
+    listArea.appendChild(div);
 
-        if(keyword){
-            const text=(item.address+item.phone).toLowerCase();
-            if(!text.includes(keyword)) return;
-        }
-
-        if(item.status==="완료") return;
-
-        const div=document.createElement("div");
-        div.className="card";
-
-        div.innerHTML=`
-        🕒 ${new Date(item.time).toLocaleString()}<br>
-        🏠 ${item.address}<br>
-        📞 ${item.phone}<br>
-        📝 ${item.symptom}<br>
-
-        <button onclick="update('${item.id}','complete')">🚑 도착</button>
-        <button onclick="update('${item.id}','finish')">✅ 완료</button>
-        ${isAdmin?`<button onclick="update('${item.id}','delete')">🗑 삭제</button>`:""}
-        `;
-
-        list.appendChild(div);
-
-        if(item.lat){
-            const marker=new kakao.maps.Marker({
-                map:map,
-                position:new kakao.maps.LatLng(item.lat,item.lng)
-            });
-            markers.push(marker);
-        }
-    });
-
-    if(showFinished) loadFinished();
+    checkOverdue(item,div);
+  });
 }
-
-/* 완료 토글 */
-function toggleFinished(){
-    showFinished=!showFinished;
-    document.getElementById("finishedArea").style.display = showFinished?"block":"none";
-    if(showFinished) loadFinished();
-}
-
-/* 완료 (🔥 완벽 역순 정렬) */
-async function loadFinished(){
-    const res=await fetch(API_URL);
-    const data=await res.json();
-
-    const keyword=document.getElementById("searchInput").value.toLowerCase();
-    const area=document.getElementById("finishedArea");
-
-    area.innerHTML="";
-
-    const finished = data
-        .filter(item => item.status === "완료")
-        .sort((a,b)=> {
-            const tA = new Date(a.finishTime || a.completeTime || a.time).getTime();
-            const tB = new Date(b.finishTime || b.completeTime || b.time).getTime();
-            return tB - tA;
-        });
-
-    finished.forEach(item=>{
-
-        if(keyword){
-            const text=(item.address+item.phone).toLowerCase();
-            if(!text.includes(keyword)) return;
-        }
-
-        const div=document.createElement("div");
-        div.className="card done";
-
-        /* 🔥 최근 10분 강조 */
-        if(item.finishTime && (new Date() - new Date(item.finishTime) < 600000)){
-            div.style.border="2px solid red";
-        }
-
-        /* ⚠ 데이터 이상 표시 */
-        if(!item.finishTime){
-            div.style.border="2px solid orange";
-        }
-
-        div.innerHTML=`
-        🕒 ${new Date(item.finishTime || item.time).toLocaleString()}<br>
-        🏠 ${item.address}<br>
-        📞 ${item.phone}<br>
-        📝 ${item.symptom}<br>
-
-        ${isAdmin?`
-        <button onclick="update('${item.id}','delete')">🗑 삭제</button>
-        <button onclick="update('${item.id}','restore')">♻ 복구</button>
-        `:""}
-        `;
-
-        area.appendChild(div);
-    });
-}
-
-/* 실행 */
-initMap();
-loadData();
-setInterval(loadData,10000);
-</script>
-
-</body>
-</html>
