@@ -45,7 +45,7 @@ button{padding:8px 12px;background:#e53935;color:#fff;border:none;border-radius:
 </div>
 
 <textarea id="condition" placeholder="상황 입력"></textarea>
-<input id="phone" placeholder="연락처">
+<input id="phone" placeholder="연락처 (010-0000-0000)">
 <input id="address" placeholder="주소">
 <input id="lat" placeholder="위도">
 <input id="lng" placeholder="경도">
@@ -63,7 +63,7 @@ button{padding:8px 12px;background:#e53935;color:#fff;border:none;border-radius:
 
 <script>
 
-const API_URL="https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
+const API_URL="여기에_웹앱_URL";
 
 let map, geocoder, previewMarker;
 let selectedType="";
@@ -98,10 +98,12 @@ document.querySelectorAll(".type-btn").forEach(btn=>{
 addressEl.addEventListener("change",function(){
   const address=this.value.trim();
   if(!address) return;
+
   geocoder.addressSearch(address,function(result,status){
     if(status===kakao.maps.services.Status.OK){
       const lat=parseFloat(result[0].y);
       const lng=parseFloat(result[0].x);
+
       latEl.value=lat;
       lngEl.value=lng;
 
@@ -111,25 +113,56 @@ addressEl.addEventListener("change",function(){
 
       if(previewMarker) previewMarker.setMap(null);
       previewMarker=new kakao.maps.Marker({ map, position:pos });
+    } else {
+      alert("주소 검색 실패");
     }
   });
 });
 
-/******** 등록 ********/
-async function submitData(){
-  if(!conditionEl.value.trim()){ alert("내용 입력 필수"); return; }
+/******** 신고 접수 (전체 필수 검증) ********/
+function submitData(){
 
-  let lat=latEl.value, lng=lngEl.value;
+  const condition = conditionEl.value.trim();
+  const phone = phoneEl.value.trim();
+  const address = addressEl.value.trim();
+  const lat = latEl.value.trim();
+  const lng = lngEl.value.trim();
 
-  if(lat && lng){
-    sendData(parseFloat(lat),parseFloat(lng));
-  }else if(navigator.geolocation){
-    navigator.geolocation.getCurrentPosition(pos=>{
-      sendData(pos.coords.latitude,pos.coords.longitude);
-    });
+  if(!selectedType){
+    alert("신고 유형 선택 필수");
+    return;
   }
+
+  if(!condition){
+    alert("상황 입력 필수");
+    return;
+  }
+
+  if(!phone){
+    alert("연락처 입력 필수");
+    return;
+  }
+
+  if(!address){
+    alert("주소 입력 필수");
+    return;
+  }
+
+  if(!lat || !lng){
+    alert("주소 검색 또는 위치 입력 필요");
+    return;
+  }
+
+  const phonePattern = /^[0-9\-]{9,13}$/;
+  if(!phonePattern.test(phone)){
+    alert("연락처 형식 오류");
+    return;
+  }
+
+  sendData(parseFloat(lat), parseFloat(lng));
 }
 
+/******** 데이터 전송 ********/
 async function sendData(lat,lng){
   await fetch(API_URL,{
     method:"POST",
@@ -143,7 +176,11 @@ async function sendData(lat,lng){
   });
 
   conditionEl.value=phoneEl.value=addressEl.value=latEl.value=lngEl.value="";
+  selectedType="";
+  document.querySelectorAll(".type-btn").forEach(b=>b.classList.remove("active"));
+
   if(previewMarker) previewMarker.setMap(null);
+
   loadData();
 }
 
@@ -166,12 +203,18 @@ async function finishCase(id){
 
 /******** 목록 ********/
 async function loadData(){
-  const res=await fetch(API_URL);
+  const res=await fetch(API_URL + "?action=list");
   const data=await res.json();
 
   listArea.innerHTML="";
 
+  if(!data.length){
+    listArea.innerHTML="현재 접수된 신고 없음";
+    return;
+  }
+
   data.forEach(item=>{
+
     if(item.status==="접수" && !alerted.has(item.id)){
       document.getElementById("alertSound").play();
       alerted.add(item.id);
