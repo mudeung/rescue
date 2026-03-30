@@ -102,11 +102,12 @@ function getMarkerImage(type){
   return new kakao.maps.MarkerImage(`http://t1.daumcdn.net/localimg/localimages/07/2012/img/marker_${urlColor}.png`, new kakao.maps.Size(24,35));
 }
 
-// 시트에서 가져온 시간 안정적 처리
+// 시트에서 가져온 시간 KST 처리
 function parseKST(dateStr){
-  const d = new Date(dateStr);
+  if(!dateStr) return null;
+  const d = new Date(dateStr); // ISO 8601 UTC 지원
   if(isNaN(d)) return null;
-  return d;
+  return new Date(d.getTime() + 9*60*60*1000); // UTC → KST
 }
 
 // 모달
@@ -114,13 +115,13 @@ function showModal(item){
   const modal=document.getElementById("modalOverlay");
   const body=document.getElementById("modalBody");
   body.innerHTML=`
-    🕒 ${new Date(item.time).toLocaleString()}<br>
+    🕒 ${parseKST(item.time).toLocaleString()}<br>
     🚨 ${item.type}<br>
     🏠 ${item.address}<br>
-    📞 ${item.phone || ''}<br>
+    📞 ${item.phone ? item.phone.toString() : ''}<br>
     📝 ${item.symptom || ''}<br>
     상태: ${item.status || ''}<br>
-    <a href="${item.kakaoMapURL}" target="_blank">📍 지도보기</a>
+    <a href="${item.mapURL}" target="_blank">📍 지도보기</a>
   `;
   modal.style.display="flex";
 }
@@ -155,7 +156,7 @@ function renderData(data){
 
     const div=document.createElement("div");
     div.className="card"+(item.status==="사고처리완료"?" done":"");
-    div.innerText=`${new Date(item.time).toLocaleString()} | ${item.type} | ${item.address}`;
+    div.innerText=`${parseKST(item.time).toLocaleString()} | ${item.type} | ${item.address}`;
     div.onclick=()=>showModal(item);
     document.getElementById("listArea").appendChild(div);
   });
@@ -177,10 +178,10 @@ function renderTable(data){
   data.forEach(item=>{
     const tr=document.createElement("tr");
     tr.innerHTML=`
-      <td>${new Date(item.time).toLocaleString()}</td>
+      <td>${parseKST(item.time).toLocaleString()}</td>
       <td>${item.type}</td>
       <td>${item.address}</td>
-      <td>${item.phone || ''}</td>
+      <td>${item.phone ? item.phone.toString() : ''}</td>
       <td>${item.symptom || ''}</td>
       <td>${item.status || ''}</td>
     `;
