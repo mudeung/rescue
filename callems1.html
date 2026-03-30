@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>🆘 무등산특수구조팀 신고 전체현황</title>
+<title>🆘 무등산특수구조팀 신고접수 - 과거자료 + 통계</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
@@ -11,157 +11,109 @@
 body{margin:0;font-family:Arial;background:#111;color:#fff;}
 header{background:#b71c1c;padding:15px;text-align:center;font-size:20px;}
 .container{padding:15px;}
-#map{width:100%;height:320px;margin-bottom:15px;border-radius:6px;}
-
+#map{width:100%;height:350px;margin-bottom:15px;border-radius:6px;}
 .card{background:#1e1e1e;padding:12px;margin-bottom:10px;border-radius:6px;}
 .card.done{opacity:0.5;background:#2b2b2b;}
-
-.legend{
-  display:flex;
-  gap:10px;
-  margin-bottom:10px;
-  font-size:14px;
-}
-.legend span{
-  display:flex;
-  align-items:center;
-  gap:4px;
-}
-.dot{
-  width:10px;height:10px;border-radius:50%;
-}
-.red{background:#e53935;}
-.blue{background:#1e88e5;}
-.yellow{background:#fbc02d;}
-.gray{background:#9e9e9e;}
+.stats{display:flex;gap:10px;margin-bottom:15px;}
+.stat-box{flex:1;padding:12px;border-radius:6px;background:#222;text-align:center;}
+.stat-box span{font-size:24px;font-weight:bold;display:block;}
 </style>
 </head>
-
 <body>
 
-<header>🆘 무등산특수구조팀 신고 전체현황</header>
+<header>🆘 무등산특수구조팀 - 지난 하루 데이터</header>
 
 <div class="container">
-
-<!-- 🔴 범례 -->
-<div class="legend">
-  <span><div class="dot red"></div>응급환자</span>
-  <span><div class="dot blue"></div>구조출동</span>
-  <span><div class="dot yellow"></div>조난</span>
-  <span><div class="dot gray"></div>기타</span>
+  <div id="map"></div>
+  <div class="stats">
+    <div class="stat-box">🚑 응급환자<span id="statEmergency">0</span></div>
+    <div class="stat-box">🆘 조난<span id="statLost">0</span></div>
+    <div class="stat-box">✏ 기타<span id="statOther">0</span></div>
+  </div>
+  <div id="listArea"></div>
 </div>
-
-<div id="map"></div>
-<div id="listArea"></div>
-
-</div>
-
-<audio id="alertSound">
-<source src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg">
-</audio>
 
 <script>
 const API_URL="https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
 
-let map, markers=[];
-let alerted=new Set();
+let map, geocoder, markers=[];
 
-/******** 지도 ********/
+// 지도 초기화
 function initMap(){
   map=new kakao.maps.Map(document.getElementById("map"),{
     center:new kakao.maps.LatLng(35.1345,126.9902),
     level:6
   });
+  geocoder=new kakao.maps.services.Geocoder();
 }
 
-/******** 🔥 마커 색상 ********/
+// 마커 이미지 색상별
 function getMarkerImage(type){
-  let color="red";
-
-  if(type==="구조출동") color="blue";
+  let color="blue";
+  if(type==="응급환자") color="red";
   else if(type==="조난") color="yellow";
-  else if(type==="기타") color="gray";
+  else color="gray";
 
-  const svg = `
-    <svg width="32" height="32" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="16" cy="16" r="10" fill="${color}" stroke="white" stroke-width="2"/>
-    </svg>
-  `;
-
-  return new kakao.maps.MarkerImage(
-    'data:image/svg+xml;base64,' + btoa(svg),
-    new kakao.maps.Size(32,32)
+  const markerImage = new kakao.maps.MarkerImage(
+    `http://t1.daumcdn.net/localimg/localimages/07/2012/img/marker_${color}.png`,
+    new kakao.maps.Size(24,35)
   );
+  return markerImage;
 }
 
-/******** 데이터 표시 ********/
+// 지난 하루 데이터 불러오기
 async function loadData(){
   try{
     const res=await fetch(API_URL+"?action=list");
     let data=await res.json();
-
     if(!Array.isArray(data)) data=[];
 
-    const listArea=document.getElementById("listArea");
+    // 24시간 전 기준
+    const now=new Date();
+    const oneDayAgo=new Date(now.getTime() - 24*60*60*1000);
 
+    data=data.filter(item=>{
+      const itemTime=new Date(item.time);
+      return itemTime <= oneDayAgo;
+    });
+
+    // 통계 초기화
+    let statEmergency=0, statLost=0, statOther=0;
+
+    // 리스트 영역 초기화
+    const listArea=document.getElementById("listArea");
     listArea.innerHTML="";
     markers.forEach(m=>m.setMap(null));
     markers=[];
 
     if(data.length===0){
-      listArea.innerHTML="📭 데이터 없음";
+      listArea.innerHTML="📭 지난 하루 데이터 없음";
+      document.getElementById("statEmergency").innerText="0";
+      document.getElementById("statLost").innerText="0";
+      document.getElementById("statOther").innerText="0";
       return;
     }
 
-    data=data.filter(item=>item.time);
     data.sort((a,b)=>new Date(b.time)-new Date(a.time));
 
-    let lastDate="";
+    let bounds=new kakao.maps.LatLngBounds();
 
     data.forEach(item=>{
-
-      // 🔊 알림
-      if(item.status==="접수"&&!alerted.has(item.id)){
-        alertSound.play();
-        alerted.add(item.id);
-      }
-
-      // 📅 날짜 구분
-      const date=item.time.split("T")[0];
-      if(date!==lastDate){
-        const d=document.createElement("div");
-        d.innerHTML=`<h3>📅 ${date}</h3>`;
-        listArea.appendChild(d);
-        lastDate=date;
-      }
-
-      // 📍 마커
       const lat=parseFloat(item.lat);
       const lng=parseFloat(item.lng);
-
       if(!isNaN(lat)&&!isNaN(lng)){
         const marker=new kakao.maps.Marker({
           map,
           position:new kakao.maps.LatLng(lat,lng),
           image:getMarkerImage(item.type)
         });
-
         markers.push(marker);
-
-        const info=new kakao.maps.InfoWindow({
-          content:`<div style="padding:5px;font-size:12px;">
-          ${item.type}<br>${item.address}</div>`
-        });
-
-        kakao.maps.event.addListener(marker,'click',()=>{
-          info.open(map,marker);
-        });
+        bounds.extend(marker.getPosition());
       }
 
-      // 카드
+      // 카드 생성
       const div=document.createElement("div");
       div.className="card"+(item.status==="사고처리완료"?" done":"");
-
       div.innerHTML=`
         🕒 ${new Date(item.time).toLocaleString()}<br>
         🚨 ${item.type}<br>
@@ -169,30 +121,33 @@ async function loadData(){
         📞 ${item.phone}<br>
         📝 ${item.symptom}<br>
         상태: ${item.status}<br>
-        <a href="${item.kakaoMapURL}" target="_blank">📍 지도보기</a><br>
+        <a href="${item.kakaoMapURL}" target="_blank">📍 지도보기</a>
       `;
-
       listArea.appendChild(div);
+
+      // 통계 계산
+      if(item.type==="응급환자") statEmergency++;
+      else if(item.type==="조난") statLost++;
+      else statOther++;
     });
 
-    // 🗺 범위 자동
-    if(markers.length>0){
-      const bounds=new kakao.maps.LatLngBounds();
-      markers.forEach(m=>bounds.extend(m.getPosition()));
-      map.setBounds(bounds);
-    }
+    map.setBounds(bounds);
+
+    // 통계 표시
+    document.getElementById("statEmergency").innerText=statEmergency;
+    document.getElementById("statLost").innerText=statLost;
+    document.getElementById("statOther").innerText=statOther;
 
   }catch(e){
     console.error(e);
-    document.getElementById("listArea").innerHTML="❌ 데이터 오류";
+    document.getElementById("listArea").innerHTML="❌ 데이터 불러오기 오류";
   }
 }
 
-/******** 실행 ********/
+// 실행
 initMap();
 loadData();
 setInterval(loadData,10000);
 </script>
-
 </body>
 </html>
