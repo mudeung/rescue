@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>🆘 무등산특수구조팀 신고현황 관리자 모드</title>
+<title>🆘 무등산특수구조팀 신고현황</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
 
@@ -31,7 +31,7 @@ background:rgba(0,0,0,0.9); display:flex; justify-content:center; align-items:ce
   </div>
 </div>
 
-<header>🆘 무등산특수구조팀 신고현황 관리자 모드</header>
+<header>🆘 무등산특수구조팀 신고현황</header>
 
 <div class="container">
   <div id="map"></div>
@@ -141,7 +141,10 @@ async function loadData(){
   listArea.innerHTML="";
   clearMarkers();
 
-  data.forEach(item=>{
+  // 과거 기록도 포함 (status와 finishTime으로 구분)
+  const allData = data; // 현재 API에서 GET시 main + archive 모두 포함하도록 수정되면 사용
+
+  allData.forEach(item=>{
     if(!isAdmin && item.status==="완료") return;
 
     // 카드 생성
@@ -168,7 +171,8 @@ async function loadData(){
       const info = new kakao.maps.InfoWindow({
         content:`<div style="padding:6px; max-width:200px;">
                   <strong>주소:</strong> ${item.address || "없음"}<br>
-                  <strong>상황:</strong> ${item.symptom || "없음"}
+                  <strong>상황:</strong> ${item.symptom || "없음"}<br>
+                  <strong>상태:</strong> ${item.status}
                 </div>`
       });
 
