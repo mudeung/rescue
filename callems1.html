@@ -79,11 +79,12 @@ header{background:#b71c1c;padding:15px;text-align:center;font-size:20px;}
 </div>
 
 <script>
-// 여기에 배포된 Apps Script Web App URL 넣기
+// 배포된 Apps Script Web App URL
 const API_URL="https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
 
 let map, markers=[], allData=[];
 
+// 지도 초기화
 function initMap(){
   map=new kakao.maps.Map(document.getElementById("map"),{
     center:new kakao.maps.LatLng(35.1345,126.9902),
@@ -91,6 +92,7 @@ function initMap(){
   });
 }
 
+// 마커 색상
 function getMarkerImage(type){
   let urlColor="gray";
   if(type==="응급환자") urlColor="red";
@@ -99,13 +101,15 @@ function getMarkerImage(type){
   return new kakao.maps.MarkerImage(`http://t1.daumcdn.net/localimg/localimages/07/2012/img/marker_${urlColor}.png`, new kakao.maps.Size(24,35));
 }
 
+// 시간 UTC → KST
 function parseKST(dateStr){
   if(!dateStr) return null;
-  const d = new Date(dateStr);
+  const d=new Date(dateStr);
   if(isNaN(d)) return null;
   return new Date(d.getTime() + 9*60*60*1000);
 }
 
+// 모달 표시
 function showModal(item){
   const modal=document.getElementById("modalOverlay");
   const body=document.getElementById("modalBody");
@@ -116,11 +120,13 @@ function showModal(item){
     📞 ${item.phone ? item.phone.toString() : ''}<br>
     📝 ${item.symptom || ''}<br>
     상태: ${item.status || ''}<br>
+    ${item.mapURL ? `<a href="${item.mapURL}" target="_blank">📍 지도보기</a>` : ''}
   `;
   modal.style.display="flex";
 }
 function closeModal(){document.getElementById("modalOverlay").style.display="none";}
 
+// 데이터 렌더링
 function renderData(data){
   document.getElementById("listArea").innerHTML="";
   markers.forEach(m=>m.setMap(null));
@@ -132,9 +138,10 @@ function renderData(data){
   data.forEach(item=>{
     const lat=parseFloat(item.lat);
     const lng=parseFloat(item.lng);
+
     if(!isNaN(lat)&&!isNaN(lng)){
       const marker=new kakao.maps.Marker({
-        map,position:new kakao.maps.LatLng(lat,lng),image:getMarkerImage(item.type)
+        map, position: new kakao.maps.LatLng(lat,lng), image: getMarkerImage(item.type)
       });
       marker.item=item;
       kakao.maps.event.addListener(marker,'click',()=>showModal(item));
@@ -164,6 +171,7 @@ function renderData(data){
   renderTable(data);
 }
 
+// 테이블 렌더링
 function renderTable(data){
   const tbody=document.querySelector("#sheetTable tbody");
   tbody.innerHTML="";
@@ -181,6 +189,7 @@ function renderTable(data){
   });
 }
 
+// 전체 자료 불러오기
 async function loadData(){
   try{
     const res=await fetch(API_URL+"?action=list");
@@ -194,6 +203,7 @@ async function loadData(){
   }
 }
 
+// 필터 적용
 function applyFilter(){
   let start=document.getElementById("startDate").value;
   let end=document.getElementById("endDate").value;
@@ -217,6 +227,7 @@ function applyFilter(){
   renderData(filtered);
 }
 
+// 오늘 이전 데이터만
 function showTodayBefore(){
   const today=new Date();
   today.setHours(0,0,0,0);
@@ -227,6 +238,7 @@ function showTodayBefore(){
   renderData(filtered);
 }
 
+// 초기화
 initMap();
 loadData();
 setInterval(loadData,10000);
