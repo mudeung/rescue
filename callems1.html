@@ -13,6 +13,7 @@ header { background:#b71c1c; padding:15px; text-align:center; font-size:20px; }
 #map { width:100%; height:400px; margin-bottom:15px; border-radius:6px; }
 .card { background:#1e1e1e; padding:12px; margin-bottom:10px; border-radius:6px; }
 button { padding:6px 10px; background:#e53935; color:#fff; border:none; border-radius:4px; cursor:pointer; margin-right:5px; }
+.toggle-btn { background:#555; margin-bottom:10px; }
 </style>
 </head>
 
@@ -34,6 +35,7 @@ background:rgba(0,0,0,0.9); display:flex; justify-content:center; align-items:ce
 <header>🆘 무등산특수구조팀 신고현황</header>
 
 <div class="container">
+  <button class="toggle-btn" onclick="toggleArchive()">📂 저장자료 표시/숨기기</button>
   <div id="map"></div>
   <div id="listArea"></div>
 </div>
@@ -44,6 +46,7 @@ const API_URL="https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6
 /* 관리자 */
 const ADMIN_PASSWORD="1199";
 let isAdmin=false;
+let showArchive=true;
 
 function adminLogin(){
   const pw=document.getElementById("adminPw").value;
@@ -130,6 +133,12 @@ function getMarkerImage(status){
   return new kakao.maps.MarkerImage(imageUrl, new kakao.maps.Size(24,35));
 }
 
+/* 저장자료 표시 토글 */
+function toggleArchive(){
+  showArchive = !showArchive;
+  loadData();
+}
+
 /* 목록 불러오기 & 지도 마커 표시 */
 async function loadData(){
   const res=await fetch(API_URL,{
@@ -141,11 +150,11 @@ async function loadData(){
   listArea.innerHTML="";
   clearMarkers();
 
-  // 과거 기록도 포함 (status와 finishTime으로 구분)
-  const allData = data; // 현재 API에서 GET시 main + archive 모두 포함하도록 수정되면 사용
-
-  allData.forEach(item=>{
+  data.forEach(item=>{
+    // 일반모드에서는 완료 숨김
     if(!isAdmin && item.status==="완료") return;
+    // showArchive가 false이면 저장자료(finishTime 있는 완료 항목) 숨김
+    if(!showArchive && item.finishTime) return;
 
     // 카드 생성
     const div=document.createElement("div");
