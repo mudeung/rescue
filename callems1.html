@@ -31,7 +31,7 @@ button{padding:6px 12px;border:none;border-radius:4px;background:#e53935;color:#
 
 <body>
 
-<header>🆘 구조출동 / 응급 / 조난 / 기타 대응현황</header>
+<header>🆘 구조출동 / 응급 / 조난 / 기타 대응현황 (과거자료)</header>
 
 <div class="container">
 
@@ -84,6 +84,7 @@ function getMarkerImage(type){
   );
 }
 
+// 데이터를 지도/카드에 렌더링
 function renderData(data){
   document.getElementById("statEmergency").innerText=0;
   document.getElementById("statDispatch").innerText=0;
@@ -95,7 +96,7 @@ function renderData(data){
   markers=[];
 
   if(data.length===0){
-    document.getElementById("listArea").innerText="📭 해당 기간 자료가 없습니다.";
+    document.getElementById("listArea").innerText="📭 해당 기간 과거자료가 없습니다.";
     return;
   }
 
@@ -163,6 +164,11 @@ function applyFilter(){
   let end=document.getElementById("endDate").value;
   let filtered=allData;
 
+  // 오늘 이전 데이터만 표시
+  const today=new Date();
+  today.setHours(0,0,0,0);
+  filtered=filtered.filter(item=> new Date(item.time) < today);
+
   if(start){
     const startDate=new Date(start + "T00:00:00+09:00");
     filtered=filtered.filter(item=> new Date(item.time) >= startDate);
@@ -186,7 +192,7 @@ async function loadData(){
     data.sort((a,b)=>new Date(b.time)-new Date(a.time));
     allData=data;
 
-    // 기본 필터: 최근 7일
+    // 기본 필터: 최근 7일 이내의 오늘 이전 데이터
     const today=new Date();
     const weekAgo=new Date(today.getTime()-7*24*60*60*1000);
     document.getElementById("startDate").value=weekAgo.toISOString().slice(0,10);
