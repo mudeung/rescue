@@ -84,6 +84,27 @@ function getMarkerImage(type){
   );
 }
 
+// 모달 열기
+function openModal(item){
+  const modal=document.getElementById("detailModal");
+  const body=document.getElementById("modalBody");
+  body.innerHTML=`
+    🕒 ${new Date(item.time).toLocaleString()}<br>
+    🚨 유형: ${item.type}<br>
+    🏠 주소: ${item.address}<br>
+    📞 연락처: ${item.phone}<br>
+    📝 상황: ${item.symptom}<br>
+    상태: ${item.status}<br>
+    <a class="maplink" href="${item.kakaoMapURL}" target="_blank">📍 지도보기</a>
+  `;
+  modal.style.display="flex";
+}
+
+// 모달 닫기
+function closeModal(){
+  document.getElementById("detailModal").style.display="none";
+}
+
 // 데이터를 지도/카드에 렌더링
 function renderData(data){
   document.getElementById("statEmergency").innerText=0;
@@ -115,6 +136,11 @@ function renderData(data){
       });
       markers.push(marker);
       bounds.extend(marker.getPosition());
+
+      // 🔹 마커 클릭 시 모달
+      kakao.maps.event.addListener(marker, 'click', function() {
+        openModal(item);
+      });
     }
 
     if(item.type==="응급환자") cntEmergency++;
@@ -135,27 +161,6 @@ function renderData(data){
   document.getElementById("statDispatch").innerText=cntDispatch;
   document.getElementById("statLost").innerText=cntLost;
   document.getElementById("statOther").innerText=cntOther;
-}
-
-// 모달 열기
-function openModal(item){
-  const modal=document.getElementById("detailModal");
-  const body=document.getElementById("modalBody");
-  body.innerHTML=`
-    🕒 ${new Date(item.time).toLocaleString()}<br>
-    🚨 유형: ${item.type}<br>
-    🏠 주소: ${item.address}<br>
-    📞 연락처: ${item.phone}<br>
-    📝 상황: ${item.symptom}<br>
-    상태: ${item.status}<br>
-    <a class="maplink" href="${item.kakaoMapURL}" target="_blank">📍 지도보기</a>
-  `;
-  modal.style.display="flex";
-}
-
-// 모달 닫기
-function closeModal(){
-  document.getElementById("detailModal").style.display="none";
 }
 
 // 기간 필터 적용
@@ -192,7 +197,7 @@ async function loadData(){
     data.sort((a,b)=>new Date(b.time)-new Date(a.time));
     allData=data;
 
-    // 기본 필터: 최근 7일 이내의 오늘 이전 데이터
+    // 기본 날짜: 지난 7일 오늘 이전
     const today=new Date();
     const weekAgo=new Date(today.getTime()-7*24*60*60*1000);
     document.getElementById("startDate").value=weekAgo.toISOString().slice(0,10);
