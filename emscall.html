@@ -225,11 +225,11 @@ async function loadData(){
       <div class="time elapsed">⏱ ${getElapsedTime(item.time, item.finishTime)}</div>
       ${item.status==="현장도착"? `<div class="time">🚑 현장도착: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : ""}</div>` : ""}
       ${item.status==="사고처리완료"? `<div class="time">🚑 현장도착: ${item.completeTime ? new Date(item.completeTime).toLocaleString() : ""}</div><div class="time">✅ 사고처리 완료: ${item.finishTime ? new Date(item.finishTime).toLocaleString() : ""}</div>` : ""}
-      🏠 ${item.address||"주소없음"}<br>
-      📞 ${item.phone||"번호없음"}<br>
-      📝 ${item.symptom||"내용없음"}<br>
+      🏠 ${item.address||"주소없음"}<br><br>
+      📞 ${item.phone||"번호없음"}<br><br>
+      📝 ${item.symptom||"내용없음"}<br><br>
       <div class="coord">위도: ${item.lat} / 경도: ${item.lng}</div>
-      <a class="maplink" href="https://map.kakao.com/link/map/구조요청 위치,${item.lat},${item.lng}" target="_blank">📍 지도보기</a><br>
+      <a class="maplink" href="https://map.kakao.com/link/map/구조요청 위치,${item.lat},${item.lng}" target="_blank">📍 지도보기</a><br><br>
       ${item.status==="사고처리완료" ? "" : item.status==="현장도착" ? `<button class="complete-btn" onclick="finishCase('${item.id}')">✅ 사고처리 완료</button>` : `<button class="complete-btn" onclick="completeCase('${item.id}')">🚑 구조대원 현장도착</button>`}
     `;
     listArea.appendChild(div);
