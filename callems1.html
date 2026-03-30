@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>🆘 구조출동 대응현황</title>
+<title>🆘 구조출동 대응현황 (과거자료)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
@@ -24,7 +24,7 @@ header{background:#b71c1c;padding:15px;text-align:center;font-size:20px;}
 
 <body>
 
-<header>🆘 구조출동 / 응급 / 조난 / 기타 대응현황</header>
+<header>🆘 구조출동 / 응급 / 조난 / 기타 대응현황 (과거자료)</header>
 
 <div class="container">
   <div id="map"></div>
@@ -53,11 +53,9 @@ function initMap(){
 
 function getMarkerImage(type){
   let urlColor="gray"; 
-
   if(type==="응급환자") urlColor="red";
   else if(type==="구조출동") urlColor="blue";
   else if(type==="조난") urlColor="yellow";
-
   return new kakao.maps.MarkerImage(
     `http://t1.daumcdn.net/localimg/localimages/07/2012/img/marker_${urlColor}.png`,
     new kakao.maps.Size(24,35)
@@ -70,15 +68,10 @@ async function loadData(){
     let data=await res.json();
     if(!Array.isArray(data)) data=[];
 
-    const now=new Date();
-    const oneDayAgo=new Date(now.getTime() - 24*60*60*1000);
-
-    data=data.filter(item=>{
-      return item.time && new Date(item.time) <= oneDayAgo;
-    });
-
+    // 과거자료 전체 불러오기 (필터 제거)
     data.sort((a,b)=>new Date(b.time) - new Date(a.time));
 
+    // 통계 초기화
     document.getElementById("statEmergency").innerText="0";
     document.getElementById("statDispatch").innerText="0";
     document.getElementById("statLost").innerText="0";
@@ -89,7 +82,7 @@ async function loadData(){
     markers=[];
 
     if(data.length===0){
-      document.getElementById("listArea").innerText="📭 지난 하루 자료가 없습니다.";
+      document.getElementById("listArea").innerText="📭 저장자료 시트에 자료가 없습니다.";
       return;
     }
 
