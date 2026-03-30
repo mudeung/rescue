@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>🆘 무등산특수구조팀 실시간 산악사고 신고접수</title>
+<title>🆘 무등산특수구조팀 신고접수</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
 
@@ -18,22 +18,37 @@ button{padding:8px 12px;background:#e53935;color:#fff;border:none;border-radius:
 .card{background:#1e1e1e;padding:12px;margin-bottom:10px;border-radius:6px;}
 .card.done{opacity:0.6;background:#2b2b2b;}
 
-.time{color:#ffcc00;font-size:14px;margin-bottom:4px;display:block;}
+.time{color:#ffcc00;font-size:14px;margin-bottom:4px;}
 
 .card.emergency{border-left:6px solid #ff1744;}
 .card.overdue{background:#3a0000;}
 
 .type-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
-.type-btn{padding:12px;border-radius:8px;font-weight:bold;cursor:pointer;color:#fff;}
+.type-btn{padding:12px;border-radius:8px;font-weight:bold;color:#fff;}
 .type-btn.active{outline:3px solid #fff;}
 .type-btn.emergency{background:#4a1c1c;}
 .type-btn.dispatch{background:#1c2f4a;}
 .type-btn.lost{background:#4a461c;}
 .type-btn.other{background:#3a3a3a;}
+
+/* 🔐 로그인 화면 */
+#loginOverlay{
+position:fixed;top:0;left:0;width:100%;height:100%;
+background:#000;display:flex;justify-content:center;align-items:center;
+flex-direction:column;z-index:9999;
+}
 </style>
 </head>
 
 <body>
+
+<!-- 🔐 관리자 로그인 -->
+<div id="loginOverlay">
+  <h2>🔐 관리자 로그인</h2>
+  <input type="password" id="adminPw" placeholder="비밀번호">
+  <button onclick="login()">로그인</button>
+  <p id="loginMsg" style="color:red;"></p>
+</div>
 
 <header>🆘 무등산특수구조팀 신고접수</header>
 
@@ -70,7 +85,31 @@ button{padding:8px 12px;background:#e53935;color:#fff;border:none;border-radius:
 
 const API_URL="https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
 
-let map, geocoder;
+/* 🔐 관리자 인증 */
+const ADMIN_PASSWORD="1234";
+let isAdmin=false;
+
+function login(){
+  const pw=document.getElementById("adminPw").value;
+
+  if(pw===ADMIN_PASSWORD){
+    isAdmin=true;
+    sessionStorage.setItem("admin","true");
+    document.getElementById("loginOverlay").style.display="none";
+  }else{
+    document.getElementById("loginMsg").innerText="❌ 비밀번호 오류";
+  }
+}
+
+/* 자동 로그인 유지 */
+window.onload=function(){
+  if(sessionStorage.getItem("admin")==="true"){
+    isAdmin=true;
+    document.getElementById("loginOverlay").style.display="none";
+  }
+};
+
+let map;
 let selectedType="";
 let alerted=new Set();
 
@@ -87,7 +126,6 @@ function initMap(){
     center:new kakao.maps.LatLng(35.1345,126.9902),
     level:6
   });
-  geocoder=new kakao.maps.services.Geocoder();
 }
 
 /* 유형 선택 */
@@ -104,21 +142,14 @@ async function submitData(){
   if(!selectedType){alert("유형 선택");return;}
   if(!conditionEl.value){alert("내용 입력");return;}
 
-  let lat=latEl.value,lng=lngEl.value;
-
-  if(!lat||!lng){
-    navigator.geolocation.getCurrentPosition(pos=>{
-      sendData(pos.coords.latitude,pos.coords.longitude);
-    });
-  }else{
-    sendData(lat,lng);
-  }
+  navigator.geolocation.getCurrentPosition(pos=>{
+    sendData(pos.coords.latitude,pos.coords.longitude);
+  });
 }
 
 async function sendData(lat,lng){
   await fetch(API_URL,{
     method:"POST",
-    headers:{ "Content-Type":"text/plain" },
     body:JSON.stringify({
       lat,lng,
       type:selectedType,
@@ -127,7 +158,6 @@ async function sendData(lat,lng){
       phone:phoneEl.value
     })
   });
-
   loadData();
 }
 
@@ -135,36 +165,18 @@ async function sendData(lat,lng){
 function getElapsed(start,end){
   const s=new Date(start);
   const e=end?new Date(end):new Date();
-  const d=Math.floor((e-s)/1000);
-  return Math.floor(d/60)+"분";
-}
-
-/* 3분 초과 */
-function checkOverdue(item,div){
-  if(item.type!=="응급환자") return;
-  if(item.status==="완료") return;
-
-  const diff=(new Date()-new Date(item.time))/1000;
-
-  if(diff>180){
-    div.classList.add("overdue");
-
-    if(!alerted.has(item.id)){
-      alerted.add(item.id);
-
-      document.getElementById("alertSound").play();
-
-      if(navigator.vibrate) navigator.vibrate([500,300,500]);
-
-      if(Notification.permission==="granted"){
-        new Notification("🚨 응급환자 3분 초과");
-      }
-    }
-  }
+  return Math.floor((e-s)/60000)+"분";
 }
 
 /* 삭제 */
 async function deleteCase(id){
+  if(!isAdmin){
+    alert("관리자만 가능");
+    return;
+  }
+
+  if(!confirm("삭제?")) return;
+
   await fetch(API_URL,{
     method:"POST",
     body:JSON.stringify({action:"delete",id})
@@ -172,21 +184,13 @@ async function deleteCase(id){
   loadData();
 }
 
-/* 도착 */
+/* 상태 변경 */
 async function completeCase(id){
-  await fetch(API_URL,{
-    method:"POST",
-    body:JSON.stringify({action:"complete",id})
-  });
+  await fetch(API_URL,{method:"POST",body:JSON.stringify({action:"complete",id})});
   loadData();
 }
-
-/* 완료 */
 async function finishCase(id){
-  await fetch(API_URL,{
-    method:"POST",
-    body:JSON.stringify({action:"finish",id})
-  });
+  await fetch(API_URL,{method:"POST",body:JSON.stringify({action:"finish",id})});
   loadData();
 }
 
@@ -197,20 +201,16 @@ async function loadData(){
 
   listArea.innerHTML="";
 
-  data.sort((a,b)=>{
-    if(a.type==="응급환자") return -1;
-    if(b.type==="응급환자") return 1;
-    return new Date(b.time)-new Date(a.time);
-  });
-
   data.forEach(item=>{
+
+    // 🔥 완료 숨김
+    if(item.status==="완료") return;
+
     const div=document.createElement("div");
 
-    div.className="card"+(item.status==="완료"?" done":"");
+    div.className="card";
 
-    if(item.type==="응급환자" && item.status!=="완료"){
-      div.classList.add("emergency");
-    }
+    if(item.type==="응급환자") div.classList.add("emergency");
 
     div.innerHTML=`
       ${item.type}<br>
@@ -220,20 +220,16 @@ async function loadData(){
       ⏱ ${getElapsed(item.time,item.finishTime)}<br>
 
       ${
-        item.status==="완료" ? ""
-        : item.status==="현장도착"
+        item.status==="현장도착"
         ? `<button onclick="finishCase('${item.id}')">완료</button>`
         : `<button onclick="completeCase('${item.id}')">도착</button>`
       }
 
-      <button onclick="deleteCase('${item.id}')">삭제</button>
+      ${isAdmin ? `<button onclick="deleteCase('${item.id}')">🗑 삭제</button>` : ""}
     `;
 
     listArea.appendChild(div);
 
-    checkOverdue(item,div);
-
-    // 지도 마커
     if(item.lat && item.lng){
       new kakao.maps.Marker({
         map:map,
@@ -243,14 +239,10 @@ async function loadData(){
   });
 }
 
-/* 초기 */
+/* 실행 */
 initMap();
 loadData();
 setInterval(loadData,5000);
-
-if(Notification.permission!=="granted"){
-  Notification.requestPermission();
-}
 
 </script>
 
