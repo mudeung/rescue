@@ -2,256 +2,275 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>🚑 구조 위치 공유 시스템 (최종)</title>
+<title>🚑 구조 위치 공유</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
 
 <style>
-body { font-family: sans-serif; text-align:center; }
-button { padding:12px; margin:5px; font-size:16px; }
-input { padding:10px; font-size:16px; }
+body { margin:0; font-family:sans-serif; text-align:center; }
+
+/* 상단 */
+.top { background:#111; color:white; padding:10px; }
+
+/* 버튼 */
+button { padding:10px; margin:5px; border:none; border-radius:6px; }
+.btn-blue { background:#007bff; color:white; }
+.btn-red { background:#dc3545; color:white; }
+.btn-gray { background:#666; color:white; }
+
+/* 지도 */
+#map { width:100%; height:80vh; }
+
+/* 모달 */
+#loginModal {
+display:none;
+position:fixed;
+top:0; left:0;
+width:100%; height:100%;
+background:rgba(0,0,0,0.6);
+justify-content:center;
+align-items:center;
+}
+
+.modal-box {
+background:white;
+padding:20px;
+border-radius:10px;
+width:250px;
+}
 </style>
 </head>
 
 <body>
 
 <!-- 역할 선택 -->
-<div id="roleSelect" style="margin-top:50px;">
-    <h2>🚑 역할 선택</h2>
-
-    <button onclick="selectVictim()" style="background:red;color:white;">
-        🟥 조난자 (바로 입장)
-    </button>
-
-    <div style="margin-top:20px;">
-        <input type="password" id="rescuerPw" placeholder="구조대 비밀번호">
-        <br>
-        <button onclick="loginRescuer()" style="background:blue;color:white;">
-            🟦 구조대 입장
-        </button>
-    </div>
+<div id="roleUI" class="top">
+    <h3>🚑 역할 선택</h3>
+    <button class="btn-red" onclick="enterVictim()">🟥 조난자</button>
+    <button class="btn-blue" onclick="openLogin()">🟦 구조대</button>
 </div>
 
-<!-- 메인 UI -->
+<!-- 로그인 모달 -->
+<div id="loginModal">
+  <div class="modal-box">
+    <h3>🔐 구조대 인증</h3>
+    <input type="password" id="pw" placeholder="비밀번호" style="width:90%; padding:10px;">
+    <br><br>
+    <button class="btn-blue" onclick="loginRescuer()">확인</button>
+    <button class="btn-gray" onclick="closeLogin()">취소</button>
+  </div>
+</div>
+
+<!-- 메인 -->
 <div id="mainUI" style="display:none;">
-    <button onclick="sendSOS()">🚨 SOS</button>
-    <button onclick="changeRole()">🔄 역할 변경</button>
-    <p id="status"></p>
-    <div id="map" style="width:100%;height:400px;"></div>
+    <div class="top">
+        <span id="status">연결중...</span><br>
+        <button class="btn-red" onclick="sendSOS()">🚨 SOS</button>
+        <button class="btn-gray" onclick="reset()">🔄</button>
+    </div>
+    <div id="map"></div>
 </div>
 
 <script>
-const SERVER_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_URL/exec";
-const RESCUER_PASSWORD = "119rescue";
+const SERVER = "https://script.google.com/macros/s/YOUR_SCRIPT_URL/exec";
+const PW = "119rescue";
 
-let map;
-let role = null;
-let myId = localStorage.getItem("userId") || generateUUID();
-localStorage.setItem("userId", myId);
-
+let map, role, myId;
 let markers = {};
 let paths = {};
-let arrowMarker;
+let arrow;
 
-// UUID 생성
-function generateUUID(){
-    return 'xxxx-xxxx-4xxx-yxxx'.replace(/[xy]/g,function(c){
+// 아이콘
+const ICONS = {
+    victim: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
+    rescuer: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+    sos: "https://maps.google.com/mapfiles/ms/icons/yellow-dot.png",
+    me: "https://maps.google.com/mapfiles/ms/icons/green-dot.png"
+};
+
+// UUID
+function uuid(){
+    return 'xxxx-4xxx-yxxx'.replace(/[xy]/g,c=>{
         let r=Math.random()*16|0,v=c=='x'?r:(r&0x3|0x8);
         return v.toString(16);
     });
 }
 
-// 초기 실행
+// 시작
 window.onload = ()=>{
-    const savedRole = localStorage.getItem("role");
-    const auth = localStorage.getItem("auth");
+    role = localStorage.role;
+    myId = localStorage.id || uuid();
+    localStorage.id = myId;
 
-    if(savedRole === "rescuer" && auth === "ok"){
-        role = "rescuer";
-        startApp();
-    }
-    else if(savedRole === "victim"){
-        role = "victim";
-        startApp();
-    }
-    else {
-        document.getElementById("roleSelect").style.display="block";
-    }
+    if(role==="rescuer" && localStorage.auth==="1") start();
+    else if(role==="victim") start();
 };
 
-// 조난자 입장
-function selectVictim(){
-    localStorage.setItem("role","victim");
-    role = "victim";
-    startApp();
+// 조난자
+function enterVictim(){
+    localStorage.role="victim";
+    start();
+}
+
+// 모달 열기
+function openLogin(){
+    document.getElementById("loginModal").style.display="flex";
+    setTimeout(()=>document.getElementById("pw").focus(),100);
+}
+
+// 모달 닫기
+function closeLogin(){
+    document.getElementById("loginModal").style.display="none";
 }
 
 // 구조대 로그인
 function loginRescuer(){
-    const pw = document.getElementById("rescuerPw").value;
+    let input = document.getElementById("pw").value;
 
-    if(pw === RESCUER_PASSWORD){
-        localStorage.setItem("role","rescuer");
-        localStorage.setItem("auth","ok");
-        role = "rescuer";
-        startApp();
-    } else {
-        alert("❌ 비밀번호 틀림");
-    }
+    if(input===PW){
+        localStorage.role="rescuer";
+        localStorage.auth="1";
+        closeLogin();
+        start();
+    } else alert("❌ 비밀번호 틀림");
 }
 
-// 역할 변경
-function changeRole(){
+// 초기화
+function reset(){
     localStorage.clear();
     location.reload();
 }
 
 // 앱 시작
-function startApp(){
-    document.getElementById("roleSelect").style.display="none";
+function start(){
+    role = localStorage.role;
+
+    document.getElementById("roleUI").style.display="none";
     document.getElementById("mainUI").style.display="block";
 
     navigator.geolocation.getCurrentPosition(pos=>{
         map = new kakao.maps.Map(document.getElementById('map'), {
             center: new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude),
-            level: 3
+            level:3
         });
-
-        startTracking();
+        loop();
     });
 }
 
-// 위치 전송 루프
-function startTracking(){
+// 반복
+function loop(){
     setInterval(()=>{
         navigator.geolocation.getCurrentPosition(pos=>{
-            const data = {
+            let data = {
                 id: myId,
                 role: role,
                 lat: pos.coords.latitude,
                 lng: pos.coords.longitude,
-                accuracy: pos.coords.accuracy,
+                acc: pos.coords.accuracy,
                 time: Date.now()
             };
 
             document.getElementById("status").innerText =
-                `${role} / 정확도 ${data.accuracy.toFixed(1)}m`;
+                `${role} | ${data.acc.toFixed(1)}m`;
 
-            fetch(SERVER_URL,{
-                method:"POST",
-                body: JSON.stringify(data)
-            });
+            fetch(SERVER,{method:"POST",body:JSON.stringify(data)});
+            update(data);
 
-            updateUsers(data);
-
-        }, null, {enableHighAccuracy:true});
+        },null,{enableHighAccuracy:true});
     },3000);
 }
 
 // SOS
 function sendSOS(){
-    fetch(SERVER_URL,{
-        method:"POST",
-        body: JSON.stringify({
-            id: myId,
-            sos:true,
-            time:Date.now()
-        })
-    });
-    alert("🚨 SOS 전송됨");
+    fetch(SERVER,{method:"POST",body:JSON.stringify({
+        id: myId, sos:true, time:Date.now()
+    })});
+    alert("🚨 SOS 전송");
 }
 
-// 사용자 업데이트
-async function updateUsers(myData){
-    const res = await fetch(SERVER_URL);
-    const users = await res.json();
+// 업데이트
+async function update(me){
+    let res = await fetch(SERVER);
+    let users = await res.json();
 
-    users.forEach(user=>{
-        const pos = new kakao.maps.LatLng(user.lat, user.lng);
+    users.forEach(u=>{
+        let pos = new kakao.maps.LatLng(u.lat,u.lng);
 
-        if(!markers[user.id]){
-            markers[user.id] = new kakao.maps.Marker({
-                position: pos,
-                map: map
+        // 아이콘 선택
+        let icon = ICONS.rescuer;
+        if(u.role==="victim") icon = ICONS.victim;
+        if(u.sos) icon = ICONS.sos;
+        if(u.id===myId) icon = ICONS.me;
+
+        let markerImg = new kakao.maps.MarkerImage(icon, new kakao.maps.Size(32,32));
+
+        if(!markers[u.id]){
+            markers[u.id] = new kakao.maps.Marker({
+                position:pos,
+                map:map,
+                image:markerImg
             });
-            paths[user.id] = [];
+            paths[u.id]=[];
         } else {
-            markers[user.id].setPosition(pos);
+            markers[u.id].setPosition(pos);
+            markers[u.id].setImage(markerImg);
         }
 
         // 경로
-        paths[user.id].push(pos);
-
-        if(!markers[user.id].polyline){
-            markers[user.id].polyline = new kakao.maps.Polyline({
-                path: paths[user.id],
-                strokeWeight: 4
+        paths[u.id].push(pos);
+        if(!markers[u.id].line){
+            markers[u.id].line = new kakao.maps.Polyline({
+                path:paths[u.id],
+                strokeWeight:4,
+                strokeColor: u.role==="victim"?"#ff0000":"#007bff"
             });
-            markers[user.id].polyline.setMap(map);
-        } else {
-            markers[user.id].polyline.setPath(paths[user.id]);
+            markers[u.id].line.setMap(map);
+        } else markers[u.id].line.setPath(paths[u.id]);
+
+        // 방향 (구조대만)
+        if(role==="rescuer" && u.role==="victim"){
+            direction(me,u);
         }
 
-        // 방향 화살표
-        if(role === "rescuer" && user.role === "victim"){
-            showDirection(myData, user);
-        }
+        // 정보
+        let txt = `${u.role}<br>${u.acc?.toFixed(1)}m`;
+        if(u.sos) txt+="<br><b style='color:red'>🚨</b>";
 
-        // 정보창
-        let info = `
-        ID:${user.id.substring(0,6)}<br>
-        역할:${user.role}<br>
-        정확도:${user.accuracy?.toFixed(1)}m
-        `;
-
-        if(user.sos){
-            info += "<br><b style='color:red'>🚨 SOS</b>";
-        }
-
-        const infowindow = new kakao.maps.InfoWindow({
-            content:`<div style="padding:5px">${info}</div>`
-        });
-
-        infowindow.open(map, markers[user.id]);
+        new kakao.maps.InfoWindow({
+            content:`<div style="padding:5px">${txt}</div>`
+        }).open(map,markers[u.id]);
     });
 }
 
-// 방향 계산
-function getBearing(lat1, lon1, lat2, lon2){
-    const toRad = x => x * Math.PI / 180;
-    const toDeg = x => x * 180 / Math.PI;
+// 방향
+function direction(a,b){
+    let ang = bearing(a.lat,a.lng,b.lat,b.lng);
+    let pos = new kakao.maps.LatLng(a.lat,a.lng);
 
-    const dLon = toRad(lon2 - lon1);
+    if(!arrow){
+        arrow = new kakao.maps.Marker({position:pos,map:map});
+    } else arrow.setPosition(pos);
 
-    const y = Math.sin(dLon) * Math.cos(toRad(lat2));
-    const x =
-        Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) -
-        Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(dLon);
-
-    return (toDeg(Math.atan2(y, x)) + 360) % 360;
+    let el = arrow.getElement();
+    if(el) el.style.transform=`rotate(${ang}deg)`;
 }
 
-// 방향 표시
-function showDirection(my, target){
-    const angle = getBearing(my.lat, my.lng, target.lat, target.lng);
-
-    const pos = new kakao.maps.LatLng(my.lat, my.lng);
-
-    if(!arrowMarker){
-        arrowMarker = new kakao.maps.Marker({
-            position: pos,
-            map: map
-        });
-    } else {
-        arrowMarker.setPosition(pos);
-    }
-
-    const el = arrowMarker.getElement();
-    if(el){
-        el.style.transform = `rotate(${angle}deg)`;
-    }
+// 각도 계산
+function bearing(lat1,lon1,lat2,lon2){
+    let dLon=(lon2-lon1)*Math.PI/180;
+    let y=Math.sin(dLon)*Math.cos(lat2*Math.PI/180);
+    let x=Math.cos(lat1*Math.PI/180)*Math.sin(lat2*Math.PI/180)-
+          Math.sin(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.cos(dLon);
+    return (Math.atan2(y,x)*180/Math.PI+360)%360;
 }
+
+// 엔터키 로그인
+document.addEventListener("keydown",e=>{
+    if(e.key==="Enter" && document.getElementById("loginModal").style.display==="flex"){
+        loginRescuer();
+    }
+});
 </script>
 
 </body>
