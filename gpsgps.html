@@ -6,17 +6,8 @@
 <title>📍 실시간 위치 공유</title>
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424"></script>
 <style>
-body, html {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  font-family: Arial, sans-serif;
-}
-
-#map {
-  width: 100%;
-  height: 100%;
-}
+body, html { margin: 0; padding: 0; height: 100%; font-family: Arial, sans-serif; }
+#map { width: 100%; height: 100%; }
 
 #topbar {
   display: none;
@@ -30,11 +21,7 @@ body, html {
   justify-content: center;
   align-items: center;
 }
-
-#distance {
-  font-weight: bold;
-  font-size: 16px;
-}
+#distance { font-weight: bold; font-size: 16px; }
 
 #mobileDistance {
   display: none;
@@ -51,41 +38,29 @@ body, html {
   white-space: nowrap;
 }
 
-@media screen and (min-width: 1024px) {
-  #topbar { display: flex; }
-  #mobileDistance { display: none; }
-}
-
-@media screen and (max-width: 1023px) {
-  #topbar { display: none; }
-  #mobileDistance { display: block; }
-}
+@media screen and (min-width: 1024px) { #topbar { display: flex; } #mobileDistance { display: none; } }
+@media screen and (max-width: 1023px) { #topbar { display: none; } #mobileDistance { display: block; } }
 </style>
 </head>
 <body>
 
-<div id="topbar">
-  거리: <span id="distance">-</span>
-</div>
+<div id="topbar">거리: <span id="distance">-</span></div>
 <div id="mobileDistance">거리: <span id="distance">-</span></div>
-
 <div id="map"></div>
 
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzpNNxNK7Zcj6ZbKlPDNr0Lz7hG_o0IPlCIEtvWnQe8uJyPIQPluGe8wcnox_2pAcSE/exec";
-
 let myId;
 
 // 사용자 이름 입력 + 중복 확인
 async function promptUniqueName() {
   while(true) {
-    let input = prompt("이름 입력(예: 조난자, 구조대, 구급대)");
+    let input = prompt("사용자 이름(예: 조난자, 구조대, 구급대)");
     if (!input || input.trim() === "") {
-      alert("이름을 반드시 입력해야 합니다.");
+      alert("사용자 이름을 반드시 입력해야 합니다.");
       continue;
     }
 
-    // 서버에서 동일 이름 확인
     try {
       const res = await fetch(GAS_URL);
       const users = await res.json();
@@ -103,15 +78,21 @@ async function promptUniqueName() {
   }
 }
 
-// 메인 실행
 (async function main() {
   await promptUniqueName();
 
   let map;
   let markers = {};
   let infoWindows = {};
+  let currentUserPositions = {};
   let myMarker = null;
   let myLat, myLng;
+
+  function getFontSize() {
+    if(window.innerWidth >= 1024) return '15px';
+    else if(window.innerWidth >= 768) return '14px';
+    else return '13px';
+  }
 
   function initMap(lat, lng) {
     const center = new kakao.maps.LatLng(lat, lng);
@@ -119,10 +100,7 @@ async function promptUniqueName() {
     myMarker = new kakao.maps.Marker({ map, position: center });
   }
 
-  function centerMapOnMyLocation() {
-    if (!map || !myMarker) return;
-    map.setCenter(myMarker.getPosition());
-  }
+  function centerMapOnMyLocation() { if(map && myMarker) map.setCenter(myMarker.getPosition()); }
 
   function getDistance(lat1, lon1, lat2, lon2) {
     const R = 6371;
@@ -132,63 +110,69 @@ async function promptUniqueName() {
     return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
   }
 
-  function sendLocation(lat, lng) {
-    fetch(GAS_URL, { method: "POST", body: JSON.stringify({ id: myId, lat, lng }) });
-  }
+  function sendLocation(lat, lng) { fetch(GAS_URL, { method: "POST", body: JSON.stringify({ id: myId, lat, lng }) }); }
 
   function fetchUsers() {
     fetch(GAS_URL)
       .then(res => res.json())
       .then(users => {
+        currentUserPositions = users;
         let distanceText = "";
-        for (let id in users) {
+        for(let id in users){
           const u = users[id];
           const pos = new kakao.maps.LatLng(u.lat, u.lng);
+          if(id === myId){ if(myMarker) myMarker.setPosition(pos); continue; }
 
-          if (id === myId) {
-            if (myMarker) myMarker.setPosition(pos);
-            continue;
-          }
-
-          if (!markers[id]) {
+          if(!markers[id]){
             const marker = new kakao.maps.Marker({ map, position: pos });
             markers[id] = marker;
-            const fontSize = window.innerWidth >= 1024 ? '15px' : '14px';
             const infowindow = new kakao.maps.InfoWindow({
-              content: `<div style="padding:10px; font-size:${fontSize}; font-weight:bold;">
-                          ${id}<br>
-                          좌표: (${u.lat.toFixed(6)}, ${u.lng.toFixed(6)})
+              content: `<div style="padding:10px; font-size:${getFontSize()}; font-weight:bold;">
+                          ${id}<br>좌표: (${u.lat.toFixed(6)}, ${u.lng.toFixed(6)})
                         </div>`
             });
             infoWindows[id] = infowindow;
-            kakao.maps.event.addListener(marker, 'click', function() {
-              infowindow.open(map, marker);
-            });
+            kakao.maps.event.addListener(marker,'click',function(){ infowindow.open(map, marker); });
           }
 
           markers[id].setPosition(pos);
           distanceText += `${id}: ${getDistance(myLat, myLng, u.lat, u.lng).toFixed(2)}km / `;
         }
-
-        document.querySelectorAll("#distance").forEach(el => el.innerText = distanceText);
+        document.querySelectorAll("#distance").forEach(el=>el.innerText=distanceText);
       });
   }
 
   function update() {
-    navigator.geolocation.getCurrentPosition(pos => {
+    navigator.geolocation.getCurrentPosition(pos=>{
       myLat = pos.coords.latitude;
       myLng = pos.coords.longitude;
       const myPos = new kakao.maps.LatLng(myLat, myLng);
 
-      if (!map) initMap(myLat, myLng);
-      if (myMarker) myMarker.setPosition(myPos);
+      if(!map) initMap(myLat, myLng);
+      if(myMarker) myMarker.setPosition(myPos);
 
-      if (window.innerWidth < 1024) centerMapOnMyLocation();
+      if(window.innerWidth < 1024) centerMapOnMyLocation();
 
       sendLocation(myLat, myLng);
       fetchUsers();
     });
   }
+
+  // 화면 크기 변화 감지 → 인포윈도우 폰트 크기 실시간 조정
+  window.addEventListener('resize', ()=>{
+    for(let id in infoWindows){
+      const marker = markers[id];
+      const u = currentUserPositions[id];
+      if(!marker || !u) continue;
+      infoWindows[id].setContent(`<div style="padding:10px; font-size:${getFontSize()}; font-weight:bold;">
+                                    ${id}<br>좌표: (${u.lat.toFixed(6)}, ${u.lng.toFixed(6)})
+                                  </div>`);
+      if(infoWindows[id].getMap()){
+        infoWindows[id].close();
+        infoWindows[id].open(map, marker);
+      }
+    }
+  });
 
   setInterval(update, 5000);
   update();
