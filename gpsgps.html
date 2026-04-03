@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>🚑 실시간 위치 공유 시스템 (고급형)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_APP_KEY"></script>
+</head>
+
+<body>
+<h3>🚑 구조팀 실시간 위치 공유</h3>
+<p id="status">상태: 초기화 중...</p>
+
+<div id="map" style="width:100%;height:400px;"></div>
+
+<script>
+let map;
+let myId = localStorage.getItem("userId") || generateUUID();
+localStorage.setItem("userId", myId);
+
+let markers = {};
+let paths = {};
+
+initMap();
+
+// UUID 생성
+function generateUUID() {
+    return 'xxxx-xxxx-4xxx-yxxx'.replace(/[xy]/g, function(c) {
+        let r = Math.random()*16|0, v = c === 'x' ? r : (r&0x3|0x8);
+        return v.toString(16);
+    });
+}
+
+// 지도 초기화
+function initMap(){
+    navigator.geolocation.getCurrentPosition(pos=>{
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+
+        map = new kakao.maps.Map(document.getElementById('map'), {
+            center: new kakao.maps.LatLng(lat, lng),
+            level: 3
+        });
+
+        startTracking();
+    });
+}
+
+// 위치 전송 루프
+function startTracking(){
+    setInterval(async ()=>{
+        navigator.geolocation.getCurrentPosition(async pos=>{
+            const battery = await getBattery();
+
+            const data = {
+                id: myId,
+                lat: pos.coords.latitude,
+                lng: pos.coords.longitude,
+                accuracy: pos.coords.accuracy,
+                battery: battery.level,
+                charging: battery.charging,
+                time: Date.now()
+            };
+
+            document.getElementById("status").innerText =
+                `정확도: ${data.accuracy.toFixed(1)}m / 배터리: ${Math.round(data.battery*100)}%`;
+
+            await fetch("https://script.google.com/macros/s/YOUR_SCRIPT_URL/exec", {
+                method: "POST",
+                body: JSON.stringify(data)
+            });
+
+            updateUsers();
+
+        }, err=>console.log(err), {enableHighAccuracy:true});
+    }, 3000);
+}
+
+// 배터리 정보
+async function getBattery(){
+    if(navigator.getBattery){
+        return await navigator.getBattery();
+    }
+    return {level:1, charging:false};
+}
+
+// 전체 사용자 불러오기
+async function updateUsers(){
+    const res = await fetch("https://script.google.com/macros/s/YOUR_SCRIPT_URL/exec");
+    const users = await res.json();
+
+    users.forEach(user=>{
+        const pos = new kakao.maps.LatLng(user.lat, user.lng);
+
+        // 마커 생성/업데이트
+        if(!markers[user.id]){
+            markers[user.id] = new kakao.maps.Marker({
+                position: pos,
+                map: map
+            });
+
+            paths[user.id] = [];
+        } else {
+            markers[user.id].setPosition(pos);
+        }
+
+        // 경로 기록
+        paths[user.id].push(pos);
+
+        // Polyline 생성/업데이트
+        if(!markers[user.id].polyline){
+            markers[user.id].polyline = new kakao.maps.Polyline({
+                path: paths[user.id],
+                strokeWeight: 4,
+                strokeOpacity: 0.7
+            });
+            markers[user.id].polyline.setMap(map);
+        } else {
+            markers[user.id].polyline.setPath(paths[user.id]);
+        }
+
+        // 인포 표시
+        const info = `
+            ID: ${user.id.substring(0,6)}<br>
+            정확도: ${user.accuracy.toFixed(1)}m<br>
+            배터리: ${Math.round(user.battery*100)}% ${user.charging ? "⚡" : ""}
+        `;
+
+        const infowindow = new kakao.maps.InfoWindow({
+            content: `<div style="padding:5px;font-size:12px;">${info}</div>`
+        });
+
+        infowindow.open(map, markers[user.id]);
+    });
+}
+</script>
+
+</body>
+</html>
