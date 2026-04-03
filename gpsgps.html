@@ -5,7 +5,7 @@
 <title>🚑 구조 위치 공유</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424"></script>
 
 <style>
 body { margin:0; font-family:sans-serif; text-align:center; }
@@ -15,47 +15,17 @@ button { padding:10px; margin:5px; border:none; border-radius:6px; }
 .btn-red { background:#dc3545; color:white; }
 .btn-gray { background:#666; color:white; }
 #map { width:100%; height:80vh; }
-
-#loginModal {
-display:none;
-position:fixed;
-top:0; left:0;
-width:100%; height:100%;
-background:rgba(0,0,0,0.6);
-justify-content:center;
-align-items:center;
-}
-
-.modal-box {
-background:white;
-padding:20px;
-border-radius:10px;
-width:250px;
-}
 </style>
 </head>
 
 <body>
 
-<!-- 역할 선택 -->
 <div id="roleUI" class="top">
 <h3>🚑 역할 선택</h3>
 <button class="btn-red" onclick="enterVictim()">🟥 조난자</button>
-<button class="btn-blue" onclick="openLogin()">🟦 구조대</button>
+<button class="btn-blue" onclick="login()">🟦 구조대</button>
 </div>
 
-<!-- 로그인 -->
-<div id="loginModal">
-<div class="modal-box">
-<h3>🔐 구조대 인증</h3>
-<input type="password" id="pw" placeholder="비밀번호" style="width:90%; padding:10px;">
-<br><br>
-<button class="btn-blue" onclick="loginRescuer()">확인</button>
-<button class="btn-gray" onclick="closeLogin()">취소</button>
-</div>
-</div>
-
-<!-- 메인 -->
 <div id="mainUI" style="display:none;">
 <div class="top">
 <span id="status">연결중...</span><br>
@@ -66,91 +36,71 @@ width:250px;
 </div>
 
 <script>
-const SERVER = "https://script.google.com/macros/s/AKfycby7T5WSAiSwniAhEhw9R6VXxx5cxqqlc8ZWVKJ7SafRHJo7DdVk49fr-O0Hy7xZHMUeUw/exec";
-const PW = "119rescue";
+const SERVER = "여기에_너의_웹앱_URL_넣기";
 
 let map, role, myId;
 let markers = {};
 let paths = {};
-let arrow;
 
-// UUID 생성
-function uuid(){
-return 'xxxx-4xxx-yxxx'.replace(/[xy]/g,c=>{
-let r=Math.random()*16|0,v=c=='x'?r:(r&0x3|0x8);
-return v.toString(16);
-});
+// ID 생성
+function makeId(){
+const now=new Date();
+return now.getFullYear()+""+(now.getMonth()+1)+""+now.getDate()+"_"+Date.now();
 }
 
-// 시작
-window.onload = ()=>{
-role = localStorage.role;
-myId = localStorage.id || uuid();
-localStorage.id = myId;
+window.onload=()=>{
+role=localStorage.role;
+myId=localStorage.id||makeId();
+localStorage.id=myId;
 
-if(role==="rescuer" && localStorage.auth==="1") start();
-else if(role==="victim") start();
+if(role) start();
 };
 
-// 역할 선택
 function enterVictim(){
 localStorage.role="victim";
 start();
 }
 
-// 로그인
-function openLogin(){
-document.getElementById("loginModal").style.display="flex";
-}
-
-function closeLogin(){
-document.getElementById("loginModal").style.display="none";
-}
-
-function loginRescuer(){
-if(document.getElementById("pw").value===PW){
+function login(){
+let pw=prompt("비밀번호 입력");
+if(pw==="119rescue"){
 localStorage.role="rescuer";
-localStorage.auth="1";
-closeLogin();
 start();
-}else alert("❌ 비밀번호 틀림");
+}else alert("❌ 틀림");
 }
 
-// 초기화
 function reset(){
 localStorage.clear();
 location.reload();
 }
 
-// 앱 시작
 function start(){
 document.getElementById("roleUI").style.display="none";
 document.getElementById("mainUI").style.display="block";
 
 navigator.geolocation.getCurrentPosition(pos=>{
-map = new kakao.maps.Map(document.getElementById('map'), {
+map=new kakao.maps.Map(document.getElementById('map'),{
 center:new kakao.maps.LatLng(pos.coords.latitude,pos.coords.longitude),
 level:3
 });
 loop();
-},()=>alert("위치 권한 허용 필요"));
+});
 }
 
-// 반복
 function loop(){
 setInterval(()=>{
 navigator.geolocation.getCurrentPosition(pos=>{
 
-let data = {
-id: myId,
-role: role,
-lat: pos.coords.latitude,
-lng: pos.coords.longitude,
-acc: pos.coords.accuracy,
-time: Date.now()
+let data={
+id:myId,
+role:role,
+lat:pos.coords.latitude,
+lng:pos.coords.longitude,
+acc:pos.coords.accuracy,
+time:Date.now()
 };
 
-document.getElementById("status").innerText =
+document.getElementById("status").innerText=
 `${role} | ${data.acc.toFixed(1)}m`;
 
 fetch(SERVER,{
@@ -159,64 +109,53 @@ body:JSON.stringify(data),
 headers:{"Content-Type":"application/json"}
 });
 
-update(data);
+update();
 
-},null,{enableHighAccuracy:true});
+});
 },3000);
 }
 
-// SOS
 function sendSOS(){
-let msg = prompt("🚨 상황 입력");
+let msg=prompt("🚨 상황 입력");
 if(!msg) return;
 
 fetch(SERVER,{
 method:"POST",
 body:JSON.stringify({
-id: myId,
+id:myId,
 sos:true,
 msg:msg,
 time:Date.now()
 }),
 headers:{"Content-Type":"application/json"}
 });
-
-alert("🚨 SOS 전송");
 }
 
-// 지도 업데이트
-async function update(me){
-try{
-let res = await fetch(SERVER);
-if(!res.ok) return;
-
-let users = await res.json();
+async function update(){
+let res=await fetch(SERVER);
+let users=await res.json();
 
 users.forEach(u=>{
-let pos = new kakao.maps.LatLng(u.lat,u.lng);
 
-// 핀 색상
-let icon = "https://maps.google.com/mapfiles/ms/icons/blue-dot.png";
+if(!u.lat || !u.lng) return;
+
+let pos=new kakao.maps.LatLng(u.lat,u.lng);
+
+let icon="https://maps.google.com/mapfiles/ms/icons/blue-dot.png";
 if(u.role==="victim") icon="https://maps.google.com/mapfiles/ms/icons/red-dot.png";
 if(u.sos) icon="https://maps.google.com/mapfiles/ms/icons/yellow-dot.png";
 if(u.id===myId) icon="https://maps.google.com/mapfiles/ms/icons/green-dot.png";
 
-let markerImg = new kakao.maps.MarkerImage(icon,new kakao.maps.Size(32,32));
+let markerImg=new kakao.maps.MarkerImage(icon,new kakao.maps.Size(32,32));
 
-// 마커 생성/업데이트
 if(!markers[u.id]){
-markers[u.id]=new kakao.maps.Marker({
-position:pos,
-map:map,
-image:markerImg
-});
+markers[u.id]=new kakao.maps.Marker({position:pos,map:map,image:markerImg});
 paths[u.id]=[];
 }else{
 markers[u.id].setPosition(pos);
 markers[u.id].setImage(markerImg);
 }
 
-// 이동 경로
 paths[u.id].push(pos);
 
 if(!markers[u.id].line){
@@ -230,24 +169,16 @@ markers[u.id].line.setMap(map);
 markers[u.id].line.setPath(paths[u.id]);
 }
 
-// 정보창
-let txt = `
-${u.role==="victim"?"🟥 조난자":"🟦 구조대"}<br>
-${u.acc?.toFixed(1)}m
-`;
+let txt=`${u.role}<br>${u.acc?.toFixed(1)}m`;
 
-if(u.sos) txt += `<br><b style="color:red">🚨 SOS</b>`;
-if(u.msg) txt += `<br>📢 ${u.msg}`;
+if(u.sos) txt+=`<br>🚨`;
+if(u.msg) txt+=`<br>${u.msg}`;
 
 new kakao.maps.InfoWindow({
 content:`<div style="padding:5px">${txt}</div>`
 }).open(map,markers[u.id]);
 
 });
-
-}catch(e){
-console.log("서버 오류",e);
-}
 }
 </script>
 
