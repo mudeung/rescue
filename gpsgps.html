@@ -2,15 +2,24 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>🚑 실시간 위치 공유 시스템 (고급형)</title>
+<title>🚑 구조 위치 공유 시스템</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
 </head>
 
 <body>
-<h3>🚑 구조팀 실시간 위치 공유</h3>
-<p id="status">상태: 초기화 중...</p>
+
+<h3>🚑 구조 시스템</h3>
+
+<select id="role">
+  <option value="rescuer">🟦 구조대</option>
+  <option value="victim">🟥 조난자</option>
+</select>
+
+<button onclick="sendSOS()">🚨 긴급 요청</button>
+
+<p id="status"></p>
 
 <div id="map" style="width:100%;height:400px;"></div>
 
@@ -20,11 +29,8 @@ let myId = localStorage.getItem("userId") || generateUUID();
 localStorage.setItem("userId", myId);
 
 let markers = {};
-let paths = {};
 
-initMap();
-
-// UUID 생성
+// UUID
 function generateUUID() {
     return 'xxxx-xxxx-4xxx-yxxx'.replace(/[xy]/g, function(c) {
         let r = Math.random()*16|0, v = c === 'x' ? r : (r&0x3|0x8);
@@ -33,107 +39,104 @@ function generateUUID() {
 }
 
 // 지도 초기화
-function initMap(){
-    navigator.geolocation.getCurrentPosition(pos=>{
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-
-        map = new kakao.maps.Map(document.getElementById('map'), {
-            center: new kakao.maps.LatLng(lat, lng),
-            level: 3
-        });
-
-        startTracking();
+navigator.geolocation.getCurrentPosition(pos=>{
+    map = new kakao.maps.Map(document.getElementById('map'), {
+        center: new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude),
+        level: 3
     });
+    start();
+});
+
+// 긴급 버튼
+function sendSOS(){
+    fetch(SERVER_URL, {
+        method:"POST",
+        body: JSON.stringify({
+            id: myId,
+            sos: true
+        })
+    });
+    alert("🚨 긴급 요청 전송됨!");
 }
 
-// 위치 전송 루프
-function startTracking(){
-    setInterval(async ()=>{
-        navigator.geolocation.getCurrentPosition(async pos=>{
-            const battery = await getBattery();
+// 메인 루프
+function start(){
+    setInterval(()=>{
+        navigator.geolocation.getCurrentPosition(pos=>{
+            const role = document.getElementById("role").value;
 
             const data = {
                 id: myId,
+                role: role,
                 lat: pos.coords.latitude,
                 lng: pos.coords.longitude,
                 accuracy: pos.coords.accuracy,
-                battery: battery.level,
-                charging: battery.charging,
                 time: Date.now()
             };
 
             document.getElementById("status").innerText =
-                `정확도: ${data.accuracy.toFixed(1)}m / 배터리: ${Math.round(data.battery*100)}%`;
+                `${role} / 정확도 ${data.accuracy.toFixed(1)}m`;
 
-            await fetch("https://script.google.com/macros/s/YOUR_SCRIPT_URL/exec", {
-                method: "POST",
+            fetch(SERVER_URL,{
+                method:"POST",
                 body: JSON.stringify(data)
             });
 
             updateUsers();
 
-        }, err=>console.log(err), {enableHighAccuracy:true});
-    }, 3000);
+        }, null, {enableHighAccuracy:true});
+    },3000);
 }
 
-// 배터리 정보
-async function getBattery(){
-    if(navigator.getBattery){
-        return await navigator.getBattery();
-    }
-    return {level:1, charging:false};
-}
-
-// 전체 사용자 불러오기
+// 사용자 업데이트
 async function updateUsers(){
-    const res = await fetch("https://script.google.com/macros/s/YOUR_SCRIPT_URL/exec");
+    const res = await fetch(SERVER_URL);
     const users = await res.json();
 
     users.forEach(user=>{
         const pos = new kakao.maps.LatLng(user.lat, user.lng);
 
-        // 마커 생성/업데이트
+        // 아이콘 설정
+        let color = "blue";
+        if(user.role === "victim") color = "red";
+        if(user.sos) color = "yellow";
+
+        const markerImage = new kakao.maps.MarkerImage(
+            `https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png`,
+            new kakao.maps.Size(24,35)
+        );
+
+        // 마커 생성
         if(!markers[user.id]){
             markers[user.id] = new kakao.maps.Marker({
                 position: pos,
-                map: map
+                map: map,
+                image: markerImage
             });
-
-            paths[user.id] = [];
         } else {
             markers[user.id].setPosition(pos);
         }
 
-        // 경로 기록
-        paths[user.id].push(pos);
-
-        // Polyline 생성/업데이트
-        if(!markers[user.id].polyline){
-            markers[user.id].polyline = new kakao.maps.Polyline({
-                path: paths[user.id],
-                strokeWeight: 4,
-                strokeOpacity: 0.7
-            });
-            markers[user.id].polyline.setMap(map);
-        } else {
-            markers[user.id].polyline.setPath(paths[user.id]);
-        }
-
-        // 인포 표시
-        const info = `
+        // SOS 표시
+        let infoText = `
             ID: ${user.id.substring(0,6)}<br>
-            정확도: ${user.accuracy.toFixed(1)}m<br>
-            배터리: ${Math.round(user.battery*100)}% ${user.charging ? "⚡" : ""}
+            역할: ${user.role}<br>
+            정확도: ${user.accuracy?.toFixed(1)}m
         `;
 
+        if(user.sos){
+            infoText += "<br><b style='color:red'>🚨 SOS 요청중</b>";
+        }
+
         const infowindow = new kakao.maps.InfoWindow({
-            content: `<div style="padding:5px;font-size:12px;">${info}</div>`
+            content:`<div style="padding:5px">${infoText}</div>`
         });
 
         infowindow.open(map, markers[user.id]);
     });
 }
+
+const SERVER_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_URL/exec";
 </script>
 
 </body>
