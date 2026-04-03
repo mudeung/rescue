@@ -59,25 +59,12 @@ const PW = "119rescue";
 let map, role, myId;
 let markers = {};
 let paths = {};
+let infowindows = {};
 
-const ICONS = {
-victim:"https://maps.google.com/mapfiles/ms/icons/red-dot.png",
-rescuer:"https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-sos:"https://maps.google.com/mapfiles/ms/icons/yellow-dot.png",
-me:"https://maps.google.com/mapfiles/ms/icons/green-dot.png"
-};
-
-// ✅ 날짜 기반 ID 생성
+// ID 생성
 function makeId(){
 const now=new Date();
-const y=now.getFullYear();
-const m=String(now.getMonth()+1).padStart(2,'0');
-const d=String(now.getDate()).padStart(2,'0');
-const h=String(now.getHours()).padStart(2,'0');
-const min=String(now.getMinutes()).padStart(2,'0');
-const s=String(now.getSeconds()).padStart(2,'0');
-const ms=String(now.getMilliseconds()).padStart(3,'0');
-return `${y}${m}${d}_${h}${min}${s}_${ms}`;
+return `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${now.getHours()}${now.getMinutes()}${now.getSeconds()}_${now.getMilliseconds()}`;
 }
 
 // 정확도
@@ -132,14 +119,13 @@ map=new kakao.maps.Map(document.getElementById('map'),{
 center:new kakao.maps.LatLng(pos.coords.latitude,pos.coords.longitude),
 level:3
 });
-loop();
-});
+startLoops();
+},()=>alert("위치 권한 필요"));
 }
 
-function loop(){
-setInterval(()=>{
+// 위치 전송
+function sendLocation(){
 navigator.geolocation.getCurrentPosition(pos=>{
-
 let data={
 id:myId,
 role:role,
@@ -158,12 +144,16 @@ body:JSON.stringify(data),
 headers:{"Content-Type":"application/json"}
 });
 
-update();
-
 });
-},3000);
 }
 
+// 반복 실행
+function startLoops(){
+setInterval(sendLocation,3000);
+setInterval(update,3000);
+}
+
+// SOS
 function sendSOS(){
 let msg=prompt("🚨 상황 입력");
 if(!msg) return;
@@ -178,10 +168,15 @@ time:Date.now()
 }),
 headers:{"Content-Type":"application/json"}
 });
+
+update();
 }
 
+// 업데이트
 async function update(){
+try{
 let res=await fetch(SERVER);
+if(!res.ok) return;
 let users=await res.json();
 
 users.forEach(u=>{
@@ -224,11 +219,20 @@ ${getAccuracyLevel(u.acc)}
 if(u.sos) txt+=`<br><b style="color:red">🚨 SOS</b>`;
 if(u.msg) txt+=`<br>📢 ${u.msg}`;
 
-new kakao.maps.InfoWindow({
+if(!infowindows[u.id]){
+infowindows[u.id]=new kakao.maps.InfoWindow({
 content:`<div style="padding:5px">${txt}</div>`
-}).open(map,markers[u.id]);
+});
+infowindows[u.id].open(map,markers[u.id]);
+}else{
+infowindows[u.id].setContent(`<div style="padding:5px">${txt}</div>`);
+}
 
 });
+
+}catch(e){
+console.log("서버 오류",e);
+}
 }
 </script>
 
