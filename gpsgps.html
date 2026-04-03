@@ -2,40 +2,89 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>실시간 위치 공유</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>모바일 실시간 위치 공유</title>
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424"></script>
 <style>
-#map { width:100%; height:85vh; }
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Arial', sans-serif;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+
 #topbar {
-  padding:10px;
-  background:#eee;
-  display:flex;
-  justify-content:space-between;
+  padding: 8px;
+  background: #f2f2f2;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 10;
 }
+
 button {
-  padding:8px 12px;
-  font-size:14px;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: none;
+  background-color: #4caf50;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  flex: 1;
 }
+
+button:active {
+  background-color: #45a049;
+}
+
+#status {
+  font-size: 14px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+#map {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 120px;
+  left: 0;
+}
+.online { color: green; font-weight: bold; }
+.offline { color: gray; }
 </style>
 </head>
 <body>
 
 <div id="topbar">
-  <button onclick="moveToMyLocation()">📍 내 위치 보기</button>
+  <div style="display:flex; gap:5px; flex-wrap: wrap;">
+    <button onclick="moveToMyLocation()">📍 내 위치</button>
+    <button onclick="toggleFollow()">🎯 따라가기: <span id="followStatus">ON</span></button>
+    <button onclick="leave()">🚪 나가기</button>
+  </div>
   <div>거리: <span id="distance"></span></div>
+  <div id="status"></div>
 </div>
 
 <div id="map"></div>
 
 <script>
-const GAS_URL = "https://script.google.com/macros/s/AKfycbzpNNxNK7Zcj6ZbKlPDNr0Lz7hG_o0IPlCIEtvWnQe8uJyPIQPluGe8wcnox_2pAcSE/exec";
-const myId = prompt("사용자 이름 입력 (예: 조난자, 구조대, 특수구조대)");
+const GAS_URL = "https://script.google.com/macros/s/YOUR_DEPLOYED_SCRIPT_ID/exec"; // 변경
+const myId = prompt("사용자 이름 입력");
 
 let map;
 let markers = {};
 let infoWindows = {};
-let myMarker = null;
+let myMarker;
+
 let myLat, myLng;
+let followMode = true;
 
 // 지도 초기화
 function initMap(lat, lng) {
@@ -46,21 +95,23 @@ function initMap(lat, lng) {
     level: 4
   });
 
-  // 🔥 내 마커 따로 생성
   myMarker = new kakao.maps.Marker({
     map: map,
-    position: center
+    position: center,
+    title: "나"
   });
 }
 
-// 📍 내 위치 핀으로 이동
+// 따라가기 ON/OFF
+function toggleFollow() {
+  followMode = !followMode;
+  document.getElementById("followStatus").innerText = followMode ? "ON" : "OFF";
+}
+
+// 내 위치로 이동
 function moveToMyLocation() {
-  if (!map || !myMarker) return;
-
-  const myPos = myMarker.getPosition();
-
-  map.panTo(myPos); // 부드럽게 이동
-  map.setLevel(3);
+  if (!myMarker) return;
+  map.panTo(myMarker.getPosition());
 }
 
 // 거리 계산
@@ -68,13 +119,11 @@ function getDistance(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const dLat = (lat2-lat1) * Math.PI/180;
   const dLon = (lon2-lon1) * Math.PI/180;
-
   const a =
     Math.sin(dLat/2)**2 +
     Math.cos(lat1*Math.PI/180) *
     Math.cos(lat2*Math.PI/180) *
     Math.sin(dLon/2)**2;
-
   return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
 }
 
@@ -86,19 +135,33 @@ function sendLocation(lat, lng) {
   });
 }
 
-// 사용자 불러오기
+// 나가기
+function leave() {
+  fetch(GAS_URL, {
+    method: "POST",
+    body: JSON.stringify({ action: "leave", id: myId })
+  }).then(() => {
+    alert("나갔습니다");
+    location.reload();
+  });
+}
+
+// 모든 사용자 표시
 function fetchUsers() {
   fetch(GAS_URL)
     .then(res => res.json())
     .then(users => {
-
       let distanceText = "";
+      let statusText = "";
+      const now = Date.now();
 
       for (let id in users) {
         const u = users[id];
         const pos = new kakao.maps.LatLng(u.lat, u.lng);
+        const isOnline = (now - new Date(u.time).getTime()) < 30000; // 30초 기준
+        const statusClass = isOnline ? "online" : "offline";
 
-        // 🔥 내 위치는 별도 처리
+        // 내 마커
         if (id === myId) {
           if (myMarker) myMarker.setPosition(pos);
           continue;
@@ -108,16 +171,14 @@ function fetchUsers() {
         if (!markers[id]) {
           const marker = new kakao.maps.Marker({
             map: map,
-            position: pos
+            position: pos,
+            title: id
           });
-
           markers[id] = marker;
 
-          // 🔥 이름 표시 인포윈도우
           const infowindow = new kakao.maps.InfoWindow({
-            content: `<div style="padding:5px;">${id}</div>`
+            content: `<div>${id}</div>`
           });
-
           infoWindows[id] = infowindow;
 
           kakao.maps.event.addListener(marker, 'click', function() {
@@ -127,12 +188,16 @@ function fetchUsers() {
 
         markers[id].setPosition(pos);
 
-        // 거리 계산
+        // 거리 표시
         const d = getDistance(myLat, myLng, u.lat, u.lng);
         distanceText += `${id}: ${d.toFixed(2)}km / `;
+
+        // 상태 표시
+        statusText += `<span class="${statusClass}">${id} (${isOnline ? "온라인" : "오프라인"})</span> / `;
       }
 
       document.getElementById("distance").innerText = distanceText;
+      document.getElementById("status").innerHTML = statusText;
     });
 }
 
@@ -146,17 +211,17 @@ function update() {
 
     if (!map) initMap(myLat, myLng);
 
-    // 🔥 내 마커 이동
     if (myMarker) myMarker.setPosition(myPos);
+
+    if (followMode) map.panTo(myPos);
 
     sendLocation(myLat, myLng);
     fetchUsers();
   });
 }
 
-setInterval(update, 5000);
+setInterval(update, 3000);
 update();
-
 </script>
 
 </body>
