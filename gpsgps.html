@@ -22,48 +22,40 @@ body, html { margin:0; padding:0; height:100%; font-family: Arial, sans-serif; }
   background:#007aff;
   color:#fff;
   font-weight:bold;
-  cursor:pointer;
 }
 
-/* PC 상단바 */
-#topbar {
-  display:none;
-  padding:12px 24px;
-  background:#f5f5f5;
-  box-shadow:0 2px 4px rgba(0,0,0,0.1);
-  position:fixed;
-  top:0;
-  width:100%;
-  z-index:10;
-  flex-direction:column;
-  align-items:center;
-  text-align:center;
+/* 카드 리스트 */
+#userList {
+  position: fixed;
+  right: 10px;
+  top: 60px;
+  width: 260px;
+  max-height: 70vh;
+  overflow-y: auto;
+  z-index: 15;
 }
 
-/* 모바일 상태창 */
-#mobileDistance {
-  display:none;
-  position:absolute;
-  bottom:20px;
-  left:50%;
-  transform:translateX(-50%);
-  background:rgba(0,0,0,0.7);
-  color:#fff;
-  padding:10px 16px;
-  border-radius:8px;
-  z-index:10;
-  text-align:center;
-  white-space: pre-wrap;
-  max-width: 90vw;
+.user-card {
+  background: #fff;
+  margin-bottom: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  font-size: 13px;
+  cursor: pointer;
 }
 
-@media screen and (min-width:1024px){
-  #topbar{display:flex;}
-  #mobileDistance{display:none;}
-}
-@media screen and (max-width:1023px){
-  #topbar{display:none;}
-  #mobileDistance{display:block;}
+.user-name { font-weight: bold; }
+.user-distance { color:#007aff; font-weight:bold; }
+
+@media (max-width:1023px){
+  #userList {
+    width: 90%;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 80px;
+    top: auto;
+  }
 }
 </style>
 </head>
@@ -71,78 +63,49 @@ body, html { margin:0; padding:0; height:100%; font-family: Arial, sans-serif; }
 <body>
 
 <button id="shareBtn">공유</button>
-
-<div id="topbar">📍 실시간 상태: <span id="status">-</span></div>
-<div id="mobileDistance">📍 실시간 상태: <span id="status">-</span></div>
-
+<div id="userList"></div>
 <div id="map"></div>
 
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzpNNxNK7Zcj6ZbKlPDNr0Lz7hG_o0IPlCIEtvWnQe8uJyPIQPluGe8wcnox_2pAcSE/exec";
-let myId;
 
-// URL 파라미터로 이름 받기
-const urlParams = new URLSearchParams(window.location.search);
-const sharedName = urlParams.get("user");
-if(sharedName){
-  localStorage.setItem("myId", sharedName);
+let myId;
+let map, markers={}, infoWindows={}, myMarker;
+let myLat, myLng;
+let openInfoWindow = null;
+
+// URL 이름 자동 적용
+const params = new URLSearchParams(location.search);
+if(params.get("user")){
+  localStorage.setItem("myId", params.get("user"));
 }
 
 // 이름 설정
-async function getOrPromptName(){
-  while(true){
-    let stored = localStorage.getItem("myId");
-    if(!stored){
-      stored = prompt("사용자 이름(예: 조난자, 구조대, 구급대)");
-      if(!stored || stored.trim()===""){ alert("이름은 반드시 입력해야 합니다."); continue; }
-    }
-    try{
-      const res = await fetch(GAS_URL);
-      const users = await res.json();
-      if(users[stored]){
-        if(!localStorage.getItem("myId")){
-          alert("이미 사용 중인 이름입니다.");
-          localStorage.removeItem("myId");
-          continue;
-        }
-        myId = stored;
-        break;
-      } else {
-        myId = stored;
-        localStorage.setItem("myId", myId);
-        break;
-      }
-    } catch(err){
-      alert("서버 연결 실패");
-      throw err;
-    }
+async function getName(){
+  let name = localStorage.getItem("myId");
+  if(!name){
+    name = prompt("이름 입력");
+    localStorage.setItem("myId", name);
   }
+  myId = name;
 }
 
-(async function main(){
-
-await getOrPromptName();
-
-let map, markers={}, infoWindows={}, currentUserPositions={}, myMarker=null, myLat, myLng;
-
-function getFontSize(){
-  const w = window.innerWidth;
-  if(w>=1024) return '16px';
-  else if(w>=768) return '14px';
-  else if(w>=480) return '13px';
-  else return '12px';
-}
-
+// 지도 초기화
 function initMap(lat,lng){
   const center = new kakao.maps.LatLng(lat,lng);
   map = new kakao.maps.Map(document.getElementById('map'), {center, level:4});
   myMarker = new kakao.maps.Marker({map, position:center});
+
+  // 지도 클릭 시 인포 닫기
+  kakao.maps.event.addListener(map, 'click', function () {
+    if(openInfoWindow){
+      openInfoWindow.close();
+      openInfoWindow = null;
+    }
+  });
 }
 
-function centerMapOnMyLocation(){
-  if(map && myMarker) map.setCenter(myMarker.getPosition());
-}
-
+// 거리 계산
 function getDistance(lat1,lon1,lat2,lon2){
   const R=6371;
   const dLat=(lat2-lat1)*Math.PI/180;
@@ -151,14 +114,15 @@ function getDistance(lat1,lon1,lat2,lon2){
   return R*(2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
 }
 
+// 위치 전송
 function sendLocation(lat,lng){
   fetch(GAS_URL,{method:"POST", body:JSON.stringify({id:myId, lat,lng})});
 }
 
+// 사용자 불러오기 + UI
 function fetchUsers(){
   fetch(GAS_URL).then(res=>res.json()).then(users=>{
-    currentUserPositions = users;
-    let statusText = `내좌표: (${myLat.toFixed(6)}, ${myLng.toFixed(6)})`;
+    let html="";
 
     for(let id in users){
       const u = users[id];
@@ -169,35 +133,72 @@ function fetchUsers(){
         continue;
       }
 
+      // 마커 생성
       if(!markers[id]){
         const marker=new kakao.maps.Marker({map, position:pos});
         markers[id]=marker;
 
         const infowindow=new kakao.maps.InfoWindow({
-          content:`<div style="padding:10px; font-size:${getFontSize()}; font-weight:bold;">
-          ${id}<br>(${u.lat.toFixed(6)}, ${u.lng.toFixed(6)})
+          content:`<div style="padding:10px;font-weight:bold;">
+          ${id}<br>${u.lat.toFixed(5)}, ${u.lng.toFixed(5)}
           </div>`
         });
 
         infoWindows[id]=infowindow;
 
+        // ⭐ 클릭 토글
         kakao.maps.event.addListener(marker,'click',function(){
+
+          if(openInfoWindow === infowindow){
+            infowindow.close();
+            openInfoWindow = null;
+            return;
+          }
+
+          if(openInfoWindow){
+            openInfoWindow.close();
+          }
+
           infowindow.open(map, marker);
+          openInfoWindow = infowindow;
         });
       }
 
       markers[id].setPosition(pos);
 
-      statusText += `\n${id}: ${getDistance(myLat,myLng,u.lat,u.lng).toFixed(2)}km`;
+      const dist = getDistance(myLat,myLng,u.lat,u.lng).toFixed(2);
+
+      // 카드 UI
+      html += `
+        <div class="user-card" onclick="focusUser('${id}')">
+          <div class="user-name">👤 ${id}</div>
+          <div>📍 ${u.lat.toFixed(5)}, ${u.lng.toFixed(5)}</div>
+          <div class="user-distance">📏 ${dist} km</div>
+        </div>
+      `;
     }
 
-    document.querySelectorAll("#status").forEach(el=>{
-      el.style.fontSize = getFontSize();
-      el.innerText=statusText;
-    });
+    document.getElementById("userList").innerHTML = html;
   });
 }
 
+// 카드 클릭 → 지도 이동 + 인포 열기
+function focusUser(id){
+  const marker = markers[id];
+  const infowindow = infoWindows[id];
+  if(!marker) return;
+
+  map.setCenter(marker.getPosition());
+
+  if(openInfoWindow){
+    openInfoWindow.close();
+  }
+
+  infowindow.open(map, marker);
+  openInfoWindow = infowindow;
+}
+
+// 위치 업데이트
 function update(){
   navigator.geolocation.getCurrentPosition(pos=>{
     myLat=pos.coords.latitude;
@@ -208,8 +209,6 @@ function update(){
     if(!map) initMap(myLat,myLng);
     if(myMarker) myMarker.setPosition(myPos);
 
-    if(window.innerWidth<1024) centerMapOnMyLocation();
-
     sendLocation(myLat,myLng);
     fetchUsers();
   });
@@ -217,33 +216,22 @@ function update(){
 
 // 공유 기능
 document.getElementById("shareBtn").addEventListener("click", async () => {
-  const shareData = {
-    title: "📍 실시간 위치 공유",
-    text: `${myId}님의 위치 확인`,
-    url: window.location.href + "?user=" + encodeURIComponent(myId)
-  };
+  const url = location.href + "?user=" + encodeURIComponent(myId);
 
-  try {
-    if (navigator.share) {
-      await navigator.share(shareData);
-    } else {
-      await navigator.clipboard.writeText(shareData.url);
-      alert("링크가 복사되었습니다!");
-    }
-  } catch (err) {
-    console.log(err);
+  if(navigator.share){
+    await navigator.share({
+      title:"실시간 위치",
+      text:`${myId} 위치 확인`,
+      url:url
+    });
+  }else{
+    await navigator.clipboard.writeText(url);
+    alert("링크 복사됨");
   }
 });
 
-window.addEventListener('resize', ()=>{
-  const fs = getFontSize();
-  document.querySelectorAll("#status").forEach(el=>el.style.fontSize=fs);
-});
-
 setInterval(update,5000);
-update();
-
-})();
+getName().then(update);
 </script>
 
 </body>
