@@ -2,24 +2,39 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>실시간 위치 공유</title>
+<title>📍 내 위치 공유</title>
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424"></script>
 <style>
-#map { width:100%; height:90vh; }
-#info { padding:10px; background:#eee; }
+#map { width:100%; height:85vh; }
+#topbar {
+  padding:10px;
+  background:#eee;
+  display:flex;
+  justify-content:space-between;
+}
+button {
+  padding:8px 12px;
+  font-size:14px;
+}
 </style>
 </head>
 <body>
 
-<div id="info">거리 정보: <span id="distance"></span></div>
+<div id="topbar">
+  <button onclick="moveToMyLocation()">📍 내 위치 보기</button>
+  <div>거리: <span id="distance"></span></div>
+</div>
+
 <div id="map"></div>
 
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzpNNxNK7Zcj6ZbKlPDNr0Lz7hG_o0IPlCIEtvWnQe8uJyPIQPluGe8wcnox_2pAcSE/exec";
-const myId = prompt("사용자 ID 입력 (예: A, B, C)");
+const myId = prompt("사용자 이름 입력 (예: 조난자, 구조대)");
 
 let map;
-let markers = {}; // 여러 사용자 마커 저장
+let markers = {};
+let infoWindows = {};
+let myLat, myLng;
 
 // 지도 초기화
 function initMap(lat, lng) {
@@ -29,35 +44,39 @@ function initMap(lat, lng) {
   });
 }
 
-// 거리 계산 (Haversine)
+// 📍 내 위치로 이동
+function moveToMyLocation() {
+  if (!map || !myLat) return;
+
+  const moveLatLon = new kakao.maps.LatLng(myLat, myLng);
+  map.setCenter(moveLatLon);
+}
+
+// 거리 계산
 function getDistance(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const dLat = (lat2-lat1) * Math.PI/180;
   const dLon = (lon2-lon1) * Math.PI/180;
 
   const a =
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.sin(dLat/2)**2 +
     Math.cos(lat1*Math.PI/180) *
     Math.cos(lat2*Math.PI/180) *
-    Math.sin(dLon/2) * Math.sin(dLon/2);
+    Math.sin(dLon/2)**2;
 
   return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
 }
 
-// 내 위치 전송
+// 위치 전송
 function sendLocation(lat, lng) {
   fetch(GAS_URL, {
     method: "POST",
-    body: JSON.stringify({
-      id: myId,
-      lat,
-      lng
-    })
+    body: JSON.stringify({ id: myId, lat, lng })
   });
 }
 
-// 모든 사용자 위치 가져오기
-function fetchUsers(myLat, myLng) {
+// 사용자 불러오기 + 마커 표시
+function fetchUsers() {
   fetch(GAS_URL)
     .then(res => res.json())
     .then(users => {
@@ -68,15 +87,27 @@ function fetchUsers(myLat, myLng) {
         const u = users[id];
         const pos = new kakao.maps.LatLng(u.lat, u.lng);
 
+        // 마커 생성
         if (!markers[id]) {
-          markers[id] = new kakao.maps.Marker({
-            map: map
+          const marker = new kakao.maps.Marker({ map, position: pos });
+          markers[id] = marker;
+
+          // 인포윈도우 생성
+          const infowindow = new kakao.maps.InfoWindow({
+            content: `<div style="padding:5px;">${id}</div>`
+          });
+
+          infoWindows[id] = infowindow;
+
+          // 🔥 클릭 이벤트
+          kakao.maps.event.addListener(marker, 'click', function() {
+            infowindow.open(map, marker);
           });
         }
 
         markers[id].setPosition(pos);
 
-        // 내 위치와 거리 계산
+        // 거리 표시
         if (id !== myId) {
           const d = getDistance(myLat, myLng, u.lat, u.lng);
           distanceText += `${id}: ${d.toFixed(2)}km / `;
@@ -87,16 +118,16 @@ function fetchUsers(myLat, myLng) {
     });
 }
 
-// 업데이트 루프
+// 업데이트
 function update() {
   navigator.geolocation.getCurrentPosition(pos => {
-    const lat = pos.coords.latitude;
-    const lng = pos.coords.longitude;
+    myLat = pos.coords.latitude;
+    myLng = pos.coords.longitude;
 
-    if (!map) initMap(lat, lng);
+    if (!map) initMap(myLat, myLng);
 
-    sendLocation(lat, lng);
-    fetchUsers(lat, lng);
+    sendLocation(myLat, myLng);
+    fetchUsers();
   });
 }
 
