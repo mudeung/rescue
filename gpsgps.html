@@ -117,7 +117,7 @@ async function getOrPromptName(){
   function fetchUsers(){
     fetch(GAS_URL).then(res=>res.json()).then(users=>{
       currentUserPositions = users;
-      let statusText = `내: (${myLat.toFixed(6)}, ${myLng.toFixed(6)})`;
+      let statusText = `내좌표: (${myLat.toFixed(6)}, ${myLng.toFixed(6)})`;
       for(let id in users){
         const u = users[id], pos = new kakao.maps.LatLng(u.lat,u.lng);
         if(id===myId){ if(myMarker) myMarker.setPosition(pos); continue; }
