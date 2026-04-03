@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>🚑 조난자/구조대 위치공유</title>
+<title>🚑 구조 위치 공유</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424"></script>
@@ -21,7 +21,7 @@ button { padding:10px; margin:5px; border:none; border-radius:6px; }
 <body>
 
 <div id="roleUI" class="top">
-<h3>🚑 조난자/구조대 위치공유</h3>
+<h3>🚑 역할 선택</h3>
 <button class="btn-red" onclick="enterVictim()">🟥 조난자</button>
 <button class="btn-blue" onclick="login()">🟦 구조대</button>
 </div>
@@ -36,7 +36,7 @@ button { padding:10px; margin:5px; border:none; border-radius:6px; }
 </div>
 
 <script>
-const SERVER = "https://script.google.com/macros/s/AKfycby7T5WSAiSwniAhEhw9R6VXxx5cxqqlc8ZWVKJ7SafRHJo7DdVk49fr-O0Hy7xZHMUeUw/exec";
+const SERVER = "여기에_웹앱_URL_붙여넣기";
 
 let map, role, myId;
 let markers = {};
@@ -44,8 +44,7 @@ let paths = {};
 
 // ID 생성
 function makeId(){
-const now=new Date();
-return now.getFullYear()+""+(now.getMonth()+1)+""+now.getDate()+"_"+Date.now();
+return Date.now().toString();
 }
 
 window.onload=()=>{
@@ -84,12 +83,15 @@ center:new kakao.maps.LatLng(pos.coords.latitude,pos.coords.longitude),
 level:3
 });
 loop();
-});
+},()=>alert("위치 권한 필요"));
 }
 
+// 반복
 function loop(){
 setInterval(()=>{
 navigator.geolocation.getCurrentPosition(pos=>{
+
+navigator.getBattery().then(battery=>{
 
 let data={
 id:myId,
@@ -97,11 +99,12 @@ role:role,
 lat:pos.coords.latitude,
 lng:pos.coords.longitude,
 acc:pos.coords.accuracy,
+battery:Math.round(battery.level*100),
 time:Date.now()
 };
 
 document.getElementById("status").innerText=
-`${role} | ${data.acc.toFixed(1)}m`;
+`${role} | ${data.acc.toFixed(1)}m | 🔋${data.battery}%`;
 
 fetch(SERVER,{
 method:"POST",
@@ -112,9 +115,12 @@ headers:{"Content-Type":"application/json"}
 update();
 
 });
+
+});
 },3000);
 }
 
+// SOS
 function sendSOS(){
 let msg=prompt("🚨 상황 입력");
 if(!msg) return;
@@ -131,16 +137,20 @@ headers:{"Content-Type":"application/json"}
 });
 }
 
+// 지도 업데이트
 async function update(){
+try{
 let res=await fetch(SERVER);
 let users=await res.json();
 
 users.forEach(u=>{
 
-if(!u.lat || !u.lng) return;
+// ⭐ 안전 처리 (핵심)
+if(!u.lat || !u.lng || isNaN(u.lat) || isNaN(u.lng)) return;
 
 let pos=new kakao.maps.LatLng(u.lat,u.lng);
 
+// 핀 색상
 let icon="https://maps.google.com/mapfiles/ms/icons/blue-dot.png";
 if(u.role==="victim") icon="https://maps.google.com/mapfiles/ms/icons/red-dot.png";
 if(u.sos) icon="https://maps.google.com/mapfiles/ms/icons/yellow-dot.png";
@@ -148,6 +158,7 @@ if(u.id===myId) icon="https://maps.google.com/mapfiles/ms/icons/green-dot.png";
 
 let markerImg=new kakao.maps.MarkerImage(icon,new kakao.maps.Size(32,32));
 
+// 마커
 if(!markers[u.id]){
 markers[u.id]=new kakao.maps.Marker({position:pos,map:map,image:markerImg});
 paths[u.id]=[];
@@ -156,6 +167,7 @@ markers[u.id].setPosition(pos);
 markers[u.id].setImage(markerImg);
 }
 
+// 이동경로
 paths[u.id].push(pos);
 
 if(!markers[u.id].line){
@@ -169,16 +181,25 @@ markers[u.id].line.setMap(map);
 markers[u.id].line.setPath(paths[u.id]);
 }
 
-let txt=`${u.role}<br>${u.acc?.toFixed(1)}m`;
+// 정보창
+let txt=`
+${u.role==="victim"?"🟥 조난자":"🟦 구조대"}<br>
+📍 ${u.acc?.toFixed(1)}m<br>
+🔋 ${u.battery ?? "-"}%
+`;
 
-if(u.sos) txt+=`<br>🚨`;
-if(u.msg) txt+=`<br>${u.msg}`;
+if(u.sos) txt+=`<br><b style="color:red">🚨 SOS</b>`;
+if(u.msg) txt+=`<br>📢 ${u.msg}`;
 
 new kakao.maps.InfoWindow({
 content:`<div style="padding:5px">${txt}</div>`
 }).open(map,markers[u.id]);
 
 });
+
+}catch(e){
+console.log("오류",e);
+}
 }
 </script>
 
