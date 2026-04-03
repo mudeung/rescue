@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>📍 실시간 위치공유</title>
+<title>📍 실시간 위치 공유</title>
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424"></script>
 <style>
 body, html {
@@ -18,6 +18,7 @@ body, html {
   height: 100%;
 }
 
+/* PC 상단바 */
 #topbar {
   display: none;
   padding: 12px 24px;
@@ -33,9 +34,10 @@ body, html {
 
 #distance {
   font-weight: bold;
-  font-size: 12px;
+  font-size: 16px;
 }
 
+/* 모바일 거리 플로팅 */
 #mobileDistance {
   display: none;
   position: absolute;
@@ -94,11 +96,13 @@ function initMap(lat, lng) {
   });
 }
 
+// 모바일용: 내 위치 핀 항상 중앙
 function centerMapOnMyLocation() {
   if (!map || !myMarker) return;
   map.setCenter(myMarker.getPosition());
 }
 
+// 거리 계산
 function getDistance(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const dLat = (lat2-lat1) * Math.PI/180;
@@ -107,10 +111,12 @@ function getDistance(lat1, lon1, lat2, lon2) {
   return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
 }
 
+// 내 위치 전송
 function sendLocation(lat, lng) {
   fetch(GAS_URL, { method: "POST", body: JSON.stringify({ id: myId, lat, lng }) });
 }
 
+// 사용자 위치 불러오기
 function fetchUsers() {
   fetch(GAS_URL)
     .then(res => res.json())
@@ -130,9 +136,11 @@ function fetchUsers() {
           const marker = new kakao.maps.Marker({ map: map, position: pos });
           markers[id] = marker;
 
-          // 이름 + 좌표 표시
+          // 반응형 폰트 크기
+          const fontSize = window.innerWidth >= 1024 ? '18px' : '14px';
+
           const infowindow = new kakao.maps.InfoWindow({
-            content: `<div style="padding:5px;">
+            content: `<div style="padding:8px; font-size:${fontSize}; font-weight:bold;">
                         ${id}<br>
                         좌표: (${u.lat.toFixed(6)}, ${u.lng.toFixed(6)})
                       </div>`
@@ -148,10 +156,12 @@ function fetchUsers() {
         distanceText += `${id}: ${getDistance(myLat, myLng, u.lat, u.lng).toFixed(2)}km / `;
       }
 
+      // PC, 모바일 거리 표시 동기화
       document.querySelectorAll("#distance").forEach(el => el.innerText = distanceText);
     });
 }
 
+// 위치 업데이트
 function update() {
   navigator.geolocation.getCurrentPosition(pos => {
     myLat = pos.coords.latitude;
@@ -168,6 +178,7 @@ function update() {
   });
 }
 
+// 5초마다 갱신
 setInterval(update, 5000);
 update();
 </script>
