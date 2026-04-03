@@ -5,9 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>📍 실시간 위치 공유</title>
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424"></script>
+
 <style>
 body, html { margin:0; padding:0; height:100%; font-family: Arial, sans-serif; }
 #map { width:100%; height:100%; }
+
+/* 공유 버튼 */
+#shareBtn {
+  position:fixed;
+  top:10px;
+  right:10px;
+  z-index:20;
+  padding:10px 14px;
+  border:none;
+  border-radius:8px;
+  background:#007aff;
+  color:#fff;
+  font-weight:bold;
+  cursor:pointer;
+}
 
 /* PC 상단바 */
 #topbar {
@@ -22,10 +38,9 @@ body, html { margin:0; padding:0; height:100%; font-family: Arial, sans-serif; }
   flex-direction:column;
   align-items:center;
   text-align:center;
-  word-wrap: break-word;
 }
 
-/* 모바일 플로팅 */
+/* 모바일 상태창 */
 #mobileDistance {
   display:none;
   position:absolute;
@@ -38,16 +53,24 @@ body, html { margin:0; padding:0; height:100%; font-family: Arial, sans-serif; }
   border-radius:8px;
   z-index:10;
   text-align:center;
-  word-wrap: break-word;
-  white-space: pre-wrap; /* 줄바꿈 자동 적용 */
-  max-width: 90vw; /* 모바일에서 화면 너비 맞춤 */
+  white-space: pre-wrap;
+  max-width: 90vw;
 }
 
-@media screen and (min-width:1024px){ #topbar{display:flex;} #mobileDistance{display:none;} }
-@media screen and (max-width:1023px){ #topbar{display:none;} #mobileDistance{display:block;} }
+@media screen and (min-width:1024px){
+  #topbar{display:flex;}
+  #mobileDistance{display:none;}
+}
+@media screen and (max-width:1023px){
+  #topbar{display:none;}
+  #mobileDistance{display:block;}
+}
 </style>
 </head>
+
 <body>
+
+<button id="shareBtn">공유</button>
 
 <div id="topbar">📍 실시간 상태: <span id="status">-</span></div>
 <div id="mobileDistance">📍 실시간 상태: <span id="status">-</span></div>
@@ -58,20 +81,31 @@ body, html { margin:0; padding:0; height:100%; font-family: Arial, sans-serif; }
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzpNNxNK7Zcj6ZbKlPDNr0Lz7hG_o0IPlCIEtvWnQe8uJyPIQPluGe8wcnox_2pAcSE/exec";
 let myId;
 
-// 이름 입력 + 서버 중복 체크 + 로컬 저장
+// URL 파라미터로 이름 받기
+const urlParams = new URLSearchParams(window.location.search);
+const sharedName = urlParams.get("user");
+if(sharedName){
+  localStorage.setItem("myId", sharedName);
+}
+
+// 이름 설정
 async function getOrPromptName(){
   while(true){
     let stored = localStorage.getItem("myId");
     if(!stored){
       stored = prompt("사용자 이름(예: 조난자, 구조대, 구급대)");
-      if(!stored || stored.trim()===""){ alert("사용자 이름은 반드시 입력해야 합니다."); continue; }
+      if(!stored || stored.trim()===""){ alert("이름은 반드시 입력해야 합니다."); continue; }
     }
     try{
       const res = await fetch(GAS_URL);
       const users = await res.json();
       if(users[stored]){
-        if(!localStorage.getItem("myId")){ alert("이미 사용 중인 이름입니다. 다른 이름을 입력해주세요."); localStorage.removeItem("myId"); continue; }
-        myId = stored; // 기존 브라우저 이름 그대로 사용
+        if(!localStorage.getItem("myId")){
+          alert("이미 사용 중인 이름입니다.");
+          localStorage.removeItem("myId");
+          continue;
+        }
+        myId = stored;
         break;
       } else {
         myId = stored;
@@ -79,101 +113,136 @@ async function getOrPromptName(){
         break;
       }
     } catch(err){
-      alert("서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.");
+      alert("서버 연결 실패");
       throw err;
     }
   }
 }
 
 (async function main(){
-  await getOrPromptName();
 
-  let map, markers={}, infoWindows={}, currentUserPositions={}, myMarker=null, myLat, myLng;
+await getOrPromptName();
 
-  function getFontSize(){
-    const w = window.innerWidth;
-    if(w>=1024) return '16px';
-    else if(w>=768) return '14px';
-    else if(w>=480) return '13px';
-    else return '12px';
-  }
+let map, markers={}, infoWindows={}, currentUserPositions={}, myMarker=null, myLat, myLng;
 
-  function initMap(lat,lng){
-    const center = new kakao.maps.LatLng(lat,lng);
-    map = new kakao.maps.Map(document.getElementById('map'), {center, level:4});
-    myMarker = new kakao.maps.Marker({map, position:center});
-  }
+function getFontSize(){
+  const w = window.innerWidth;
+  if(w>=1024) return '16px';
+  else if(w>=768) return '14px';
+  else if(w>=480) return '13px';
+  else return '12px';
+}
 
-  function centerMapOnMyLocation(){ if(map && myMarker) map.setCenter(myMarker.getPosition()); }
+function initMap(lat,lng){
+  const center = new kakao.maps.LatLng(lat,lng);
+  map = new kakao.maps.Map(document.getElementById('map'), {center, level:4});
+  myMarker = new kakao.maps.Marker({map, position:center});
+}
 
-  function getDistance(lat1,lon1,lat2,lon2){
-    const R=6371;
-    const dLat=(lat2-lat1)*Math.PI/180;
-    const dLon=(lon2-lon1)*Math.PI/180;
-    const a=Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-    return R*(2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
-  }
+function centerMapOnMyLocation(){
+  if(map && myMarker) map.setCenter(myMarker.getPosition());
+}
 
-  function sendLocation(lat,lng){ fetch(GAS_URL,{method:"POST", body:JSON.stringify({id:myId, lat,lng})}); }
+function getDistance(lat1,lon1,lat2,lon2){
+  const R=6371;
+  const dLat=(lat2-lat1)*Math.PI/180;
+  const dLon=(lon2-lon1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R*(2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+}
 
-  function fetchUsers(){
-    fetch(GAS_URL).then(res=>res.json()).then(users=>{
-      currentUserPositions = users;
-      let statusText = `내좌표: (${myLat.toFixed(6)}, ${myLng.toFixed(6)})`;
-      for(let id in users){
-        const u = users[id], pos = new kakao.maps.LatLng(u.lat,u.lng);
-        if(id===myId){ if(myMarker) myMarker.setPosition(pos); continue; }
-        if(!markers[id]){
-          const marker=new kakao.maps.Marker({map, position:pos});
-          markers[id]=marker;
-          const infowindow=new kakao.maps.InfoWindow({content:`<div style="padding:10px; font-size:${getFontSize()}; font-weight:bold;">
-          ${id}<br>좌표: (${u.lat.toFixed(6)}, ${u.lng.toFixed(6)})
-          </div>`});
-          infoWindows[id]=infowindow;
-          kakao.maps.event.addListener(marker,'click',function(){ infowindow.open(map, marker); });
-        }
-        markers[id].setPosition(pos);
-        statusText += `\n${id}: ${getDistance(myLat,myLng,u.lat,u.lng).toFixed(2)}km (${u.lat.toFixed(6)}, ${u.lng.toFixed(6)})`;
+function sendLocation(lat,lng){
+  fetch(GAS_URL,{method:"POST", body:JSON.stringify({id:myId, lat,lng})});
+}
+
+function fetchUsers(){
+  fetch(GAS_URL).then(res=>res.json()).then(users=>{
+    currentUserPositions = users;
+    let statusText = `내좌표: (${myLat.toFixed(6)}, ${myLng.toFixed(6)})`;
+
+    for(let id in users){
+      const u = users[id];
+      const pos = new kakao.maps.LatLng(u.lat,u.lng);
+
+      if(id===myId){
+        if(myMarker) myMarker.setPosition(pos);
+        continue;
       }
-      document.querySelectorAll("#status").forEach(el=>{
-        el.style.fontSize = getFontSize();
-        el.innerText=statusText;
-      });
-    });
-  }
 
-  function update(){
-    navigator.geolocation.getCurrentPosition(pos=>{
-      myLat=pos.coords.latitude;
-      myLng=pos.coords.longitude;
-      const myPos=new kakao.maps.LatLng(myLat,myLng);
-      if(!map) initMap(myLat,myLng);
-      if(myMarker) myMarker.setPosition(myPos);
-      if(window.innerWidth<1024) centerMapOnMyLocation();
-      sendLocation(myLat,myLng);
-      fetchUsers();
-    });
-  }
+      if(!markers[id]){
+        const marker=new kakao.maps.Marker({map, position:pos});
+        markers[id]=marker;
 
-  window.addEventListener('resize', ()=>{
-    const fs = getFontSize();
-    document.querySelectorAll("#status").forEach(el=>el.style.fontSize=fs);
-    for(let id in infoWindows){
-      const marker=markers[id];
-      const u=currentUserPositions[id];
-      if(!marker || !u) continue;
-      infoWindows[id].setContent(`<div style="padding:10px; font-size:${fs}; font-weight:bold;">
-      ${id}<br>좌표: (${u.lat.toFixed(6)}, ${u.lng.toFixed(6)})
-      </div>`);
-      if(infoWindows[id].getMap()){
-        infoWindows[id].close();
-        infoWindows[id].open(map, marker);
+        const infowindow=new kakao.maps.InfoWindow({
+          content:`<div style="padding:10px; font-size:${getFontSize()}; font-weight:bold;">
+          ${id}<br>(${u.lat.toFixed(6)}, ${u.lng.toFixed(6)})
+          </div>`
+        });
+
+        infoWindows[id]=infowindow;
+
+        kakao.maps.event.addListener(marker,'click',function(){
+          infowindow.open(map, marker);
+        });
       }
+
+      markers[id].setPosition(pos);
+
+      statusText += `\n${id}: ${getDistance(myLat,myLng,u.lat,u.lng).toFixed(2)}km`;
     }
-  });
 
-  setInterval(update,5000);
-  update();
+    document.querySelectorAll("#status").forEach(el=>{
+      el.style.fontSize = getFontSize();
+      el.innerText=statusText;
+    });
+  });
+}
+
+function update(){
+  navigator.geolocation.getCurrentPosition(pos=>{
+    myLat=pos.coords.latitude;
+    myLng=pos.coords.longitude;
+
+    const myPos=new kakao.maps.LatLng(myLat,myLng);
+
+    if(!map) initMap(myLat,myLng);
+    if(myMarker) myMarker.setPosition(myPos);
+
+    if(window.innerWidth<1024) centerMapOnMyLocation();
+
+    sendLocation(myLat,myLng);
+    fetchUsers();
+  });
+}
+
+// 공유 기능
+document.getElementById("shareBtn").addEventListener("click", async () => {
+  const shareData = {
+    title: "📍 실시간 위치 공유",
+    text: `${myId}님의 위치 확인`,
+    url: window.location.href + "?user=" + encodeURIComponent(myId)
+  };
+
+  try {
+    if (navigator.share) {
+      await navigator.share(shareData);
+    } else {
+      await navigator.clipboard.writeText(shareData.url);
+      alert("링크가 복사되었습니다!");
+    }
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+window.addEventListener('resize', ()=>{
+  const fs = getFontSize();
+  document.querySelectorAll("#status").forEach(el=>el.style.fontSize=fs);
+});
+
+setInterval(update,5000);
+update();
+
 })();
 </script>
 
