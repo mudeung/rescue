@@ -75,7 +75,15 @@ body, html {
 
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzpNNxNK7Zcj6ZbKlPDNr0Lz7hG_o0IPlCIEtvWnQe8uJyPIQPluGe8wcnox_2pAcSE/exec";
-const myId = prompt("사용자 이름(예: 조난자, 구조대, 구급대)");
+
+// 사용자 이름 입력
+let myId = prompt("사용자 이름(예: 조난자, 구조대, 구급대)");
+
+// 이름이 없으면 진입 불가
+if (!myId || myId.trim() === "") {
+  alert("사용자 이름을 입력해야 합니다. 페이지를 새로고침 후 다시 시도해주세요.");
+  throw new Error("사용자 이름 미입력으로 실행 중단");
+}
 
 let map;
 let markers = {};
