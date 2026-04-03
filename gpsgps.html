@@ -6,9 +6,10 @@
 <title>📍 실시간 위치 공유</title>
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424"></script>
 <style>
-body, html { margin: 0; padding: 0; height: 100%; font-family: Arial, sans-serif; }
-#map { width: 100%; height: 100%; }
+body, html { margin:0; padding:0; height:100%; font-family: Arial, sans-serif; }
+#map { width:100%; height:100%; }
 
+/* PC 상단바 */
 #topbar {
   display: none;
   padding: 12px 24px;
@@ -18,67 +19,77 @@ body, html { margin: 0; padding: 0; height: 100%; font-family: Arial, sans-serif
   top: 0;
   width: 100%;
   z-index: 10;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
 }
-#distance { font-weight: bold; font-size: 16px; }
+#distance, #myCoords { font-weight:bold; font-size:16px; }
 
+/* 모바일 거리 플로팅 */
 #mobileDistance {
-  display: none;
-  position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0,0,0,0.7);
-  color: #fff;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-size: 16px;
-  z-index: 10;
-  white-space: nowrap;
+  display:none;
+  position:absolute;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%);
+  background:rgba(0,0,0,0.7);
+  color:#fff;
+  padding:10px 16px;
+  border-radius:8px;
+  font-size:16px;
+  z-index:10;
+  white-space:nowrap;
+  text-align:center;
 }
+#mobileCoords { display:block; font-weight:bold; font-size:14px; margin-top:4px; }
 
-@media screen and (min-width: 1024px) { #topbar { display: flex; } #mobileDistance { display: none; } }
-@media screen and (max-width: 1023px) { #topbar { display: none; } #mobileDistance { display: block; } }
+@media screen and (min-width:1024px) { #topbar{display:flex;} #mobileDistance{display:none;} }
+@media screen and (max-width:1023px) { #topbar{display:none;} #mobileDistance{display:block;} }
 </style>
 </head>
 <body>
 
-<div id="topbar">거리: <span id="distance">-</span></div>
-<div id="mobileDistance">거리: <span id="distance">-</span></div>
+<div id="topbar">
+  거리: <span id="distance">-</span>
+  <div id="myCoords">내 좌표: -</div>
+</div>
+
+<div id="mobileDistance">
+  거리: <span id="distance">-</span>
+  <div id="myCoords">내 좌표: -</div>
+</div>
+
 <div id="map"></div>
 
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzpNNxNK7Zcj6ZbKlPDNr0Lz7hG_o0IPlCIEtvWnQe8uJyPIQPluGe8wcnox_2pAcSE/exec";
 let myId;
 
-// 사용자 이름 입력 + 중복 확인
+// 사용자 이름 입력 + 중복 체크 (서버 최신 데이터 기준)
 async function promptUniqueName() {
-  while(true) {
+  while(true){
     let input = prompt("사용자 이름(예: 조난자, 구조대, 구급대)");
-    if (!input || input.trim() === "") {
-      alert("사용자 이름을 반드시 입력해야 합니다.");
+    if(!input || input.trim()===""){
+      alert("사용자 이름은 반드시 입력해야 합니다.");
       continue;
     }
-
-    try {
+    try{
       const res = await fetch(GAS_URL);
       const users = await res.json();
-      if (users[input]) {
+      if(users[input]){
         alert("이미 사용 중인 이름입니다. 다른 이름을 입력해주세요.");
         continue;
       } else {
         myId = input;
         break;
       }
-    } catch(err) {
+    } catch(err){
       alert("서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.");
       throw err;
     }
   }
 }
 
-(async function main() {
+(async function main(){
   await promptUniqueName();
 
   let map;
@@ -88,81 +99,84 @@ async function promptUniqueName() {
   let myMarker = null;
   let myLat, myLng;
 
-  function getFontSize() {
-    if(window.innerWidth >= 1024) return '15px';
-    else if(window.innerWidth >= 768) return '14px';
+  function getFontSize(){
+    if(window.innerWidth>=1024) return '15px';
+    else if(window.innerWidth>=768) return '14px';
     else return '13px';
   }
 
-  function initMap(lat, lng) {
-    const center = new kakao.maps.LatLng(lat, lng);
-    map = new kakao.maps.Map(document.getElementById('map'), { center, level: 4 });
-    myMarker = new kakao.maps.Marker({ map, position: center });
+  function initMap(lat,lng){
+    const center = new kakao.maps.LatLng(lat,lng);
+    map = new kakao.maps.Map(document.getElementById('map'), { center, level:4 });
+    myMarker = new kakao.maps.Marker({ map, position:center });
   }
 
-  function centerMapOnMyLocation() { if(map && myMarker) map.setCenter(myMarker.getPosition()); }
+  function centerMapOnMyLocation(){ if(map&&myMarker) map.setCenter(myMarker.getPosition()); }
 
-  function getDistance(lat1, lon1, lat2, lon2) {
+  function getDistance(lat1,lon1,lat2,lon2){
     const R = 6371;
-    const dLat = (lat2-lat1) * Math.PI/180;
-    const dLon = (lon2-lon1) * Math.PI/180;
-    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-    return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+    const dLat=(lat2-lat1)*Math.PI/180;
+    const dLon=(lon2-lon1)*Math.PI/180;
+    const a=Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+    return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)));
   }
 
-  function sendLocation(lat, lng) { fetch(GAS_URL, { method: "POST", body: JSON.stringify({ id: myId, lat, lng }) }); }
+  function sendLocation(lat,lng){ fetch(GAS_URL,{method:"POST", body:JSON.stringify({id:myId, lat,lng})}); }
 
-  function fetchUsers() {
-    fetch(GAS_URL)
-      .then(res => res.json())
-      .then(users => {
-        currentUserPositions = users;
-        let distanceText = "";
-        for(let id in users){
-          const u = users[id];
-          const pos = new kakao.maps.LatLng(u.lat, u.lng);
-          if(id === myId){ if(myMarker) myMarker.setPosition(pos); continue; }
+  function fetchUsers(){
+    fetch(GAS_URL).then(res=>res.json()).then(users=>{
+      currentUserPositions = users;
+      let distanceText = "";
+      for(let id in users){
+        const u = users[id];
+        const pos = new kakao.maps.LatLng(u.lat,u.lng);
+        if(id===myId){ if(myMarker) myMarker.setPosition(pos); continue; }
 
-          if(!markers[id]){
-            const marker = new kakao.maps.Marker({ map, position: pos });
-            markers[id] = marker;
-            const infowindow = new kakao.maps.InfoWindow({
-              content: `<div style="padding:10px; font-size:${getFontSize()}; font-weight:bold;">
-                          ${id}<br>좌표: (${u.lat.toFixed(6)}, ${u.lng.toFixed(6)})
-                        </div>`
-            });
-            infoWindows[id] = infowindow;
-            kakao.maps.event.addListener(marker,'click',function(){ infowindow.open(map, marker); });
-          }
-
-          markers[id].setPosition(pos);
-          distanceText += `${id}: ${getDistance(myLat, myLng, u.lat, u.lng).toFixed(2)}km / `;
+        if(!markers[id]){
+          const marker = new kakao.maps.Marker({ map, position:pos });
+          markers[id] = marker;
+          const infowindow = new kakao.maps.InfoWindow({
+            content:`<div style="padding:10px; font-size:${getFontSize()}; font-weight:bold;">
+                        ${id}<br>좌표: (${u.lat.toFixed(6)}, ${u.lng.toFixed(6)})
+                     </div>`
+          });
+          infoWindows[id] = infowindow;
+          kakao.maps.event.addListener(marker,'click',function(){ infowindow.open(map, marker); });
         }
-        document.querySelectorAll("#distance").forEach(el=>el.innerText=distanceText);
-      });
+
+        markers[id].setPosition(pos);
+        distanceText += `${id}: ${getDistance(myLat,myLng,u.lat,u.lng).toFixed(2)}km / `;
+      }
+
+      // 거리 표시
+      document.querySelectorAll("#distance").forEach(el=>el.innerText=distanceText);
+      // 내 좌표 표시
+      const coordsText=`내 좌표: (${myLat.toFixed(6)}, ${myLng.toFixed(6)})`;
+      document.querySelectorAll("#myCoords").forEach(el=>el.innerText=coordsText);
+    });
   }
 
-  function update() {
+  function update(){
     navigator.geolocation.getCurrentPosition(pos=>{
-      myLat = pos.coords.latitude;
-      myLng = pos.coords.longitude;
-      const myPos = new kakao.maps.LatLng(myLat, myLng);
+      myLat=pos.coords.latitude;
+      myLng=pos.coords.longitude;
+      const myPos=new kakao.maps.LatLng(myLat,myLng);
 
-      if(!map) initMap(myLat, myLng);
+      if(!map) initMap(myLat,myLng);
       if(myMarker) myMarker.setPosition(myPos);
 
-      if(window.innerWidth < 1024) centerMapOnMyLocation();
+      if(window.innerWidth<1024) centerMapOnMyLocation();
 
-      sendLocation(myLat, myLng);
+      sendLocation(myLat,myLng);
       fetchUsers();
     });
   }
 
-  // 화면 크기 변화 감지 → 인포윈도우 폰트 크기 실시간 조정
-  window.addEventListener('resize', ()=>{
+  // 화면 크기 변화 → 인포윈도우 폰트 자동 조정
+  window.addEventListener('resize',()=>{
     for(let id in infoWindows){
-      const marker = markers[id];
-      const u = currentUserPositions[id];
+      const marker=markers[id];
+      const u=currentUserPositions[id];
       if(!marker || !u) continue;
       infoWindows[id].setContent(`<div style="padding:10px; font-size:${getFontSize()}; font-weight:bold;">
                                     ${id}<br>좌표: (${u.lat.toFixed(6)}, ${u.lng.toFixed(6)})
@@ -174,7 +188,7 @@ async function promptUniqueName() {
     }
   });
 
-  setInterval(update, 5000);
+  setInterval(update,5000);
   update();
 })();
 </script>
