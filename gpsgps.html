@@ -8,25 +8,49 @@
 <style>
 body, html { margin:0; padding:0; height:100%; font-family: Arial, sans-serif; }
 #map { width:100%; height:100%; }
-#topbar { display:none; padding:12px 24px; background:#f5f5f5; box-shadow:0 2px 4px rgba(0,0,0,0.1); position:fixed; top:0; width:100%; z-index:10; flex-direction:column; align-items:center; }
-#distance,#myCoords{ font-weight:bold; font-size:16px; }
-#mobileDistance{ display:none; position:absolute; bottom:20px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.7); color:#fff; padding:10px 16px; border-radius:8px; font-size:16px; z-index:10; white-space:nowrap; text-align:center; }
-#mobileCoords{ display:block; font-weight:bold; font-size:14px; margin-top:4px; }
+
+/* PC 상단바 */
+#topbar {
+  display:none;
+  padding:12px 24px;
+  background:#f5f5f5;
+  box-shadow:0 2px 4px rgba(0,0,0,0.1);
+  position:fixed;
+  top:0;
+  width:100%;
+  z-index:10;
+  flex-direction:column;
+  align-items:center;
+  font-weight:bold;
+  font-size:16px;
+  text-align:center;
+}
+
+/* 모바일 플로팅 */
+#mobileDistance {
+  display:none;
+  position:absolute;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%);
+  background:rgba(0,0,0,0.7);
+  color:#fff;
+  padding:10px 16px;
+  border-radius:8px;
+  font-size:16px;
+  z-index:10;
+  white-space:nowrap;
+  text-align:center;
+}
+
 @media screen and (min-width:1024px){ #topbar{display:flex;} #mobileDistance{display:none;} }
 @media screen and (max-width:1023px){ #topbar{display:none;} #mobileDistance{display:block;} }
 </style>
 </head>
 <body>
 
-<div id="topbar">
-거리: <span id="distance">-</span>
-<div id="myCoords">내 좌표: -</div>
-</div>
-
-<div id="mobileDistance">
-거리: <span id="distance">-</span>
-<div id="myCoords">내 좌표: -</div>
-</div>
+<div id="topbar">상태: <span id="status">-</span></div>
+<div id="mobileDistance">상태: <span id="status">-</span></div>
 
 <div id="map"></div>
 
@@ -34,7 +58,7 @@ body, html { margin:0; padding:0; height:100%; font-family: Arial, sans-serif; }
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzpNNxNK7Zcj6ZbKlPDNr0Lz7hG_o0IPlCIEtvWnQe8uJyPIQPluGe8wcnox_2pAcSE/exec";
 let myId;
 
-// 서버와 이름 중복 체크 + 로컬 저장
+// 이름 입력 + 서버 중복 체크 + 로컬 저장
 async function getOrPromptName(){
   while(true){
     let stored = localStorage.getItem("myId");
@@ -46,13 +70,8 @@ async function getOrPromptName(){
       const res = await fetch(GAS_URL);
       const users = await res.json();
       if(users[stored]){
-        if(!localStorage.getItem("myId")){ // 새 입력한 경우
-          alert("이미 사용 중인 이름입니다. 다른 이름을 입력해주세요.");
-          localStorage.removeItem("myId");
-          continue;
-        }
-        // 기존 브라우저 이름 그대로 사용 가능
-        myId = stored;
+        if(!localStorage.getItem("myId")){ alert("이미 사용 중인 이름입니다. 다른 이름을 입력해주세요."); localStorage.removeItem("myId"); continue; }
+        myId = stored; // 기존 브라우저 이름 그대로 사용
         break;
       } else {
         myId = stored;
@@ -98,9 +117,9 @@ async function getOrPromptName(){
   function fetchUsers(){
     fetch(GAS_URL).then(res=>res.json()).then(users=>{
       currentUserPositions = users;
-      let distanceText="";
+      let statusText = `내: (${myLat.toFixed(6)}, ${myLng.toFixed(6)})`;
       for(let id in users){
-        const u=users[id], pos=new kakao.maps.LatLng(u.lat,u.lng);
+        const u = users[id], pos = new kakao.maps.LatLng(u.lat,u.lng);
         if(id===myId){ if(myMarker) myMarker.setPosition(pos); continue; }
         if(!markers[id]){
           const marker=new kakao.maps.Marker({map, position:pos});
@@ -112,11 +131,9 @@ async function getOrPromptName(){
           kakao.maps.event.addListener(marker,'click',function(){ infowindow.open(map, marker); });
         }
         markers[id].setPosition(pos);
-        distanceText += `${id}: ${getDistance(myLat,myLng,u.lat,u.lng).toFixed(2)}km / `;
+        statusText += ` / ${id}: ${getDistance(myLat,myLng,u.lat,u.lng).toFixed(2)}km (${u.lat.toFixed(6)}, ${u.lng.toFixed(6)})`;
       }
-      document.querySelectorAll("#distance").forEach(el=>el.innerText=distanceText);
-      const coordsText=`내 좌표: (${myLat.toFixed(6)}, ${myLng.toFixed(6)})`;
-      document.querySelectorAll("#myCoords").forEach(el=>el.innerText=coordsText);
+      document.querySelectorAll("#status").forEach(el=>el.innerText=statusText);
     });
   }
 
