@@ -50,6 +50,20 @@ body, html {
   height: calc(100% - 60px); /* 상단바 높이 제외 */
   margin-top: 60px; 
 }
+
+/* PC 화면 최적화 */
+@media screen and (min-width: 1024px) {
+  #topbar {
+    padding: 16px 32px;
+  }
+  #topbar button {
+    padding: 12px 20px;
+    font-size: 18px;
+  }
+  #distance {
+    font-size: 18px;
+  }
+}
 </style>
 </head>
 <body>
@@ -63,7 +77,7 @@ body, html {
 
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzpNNxNK7Zcj6ZbKlPDNr0Lz7hG_o0IPlCIEtvWnQe8uJyPIQPluGe8wcnox_2pAcSE/exec";
-const myId = prompt("사용자 이름(예: 조난자, 구급대, 구조대)");
+const myId = prompt("사용자 이름(예: 조난자, 구조대, 구급대)");
 
 let map;
 let markers = {};
@@ -119,10 +133,7 @@ function fetchUsers() {
         }
 
         if (!markers[id]) {
-          const marker = new kakao.maps.Marker({
-            map: map,
-            position: pos
-          });
+          const marker = new kakao.maps.Marker({ map: map, position: pos });
           markers[id] = marker;
           const infowindow = new kakao.maps.InfoWindow({ content: `<div style="padding:5px;">${id}</div>` });
           infoWindows[id] = infowindow;
