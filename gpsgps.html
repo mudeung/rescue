@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>📍 실시간 위치 공유</title>
+<title>실시간 위치 공유</title>
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424"></script>
 <style>
 body, html {
@@ -13,31 +13,24 @@ body, html {
   font-family: Arial, sans-serif;
 }
 
+/* 공통 지도 영역 */
+#map {
+  width: 100%;
+  height: 100%;
+}
+
+/* PC 상단바 */
 #topbar {
-  padding: 12px 16px;
+  display: none; /* 모바일에서는 숨김 */
+  padding: 12px 24px;
   background: #f5f5f5;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   position: fixed;
+  top: 0;
   width: 100%;
   z-index: 10;
-}
-
-#topbar button {
-  padding: 10px 16px;
-  font-size: 16px;
-  border: none;
-  border-radius: 6px;
-  background-color: #4CAF50;
-  color: white;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-#topbar button:active {
-  background-color: #45a049;
+  justify-content: flex-end;
+  align-items: center;
 }
 
 #distance {
@@ -45,39 +38,46 @@ body, html {
   font-size: 16px;
 }
 
-#map {
-  width: 100%;
-  height: calc(100% - 60px); /* 상단바 높이 제외 */
-  margin-top: 60px; 
+/* 모바일 거리 플로팅 */
+#mobileDistance {
+  display: none;
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.7);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 16px;
+  z-index: 10;
+  white-space: nowrap;
 }
 
-/* PC 화면 최적화 */
+/* 반응형 */
 @media screen and (min-width: 1024px) {
-  #topbar {
-    padding: 16px 32px;
-  }
-  #topbar button {
-    padding: 12px 20px;
-    font-size: 18px;
-  }
-  #distance {
-    font-size: 18px;
-  }
+  #topbar { display: flex; }
+  #mobileDistance { display: none; }
+}
+
+@media screen and (max-width: 1023px) {
+  #topbar { display: none; }
+  #mobileDistance { display: block; }
 }
 </style>
 </head>
 <body>
 
 <div id="topbar">
-  <button onclick="moveToMyLocation()">📍 내 위치 보기</button>
-  <div>거리: <span id="distance">-</span></div>
+  거리: <span id="distance">-</span>
 </div>
+<div id="mobileDistance">거리: <span id="distance">-</span></div>
 
 <div id="map"></div>
 
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzpNNxNK7Zcj6ZbKlPDNr0Lz7hG_o0IPlCIEtvWnQe8uJyPIQPluGe8wcnox_2pAcSE/exec";
-const myId = prompt("사용자 이름(예: 조난자, 구조대, 구급대)");
+const myId = prompt("사용자 이름 입력 (예: A, B, C)");
 
 let map;
 let markers = {};
@@ -98,12 +98,13 @@ function initMap(lat, lng) {
   });
 }
 
-function moveToMyLocation() {
+// 모바일용: 내 위치 핀 항상 중앙
+function centerMapOnMyLocation() {
   if (!map || !myMarker) return;
-  map.panTo(myMarker.getPosition());
-  map.setLevel(3);
+  map.setCenter(myMarker.getPosition());
 }
 
+// 거리 계산
 function getDistance(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const dLat = (lat2-lat1) * Math.PI/180;
@@ -112,13 +113,12 @@ function getDistance(lat1, lon1, lat2, lon2) {
   return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
 }
 
+// 내 위치 전송
 function sendLocation(lat, lng) {
-  fetch(GAS_URL, {
-    method: "POST",
-    body: JSON.stringify({ id: myId, lat, lng })
-  });
+  fetch(GAS_URL, { method: "POST", body: JSON.stringify({ id: myId, lat, lng }) });
 }
 
+// 사용자 위치 불러오기
 function fetchUsers() {
   fetch(GAS_URL)
     .then(res => res.json())
@@ -127,6 +127,7 @@ function fetchUsers() {
       for (let id in users) {
         const u = users[id];
         const pos = new kakao.maps.LatLng(u.lat, u.lng);
+
         if (id === myId) {
           if (myMarker) myMarker.setPosition(pos);
           continue;
@@ -144,17 +145,25 @@ function fetchUsers() {
         markers[id].setPosition(pos);
         distanceText += `${id}: ${getDistance(myLat, myLng, u.lat, u.lng).toFixed(2)}km / `;
       }
-      document.getElementById("distance").innerText = distanceText;
+
+      // PC, 모바일 거리 표시 동기화
+      document.querySelectorAll("#distance").forEach(el => el.innerText = distanceText);
     });
 }
 
+// 위치 업데이트
 function update() {
   navigator.geolocation.getCurrentPosition(pos => {
     myLat = pos.coords.latitude;
     myLng = pos.coords.longitude;
     const myPos = new kakao.maps.LatLng(myLat, myLng);
+
     if (!map) initMap(myLat, myLng);
     if (myMarker) myMarker.setPosition(myPos);
+
+    // 모바일에서 지도 중앙 항상 내 위치
+    if (window.innerWidth < 1024) centerMapOnMyLocation();
+
     sendLocation(myLat, myLng);
     fetchUsers();
   });
