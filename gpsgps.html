@@ -21,9 +21,8 @@ body, html { margin:0; padding:0; height:100%; font-family: Arial, sans-serif; }
   z-index:10;
   flex-direction:column;
   align-items:center;
-  font-weight:bold;
-  font-size:16px;
   text-align:center;
+  word-wrap: break-word;
 }
 
 /* 모바일 플로팅 */
@@ -37,10 +36,11 @@ body, html { margin:0; padding:0; height:100%; font-family: Arial, sans-serif; }
   color:#fff;
   padding:10px 16px;
   border-radius:8px;
-  font-size:16px;
   z-index:10;
-  white-space:nowrap;
   text-align:center;
+  word-wrap: break-word;
+  white-space: pre-wrap; /* 줄바꿈 자동 적용 */
+  max-width: 90vw; /* 모바일에서 화면 너비 맞춤 */
 }
 
 @media screen and (min-width:1024px){ #topbar{display:flex;} #mobileDistance{display:none;} }
@@ -49,8 +49,8 @@ body, html { margin:0; padding:0; height:100%; font-family: Arial, sans-serif; }
 </head>
 <body>
 
-<div id="topbar">📍 실시간 위치 좌표: <span id="status">-</span></div>
-<div id="mobileDistance">📍 실시간 위치 좌표: <span id="status">-</span></div>
+<div id="topbar">📍 실시간 좌표 상태: <span id="status">-</span></div>
+<div id="mobileDistance">📍 실시간 좌표 상태: <span id="status">-</span></div>
 
 <div id="map"></div>
 
@@ -91,9 +91,11 @@ async function getOrPromptName(){
   let map, markers={}, infoWindows={}, currentUserPositions={}, myMarker=null, myLat, myLng;
 
   function getFontSize(){
-    if(window.innerWidth>=1024) return '15px';
-    else if(window.innerWidth>=768) return '14px';
-    else return '13px';
+    const w = window.innerWidth;
+    if(w>=1024) return '16px';
+    else if(w>=768) return '14px';
+    else if(w>=480) return '13px';
+    else return '12px';
   }
 
   function initMap(lat,lng){
@@ -131,9 +133,12 @@ async function getOrPromptName(){
           kakao.maps.event.addListener(marker,'click',function(){ infowindow.open(map, marker); });
         }
         markers[id].setPosition(pos);
-        statusText += ` / ${id}: ${getDistance(myLat,myLng,u.lat,u.lng).toFixed(2)}km (${u.lat.toFixed(6)}, ${u.lng.toFixed(6)})`;
+        statusText += `\n${id}: ${getDistance(myLat,myLng,u.lat,u.lng).toFixed(2)}km (${u.lat.toFixed(6)}, ${u.lng.toFixed(6)})`;
       }
-      document.querySelectorAll("#status").forEach(el=>el.innerText=statusText);
+      document.querySelectorAll("#status").forEach(el=>{
+        el.style.fontSize = getFontSize();
+        el.innerText=statusText;
+      });
     });
   }
 
@@ -151,11 +156,13 @@ async function getOrPromptName(){
   }
 
   window.addEventListener('resize', ()=>{
+    const fs = getFontSize();
+    document.querySelectorAll("#status").forEach(el=>el.style.fontSize=fs);
     for(let id in infoWindows){
       const marker=markers[id];
       const u=currentUserPositions[id];
       if(!marker || !u) continue;
-      infoWindows[id].setContent(`<div style="padding:10px; font-size:${getFontSize()}; font-weight:bold;">
+      infoWindows[id].setContent(`<div style="padding:10px; font-size:${fs}; font-weight:bold;">
       ${id}<br>좌표: (${u.lat.toFixed(6)}, ${u.lng.toFixed(6)})
       </div>`);
       if(infoWindows[id].getMap()){
