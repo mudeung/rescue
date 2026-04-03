@@ -2,205 +2,107 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>🚨 조난자/구조대 위치공유</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<title>실시간 위치 공유</title>
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424"></script>
-
 <style>
-body { margin:0; font-family:sans-serif; text-align:center; }
-.top { background:#111; color:white; padding:10px; }
-button { padding:10px; margin:5px; border:none; border-radius:6px; }
-.btn-blue { background:#007bff; color:white; }
-.btn-red { background:#dc3545; color:white; }
-.btn-gray { background:#666; color:white; }
-#map { width:100%; height:80vh; }
+#map { width:100%; height:90vh; }
+#info { padding:10px; background:#eee; }
 </style>
 </head>
-
 <body>
 
-<div id="roleUI" class="top">
-<h3>🚨 조난자/구조대 위치공유</h3>
-<button class="btn-red" onclick="enterVictim()">🟥 조난자</button>
-<button class="btn-blue" onclick="login()">🟦 구조대</button>
-</div>
-
-<div id="mainUI" style="display:none;">
-<div class="top">
-<span id="status">연결중...</span><br>
-<button class="btn-red" onclick="sendSOS()">🚨 SOS</button>
-<button class="btn-gray" onclick="reset()">🔄</button>
-</div>
+<div id="info">거리 정보: <span id="distance"></span></div>
 <div id="map"></div>
-</div>
 
 <script>
-const SERVER = "https://script.google.com/macros/s/AKfycby7T5WSAiSwniAhEhw9R6VXxx5cxqqlc8ZWVKJ7SafRHJo7DdVk49fr-O0Hy7xZHMUeUw/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzpNNxNK7Zcj6ZbKlPDNr0Lz7hG_o0IPlCIEtvWnQe8uJyPIQPluGe8wcnox_2pAcSE/exec";
+const myId = prompt("사용자 ID 입력 (예: A, B, C)");
 
-let map, role, myId;
-let markers = {};
-let paths = {};
+let map;
+let markers = {}; // 여러 사용자 마커 저장
 
-// ID 생성
-function makeId(){
-return Date.now().toString();
+// 지도 초기화
+function initMap(lat, lng) {
+  map = new kakao.maps.Map(document.getElementById('map'), {
+    center: new kakao.maps.LatLng(lat, lng),
+    level: 4
+  });
 }
 
-window.onload=()=>{
-role=localStorage.role;
-myId=localStorage.id||makeId();
-localStorage.id=myId;
+// 거리 계산 (Haversine)
+function getDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2-lat1) * Math.PI/180;
+  const dLon = (lon2-lon1) * Math.PI/180;
 
-if(role) start();
-};
+  const a =
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1*Math.PI/180) *
+    Math.cos(lat2*Math.PI/180) *
+    Math.sin(dLon/2) * Math.sin(dLon/2);
 
-function enterVictim(){
-localStorage.role="victim";
-start();
+  return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
 }
 
-function login(){
-let pw=prompt("비밀번호 입력");
-if(pw==="119rescue"){
-localStorage.role="rescuer";
-start();
-}else alert("❌ 틀림");
+// 내 위치 전송
+function sendLocation(lat, lng) {
+  fetch(GAS_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      id: myId,
+      lat,
+      lng
+    })
+  });
 }
 
-function reset(){
-localStorage.clear();
-location.reload();
+// 모든 사용자 위치 가져오기
+function fetchUsers(myLat, myLng) {
+  fetch(GAS_URL)
+    .then(res => res.json())
+    .then(users => {
+
+      let distanceText = "";
+
+      for (let id in users) {
+        const u = users[id];
+        const pos = new kakao.maps.LatLng(u.lat, u.lng);
+
+        if (!markers[id]) {
+          markers[id] = new kakao.maps.Marker({
+            map: map
+          });
+        }
+
+        markers[id].setPosition(pos);
+
+        // 내 위치와 거리 계산
+        if (id !== myId) {
+          const d = getDistance(myLat, myLng, u.lat, u.lng);
+          distanceText += `${id}: ${d.toFixed(2)}km / `;
+        }
+      }
+
+      document.getElementById("distance").innerText = distanceText;
+    });
 }
 
-function start(){
-document.getElementById("roleUI").style.display="none";
-document.getElementById("mainUI").style.display="block";
+// 업데이트 루프
+function update() {
+  navigator.geolocation.getCurrentPosition(pos => {
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
 
-navigator.geolocation.getCurrentPosition(pos=>{
-map=new kakao.maps.Map(document.getElementById('map'),{
-center:new kakao.maps.LatLng(pos.coords.latitude,pos.coords.longitude),
-level:3
-});
-loop();
-},()=>alert("위치 권한 필요"));
+    if (!map) initMap(lat, lng);
+
+    sendLocation(lat, lng);
+    fetchUsers(lat, lng);
+  });
 }
 
-// 반복
-function loop(){
-setInterval(()=>{
-navigator.geolocation.getCurrentPosition(pos=>{
-
-navigator.getBattery().then(battery=>{
-
-let data={
-id:myId,
-role:role,
-lat:pos.coords.latitude,
-lng:pos.coords.longitude,
-acc:pos.coords.accuracy,
-battery:Math.round(battery.level*100),
-time:Date.now()
-};
-
-document.getElementById("status").innerText=
-`${role} | ${data.acc.toFixed(1)}m | 🔋${data.battery}%`;
-
-fetch(SERVER,{
-method:"POST",
-body:JSON.stringify(data),
-headers:{"Content-Type":"application/json"}
-});
-
+setInterval(update, 5000);
 update();
 
-});
-
-});
-},3000);
-}
-
-// SOS
-function sendSOS(){
-let msg=prompt("🚨 상황 입력");
-if(!msg) return;
-
-fetch(SERVER,{
-method:"POST",
-body:JSON.stringify({
-id:myId,
-sos:true,
-msg:msg,
-time:Date.now()
-}),
-headers:{"Content-Type":"application/json"}
-});
-}
-
-// 지도 업데이트
-async function update(){
-try{
-let res=await fetch(SERVER);
-let users=await res.json();
-
-users.forEach(u=>{
-
-// ⭐ 안전 처리 (핵심)
-if(!u.lat || !u.lng || isNaN(u.lat) || isNaN(u.lng)) return;
-
-let pos=new kakao.maps.LatLng(u.lat,u.lng);
-
-// 핀 색상
-let icon="https://maps.google.com/mapfiles/ms/icons/blue-dot.png";
-if(u.role==="victim") icon="https://maps.google.com/mapfiles/ms/icons/red-dot.png";
-if(u.sos) icon="https://maps.google.com/mapfiles/ms/icons/yellow-dot.png";
-if(u.id===myId) icon="https://maps.google.com/mapfiles/ms/icons/green-dot.png";
-
-let markerImg=new kakao.maps.MarkerImage(icon,new kakao.maps.Size(32,32));
-
-// 마커
-if(!markers[u.id]){
-markers[u.id]=new kakao.maps.Marker({position:pos,map:map,image:markerImg});
-paths[u.id]=[];
-}else{
-markers[u.id].setPosition(pos);
-markers[u.id].setImage(markerImg);
-}
-
-// 이동경로
-paths[u.id].push(pos);
-
-if(!markers[u.id].line){
-markers[u.id].line=new kakao.maps.Polyline({
-path:paths[u.id],
-strokeWeight:4,
-strokeColor:u.role==="victim"?"#ff0000":"#007bff"
-});
-markers[u.id].line.setMap(map);
-}else{
-markers[u.id].line.setPath(paths[u.id]);
-}
-
-// 정보창
-let txt=`
-${u.role==="victim"?"🟥 조난자":"🟦 구조대"}<br>
-📍 ${u.acc?.toFixed(1)}m<br>
-🔋 ${u.battery ?? "-"}%
-`;
-
-if(u.sos) txt+=`<br><b style="color:red">🚨 SOS</b>`;
-if(u.msg) txt+=`<br>📢 ${u.msg}`;
-
-new kakao.maps.InfoWindow({
-content:`<div style="padding:5px">${txt}</div>`
-}).open(map,markers[u.id]);
-
-});
-
-}catch(e){
-console.log("오류",e);
-}
-}
 </script>
 
 </body>
