@@ -25,8 +25,6 @@ body, html { margin:0; padding:0; height:100%; font-family: Arial; }
 .user-name { font-weight:bold; font-size:16px; }
 .user-coord { font-size:13px; color:#555; margin-bottom:4px; }
 .user-distance { color:#007aff; font-weight:bold; font-size:14px; }
-
-/* 입장 화면 */
 #loginScreen { width:100%; height:100%; display:flex; justify-content:center; align-items:center; background:#f2f2f2; flex-direction:column; }
 #loginScreen input { padding:12px; font-size:16px; border-radius:8px; border:1px solid #ccc; margin-bottom:10px; width:80%; max-width:300px; }
 #loginScreen button { padding:12px 20px; font-size:16px; border:none; border-radius:8px; background:#007aff; color:#fff; cursor:pointer; }
@@ -34,13 +32,11 @@ body, html { margin:0; padding:0; height:100%; font-family: Arial; }
 </head>
 <body>
 
-<!-- 입장 화면 -->
 <div id="loginScreen">
   <input id="nameInput" type="text" placeholder="이름을 입력하세요" />
   <button id="enterBtn">입장하기</button>
 </div>
 
-<!-- 지도 및 UI -->
 <div id="onlineCount">접속자 0명</div>
 <button id="shareBtn">내위치 공유</button>
 <div id="userList"></div>
@@ -54,22 +50,16 @@ const TIMEOUT = 30000;
 let myId, myLat, myLng;
 let map, myMarker, markers = {};
 let lastSent=0, lastLat, lastLng;
-let fetchInterval=5000, fetchTimer;
+let fetchTimer, moveTimer;
 let alertedUsers={};
 
 /* 이름 확인 */
 function checkName(){
   const storedName = localStorage.getItem("myId");
-  if(storedName){
-    myId = storedName;
-    showAppUI();
-    startApp();
-  } else {
-    document.getElementById("loginScreen").style.display="flex";
-  }
+  if(storedName){ myId = storedName; showAppUI(); startApp(); }
+  else { document.getElementById("loginScreen").style.display="flex"; }
 }
 
-/* 이름 입력 후 시작 */
 document.getElementById("enterBtn").addEventListener("click", ()=> {
   const name = document.getElementById("nameInput").value.trim();
   if(!name){ alert("이름을 입력해주세요"); return; }
@@ -79,7 +69,6 @@ document.getElementById("enterBtn").addEventListener("click", ()=> {
   startApp();
 });
 
-/* 화면 전환 */
 function showAppUI(){
   document.getElementById("loginScreen").style.display="none";
   document.getElementById("map").style.display="block";
@@ -93,6 +82,7 @@ function startApp(){
   if("Notification" in window) Notification.requestPermission();
   startTracking();
   startFetchLoop();
+  startMoveLoop();
 }
 
 /* 지도 초기화 */
@@ -110,9 +100,7 @@ function getDistance(lat1,lon1,lat2,lon2){
   const a=Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
   return R*(2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
 }
-function getMoveDistance(lat,lng){ if(!lastLat) return 999; return getDistance(lat,lng,lastLat,lastLng); }
 
-/* 근접 알림 */
 function checkDistanceAlert(user){
   if(user.dist>ALERT_DISTANCE){ alertedUsers[user.id]=false; return; }
   if(alertedUsers[user.id]) return;
@@ -123,74 +111,76 @@ function checkDistanceAlert(user){
   navigator.vibrate?.([200,100,200]);
 }
 
-/* 전송 */
 function sendLocation(){
   fetch(GAS_URL,{method:"POST", body:JSON.stringify({id:myId, lat:myLat, lng:myLng, time:Date.now()}), keepalive:true}).catch(()=>{});
 }
+
 function smartSend(){
   const now = Date.now();
-  const dist = getMoveDistance(myLat,myLng);
+  const dist = lastLat ? getDistance(myLat,myLng,lastLat,lastLng) : 999;
   if(dist<0.01 && now-lastSent<15000) return;
   if(dist>0.1 || now-lastSent>5000){ lastSent=now; sendLocation(); }
   lastLat=myLat; lastLng=myLng;
 }
 
-/* 사용자 조회 및 지도 핀 + 카드 UI */
+/* 사용자 조회 */
+let latestUsers = {};
 function fetchUsers(){
   fetch(GAS_URL)
     .then(res=>res.json())
     .then(users=>{
-      let html="", arr=[], onlineCount=0;
+      latestUsers = {};
+      let html="", onlineCount=1;
       const now = Date.now();
       for(let id in users){
         const u = users[id];
         if(u.offline) continue;
         const diff = now-u.time;
         if(diff>TIMEOUT) continue;
-        if(diff<10000) onlineCount++;
         if(id===myId) continue;
         const dist = getDistance(myLat,myLng,u.lat,u.lng);
-        arr.push({...u,id,dist,diff});
+        latestUsers[id] = {...u, id, dist};
+        onlineCount++;
       }
-      arr.sort((a,b)=>a.dist-b.dist);
-
-      arr.forEach((u,idx)=>{
+      // 카드 UI
+      const arr = Object.values(latestUsers).sort((a,b)=>a.dist-b.dist);
+      arr.forEach((u, idx)=>{
         checkDistanceAlert(u);
-        const pos = new kakao.maps.LatLng(u.lat,u.lng);
-
-        // 마커 생성 및 갱신
-        if(!markers[u.id]){
-          markers[u.id] = new kakao.maps.Marker({map, position:pos, title:u.id});
-        } else {
-          markers[u.id].setPosition(pos);
-        }
-
-        // 카드 UI
-        let rank=idx===0?"top1":idx===1?"top2":idx===2?"top3":"";
-        let status=u.diff<10000?"🟢 실시간":u.diff<20000?"🟡 지연":"🔴 끊김";
-        html+=`<div class="user-card ${rank}" onclick="focusUser('${u.id}')">
+        let rank = idx===0?"top1":idx===1?"top2":idx===2?"top3":"";
+        let status = (Date.now()-u.time<10000)?"🟢 실시간":"🟡 지연";
+        html += `<div class="user-card ${rank}" onclick="focusUser('${u.id}')">
           <div class="user-status">${status}</div>
           <div class="user-name">${u.id}</div>
           <div class="user-coord">좌표: ${u.lat.toFixed(5)}, ${u.lng.toFixed(5)}</div>
           <div class="user-distance">거리: ${u.dist.toFixed(2)} km</div>
         </div>`;
       });
-
-      document.getElementById("userList").innerHTML=html;
-      document.getElementById("onlineCount").innerText=`접속자 ${onlineCount+1}명`; // 나 포함
+      document.getElementById("userList").innerHTML = html;
+      document.getElementById("onlineCount").innerText = `접속자 ${onlineCount}명`;
     }).catch(console.error);
+}
+
+/* 마커 부드럽게 이동 */
+function startMoveLoop(){
+  moveTimer = setInterval(()=>{
+    for(let id in latestUsers){
+      const u = latestUsers[id];
+      const targetPos = new kakao.maps.LatLng(u.lat,u.lng);
+      if(!markers[id]){
+        markers[id] = new kakao.maps.Marker({map, position:targetPos, title:u.id});
+      } else {
+        // 선형 보간
+        const curPos = markers[id].getPosition();
+        const lat = curPos.getLat() + (u.lat - curPos.getLat())*0.2;
+        const lng = curPos.getLng() + (u.lng - curPos.getLng())*0.2;
+        markers[id].setPosition(new kakao.maps.LatLng(lat,lng));
+      }
+    }
+  }, 100); // 0.1초 단위로 움직임 → 부드럽게
 }
 
 function focusUser(id){ if(markers[id]) map.setCenter(markers[id].getPosition()); }
 
-/* fetch 루프 */
-function startFetchLoop(){
-  clearInterval(fetchTimer);
-  fetchTimer = setInterval(fetchUsers, fetchInterval);
-  fetchUsers();
-}
-
-/* 위치 추적 */
 function startTracking(){
   navigator.geolocation.watchPosition(pos=>{
     myLat = pos.coords.latitude; myLng = pos.coords.longitude;
@@ -200,25 +190,27 @@ function startTracking(){
   }, err=>{console.error(err);},{enableHighAccuracy:false, maximumAge:10000, timeout:15000});
 }
 
-/* 화면 상태 */
+/* fetch 0.5초 단위 */
+function startFetchLoop(){
+  clearInterval(fetchTimer);
+  fetchUsers(); // 즉시 한번
+  fetchTimer = setInterval(fetchUsers, 500);
+}
+
 document.addEventListener("visibilitychange", ()=>{
-  fetchInterval=(document.visibilityState==="hidden")?15000:4000;
   startFetchLoop();
 });
 
-/* 종료 */
 window.addEventListener("pagehide", ()=>{
   navigator.sendBeacon(GAS_URL, JSON.stringify({id:myId, offline:true}));
 });
 
-/* 공유 */
 document.getElementById("shareBtn").addEventListener("click", async ()=>{
   const url = location.href.split("?")[0]+"?user="+encodeURIComponent(myId);
   if(navigator.share) await navigator.share({title:"실시간 위치", text: myId, url});
   else{ await navigator.clipboard.writeText(url); alert("복사됨"); }
 });
 
-/* 초기 실행 */
 checkName();
 </script>
 </body>
