@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>📍 실시간 위치공유</title>
+<title>📍 실시간 위치공유 (배터리 최적화)</title>
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424"></script>
 
 <style>
@@ -66,35 +66,19 @@ body, html { margin:0; padding:0; height:100%; font-family: Arial; }
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzpNNxNK7Zcj6ZbKlPDNr0Lz7hG_o0IPlCIEtvWnQe8uJyPIQPluGe8wcnox_2pAcSE/exec";
 
 const ALERT_DISTANCE = 0.3;
-const ZOOM_DISTANCE = 0.3;
 const TIMEOUT = 30000;
 
-let alertedUsers = {};
-let zoomedTarget = false;
-
 let myId;
-let map, markers={}, myMarker;
+let map, myMarker, markers = {};
 let myLat, myLng;
-let targetUser = null;
 
 let lastSent = 0;
 let lastLat, lastLng;
 
-/* 알림 */
-if ("Notification" in window) {
-  Notification.requestPermission();
-}
+let fetchInterval = 5000;
+let fetchTimer;
 
-/* URL */
-const params = new URLSearchParams(location.search);
-
-if(params.get("user")){
-  localStorage.setItem("myId", params.get("user"));
-}
-
-if(params.get("target")){
-  targetUser = params.get("target");
-}
+let alertedUsers = {};
 
 /* 이름 */
 async function getName(){
@@ -122,11 +106,10 @@ function getDistance(lat1,lon1,lat2,lon2){
   return R*(2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
 }
 
-/* 이동 체크 */
-function hasMoved(lat,lng){
-  if(!lastLat) return true;
-  const dist = getDistance(lat,lng,lastLat,lastLng);
-  return dist > 0.01; // 10m
+/* 이동 거리 */
+function getMoveDistance(lat,lng){
+  if(!lastLat) return 999;
+  return getDistance(lat,lng,lastLat,lastLng);
 }
 
 /* 🔔 근접 알림 */
@@ -137,81 +120,59 @@ function checkDistanceAlert(user){
   }
 
   if(alertedUsers[user.id]) return;
-
   alertedUsers[user.id] = true;
 
   if(Notification.permission === "granted"){
     new Notification("📍 근처!", {
       body: `${user.id} ${Math.round(user.dist*1000)}m`
     });
-  } else {
-    alert(`${user.id} 가까움 (${user.dist.toFixed(2)}km)`);
   }
 
   navigator.vibrate?.([200,100,200]);
 }
 
-/* 🔥 자동 확대 */
-function checkZoomTarget(user){
-  if(!targetUser || user.id !== targetUser) return;
-
-  if(user.dist > ZOOM_DISTANCE){
-    zoomedTarget = false;
-    return;
-  }
-
-  const pos = new kakao.maps.LatLng(user.lat, user.lng);
-
-  if(!zoomedTarget){
-    zoomedTarget = true;
-    map.setLevel(2);
-  }
-
-  map.panTo(pos);
-}
-
-/* timeout fetch */
-function fetchWithTimeout(url, options={}, timeout=5000){
-  return Promise.race([
-    fetch(url, options),
-    new Promise((_, reject)=>setTimeout(()=>reject("timeout"), timeout))
-  ]);
-}
-
 /* 전송 */
-function sendLocation(lat,lng){
-  fetchWithTimeout(GAS_URL,{
+function sendLocation(){
+  fetch(GAS_URL,{
     method:"POST",
     body:JSON.stringify({
       id:myId,
-      lat,lng,
+      lat:myLat,
+      lng:myLng,
       time:Date.now()
     }),
     keepalive:true
   }).catch(()=>{});
 }
 
-/* 쓰로틀 */
-function sendLocationThrottled(){
+/* 스마트 전송 */
+function smartSend(){
   const now = Date.now();
+  const dist = getMoveDistance(myLat,myLng);
 
-  if(now - lastSent < 3000) return;
-  if(!hasMoved(myLat,myLng)) return;
+  if(dist < 0.01 && now - lastSent < 15000) return;
 
-  lastSent = now;
+  if(dist > 0.1){
+    lastSent = now;
+    sendLocation();
+  }
+  else if(now - lastSent > 5000){
+    lastSent = now;
+    sendLocation();
+  }
+
   lastLat = myLat;
   lastLng = myLng;
-
-  sendLocation(myLat,myLng);
 }
 
-/* 사용자 가져오기 */
+/* 사용자 조회 */
 function fetchUsers(){
-  fetchWithTimeout(GAS_URL)
+  fetch(GAS_URL)
   .then(res=>res.json())
   .then(users=>{
 
-    let arr=[];
+    let html = "";
+    let arr = [];
 
     for(let id in users){
       if(id===myId) continue;
@@ -225,17 +186,14 @@ function fetchUsers(){
 
     arr.sort((a,b)=>a.dist-b.dist);
 
-    let html="";
-
     arr.forEach((u,idx)=>{
 
       checkDistanceAlert(u);
-      checkZoomTarget(u);
 
       const pos = new kakao.maps.LatLng(u.lat,u.lng);
 
       if(!markers[u.id]){
-        markers[u.id]=new kakao.maps.Marker({map, position:pos});
+        markers[u.id] = new kakao.maps.Marker({map, position:pos});
       }
 
       markers[u.id].setPosition(pos);
@@ -261,7 +219,7 @@ function fetchUsers(){
   .catch(()=>{});
 }
 
-/* 클릭 */
+/* 사용자 클릭 */
 function focusUser(id){
   const marker = markers[id];
   if(marker){
@@ -269,7 +227,13 @@ function focusUser(id){
   }
 }
 
-/* 📍 위치 추적 (핵심 개선) */
+/* fetch 주기 */
+function startFetchLoop(){
+  clearInterval(fetchTimer);
+  fetchTimer = setInterval(fetchUsers, fetchInterval);
+}
+
+/* 📍 위치 추적 */
 function startTracking(){
   navigator.geolocation.watchPosition(pos=>{
     myLat = pos.coords.latitude;
@@ -279,25 +243,30 @@ function startTracking(){
 
     if(!map) initMap(myLat,myLng);
 
-    map.panTo(myPos);
     myMarker?.setPosition(myPos);
 
-    sendLocationThrottled();
+    smartSend();
 
   }, err=>{
     console.log(err);
   },{
-    enableHighAccuracy:true,
-    maximumAge:3000,
-    timeout:10000
+    enableHighAccuracy:false, // 🔋 핵심
+    maximumAge:10000,
+    timeout:15000
   });
 }
 
-/* 페이지 복귀 */
+/* 화면 상태 */
 document.addEventListener("visibilitychange", () => {
-  if(document.visibilityState === "visible"){
+
+  if(document.visibilityState === "hidden"){
+    fetchInterval = 15000; // 🔋 절전
+  }else{
+    fetchInterval = 4000;  // ⚡ 활성
     fetchUsers();
   }
+
+  startFetchLoop();
 });
 
 /* 종료 */
@@ -312,8 +281,7 @@ window.addEventListener("pagehide", () => {
 document.getElementById("shareBtn").addEventListener("click", async () => {
 
   const url = location.href.split("?")[0] +
-    "?user=" + encodeURIComponent(myId) +
-    (targetUser ? "&target=" + encodeURIComponent(targetUser) : "");
+    "?user=" + encodeURIComponent(myId);
 
   if(navigator.share){
     await navigator.share({
@@ -328,9 +296,13 @@ document.getElementById("shareBtn").addEventListener("click", async () => {
 });
 
 /* 실행 */
+if ("Notification" in window) {
+  Notification.requestPermission();
+}
+
 getName().then(()=>{
   startTracking();
-  setInterval(fetchUsers, 4000);
+  startFetchLoop();
 });
 </script>
 
