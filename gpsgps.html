@@ -3,39 +3,51 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>📍 실시간 위치공유 (배터리 최적화)</title>
+<title>📍 실시간 위치공유</title>
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424"></script>
 
 <style>
-body, html { margin:0; padding:0; height:100%; font-family: Arial; }
-#map { width:100%; height:100%; }
+body, html {
+  margin:0;
+  padding:0;
+  height:100%;
+  font-family: Arial, sans-serif;
+}
 
+#map {
+  width:100%;
+  height:100%;
+}
+
+/* 공유 버튼 */
 #shareBtn {
   position:fixed;
   bottom:20px;
   left:50%;
   transform:translateX(-50%);
-  width:90%;
+  z-index:20;
   padding:14px;
+  width:90%;
   border:none;
   border-radius:12px;
   background:#007aff;
   color:#fff;
   font-weight:bold;
-  z-index:20;
 }
 
+/* 리스트 */
 #userList {
   position: fixed;
-  bottom: 90px;
   left: 50%;
   transform: translateX(-50%);
+  bottom: 90px;
   width: 92%;
   max-height: 45vh;
   overflow-y: auto;
   z-index: 15;
 }
 
+/* 카드 */
 .user-card {
   background: #fff;
   margin-bottom: 10px;
@@ -44,15 +56,57 @@ body, html { margin:0; padding:0; height:100%; font-family: Arial; }
   box-shadow: 0 3px 10px rgba(0,0,0,0.15);
   font-size: 15px;
   cursor: pointer;
+
+  /* 핵심: 절대 넘침 방지 + 줄바꿈 */
+  overflow: hidden;
+  word-break: break-word;
 }
 
-.top1 { border:2px solid gold; }
-.top2 { border:2px solid silver; }
-.top3 { border:2px solid #cd7f32; }
+/* TOP3 강조 */
+.user-card.top1 { border:2px solid gold; }
+.user-card.top2 { border:2px solid silver; }
+.user-card.top3 { border:2px solid #cd7f32; }
 
-.user-name { font-weight:bold; }
-.user-coord { font-size:12px; color:#555; }
-.user-distance { margin-top:6px; color:#007aff; font-weight:bold; }
+/* 텍스트 */
+.user-name {
+  font-weight:bold;
+  margin-bottom:4px;
+  word-break: break-word;
+}
+
+.user-coord {
+  font-size:12px;
+  color:#555;
+  line-height:1.4;
+  word-break: break-all;
+}
+
+.user-distance {
+  margin-top:6px;
+  color:#007aff;
+  font-weight:bold;
+}
+
+/* 데스크탑 */
+@media (min-width:1024px){
+  #userList {
+    right:10px;
+    left:auto;
+    top:60px;
+    bottom:auto;
+    width:260px;
+    transform:none;
+  }
+
+  #shareBtn {
+    top:10px;
+    bottom:auto;
+    right:10px;
+    left:auto;
+    transform:none;
+    width:auto;
+  }
+}
 </style>
 </head>
 
@@ -65,22 +119,17 @@ body, html { margin:0; padding:0; height:100%; font-family: Arial; }
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzpNNxNK7Zcj6ZbKlPDNr0Lz7hG_o0IPlCIEtvWnQe8uJyPIQPluGe8wcnox_2pAcSE/exec";
 
-const ALERT_DISTANCE = 0.3;
-const TIMEOUT = 30000;
-
 let myId;
-let map, myMarker, markers = {};
+let map, markers={}, infoWindows={}, myMarker;
 let myLat, myLng;
-
-let lastSent = 0;
-let lastLat, lastLng;
-
-let fetchInterval = 5000;
-let fetchTimer;
-
-let alertedUsers = {};
+let openInfoWindow = null;
 
 /* 이름 */
+const params = new URLSearchParams(location.search);
+if(params.get("user")){
+  localStorage.setItem("myId", params.get("user"));
+}
+
 async function getName(){
   let name = localStorage.getItem("myId");
   if(!name){
@@ -97,7 +146,7 @@ function initMap(lat,lng){
   myMarker = new kakao.maps.Marker({map, position:center});
 }
 
-/* 거리 계산 */
+/* 거리 */
 function getDistance(lat1,lon1,lat2,lon2){
   const R=6371;
   const dLat=(lat2-lat1)*Math.PI/180;
@@ -106,204 +155,105 @@ function getDistance(lat1,lon1,lat2,lon2){
   return R*(2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
 }
 
-/* 이동 거리 */
-function getMoveDistance(lat,lng){
-  if(!lastLat) return 999;
-  return getDistance(lat,lng,lastLat,lastLng);
-}
-
-/* 🔔 근접 알림 */
-function checkDistanceAlert(user){
-  if(user.dist > ALERT_DISTANCE){
-    alertedUsers[user.id] = false;
-    return;
-  }
-
-  if(alertedUsers[user.id]) return;
-  alertedUsers[user.id] = true;
-
-  if(Notification.permission === "granted"){
-    new Notification("📍 근처!", {
-      body: `${user.id} ${Math.round(user.dist*1000)}m`
-    });
-  }
-
-  navigator.vibrate?.([200,100,200]);
-}
-
 /* 전송 */
-function sendLocation(){
-  fetch(GAS_URL,{
-    method:"POST",
-    body:JSON.stringify({
-      id:myId,
-      lat:myLat,
-      lng:myLng,
-      time:Date.now()
-    }),
-    keepalive:true
-  }).catch(()=>{});
+function sendLocation(lat,lng){
+  fetch(GAS_URL,{method:"POST", body:JSON.stringify({id:myId, lat,lng})});
 }
 
-/* 스마트 전송 */
-function smartSend(){
-  const now = Date.now();
-  const dist = getMoveDistance(myLat,myLng);
-
-  if(dist < 0.01 && now - lastSent < 15000) return;
-
-  if(dist > 0.1){
-    lastSent = now;
-    sendLocation();
-  }
-  else if(now - lastSent > 5000){
-    lastSent = now;
-    sendLocation();
-  }
-
-  lastLat = myLat;
-  lastLng = myLng;
-}
-
-/* 사용자 조회 */
+/* 사용자 */
 function fetchUsers(){
-  fetch(GAS_URL)
-  .then(res=>res.json())
-  .then(users=>{
+  fetch(GAS_URL).then(res=>res.json()).then(users=>{
 
-    let html = "";
-    let arr = [];
+    let arr=[];
 
     for(let id in users){
       if(id===myId) continue;
 
       const u = users[id];
-      if(Date.now() - u.time > TIMEOUT) continue;
-
       const dist = getDistance(myLat,myLng,u.lat,u.lng);
+
       arr.push({id, ...u, dist});
     }
 
+    // ✅ 거리순 정렬
     arr.sort((a,b)=>a.dist-b.dist);
 
-    arr.forEach((u,idx)=>{
+    let html="";
 
-      checkDistanceAlert(u);
+    arr.forEach((u,idx)=>{
 
       const pos = new kakao.maps.LatLng(u.lat,u.lng);
 
       if(!markers[u.id]){
-        markers[u.id] = new kakao.maps.Marker({map, position:pos});
+        markers[u.id]=new kakao.maps.Marker({map, position:pos});
       }
 
       markers[u.id].setPosition(pos);
 
-      let rank="";
-      if(idx===0) rank="top1";
-      else if(idx===1) rank="top2";
-      else if(idx===2) rank="top3";
-
-      const status = (Date.now() - u.time < 10000) ? "🟢" : "🔴";
+      // TOP3 강조
+      let rankClass="";
+      if(idx===0) rankClass="top1";
+      else if(idx===1) rankClass="top2";
+      else if(idx===2) rankClass="top3";
 
       html += `
-        <div class="user-card ${rank}" onclick="focusUser('${u.id}')">
-          <div class="user-name">${status} ${u.id}</div>
-          <div class="user-coord">${u.lat.toFixed(5)}, ${u.lng.toFixed(5)}</div>
-          <div class="user-distance">${u.dist.toFixed(2)} km</div>
+        <div class="user-card ${rankClass}" onclick="focusUser('${u.id}')">
+          <div class="user-name">👤 ${u.id}</div>
+          <div class="user-coord">📍 ${u.lat.toFixed(5)}, ${u.lng.toFixed(5)}</div>
+          <div class="user-distance">📏 ${u.dist.toFixed(2)} km</div>
         </div>
       `;
     });
 
     document.getElementById("userList").innerHTML = html;
-  })
-  .catch(()=>{});
-}
-
-/* 사용자 클릭 */
-function focusUser(id){
-  const marker = markers[id];
-  if(marker){
-    map.setCenter(marker.getPosition());
-  }
-}
-
-/* fetch 주기 */
-function startFetchLoop(){
-  clearInterval(fetchTimer);
-  fetchTimer = setInterval(fetchUsers, fetchInterval);
-}
-
-/* 📍 위치 추적 */
-function startTracking(){
-  navigator.geolocation.watchPosition(pos=>{
-    myLat = pos.coords.latitude;
-    myLng = pos.coords.longitude;
-
-    const myPos = new kakao.maps.LatLng(myLat,myLng);
-
-    if(!map) initMap(myLat,myLng);
-
-    myMarker?.setPosition(myPos);
-
-    smartSend();
-
-  }, err=>{
-    console.log(err);
-  },{
-    enableHighAccuracy:false, // 🔋 핵심
-    maximumAge:10000,
-    timeout:15000
   });
 }
 
-/* 화면 상태 */
-document.addEventListener("visibilitychange", () => {
+/* 클릭 */
+function focusUser(id){
+  const marker = markers[id];
+  if(!marker) return;
+  map.setCenter(marker.getPosition());
+}
 
-  if(document.visibilityState === "hidden"){
-    fetchInterval = 15000; // 🔋 절전
-  }else{
-    fetchInterval = 4000;  // ⚡ 활성
+/* 업데이트 */
+function update(){
+  navigator.geolocation.getCurrentPosition(pos=>{
+    myLat=pos.coords.latitude;
+    myLng=pos.coords.longitude;
+
+    const myPos=new kakao.maps.LatLng(myLat,myLng);
+
+    if(!map) initMap(myLat,myLng);
+
+    // ✅ 내 위치 자동 따라가기 (부드럽게)
+    map.panTo(myPos);
+
+    if(myMarker) myMarker.setPosition(myPos);
+
+    sendLocation(myLat,myLng);
     fetchUsers();
-  }
-
-  startFetchLoop();
-});
-
-/* 종료 */
-window.addEventListener("pagehide", () => {
-  navigator.sendBeacon(GAS_URL, JSON.stringify({
-    id: myId,
-    offline: true
-  }));
-});
+  });
+}
 
 /* 공유 */
 document.getElementById("shareBtn").addEventListener("click", async () => {
-
-  const url = location.href.split("?")[0] +
-    "?user=" + encodeURIComponent(myId);
+  const url = location.href + "?user=" + encodeURIComponent(myId);
 
   if(navigator.share){
     await navigator.share({
       title:"실시간 위치",
-      text: myId,
+      text:`${myId} 위치`,
       url:url
     });
   }else{
     await navigator.clipboard.writeText(url);
-    alert("복사됨");
+    alert("링크 복사됨");
   }
 });
 
-/* 실행 */
-if ("Notification" in window) {
-  Notification.requestPermission();
-}
-
-getName().then(()=>{
-  startTracking();
-  startFetchLoop();
-});
+setInterval(update,5000);
+getName().then(update);
 </script>
 
 </body>
