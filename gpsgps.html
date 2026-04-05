@@ -59,22 +59,36 @@ let lastSent=0, lastLat, lastLng;
 let fetchInterval=5000, fetchTimer;
 let alertedUsers={};
 
+/* 이름 확인 및 입장 */
+function checkName(){
+  const storedName = localStorage.getItem("myId");
+  if(storedName){
+    myId = storedName;
+    showAppUI();
+    startApp();
+  } else {
+    document.getElementById("loginScreen").style.display="flex";
+  }
+}
+
 /* 이름 입력 후 시작 */
 document.getElementById("enterBtn").addEventListener("click", ()=>{
   const name = document.getElementById("nameInput").value.trim();
   if(!name){ alert("이름을 입력해주세요"); return; }
   myId = name;
   localStorage.setItem("myId", myId);
+  showAppUI();
+  startApp();
+});
 
-  // 화면 전환
+/* 화면 전환 */
+function showAppUI(){
   document.getElementById("loginScreen").style.display="none";
   document.getElementById("map").style.display="block";
   document.getElementById("onlineCount").style.display="block";
   document.getElementById("shareBtn").style.display="block";
   document.getElementById("userList").style.display="block";
-
-  startApp();
-});
+}
 
 /* 앱 시작 */
 function startApp(){
@@ -187,6 +201,9 @@ document.getElementById("shareBtn").addEventListener("click", async ()=>{
   if(navigator.share) await navigator.share({title:"실시간 위치", text: myId, url});
   else{ await navigator.clipboard.writeText(url); alert("복사됨"); }
 });
+
+/* 초기 실행 */
+checkName();
 </script>
 </body>
 </html>
