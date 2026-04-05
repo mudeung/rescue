@@ -1,9 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📍 실시간 위치공유</title>
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424"></script>
+
+<style>
+body, html { margin:0; padding:0; height:100%; font-family: Arial; }
+#map { width:100%; height:100%; }
+
+#shareBtn {
+  position:fixed;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%);
+  width:90%;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  background:#007aff;
+  color:#fff;
+  font-weight:bold;
+  z-index:20;
+}
+
+#userList {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 92%;
+  max-height: 45vh;
+  overflow-y: auto;
+  z-index: 15;
+}
+
+.user-card {
+  background: #fff;
+  margin-bottom: 10px;
+  padding: 16px;
+  border-radius: 14px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.top1 { border:2px solid gold; }
+.top2 { border:2px solid silver; }
+.top3 { border:2px solid #cd7f32; }
+
+.user-name { font-weight:bold; }
+.user-coord { font-size:12px; color:#555; }
+.user-distance { margin-top:6px; color:#007aff; font-weight:bold; }
+</style>
+</head>
+
+<body>
+
+<button id="shareBtn">내위치 공유</button>
+<div id="userList"></div>
+<div id="map"></div>
+
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzpNNxNK7Zcj6ZbKlPDNr0Lz7hG_o0IPlCIEtvWnQe8uJyPIQPluGe8wcnox_2pAcSE/exec";
 
-// 🔔 거리 설정
-const ALERT_DISTANCE = 0.3; // 300m
-const ZOOM_DISTANCE = 0.3;  // 확대 기준
+const ALERT_DISTANCE = 0.3;
+const ZOOM_DISTANCE = 0.3;
+const TIMEOUT = 15000;
 
 let alertedUsers = {};
 let zoomedTarget = false;
@@ -13,12 +77,12 @@ let map, markers={}, myMarker;
 let myLat, myLng;
 let targetUser = null;
 
-/* 알림 권한 */
+/* 알림 */
 if ("Notification" in window) {
   Notification.requestPermission();
 }
 
-/* URL 파라미터 */
+/* URL */
 const params = new URLSearchParams(location.search);
 
 if(params.get("user")){
@@ -46,7 +110,7 @@ function initMap(lat,lng){
   myMarker = new kakao.maps.Marker({map, position:center});
 }
 
-/* 거리 */
+/* 거리 계산 */
 function getDistance(lat1,lon1,lat2,lon2){
   const R=6371;
   const dLat=(lat2-lat1)*Math.PI/180;
@@ -57,7 +121,6 @@ function getDistance(lat1,lon1,lat2,lon2){
 
 /* 🔔 근접 알림 */
 function checkDistanceAlert(user){
-
   if(user.dist > ALERT_DISTANCE){
     alertedUsers[user.id] = false;
     return;
@@ -65,53 +128,51 @@ function checkDistanceAlert(user){
 
   if(alertedUsers[user.id]) return;
 
-  if(user.dist <= ALERT_DISTANCE){
-    alertedUsers[user.id] = true;
+  alertedUsers[user.id] = true;
 
-    if(Notification.permission === "granted"){
-      new Notification("📍 근처 도착!", {
-        body: `${user.id}님이 ${Math.round(user.dist*1000)}m 거리입니다`
-      });
-    } else {
-      alert(`${user.id}님이 가까이에 있습니다 (${user.dist.toFixed(2)}km)`);
-    }
-
-    navigator.vibrate?.([200,100,200]);
+  if(Notification.permission === "granted"){
+    new Notification("📍 근처!", {
+      body: `${user.id} ${Math.round(user.dist*1000)}m`
+    });
+  } else {
+    alert(`${user.id} 가까움 (${user.dist.toFixed(2)}km)`);
   }
+
+  navigator.vibrate?.([200,100,200]);
 }
 
-/* 🔥 자동 확대 + 타겟 추적 */
+/* 🔥 자동 확대 */
 function checkZoomTarget(user){
-
-  // 타겟 아니면 무시
   if(!targetUser || user.id !== targetUser) return;
 
-  // 멀어지면 초기화
   if(user.dist > ZOOM_DISTANCE){
     zoomedTarget = false;
     return;
   }
 
-  // 이미 확대했으면 계속 따라가기
   const pos = new kakao.maps.LatLng(user.lat, user.lng);
 
   if(!zoomedTarget){
     zoomedTarget = true;
-
-    map.setLevel(2); // 🔍 확대 (숫자 낮을수록 확대)
-    map.panTo(pos);
-  } else {
-    // 계속 따라가기
-    map.panTo(pos);
+    map.setLevel(2);
   }
+
+  map.panTo(pos);
 }
 
 /* 전송 */
 function sendLocation(lat,lng){
-  fetch(GAS_URL,{method:"POST", body:JSON.stringify({id:myId, lat,lng})});
+  fetch(GAS_URL,{
+    method:"POST",
+    body:JSON.stringify({
+      id:myId,
+      lat,lng,
+      time:Date.now()
+    })
+  });
 }
 
-/* 사용자 */
+/* 사용자 가져오기 */
 function fetchUsers(){
   fetch(GAS_URL).then(res=>res.json()).then(users=>{
 
@@ -121,8 +182,11 @@ function fetchUsers(){
       if(id===myId) continue;
 
       const u = users[id];
-      const dist = getDistance(myLat,myLng,u.lat,u.lng);
 
+      // ⏱ 타임아웃 제거
+      if(Date.now() - u.time > TIMEOUT) continue;
+
+      const dist = getDistance(myLat,myLng,u.lat,u.lng);
       arr.push({id, ...u, dist});
     }
 
@@ -133,7 +197,7 @@ function fetchUsers(){
     arr.forEach((u,idx)=>{
 
       checkDistanceAlert(u);
-      checkZoomTarget(u); // 🔥 핵심 추가
+      checkZoomTarget(u);
 
       const pos = new kakao.maps.LatLng(u.lat,u.lng);
 
@@ -148,11 +212,13 @@ function fetchUsers(){
       else if(idx===1) rank="top2";
       else if(idx===2) rank="top3";
 
+      const status = (Date.now() - u.time < 10000) ? "🟢" : "🔴";
+
       html += `
         <div class="user-card ${rank}" onclick="focusUser('${u.id}')">
-          <div class="user-name">👤 ${u.id}</div>
-          <div class="user-coord">📍 ${u.lat.toFixed(5)}, ${u.lng.toFixed(5)}</div>
-          <div class="user-distance">📏 ${u.dist.toFixed(2)} km</div>
+          <div class="user-name">${status} ${u.id}</div>
+          <div class="user-coord">${u.lat.toFixed(5)}, ${u.lng.toFixed(5)}</div>
+          <div class="user-distance">${u.dist.toFixed(2)} km</div>
         </div>
       `;
     });
@@ -164,11 +230,12 @@ function fetchUsers(){
 /* 클릭 */
 function focusUser(id){
   const marker = markers[id];
-  if(!marker) return;
-  map.setCenter(marker.getPosition());
+  if(marker){
+    map.setCenter(marker.getPosition());
+  }
 }
 
-/* 업데이트 */
+/* 위치 업데이트 */
 function update(){
   navigator.geolocation.getCurrentPosition(pos=>{
     myLat=pos.coords.latitude;
@@ -187,7 +254,7 @@ function update(){
   });
 }
 
-/* 🔴 종료 시 오프라인 */
+/* 🔴 종료시 OFF */
 window.addEventListener("pagehide", () => {
   navigator.sendBeacon(GAS_URL, JSON.stringify({
     id: myId,
@@ -197,22 +264,26 @@ window.addEventListener("pagehide", () => {
 
 /* 공유 */
 document.getElementById("shareBtn").addEventListener("click", async () => {
-  const url = location.href.split("?")[0] + 
-              "?user=" + encodeURIComponent(myId) +
-              (targetUser ? "&target=" + encodeURIComponent(targetUser) : "");
+
+  const url = location.href.split("?")[0] +
+    "?user=" + encodeURIComponent(myId) +
+    (targetUser ? "&target=" + encodeURIComponent(targetUser) : "");
 
   if(navigator.share){
     await navigator.share({
       title:"실시간 위치",
-      text:`${myId} 위치`,
+      text: myId,
       url:url
     });
   }else{
     await navigator.clipboard.writeText(url);
-    alert("링크 복사됨");
+    alert("복사됨");
   }
 });
 
 setInterval(update,5000);
 getName().then(update);
 </script>
+
+</body>
+</html>
