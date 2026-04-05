@@ -59,7 +59,7 @@ let lastSent=0, lastLat, lastLng;
 let fetchInterval=5000, fetchTimer;
 let alertedUsers={};
 
-/* 이름 확인 및 입장 */
+/* 이름 확인 */
 function checkName(){
   const storedName = localStorage.getItem("myId");
   if(storedName){
@@ -101,7 +101,7 @@ function startApp(){
 function initMap(lat,lng){
   const center = new kakao.maps.LatLng(lat,lng);
   map = new kakao.maps.Map(document.getElementById('map'), {center, level:4});
-  myMarker = new kakao.maps.Marker({map, position:center});
+  myMarker = new kakao.maps.Marker({map, position:center, title:myId});
 }
 
 /* 거리 계산 */
@@ -137,7 +137,7 @@ function smartSend(){
   lastLat=myLat; lastLng=myLng;
 }
 
-/* 사용자 조회 및 카드 UI */
+/* 사용자 조회 및 지도 핀 + 카드 UI */
 function fetchUsers(){
   fetch(GAS_URL).then(res=>res.json()).then(users=>{
     let html="", arr=[], onlineCount=0;
@@ -150,11 +150,18 @@ function fetchUsers(){
       arr.push({...u,id,dist,diff});
     }
     arr.sort((a,b)=>a.dist-b.dist);
+
     arr.forEach((u,idx)=>{
       checkDistanceAlert(u);
       const pos=new kakao.maps.LatLng(u.lat,u.lng);
-      if(!markers[u.id]) markers[u.id]=new kakao.maps.Marker({map, position:pos});
+
+      // 마커 생성 및 갱신
+      if(!markers[u.id]){
+        markers[u.id] = new kakao.maps.Marker({map, position:pos, title:u.id});
+      }
       markers[u.id].setPosition(pos);
+
+      // 카드 UI
       let rank=idx===0?"top1":idx===1?"top2":idx===2?"top3":"";
       let status=u.diff<10000?"🟢 실시간":u.diff<20000?"🟡 지연":"🔴 끊김";
       html+=`<div class="user-card ${rank}" onclick="focusUser('${u.id}')">
@@ -164,10 +171,12 @@ function fetchUsers(){
         <div class="user-distance">거리: ${u.dist.toFixed(2)} km</div>
       </div>`;
     });
+
     document.getElementById("userList").innerHTML=html;
     document.getElementById("onlineCount").innerText=`접속자 ${onlineCount}명`;
   }).catch(()=>{});
 }
+
 function focusUser(id){ if(markers[id]) map.setCenter(markers[id].getPosition()); }
 
 /* fetch 루프 */
