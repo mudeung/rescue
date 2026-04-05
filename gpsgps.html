@@ -67,7 +67,7 @@ const GAS_URL = "https://script.google.com/macros/s/AKfycbzpNNxNK7Zcj6ZbKlPDNr0L
 
 const ALERT_DISTANCE = 0.3;
 const ZOOM_DISTANCE = 0.3;
-const TIMEOUT = 15000;
+const TIMEOUT = 30000;
 
 let alertedUsers = {};
 let zoomedTarget = false;
@@ -76,6 +76,9 @@ let myId;
 let map, markers={}, myMarker;
 let myLat, myLng;
 let targetUser = null;
+
+let lastSent = 0;
+let lastLat, lastLng;
 
 /* 알림 */
 if ("Notification" in window) {
@@ -119,6 +122,13 @@ function getDistance(lat1,lon1,lat2,lon2){
   return R*(2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
 }
 
+/* 이동 체크 */
+function hasMoved(lat,lng){
+  if(!lastLat) return true;
+  const dist = getDistance(lat,lng,lastLat,lastLng);
+  return dist > 0.01; // 10m
+}
+
 /* 🔔 근접 알림 */
 function checkDistanceAlert(user){
   if(user.dist > ALERT_DISTANCE){
@@ -160,21 +170,46 @@ function checkZoomTarget(user){
   map.panTo(pos);
 }
 
+/* timeout fetch */
+function fetchWithTimeout(url, options={}, timeout=5000){
+  return Promise.race([
+    fetch(url, options),
+    new Promise((_, reject)=>setTimeout(()=>reject("timeout"), timeout))
+  ]);
+}
+
 /* 전송 */
 function sendLocation(lat,lng){
-  fetch(GAS_URL,{
+  fetchWithTimeout(GAS_URL,{
     method:"POST",
     body:JSON.stringify({
       id:myId,
       lat,lng,
       time:Date.now()
-    })
-  });
+    }),
+    keepalive:true
+  }).catch(()=>{});
+}
+
+/* 쓰로틀 */
+function sendLocationThrottled(){
+  const now = Date.now();
+
+  if(now - lastSent < 3000) return;
+  if(!hasMoved(myLat,myLng)) return;
+
+  lastSent = now;
+  lastLat = myLat;
+  lastLng = myLng;
+
+  sendLocation(myLat,myLng);
 }
 
 /* 사용자 가져오기 */
 function fetchUsers(){
-  fetch(GAS_URL).then(res=>res.json()).then(users=>{
+  fetchWithTimeout(GAS_URL)
+  .then(res=>res.json())
+  .then(users=>{
 
     let arr=[];
 
@@ -182,8 +217,6 @@ function fetchUsers(){
       if(id===myId) continue;
 
       const u = users[id];
-
-      // ⏱ 타임아웃 제거
       if(Date.now() - u.time > TIMEOUT) continue;
 
       const dist = getDistance(myLat,myLng,u.lat,u.lng);
@@ -224,7 +257,8 @@ function fetchUsers(){
     });
 
     document.getElementById("userList").innerHTML = html;
-  });
+  })
+  .catch(()=>{});
 }
 
 /* 클릭 */
@@ -235,26 +269,38 @@ function focusUser(id){
   }
 }
 
-/* 위치 업데이트 */
-function update(){
-  navigator.geolocation.getCurrentPosition(pos=>{
-    myLat=pos.coords.latitude;
-    myLng=pos.coords.longitude;
+/* 📍 위치 추적 (핵심 개선) */
+function startTracking(){
+  navigator.geolocation.watchPosition(pos=>{
+    myLat = pos.coords.latitude;
+    myLng = pos.coords.longitude;
 
-    const myPos=new kakao.maps.LatLng(myLat,myLng);
+    const myPos = new kakao.maps.LatLng(myLat,myLng);
 
     if(!map) initMap(myLat,myLng);
 
     map.panTo(myPos);
+    myMarker?.setPosition(myPos);
 
-    if(myMarker) myMarker.setPosition(myPos);
+    sendLocationThrottled();
 
-    sendLocation(myLat,myLng);
-    fetchUsers();
+  }, err=>{
+    console.log(err);
+  },{
+    enableHighAccuracy:true,
+    maximumAge:3000,
+    timeout:10000
   });
 }
 
-/* 🔴 종료시 OFF */
+/* 페이지 복귀 */
+document.addEventListener("visibilitychange", () => {
+  if(document.visibilityState === "visible"){
+    fetchUsers();
+  }
+});
+
+/* 종료 */
 window.addEventListener("pagehide", () => {
   navigator.sendBeacon(GAS_URL, JSON.stringify({
     id: myId,
@@ -281,8 +327,11 @@ document.getElementById("shareBtn").addEventListener("click", async () => {
   }
 });
 
-setInterval(update,5000);
-getName().then(update);
+/* 실행 */
+getName().then(()=>{
+  startTracking();
+  setInterval(fetchUsers, 4000);
+});
 </script>
 
 </body>
