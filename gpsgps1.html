@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>📍 실시간 위치공유</title>
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424"></script>
-
 <style>
 body, html { margin:0; padding:0; height:100%; font-family: Arial; }
 #map { width:100%; height:100%; display:none; }
@@ -33,7 +32,6 @@ body, html { margin:0; padding:0; height:100%; font-family: Arial; }
 #loginScreen button { padding:12px 20px; font-size:16px; border:none; border-radius:8px; background:#007aff; color:#fff; cursor:pointer; }
 </style>
 </head>
-
 <body>
 
 <!-- 입장 화면 -->
@@ -72,7 +70,7 @@ function checkName(){
 }
 
 /* 이름 입력 후 시작 */
-document.getElementById("enterBtn").addEventListener("click", ()=>{
+document.getElementById("enterBtn").addEventListener("click", ()=> {
   const name = document.getElementById("nameInput").value.trim();
   if(!name){ alert("이름을 입력해주세요"); return; }
   myId = name;
@@ -139,63 +137,72 @@ function smartSend(){
 
 /* 사용자 조회 및 지도 핀 + 카드 UI */
 function fetchUsers(){
-  fetch(GAS_URL).then(res=>res.json()).then(users=>{
-    let html="", arr=[], onlineCount=0;
-    for(let id in users){
-      if(id===myId) continue;
-      const u=users[id], diff=Date.now()-u.time;
-      if(diff>TIMEOUT) continue;
-      if(diff<10000) onlineCount++;
-      const dist=getDistance(myLat,myLng,u.lat,u.lng);
-      arr.push({...u,id,dist,diff});
-    }
-    arr.sort((a,b)=>a.dist-b.dist);
-
-    arr.forEach((u,idx)=>{
-      checkDistanceAlert(u);
-      const pos=new kakao.maps.LatLng(u.lat,u.lng);
-
-      // 마커 생성 및 갱신
-      if(!markers[u.id]){
-        markers[u.id] = new kakao.maps.Marker({map, position:pos, title:u.id});
+  fetch(GAS_URL)
+    .then(res=>res.json())
+    .then(users=>{
+      let html="", arr=[], onlineCount=0;
+      const now = Date.now();
+      for(let id in users){
+        const u = users[id];
+        if(u.offline) continue;
+        const diff = now-u.time;
+        if(diff>TIMEOUT) continue;
+        if(diff<10000) onlineCount++;
+        if(id===myId) continue;
+        const dist = getDistance(myLat,myLng,u.lat,u.lng);
+        arr.push({...u,id,dist,diff});
       }
-      markers[u.id].setPosition(pos);
+      arr.sort((a,b)=>a.dist-b.dist);
 
-      // 카드 UI
-      let rank=idx===0?"top1":idx===1?"top2":idx===2?"top3":"";
-      let status=u.diff<10000?"🟢 실시간":u.diff<20000?"🟡 지연":"🔴 끊김";
-      html+=`<div class="user-card ${rank}" onclick="focusUser('${u.id}')">
-        <div class="user-status">${status}</div>
-        <div class="user-name">${u.id}</div>
-        <div class="user-coord">좌표: ${u.lat.toFixed(5)}, ${u.lng.toFixed(5)}</div>
-        <div class="user-distance">거리: ${u.dist.toFixed(2)} km</div>
-      </div>`;
-    });
+      arr.forEach((u,idx)=>{
+        checkDistanceAlert(u);
+        const pos = new kakao.maps.LatLng(u.lat,u.lng);
 
-    document.getElementById("userList").innerHTML=html;
-    document.getElementById("onlineCount").innerText=`접속자 ${onlineCount}명`;
-  }).catch(()=>{});
+        // 마커 생성 및 갱신
+        if(!markers[u.id]){
+          markers[u.id] = new kakao.maps.Marker({map, position:pos, title:u.id});
+        } else {
+          markers[u.id].setPosition(pos);
+        }
+
+        // 카드 UI
+        let rank=idx===0?"top1":idx===1?"top2":idx===2?"top3":"";
+        let status=u.diff<10000?"🟢 실시간":u.diff<20000?"🟡 지연":"🔴 끊김";
+        html+=`<div class="user-card ${rank}" onclick="focusUser('${u.id}')">
+          <div class="user-status">${status}</div>
+          <div class="user-name">${u.id}</div>
+          <div class="user-coord">좌표: ${u.lat.toFixed(5)}, ${u.lng.toFixed(5)}</div>
+          <div class="user-distance">거리: ${u.dist.toFixed(2)} km</div>
+        </div>`;
+      });
+
+      document.getElementById("userList").innerHTML=html;
+      document.getElementById("onlineCount").innerText=`접속자 ${onlineCount+1}명`; // 나 포함
+    }).catch(console.error);
 }
 
 function focusUser(id){ if(markers[id]) map.setCenter(markers[id].getPosition()); }
 
 /* fetch 루프 */
-function startFetchLoop(){ clearInterval(fetchTimer); fetchTimer=setInterval(fetchUsers, fetchInterval); }
+function startFetchLoop(){
+  clearInterval(fetchTimer);
+  fetchTimer = setInterval(fetchUsers, fetchInterval);
+  fetchUsers();
+}
 
 /* 위치 추적 */
 function startTracking(){
   navigator.geolocation.watchPosition(pos=>{
-    myLat=pos.coords.latitude; myLng=pos.coords.longitude;
+    myLat = pos.coords.latitude; myLng = pos.coords.longitude;
     if(!map) initMap(myLat,myLng);
     myMarker?.setPosition(new kakao.maps.LatLng(myLat,myLng));
     smartSend();
-  }, err=>{console.log(err);},{enableHighAccuracy:false, maximumAge:10000, timeout:15000});
+  }, err=>{console.error(err);},{enableHighAccuracy:false, maximumAge:10000, timeout:15000});
 }
 
 /* 화면 상태 */
 document.addEventListener("visibilitychange", ()=>{
   fetchInterval=(document.visibilityState==="hidden")?15000:4000;
-  if(document.visibilityState!=="hidden") fetchUsers();
   startFetchLoop();
 });
 
