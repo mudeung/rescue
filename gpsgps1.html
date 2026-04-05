@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📍 실시간 위치공유</title>
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424"></script>
+
+<style>
+body, html {
+  margin:0;
+  padding:0;
+  height:100%;
+  font-family: Arial, sans-serif;
+}
+
+#map {
+  width:100%;
+  height:100%;
+}
+
+/* 공유 버튼 */
+#shareBtn {
+  position:fixed;
+  top:10px;
+  right:10px;
+  z-index:20;
+  padding:12px 16px;
+  border:none;
+  border-radius:10px;
+  background:#007aff;
+  color:#fff;
+  font-weight:bold;
+}
+
+/* 카드 리스트 */
+#userList {
+  position: fixed;
+  right: 10px;
+  top: 60px;
+  width: 260px;
+  max-height: 70vh;
+  overflow-y: auto;
+  z-index: 15;
+}
+
+/* 카드 */
+.user-card {
+  background: #fff;
+  margin-bottom: 10px;
+  padding: 14px;
+  border-radius: 12px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+  font-size: 14px;
+  cursor: pointer;
+
+  /* 핵심 */
+  overflow: hidden;
+  word-break: break-word;
+}
+
+/* 이름 + 거리 */
+.user-name,
+.user-distance {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 좌표 */
+.user-coord {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #555;
+
+  /* 좌표 줄바꿈 */
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+/* 거리 */
+.user-distance {
+  margin-top: 6px;
+  color:#007aff;
+  font-weight:bold;
+}
+
+/* 모바일 최적화 */
+@media (max-width:1023px){
+
+  #userList {
+    width: 92%;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 90px;
+    top: auto;
+    max-height: 45vh;
+  }
+
+  .user-card {
+    font-size: 15px;
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  #shareBtn {
+    bottom: 20px;
+    top: auto;
+    right: 50%;
+    transform: translateX(50%);
+    width: 90%;
+    font-size: 16px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<button id="shareBtn">내위치 공유</button>
+<div id="userList"></div>
+<div id="map"></div>
+
+<script>
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzpNNxNK7Zcj6ZbKlPDNr0Lz7hG_o0IPlCIEtvWnQe8uJyPIQPluGe8wcnox_2pAcSE/exec";
+
+let myId;
+let map, markers={}, infoWindows={}, myMarker;
+let myLat, myLng;
+let openInfoWindow = null;
+
+// URL 이름 자동 적용
+const params = new URLSearchParams(location.search);
+if(params.get("user")){
+  localStorage.setItem("myId", params.get("user"));
+}
+
+// 이름 설정
+async function getName(){
+  let name = localStorage.getItem("myId");
+  if(!name){
+    name = prompt("이름 입력");
+    localStorage.setItem("myId", name);
+  }
+  myId = name;
+}
+
+// 지도 초기화
+function initMap(lat,lng){
+  const center = new kakao.maps.LatLng(lat,lng);
+  map = new kakao.maps.Map(document.getElementById('map'), {center, level:4});
+  myMarker = new kakao.maps.Marker({map, position:center});
+
+  kakao.maps.event.addListener(map, 'click', function () {
+    if(openInfoWindow){
+      openInfoWindow.close();
+      openInfoWindow = null;
+    }
+  });
+}
+
+// 거리 계산
+function getDistance(lat1,lon1,lat2,lon2){
+  const R=6371;
+  const dLat=(lat2-lat1)*Math.PI/180;
+  const dLon=(lon2-lon1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R*(2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+}
+
+// 위치 전송
+function sendLocation(lat,lng){
+  fetch(GAS_URL,{method:"POST", body:JSON.stringify({id:myId, lat,lng})});
+}
+
+// 사용자 불러오기 + UI
+function fetchUsers(){
+  fetch(GAS_URL).then(res=>res.json()).then(users=>{
+    let html="";
+
+    for(let id in users){
+      const u = users[id];
+      const pos = new kakao.maps.LatLng(u.lat,u.lng);
+
+      if(id===myId){
+        if(myMarker) myMarker.setPosition(pos);
+        continue;
+      }
+
+      if(!markers[id]){
+        const marker=new kakao.maps.Marker({map, position:pos});
+        markers[id]=marker;
+
+        const infowindow=new kakao.maps.InfoWindow({
+          content:`<div style="padding:10px;font-weight:bold;">
+          ${id}<br>${u.lat.toFixed(5)}, ${u.lng.toFixed(5)}
+          </div>`
+        });
+
+        infoWindows[id]=infowindow;
+
+        kakao.maps.event.addListener(marker,'click',function(){
+
+          if(openInfoWindow === infowindow){
+            infowindow.close();
+            openInfoWindow = null;
+            return;
+          }
+
+          if(openInfoWindow){
+            openInfoWindow.close();
+          }
+
+          infowindow.open(map, marker);
+          openInfoWindow = infowindow;
+        });
+      }
+
+      markers[id].setPosition(pos);
+
+      const dist = getDistance(myLat,myLng,u.lat,u.lng).toFixed(2);
+
+      html += `
+        <div class="user-card" onclick="focusUser('${id}')">
+          <div class="user-name">👤 ${id}</div>
+          <div class="user-coord">📍 ${u.lat.toFixed(5)}, ${u.lng.toFixed(5)}</div>
+          <div class="user-distance">📏 ${dist} km</div>
+        </div>
+      `;
+    }
+
+    document.getElementById("userList").innerHTML = html;
+  });
+}
+
+// 카드 클릭
+function focusUser(id){
+  const marker = markers[id];
+  const infowindow = infoWindows[id];
+  if(!marker) return;
+
+  map.setCenter(marker.getPosition());
+
+  if(openInfoWindow){
+    openInfoWindow.close();
+  }
+
+  infowindow.open(map, marker);
+  openInfoWindow = infowindow;
+}
+
+// 위치 업데이트
+function update(){
+  navigator.geolocation.getCurrentPosition(pos=>{
+    myLat=pos.coords.latitude;
+    myLng=pos.coords.longitude;
+
+    const myPos=new kakao.maps.LatLng(myLat,myLng);
+
+    if(!map) initMap(myLat,myLng);
+    if(myMarker) myMarker.setPosition(myPos);
+
+    sendLocation(myLat,myLng);
+    fetchUsers();
+  });
+}
+
+// 공유 기능
+document.getElementById("shareBtn").addEventListener("click", async () => {
+  const url = location.href + "?user=" + encodeURIComponent(myId);
+
+  if(navigator.share){
+    await navigator.share({
+      title:"실시간 위치",
+      text:`${myId} 현위치 링크`,
+      url:url
+    });
+  }else{
+    await navigator.clipboard.writeText(url);
+    alert("링크 복사됨");
+  }
+});
+
+setInterval(update,5000);
+getName().then(update);
+</script>
+
+</body>
+</html>
