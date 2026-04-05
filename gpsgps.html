@@ -1,116 +1,35 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>📍 실시간 위치공유</title>
-<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424"></script>
-
-<style>
-body, html { margin:0; padding:0; height:100%; font-family: Arial; }
-#map { width:100%; height:100%; }
-
-/* 버튼 */
-#shareBtn {
-  position:fixed;
-  bottom:20px;
-  left:50%;
-  transform:translateX(-50%);
-  width:90%;
-  padding:14px;
-  border:none;
-  border-radius:12px;
-  background:#007aff;
-  color:#fff;
-  font-weight:bold;
-  z-index:20;
-}
-
-/* 리스트 */
-#userList {
-  position: fixed;
-  bottom: 90px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 92%;
-  max-height: 45vh;
-  overflow-y: auto;
-  z-index: 15;
-}
-
-/* 카드 */
-.user-card {
-  background: #fff;
-  margin-bottom: 10px;
-  padding: 16px;
-  border-radius: 14px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-  font-size: 15px;
-  cursor: pointer;
-  overflow:hidden;
-  word-break:break-word;
-}
-
-/* TOP3 */
-.top1 { border:2px solid gold; }
-.top2 { border:2px solid silver; }
-.top3 { border:2px solid #cd7f32; }
-
-/* 텍스트 */
-.user-name { font-weight:bold; margin-bottom:4px; }
-.user-coord { font-size:12px; color:#555; word-break:break-all; }
-.user-distance { margin-top:6px; color:#007aff; font-weight:bold; }
-
-/* 데스크탑 */
-@media (min-width:1024px){
-  #userList {
-    top:60px;
-    right:10px;
-    left:auto;
-    width:260px;
-    transform:none;
-    bottom:auto;
-  }
-
-  #shareBtn {
-    top:10px;
-    right:10px;
-    left:auto;
-    transform:none;
-    width:auto;
-  }
-}
-</style>
-</head>
-
-<body>
-
-<button id="shareBtn">내위치 공유</button>
-<div id="userList"></div>
-<div id="map"></div>
-
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzpNNxNK7Zcj6ZbKlPDNr0Lz7hG_o0IPlCIEtvWnQe8uJyPIQPluGe8wcnox_2pAcSE/exec";
 
-// 🔔 300m
-const ALERT_DISTANCE = 0.3;
+// 🔔 거리 설정
+const ALERT_DISTANCE = 0.3; // 300m
+const ZOOM_DISTANCE = 0.3;  // 확대 기준
+
 let alertedUsers = {};
+let zoomedTarget = false;
 
 let myId;
 let map, markers={}, myMarker;
 let myLat, myLng;
+let targetUser = null;
 
 /* 알림 권한 */
 if ("Notification" in window) {
   Notification.requestPermission();
 }
 
-/* 이름 */
+/* URL 파라미터 */
 const params = new URLSearchParams(location.search);
+
 if(params.get("user")){
   localStorage.setItem("myId", params.get("user"));
 }
 
+if(params.get("target")){
+  targetUser = params.get("target");
+}
+
+/* 이름 */
 async function getName(){
   let name = localStorage.getItem("myId");
   if(!name){
@@ -136,10 +55,9 @@ function getDistance(lat1,lon1,lat2,lon2){
   return R*(2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
 }
 
-/* 알림 */
+/* 🔔 근접 알림 */
 function checkDistanceAlert(user){
 
-  // 다시 멀어지면 초기화
   if(user.dist > ALERT_DISTANCE){
     alertedUsers[user.id] = false;
     return;
@@ -159,6 +77,32 @@ function checkDistanceAlert(user){
     }
 
     navigator.vibrate?.([200,100,200]);
+  }
+}
+
+/* 🔥 자동 확대 + 타겟 추적 */
+function checkZoomTarget(user){
+
+  // 타겟 아니면 무시
+  if(!targetUser || user.id !== targetUser) return;
+
+  // 멀어지면 초기화
+  if(user.dist > ZOOM_DISTANCE){
+    zoomedTarget = false;
+    return;
+  }
+
+  // 이미 확대했으면 계속 따라가기
+  const pos = new kakao.maps.LatLng(user.lat, user.lng);
+
+  if(!zoomedTarget){
+    zoomedTarget = true;
+
+    map.setLevel(2); // 🔍 확대 (숫자 낮을수록 확대)
+    map.panTo(pos);
+  } else {
+    // 계속 따라가기
+    map.panTo(pos);
   }
 }
 
@@ -182,7 +126,6 @@ function fetchUsers(){
       arr.push({id, ...u, dist});
     }
 
-    // 거리순
     arr.sort((a,b)=>a.dist-b.dist);
 
     let html="";
@@ -190,6 +133,7 @@ function fetchUsers(){
     arr.forEach((u,idx)=>{
 
       checkDistanceAlert(u);
+      checkZoomTarget(u); // 🔥 핵심 추가
 
       const pos = new kakao.maps.LatLng(u.lat,u.lng);
 
@@ -234,7 +178,6 @@ function update(){
 
     if(!map) initMap(myLat,myLng);
 
-    // 📍 자동 따라가기
     map.panTo(myPos);
 
     if(myMarker) myMarker.setPosition(myPos);
@@ -244,9 +187,19 @@ function update(){
   });
 }
 
+/* 🔴 종료 시 오프라인 */
+window.addEventListener("pagehide", () => {
+  navigator.sendBeacon(GAS_URL, JSON.stringify({
+    id: myId,
+    offline: true
+  }));
+});
+
 /* 공유 */
 document.getElementById("shareBtn").addEventListener("click", async () => {
-  const url = location.href + "?user=" + encodeURIComponent(myId);
+  const url = location.href.split("?")[0] + 
+              "?user=" + encodeURIComponent(myId) +
+              (targetUser ? "&target=" + encodeURIComponent(targetUser) : "");
 
   if(navigator.share){
     await navigator.share({
@@ -263,6 +216,3 @@ document.getElementById("shareBtn").addEventListener("click", async () => {
 setInterval(update,5000);
 getName().then(update);
 </script>
-
-</body>
-</html>
