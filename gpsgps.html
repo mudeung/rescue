@@ -147,7 +147,7 @@ function fetchUsers(){
       arr.forEach((u, idx)=>{
         checkDistanceAlert(u);
         let rank = idx===0?"top1":idx===1?"top2":idx===2?"top3":"";
-        let status = (Date.now()-u.time<10000)?"🟢 실시간":"🟡 지연";
+        let status = (Date.now()-u.time<10000)?"🟢 실시간":"🟡 네트워크 지연";
         html += `<div class="user-card ${rank}" onclick="focusUser('${u.id}')">
           <div class="user-status">${status}</div>
           <div class="user-name">${u.id}</div>
