@@ -36,7 +36,6 @@ body{
     max-width:430px;
     margin:auto;
     min-height:100vh;
-    position:relative;
 }
 
 /* ================= 상단 헤더 ================= */
@@ -83,8 +82,6 @@ body{
     margin-bottom:14px;
 
     animation:pulse 1.5s infinite;
-
-    box-shadow:0 0 0 rgba(229,57,53,0.5);
 }
 
 .sos{
@@ -124,8 +121,6 @@ body{
 
     text-align:center;
 
-    padding:0 10px;
-
     line-height:1.3;
 }
 
@@ -138,30 +133,28 @@ body{
     opacity:0.92;
 }
 
-/* ================= 메뉴 ================= */
+/* ================= 전체 아이콘 메뉴 ================= */
 
-.menu-grid{
+.icon-grid{
 
-    padding:24px 16px 110px;
+    padding:20px 16px 40px;
 
     display:grid;
 
-    grid-template-columns:1fr 1fr;
+    grid-template-columns:1fr 1fr 1fr;
 
-    gap:16px;
-
-    align-items:center;
+    gap:14px;
 }
 
-/* ================= 카드 ================= */
+/* ================= 아이콘 카드 ================= */
 
-.menu-card{
+.icon-card{
 
     background:white;
 
     border-radius:22px;
 
-    padding:18px 12px;
+    min-height:110px;
 
     display:flex;
     flex-direction:column;
@@ -169,137 +162,49 @@ body{
     align-items:center;
     justify-content:center;
 
-    text-align:center;
-
     gap:10px;
 
-    min-height:170px;
+    text-align:center;
+
+    cursor:pointer;
 
     box-shadow:0 4px 14px rgba(0,0,0,0.08);
 
     transition:0.2s;
 }
 
-.menu-card:active{
-    transform:scale(0.96);
+.icon-card:active{
+    transform:scale(0.95);
 }
 
 /* ================= 아이콘 ================= */
 
-.menu-icon{
-    font-size:34px;
+.icon{
+
+    font-size:32px;
 }
 
-/* ================= 메뉴 텍스트 ================= */
+/* ================= 텍스트 ================= */
 
-.menu-text{
-
-    font-size:16px;
-    font-weight:700;
-
-    color:#222;
-}
-
-/* ================= 버튼 ================= */
-
-.open-btn{
-
-    margin-top:4px;
-
-    border:none;
-
-    background:#1e88e5;
-
-    color:white;
-
-    padding:9px 14px;
-
-    border-radius:12px;
+.icon-text{
 
     font-size:13px;
     font-weight:700;
 
-    cursor:pointer;
+    color:#222;
 
-    width:95px;
-
-    transition:0.2s;
+    line-height:1.4;
 }
 
-.open-btn:active{
-    transform:scale(0.95);
-}
+/* ================= 강조 카드 ================= */
 
-/* ================= 하단 메뉴 ================= */
-
-.bottom-nav{
-
-    position:fixed;
-
-    bottom:0;
-    left:50%;
-
-    transform:translateX(-50%);
-
-    width:100%;
-    max-width:430px;
-
-    background:#111;
-
-    height:74px;
-
-    display:flex;
-    justify-content:space-around;
-    align-items:center;
-
-    border-top-left-radius:22px;
-    border-top-right-radius:22px;
-
-    z-index:999;
-
-    box-shadow:0 -3px 12px rgba(0,0,0,0.15);
-}
-
-.nav-item{
-
+.primary{
+    background:#1e88e5;
     color:white;
-
-    text-decoration:none;
-
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-
-    gap:4px;
-
-    font-size:10px;
-
-    cursor:pointer;
-
-    flex:1;
-
-    height:100%;
-
-    text-align:center;
-
-    padding:0 2px;
-
-    line-height:1.2;
-
-    transition:0.2s;
 }
 
-.nav-item:active{
-    background:rgba(255,255,255,0.05);
-}
-
-.nav-icon{
-    font-size:21px;
-}
-
-.active{
-    color:#29b6ff;
+.primary .icon-text{
+    color:white;
 }
 
 /* ================= 작은 화면 ================= */
@@ -310,12 +215,12 @@ body{
         font-size:21px;
     }
 
-    .menu-text{
-        font-size:14px;
+    .icon-text{
+        font-size:11px;
     }
 
-    .nav-item{
-        font-size:8px;
+    .icon{
+        font-size:28px;
     }
 
 }
@@ -325,7 +230,7 @@ body{
 
 <body>
 
-<!-- ================= 상단 ================= -->
+<!-- ================= 헤더 ================= -->
 
 <div class="header">
 
@@ -334,7 +239,7 @@ body{
     </div>
 
     <div class="title">
-        무등산 위치 공유시스템
+        무등산 산악사고 구조요청
     </div>
 
     <div class="subtitle">
@@ -343,115 +248,115 @@ body{
 
 </div>
 
-<!-- ================= 메뉴 ================= -->
+<!-- ================= 아이콘 메뉴 ================= -->
 
-<div class="menu-grid">
-
-    <!-- 문자전송 -->
-    <div class="menu-card">
-
-        <div class="menu-icon">📞</div>
-
-        <div class="menu-text">
-            문자전송
-        </div>
-
-        <button class="open-btn"
-        onclick="window.open('https://mudeung.github.io/rescue/gpscall.html', '_blank')">
-
-            바로가기
-
-        </button>
-
-    </div>
-
-    <!-- 위치링크 -->
-    <div class="menu-card">
-
-        <div class="menu-icon">📍</div>
-
-        <div class="menu-text">
-            위치링크
-        </div>
-
-        <button class="open-btn"
-        onclick="window.open('https://mudeung.github.io/rescue/gps.html', '_blank')">
-
-            바로가기
-
-        </button>
-
-    </div>
-
-    <!-- 위치목록 -->
-    <div class="menu-card">
-
-        <div class="menu-icon">🗺️</div>
-
-        <div class="menu-text">
-            위치목록
-        </div>
-
-        <button class="open-btn"
-        onclick="window.open('https://mudeung.github.io/rescue/emscall.html', '_blank')">
-
-            바로가기
-
-        </button>
-
-    </div>
-
-    <!-- 좌표입력 -->
-    <div class="menu-card">
-
-        <div class="menu-icon">🧭</div>
-
-        <div class="menu-text">
-            좌표입력
-        </div>
-
-        <button class="open-btn"
-        onclick="window.open('https://mudeung.github.io/rescue/rescuer.html', '_blank')">
-
-            바로가기
-
-        </button>
-
-    </div>
-
-</div>
-
-<!-- ================= 하단 메뉴 ================= -->
-
-<div class="bottom-nav">
+<div class="icon-grid">
 
     <!-- 실시간 위치 -->
-    <div class="nav-item active"
+    <div class="icon-card primary"
     onclick="window.open('https://mudeung.github.io/rescue/gpsgps.html', '_blank')">
 
-        <div class="nav-icon">👥</div>
+        <div class="icon">👥</div>
 
-        <div>실시간 위치</div>
+        <div class="icon-text">
+            실시간 위치
+        </div>
 
     </div>
 
     <!-- GPS 내위치 -->
-    <div class="nav-item"
+    <div class="icon-card"
     onclick="window.open('https://mudeung.github.io/rescue/gpsxyz.html', '_blank')">
 
-        <div class="nav-icon">📡</div>
+        <div class="icon">📡</div>
 
-        <div>GPS 내위치</div>
+        <div class="icon-text">
+            GPS 내위치
+        </div>
 
     </div>
 
-    <!-- 사진 좌표 -->
-    <div class="nav-item"
+    <!-- 사진좌표 -->
+    <div class="icon-card"
     onclick="window.open('https://emtcsh.github.io/potogps.html', '_blank')">
 
-        <div class="nav-icon">🗺️</div>
+        <div class="icon">🗺️</div>
 
-        <div>사진좌표</div>
+        <div class="icon-text">
+            사진좌표
+        </div>
+
+    </div>
+
+    <!-- 문자전송 -->
+    <div class="icon-card"
+    onclick="window.open('https://mudeung.github.io/rescue/gpscall.html', '_blank')">
+
+        <div class="icon">📞</div>
+
+        <div class="icon-text">
+            문자전송
+        </div>
+
+    </div>
+
+    <!-- 위치링크 -->
+    <div class="icon-card"
+    onclick="window.open('https://mudeung.github.io/rescue/gps.html', '_blank')">
+
+        <div class="icon">📍</div>
+
+        <div class="icon-text">
+            위치링크
+        </div>
+
+    </div>
+
+    <!-- 산악사고기록지 -->
+    <div class="icon-card"
+    onclick="window.open('https://mudeung.github.io/rescue/ems.html', '_blank')">
+
+        <div class="icon">📝</div>
+
+        <div class="icon-text">
+            사고기록지
+        </div>
+
+    </div>
+
+    <!-- 위치목록 -->
+    <div class="icon-card"
+    onclick="window.open('https://mudeung.github.io/rescue/emscall.html', '_blank')">
+
+        <div class="icon">🧭</div>
+
+        <div class="icon-text">
+            위치목록
+        </div>
+
+    </div>
+
+    <!-- 좌표입력 -->
+    <div class="icon-card"
+    onclick="window.open('https://mudeung.github.io/rescue/rescuer.html', '_blank')">
+
+        <div class="icon">🌐</div>
+
+        <div class="icon-text">
+            좌표입력
+        </div>
+
+    </div>
+
+    <!-- 무등산특수구조팀 -->
+    <div class="icon-card"
+    onclick="window.open('https://rescuemd.imweb.me', '_blank')">
+
+        <div class="icon">⛑️</div>
+
+        <div class="icon-text">
+            특수구조팀
+        </div>
 
     </div>
 
