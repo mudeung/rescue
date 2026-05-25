@@ -2,157 +2,218 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>구조대원 GPS 전송</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🆘 GPS 위치파악</title>
 
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
 
 <style>
-body{
-  margin:0;
-  background:#111;
-  color:#fff;
-  font-family:Arial;
-  text-align:center;
+/* ================= 공통 ================= */
+body {
+  font-family: Arial, sans-serif;
+  padding: 16px;
+  padding-bottom: 120px;
+  background: #f4f6f8;
+  color: #111;
+}
+h1, h2, h4 { text-align: center; }
+
+/* 🔥 버튼·입력창 완전 통일 */
+.ui-control {
+  width: 100%;
+  height: 64px;
+  box-sizing: border-box;
+  font-size: 1.3rem;
+  padding: 16px;
+  margin: 10px 0;
+  border-radius: 16px;
+  font-weight: bold;
 }
 
-#map{
-  width:100%;
-  height:350px;
+/* 버튼 */
+button.ui-control {
+  border: none;
+  background: #2DB400;
+  color: #ffffff;
 }
 
-.status{
-  padding:15px;
-  font-size:18px;
+/* 입력창 */
+input.ui-control {
+  border: 3px solid #2DB400;
+  background: #ffffff;
 }
 
-button{
-  background:#d32f2f;
-  color:#fff;
-  border:none;
-  padding:15px 20px;
-  border-radius:8px;
-  font-size:18px;
+/* 좌표 박스 */
+.box {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  margin-top: 12px;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+/* 안내 */
+.guide {
+  margin-top: 16px;
+  padding: 16px;
+  background: #e8f5e9;
+  border-left: 6px solid #2DB400;
+  border-radius: 12px;
+  font-size: 15px;
+}
+
+/* 지도 */
+.map {
+  width: 100%;
+  height: 280px;
+  margin-top: 12px;
+  border-radius: 16px;
+}
+
+/* 하단 고정 */
+.bottom-fixed {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 90%;
+  padding: 14px;
+  background: #2DB400;
+}
+
+/* ================= 🌙 다크모드 ================= */
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #020617;
+    color: #e5e7eb;
+  }
+
+  button.ui-control {
+    background: #22c55e;
+    color: #022c22;
+  }
+
+  input.ui-control {
+    background: #020617;
+    color: #f8fafc;
+    border-color: #22c55e;
+  }
+
+  .box {
+    background: #020617;
+    color: #f8fafc;
+  }
+
+  .guide {
+    background: #052e16;
+    border-left-color: #22c55e;
+    color: #dcfce7;
+  }
+
+  .map {
+    filter: brightness(0.85) contrast(1.05);
+  }
+
+  .bottom-fixed {
+    background: #022c22;
+  }
 }
 </style>
 </head>
 
 <body>
 
-<h2>🚑 구조대원 위치 공유중</h2>
+<h4>[ 무등산 특수산악구조팀 ]</h4>
+<h1>🆘 GPS 위치파악</h1>
 
-<div id="map"></div>
+<button id="getLocation" class="ui-control">📍 내 위치 확인</button>
 
-<div class="status" id="status">
-GPS 연결중...
+<div class="box" id="coord">위치 미확인</div>
+
+<div class="guide">
+✔ 내 위치 확인<br>
+✔ 요구조자 위·경도 입력<br>
+✔ 대상 위치 지도 표시<br>
+✔ 하단 버튼 → 카카오맵 경로 따라가기
 </div>
 
-<button onclick="stopTracking()">
-위치공유 종료
+<h2>🌐 요구조자 위치좌표 입력</h2>
+
+<input type="number" step="any" inputmode="decimal"
+       id="otherLatitude" class="ui-control"
+       placeholder="대상 위도">
+
+<input type="number" step="any" inputmode="decimal"
+       id="otherLongitude" class="ui-control"
+       placeholder="대상 경도">
+
+<button onclick="showLocations()" class="ui-control">
+📍 대상 위치 지도 보기
 </button>
 
+<div id="distanceInfo" class="box"></div>
+<div id="mapComparison" class="map"></div>
+
+<!-- 🔥 크기 통일된 하단 버튼 -->
+<div class="bottom-fixed">
+  <button id="kakaoRoute" class="ui-control">
+    🧭 요구조자 위치 경로 따라가기
+  </button>
+</div>
+
 <script>
+let currentLat, currentLng;
+let targetLat, targetLng;
 
-const API_URL =
-"https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
+/* 내 위치 */
+getLocation.onclick = () => {
+  navigator.geolocation.getCurrentPosition(pos => {
+    currentLat = pos.coords.latitude;
+    currentLng = pos.coords.longitude;
+    coord.textContent =
+      `${currentLat.toFixed(6)} / ${currentLng.toFixed(6)}`;
+  }, () => alert("위치 정보를 불러올 수 없습니다."));
+};
 
-let map;
-let marker;
-let watchId;
-let rescuerId =
-localStorage.getItem("rescuerId") ||
-"TEAM_" + Math.random().toString(36).substr(2,8);
+/* 경로 따라가기 */
+kakaoRoute.onclick = () => {
+  if (!targetLat || !targetLng) {
+    alert("대상 위치를 먼저 확인하세요.");
+    return;
+  }
+  location.href =
+    `kakaomap://route?ep=${targetLat},${targetLng}&by=FOOT`;
+};
 
-localStorage.setItem("rescuerId", rescuerId);
+/* 대상 위치 표시 */
+function showLocations() {
+  targetLat = parseFloat(otherLatitude.value);
+  targetLng = parseFloat(otherLongitude.value);
 
-function initMap(){
-
-  map = new kakao.maps.Map(
-    document.getElementById("map"),
-    {
-      center:new kakao.maps.LatLng(35.1345,126.9902),
-      level:4
-    }
-  );
-
-  marker = new kakao.maps.Marker({
-    map:map,
-    position:map.getCenter()
-  });
-}
-
-initMap();
-
-function startTracking(){
-
-  if(!navigator.geolocation){
-    alert("GPS 미지원");
+  if (!currentLat || !currentLng || isNaN(targetLat) || isNaN(targetLng)) {
+    alert("좌표를 정확히 입력하세요.");
     return;
   }
 
-  watchId =
-  navigator.geolocation.watchPosition(
+  const map = new kakao.maps.Map(mapComparison, {
+    center: new kakao.maps.LatLng(targetLat, targetLng),
+    level: 7
+  });
 
-    async(position)=>{
+  const myPos = new kakao.maps.LatLng(currentLat, currentLng);
+  const otherPos = new kakao.maps.LatLng(targetLat, targetLng);
 
-      const lat = position.coords.latitude;
-      const lng = position.coords.longitude;
-      const speed = position.coords.speed || 0;
+  new kakao.maps.Marker({ position: myPos, map });
+  new kakao.maps.Marker({ position: otherPos, map });
 
-      document.getElementById("status").innerHTML =
-      `
-      위도: ${lat}<br>
-      경도: ${lng}<br>
-      속도: ${speed}
-      `;
+  const line = new kakao.maps.Polyline({ path: [myPos, otherPos] });
+  const distance = line.getLength();
 
-      const pos = new kakao.maps.LatLng(lat,lng);
-
-      marker.setPosition(pos);
-      map.setCenter(pos);
-
-      // 서버 전송
-      await fetch(API_URL,{
-        method:"POST",
-        headers:{
-          "Content-Type":"text/plain;charset=utf-8"
-        },
-        body:JSON.stringify({
-          action:"updateRescuer",
-          id:rescuerId,
-          lat:lat,
-          lng:lng,
-          speed:speed,
-          time:new Date().toISOString()
-        })
-      });
-
-    },
-
-    (err)=>{
-      console.log(err);
-      alert("GPS 오류");
-    },
-
-    {
-      enableHighAccuracy:true,
-      maximumAge:0,
-      timeout:5000
-    }
-  );
+  distanceInfo.textContent =
+    `직선거리: ${(distance / 1000).toFixed(2)} km`;
 }
-
-function stopTracking(){
-
-  if(watchId){
-    navigator.geolocation.clearWatch(watchId);
-  }
-
-  alert("위치공유 종료");
-}
-
-startTracking();
-
 </script>
+
 </body>
 </html>
