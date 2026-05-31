@@ -2,20 +2,37 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>무등산 일일 근무현황</title>
+<title>무등산 근무현황</title>
 
 <style>
 html, body{
-    height:100vh;
+    height:100%;
     margin:0;
-    overflow:hidden;
     font-family:'맑은 고딕',sans-serif;
     background:#dfe4ec;
     font-size:13px;
 }
 
+/* 🔥 상단 고정 */
+.top-bar{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    z-index:999;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    padding:8px 10px;
+    background:#dfe4ec;
+    border-bottom:1px solid #ccc;
+}
+
+/* 본문 밀어주기 */
 body{
     padding:10px;
+    padding-top:110px;
 }
 
 /* 제목 */
@@ -23,15 +40,6 @@ h1{
     text-align:center;
     font-size:30px;
     margin:5px 0 10px;
-}
-
-/* 🔥 상단 바 */
-.top-bar{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:10px;
-    gap:10px;
 }
 
 /* 통계 */
@@ -61,6 +69,11 @@ button{
     box-shadow:0 3px 8px rgba(0,0,0,0.2);
 }
 
+/* 파일 input */
+input[type="file"]{
+    font-size:12px;
+}
+
 /* 그리드 */
 .container{
     display:grid;
@@ -74,7 +87,6 @@ button{
     border:1px solid #ccc;
 }
 
-/* 헤더 */
 .dept-header{
     color:white;
     text-align:center;
@@ -121,14 +133,13 @@ input,select{
 </head>
 
 <body>
-   <br>
-<h1>무등산 일일 근무현황</h1>
+
+<h1>무등산 근무현황</h1>
 <button onclick="downloadExcel()">엑셀 다운로드</button>
-  <br>
-  <br>
-<!-- 🔥 상단 대시보드 -->
+<!-- 🔥 상단 고정 바 -->
 <div class="top-bar">
 
+    <!-- 통계 -->
     <div class="summary">
         <table>
             <tr><th>날짜</th><td id="today"></td></tr>
@@ -137,10 +148,19 @@ input,select{
             <tr><th>근무 인원</th><td id="workTotal">0명</td></tr>
         </table>
     </div>
+
+    <!-- 파일 + 버튼 -->
+    <div style="display:flex; gap:8px; align-items:center;">
+        <input type="file" id="excelInput" accept=".xlsx,.xls" onchange="loadExcel(event)">
+        
+    </div>
+
 </div>
 
 <div class="container" id="wrapTop"></div>
 <div class="container" id="wrapBottom"></div>
+
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
 <script>
 
@@ -225,7 +245,9 @@ name:"탐방시설과",color:"navy",employees:[
 }
 ];
 
-/* 상태 */
+/* =========================
+   상태
+========================= */
 function getStatusClass(v){
 switch(v){
 case "근무": return "status-work";
@@ -248,7 +270,7 @@ document.getElementById("today").innerText =
 `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} (${week[now.getDay()]})`;
 }
 
-/* 업데이트 */
+/* 수정 */
 function departmentsUpdate(deptName,index,field,value){
 const dept=departments.find(d=>d.name===deptName);
 dept.employees[index][field]=value;
@@ -332,7 +354,7 @@ document.getElementById("hqTotal").innerText=hq+"명";
 document.getElementById("workTotal").innerText=work+"명";
 }
 
-/* 엑셀 */
+/* 엑셀 다운로드 */
 function downloadExcel(){
 let now=new Date();
 let dateStr=
@@ -359,12 +381,52 @@ XLSX.utils.book_append_sheet(wb,ws,"근무현황");
 XLSX.writeFile(wb,`무등산_근무현황_${dateStr}.xlsx`);
 }
 
+/* 엑셀 업로드 */
+document.getElementById("excelInput").addEventListener("change", loadExcel);
+
+function loadExcel(event){
+const file=event.target.files[0];
+if(!file) return;
+
+const reader=new FileReader();
+
+reader.onload=function(e){
+const data=new Uint8Array(e.target.result);
+const workbook=XLSX.read(data,{type:'array'});
+
+const sheetName=workbook.SheetNames[0];
+const sheet=workbook.Sheets[sheetName];
+
+const json=XLSX.utils.sheet_to_json(sheet);
+
+applyExcelData(json);
+};
+
+reader.readAsArrayBuffer(file);
+}
+
+function applyExcelData(data){
+
+data.forEach(row=>{
+const dept=departments.find(d=>d.name===row["부서"]);
+if(!dept) return;
+
+const emp=dept.employees.find(e=>e.name===row["이름"]);
+if(!emp) return;
+
+if(row["직급"]!==undefined) emp.grade=row["직급"];
+if(row["업무"]!==undefined) emp.work=row["업무"];
+if(row["상태"]!==undefined) emp.status=row["상태"];
+});
+
+render();
+}
+
 /* init */
 setToday();
 render();
-</script>
 
-<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+</script>
 
 </body>
 </html>
