@@ -91,16 +91,16 @@ input,select{
     width:100%;
     border:none;
     padding:4px;
-    font-size:11px;   /* ⭐ 근무형태 글씨 더 작게 */
+    font-size:11px;
     text-align:center;
 }
 
 /* =========================
-   컬럼 비율 (업무 확대)
+   컬럼 비율
 ========================= */
 th:nth-child(1), td:nth-child(1){ width:60px; }
 th:nth-child(2), td:nth-child(2){ width:80px; }
-th:nth-child(3), td:nth-child(3){ width:160px; } /* ⭐ 업무 칸 확대 */
+th:nth-child(3), td:nth-child(3){ width:160px; }
 th:nth-child(4), td:nth-child(4){ width:240px; }
 
 /* =========================
@@ -126,6 +126,10 @@ th:nth-child(4), td:nth-child(4){ width:240px; }
 ========================= -->
 <div class="summary">
 <table>
+<tr>
+<th>날짜</th>
+<td id="today"></td>
+</tr>
 <tr>
 <th>총원</th>
 <td id="total">0명</td>
@@ -189,6 +193,23 @@ case "육아": return "status-child";
 case "유연": return "status-flex";
 default: return "";
 }
+}
+
+/* =========================
+   오늘 날짜
+========================= */
+function setToday(){
+    const now = new Date();
+
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2,'0');
+    const dd = String(now.getDate()).padStart(2,'0');
+
+    const week = ["일","월","화","수","목","금","토"];
+    const day = week[now.getDay()];
+
+    document.getElementById("today").innerText =
+        `${yyyy}-${mm}-${dd} (${day})`;
 }
 
 /* =========================
@@ -292,8 +313,11 @@ document.getElementById("workTotal").innerText = workTotal+"명";
 
 }
 
-/* 실행 */
+/* =========================
+   실행
+========================= */
 render();
+setToday();
 
 </script>
 
