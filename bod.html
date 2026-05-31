@@ -13,7 +13,7 @@ html, body{
     font-size:13px;
 }
 
-/* 상단 */
+/* ================= 상단 3분할 ================= */
 .top-bar{
     position:fixed;
     top:0;
@@ -22,16 +22,57 @@ html, body{
     z-index:999;
     display:flex;
     justify-content:space-between;
-    align-items:center;
+    align-items:flex-start;
     padding:8px 10px;
     background:#dfe4ec;
     border-bottom:1px solid #ccc;
 }
 
-/* 본문 */
+.left, .center, .right{
+    flex:1;
+}
+
+.center{
+    text-align:center;
+}
+
+.right{
+    display:flex;
+    justify-content:flex-end;
+}
+
+.title{
+    font-size:26px;
+    margin:0;
+    font-weight:bold;
+}
+
+/* ================= 날짜 + 파일 ================= */
+#fileList{
+    margin-top:6px;
+    font-size:11px;
+}
+
+#fileList a{
+    color:#1a73e8;
+    text-decoration:none;
+}
+
+/* ================= 통계 표 ================= */
+.top-bar table{
+    font-size:12px;
+    border-collapse:collapse;
+}
+
+.top-bar th, .top-bar td{
+    border:1px solid #ccc;
+    padding:2px 6px;
+}
+
+/* ================= 본문 ================= */
 .main{
     position:absolute;
-    top:120px;
+    top:140px;
     left:0;
     right:0;
     bottom:0;
@@ -39,38 +80,18 @@ html, body{
     padding:15px;
 }
 
-/* 제목 */
-h1{
-    text-align:center;
-    font-size:30px;
-    margin:10px 0;
-}
-
-/* 버튼 */
-button{
-    padding:8px 12px;
-    font-size:12px;
-    cursor:pointer;
-    border:none;
-    border-radius:6px;
-    background:#1da1f2;
-    color:white;
-}
-
-/* 그리드 */
+/* ================= 카드 ================= */
 .container{
     display:grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap:6px;
 }
 
-/* 카드 */
 .dept{
     background:white;
     border:1px solid #ccc;
 }
 
-/* 헤더 */
 .dept-header{
     color:white;
     text-align:center;
@@ -83,7 +104,7 @@ button{
 .green{background:#8bc34a;}
 .navy{background:#3f51b5;}
 
-/* 테이블 */
+/* ================= 테이블 ================= */
 table{
     width:100%;
     border-collapse:collapse;
@@ -95,7 +116,6 @@ th, td{
     text-align:center;
 }
 
-/* input / select */
 input, select{
     width:100%;
     border:none;
@@ -104,12 +124,7 @@ input, select{
     text-align:center;
     box-sizing:border-box;
 }
-  
-/* 상태 컬럼 넓히기 */
-td:last-child, th:last-child{
-    min-width:120px;
-}    
-  
+
 /* 상태 색 */
 .status-work{background:#4CAF50;color:white;}
 .status-holiday{background:#9E9E9E;color:white;}
@@ -122,34 +137,41 @@ td:last-child, th:last-child{
 </head>
 
 <body>
-<br>
-  <br>
-  <br>
-  <br>
-  <br>
-  <br>
-<h1>무등산 일일 근무현황</h1>
 
 <div class="top-bar">
-<table>
-<tr><th>날짜</th><td id="today"></td></tr>
-<tr><th>총원</th><td id="total">0명</td></tr>
-<tr><th>사무소</th><td id="hqTotal">0명</td></tr>
-<tr><th>원효분소</th><td id="wrTotal">0명</td></tr>
-<tr><th>근무</th><td id="workTotal">0명</td></tr>
-</table>
 
-<div>
-<input type="file" id="excelInput" accept=".xlsx,.xls">
-<button onclick="downloadExcel()">엑셀 다운로드</button>
-</div>
+    <!-- 왼쪽: 날짜 + 파일 -->
+    <div class="left">
+        <table>
+            <tr><th>날짜</th><td id="today"></td></tr>
+        </table>
+
+        <div style="margin-top:6px;">
+            <input type="file" id="topFileInput">
+            <div id="fileList"></div>
+        </div>
+    </div>
+
+    <!-- 가운데: 제목 -->
+    <div class="center">
+        <h1 class="title">무등산 일일 근무현황</h1>
+    </div>
+
+    <!-- 오른쪽: 통계 -->
+    <div class="right">
+        <table>
+            <tr><th>총원</th><td id="total">0명</td></tr>
+            <tr><th>사무소</th><td id="hqTotal">0명</td></tr>
+            <tr><th>원효분소</th><td id="wrTotal">0명</td></tr>
+            <tr><th>근무</th><td id="workTotal">0명</td></tr>
+        </table>
+    </div>
+
 </div>
 
 <div class="main">
 <div class="container" id="wrap"></div>
 </div>
-
-<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
 <script>
 
@@ -251,7 +273,7 @@ name:"탐방시설과",color:"navy",employees:[
 }
 ];
 
-/* ================= 저장/불러오기 ================= */
+/* ================= 저장 ================= */
 function saveData(){
 localStorage.setItem("mudeungsan_departments", JSON.stringify(departments));
 }
@@ -261,6 +283,35 @@ const saved = localStorage.getItem("mudeungsan_departments");
 if(saved){
 departments = JSON.parse(saved);
 }
+}
+
+/* ================= 파일 (상단) ================= */
+function saveTopFile(file){
+const reader = new FileReader();
+
+reader.onload = function(){
+let files = JSON.parse(localStorage.getItem("top_files") || "[]");
+
+files.push({
+name: file.name,
+data: reader.result
+});
+
+localStorage.setItem("top_files", JSON.stringify(files));
+
+renderTopFiles();
+};
+
+reader.readAsDataURL(file);
+}
+
+function renderTopFiles(){
+let files = JSON.parse(localStorage.getItem("top_files") || "[]");
+
+document.getElementById("fileList").innerHTML =
+files.map(f =>
+`📎 <a href="${f.data}" download="${f.name}">${f.name}</a><br>`
+).join("");
 }
 
 /* ================= 상태 ================= */
@@ -284,6 +335,7 @@ default: return "";
 function setToday(){
 const now=new Date();
 const week=["일","월","화","수","목","금","토"];
+
 document.getElementById("today").innerText =
 `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} (${week[now.getDay()]})`;
 }
@@ -335,7 +387,7 @@ wrap.innerHTML+=html;
 calc();
 }
 
-/* ================= 수정 + 저장 ================= */
+/* ================= 수정 ================= */
 function updateField(di,i,key,val){
 departments[di].employees[i][key]=val;
 saveData();
@@ -366,89 +418,17 @@ document.getElementById("wrTotal").innerText=wr+"명";
 document.getElementById("workTotal").innerText=work+"명";
 }
 
-/* ================= 엑셀 업로드 ================= */
-document.getElementById("excelInput").addEventListener("change", async (e)=>{
+/* ================= 이벤트 ================= */
+document.getElementById("topFileInput").addEventListener("change",(e)=>{
 const file=e.target.files[0];
-if(!file) return;
-
-const data=await file.arrayBuffer();
-const wb=XLSX.read(data,{type:"array"});
-const ws=wb.Sheets["근무계획표"];
-
-if(!ws){
-alert("근무계획표 시트 없음");
-return;
-}
-
-const rows=XLSX.utils.sheet_to_json(ws,{header:1});
-
-const today=String(new Date().getDate()).padStart(2,"0");
-
-const dateRow=rows[3];
-let dateCol=-1;
-
-for(let c=0;c<dateRow.length;c++){
-if(String(dateRow[c])===today){
-dateCol=c;
-break;
-}
-}
-
-if(dateCol<0){
-alert("오늘 날짜 없음");
-return;
-}
-
-departments.forEach(d=>{
-d.employees.forEach(emp=>{
-for(let r=0;r<rows.length;r++){
-if(rows[r][2]===emp.name){
-const v=rows[r][dateCol];
-emp.status =
-v==="○"?"휴일":
-v==="연"?"연가":
-v==="병"?"병가":
-v==="공"?"공가":
-v==="재"?"재택":
-v==="교"?"교육":
-v==="출"?"출장":
-"근무";
-break;
-}
-}
+if(file) saveTopFile(file);
 });
-});
-
-saveData();
-render();
-});
-
-/* ================= 다운로드 ================= */
-function downloadExcel(){
-let data=[];
-
-departments.forEach(d=>{
-d.employees.forEach(e=>{
-data.push({
-부서:d.name,
-직급:e.grade,
-이름:e.name,
-업무:e.work,
-상태:e.status
-});
-});
-});
-
-const ws=XLSX.utils.json_to_sheet(data);
-const wb=XLSX.utils.book_new();
-XLSX.utils.book_append_sheet(wb,ws,"근무현황");
-XLSX.writeFile(wb,"무등산_근무현황.xlsx");
-}
 
 /* ================= 초기 ================= */
 loadData();
 setToday();
 render();
+renderTopFiles();
 
 </script>
 
