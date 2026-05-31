@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>무등산사무소 근무현황</title>
+
+<style>
+body{
+    margin:0;
+    padding:20px;
+    background:#dfe4ec;
+    font-family:'맑은 고딕',sans-serif;
+}
+
+h1{
+    text-align:center;
+    font-size:50px;
+    margin-bottom:20px;
+}
+
+/* =========================
+   현황 표
+========================= */
+.summary{
+    position:absolute;
+    right:20px;
+    top:20px;
+    width:200px;
+}
+
+.summary table{
+    width:100%;
+    border-collapse:collapse;
+    background:white;
+    border:1px solid #ccc;
+}
+
+.summary th,
+.summary td{
+    border:1px solid #ddd;
+    padding:6px;
+    font-size:14px;
+    text-align:center;
+}
+
+/* =========================
+   부서 레이아웃
+========================= */
+.container{
+    display:flex;
+    gap:10px;
+}
+
+.dept{
+    flex:1;
+    background:white;
+    border:1px solid #ccc;
+}
+
+.dept-header{
+    color:white;
+    text-align:center;
+    font-weight:bold;
+    padding:10px;
+    font-size:18px;
+}
+
+.blue{background:#1da1f2;}
+.green{background:#8bc34a;}
+.navy{background:#3f51b5;}
+.red{background:#d32f2f;}
+
+/* =========================
+   테이블
+========================= */
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th,td{
+    border:1px solid #ddd;
+    padding:5px;
+    font-size:13px;
+    text-align:center;
+}
+
+input,select{
+    width:100%;
+    border:none;
+    padding:4px;
+    font-size:13px;
+    text-align:center;
+}
+
+/* =========================
+   ⭐ 컬럼 비율 (핵심)
+========================= */
+th:nth-child(1), td:nth-child(1){
+    width:60px;   /* 직급 */
+}
+
+th:nth-child(2), td:nth-child(2){
+    width:80px;   /* 이름 */
+}
+
+th:nth-child(3), td:nth-child(3){
+    width:120px;  /* 업무 */
+}
+
+th:nth-child(4), td:nth-child(4){
+    width:180px;  /* 근무형태 (확대) */
+}
+
+/* =========================
+   근무형태 색상
+========================= */
+.status-work{
+    background:#4CAF50;
+    color:white;
+    font-weight:bold;
+}
+
+.status-holiday{
+    background:#9E9E9E;
+    color:white;
+}
+
+.status-leave{
+    background:#FF9800;
+    color:white;
+}
+
+.status-trip{
+    background:#9C27B0;
+    color:white;
+}
+
+.status-edu{
+    background:#2196F3;
+    color:white;
+}
+
+.status-child{
+    background:#E91E63;
+    color:white;
+}
+
+.status-flex{
+    background:#607D8B;
+    color:white;
+}
+</style>
+</head>
+
+<body>
+
+<h1>무등산 사무소 근무현황</h1>
+
+<!-- =========================
+     현황
+========================= -->
+<div class="summary">
+    <table>
+        <tr>
+            <th>총원</th>
+            <td id="total">0명</td>
+        </tr>
+        <tr>
+            <th>본소</th>
+            <td>50명</td>
+        </tr>
+        <tr>
+            <th>분소</th>
+            <td>20명</td>
+        </tr>
+    </table>
+</div>
+
+<!-- =========================
+     부서
+========================= -->
+<div class="container" id="wrap"></div>
+
+<script>
+
+/* =========================
+   초기 데이터
+========================= */
+let departments = [
+{
+name:"행정과",
+color:"blue",
+employees:[
+{grade:"과장",name:"이동훈",work:"부서총괄",status:"근무"},
+{grade:"5급",name:"김용현",work:"기획·성과·민원",status:"근무"},
+{grade:"6급",name:"고경은",work:"인사·계약·예산",status:"근무"},
+{grade:"6급",name:"백지원",work:"구매·홍보·보안",status:"근무"},
+{grade:"8급",name:"안은비",work:"급여·복무",status:"근무"},
+{grade:"환경",name:"안효순",work:"청사관리",status:"근무"},
+{grade:"환경",name:"정태윤",work:"환경정화",status:"근무"}
+]
+},
+{name:"자원보전과",color:"green",employees:[]},
+{name:"탐방시설과",color:"navy",employees:[]},
+{name:"재난안전과",color:"red",employees:[]}
+];
+
+/* =========================
+   상태 클래스
+========================= */
+function getStatusClass(v){
+switch(v){
+case "근무": return "status-work";
+case "휴일": return "status-holiday";
+case "연가": return "status-leave";
+case "출장": return "status-trip";
+case "교육": return "status-edu";
+case "육아": return "status-child";
+case "유연": return "status-flex";
+default: return "";
+}
+}
+
+/* =========================
+   렌더
+========================= */
+function render(){
+
+let wrap=document.getElementById("wrap");
+wrap.innerHTML="";
+
+departments.forEach(dept=>{
+
+let html=`
+<div class="dept">
+
+<div class="dept-header ${dept.color}">
+${dept.name} (${dept.employees.length})
+</div>
+
+<table>
+<tr>
+<th>직급</th>
+<th>이름</th>
+<th>업무</th>
+<th>근무형태</th>
+</tr>
+`;
+
+dept.employees.forEach(emp=>{
+
+let cls=getStatusClass(emp.status);
+
+html+=`
+<tr>
+
+<td><input value="${emp.grade||""}"></td>
+<td><input value="${emp.name||""}"></td>
+<td><input value="${emp.work||""}"></td>
+
+<td>
+<select class="${cls}" onchange="this.className=getStatusClass(this.value)">
+<option ${emp.status==="근무"?"selected":""}>근무</option>
+<option ${emp.status==="휴일"?"selected":""}>휴일</option>
+<option ${emp.status==="연가"?"selected":""}>연가</option>
+<option ${emp.status==="출장"?"selected":""}>출장</option>
+<option ${emp.status==="교육"?"selected":""}>교육</option>
+<option ${emp.status==="육아"?"selected":""}>육아</option>
+<option ${emp.status==="유연"?"selected":""}>유연</option>
+</select>
+</td>
+
+</tr>
+`;
+});
+
+html+=`</table></div>`;
+wrap.innerHTML+=html;
+
+});
+
+calc();
+}
+
+/* =========================
+   총원
+========================= */
+function calc(){
+let total=0;
+departments.forEach(d=>total+=d.employees.length);
+document.getElementById("total").innerText=total+"명";
+}
+
+render();
+
+</script>
+
+</body>
+</html>
