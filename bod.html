@@ -257,6 +257,9 @@ case "출장": return "status-trip";
 case "교육": return "status-edu";
 case "육아": return "status-child";
 case "유연": return "status-flex";
+case "병가": return "status-leave";
+case "공가": return "status-trip";
+case "재택": return "status-flex";
 default: return "";
 }
 }
@@ -320,6 +323,9 @@ html+=`
 <option ${e.status==="교육"?"selected":""}>교육</option>
 <option ${e.status==="육아"?"selected":""}>육아</option>
 <option ${e.status==="유연"?"selected":""}>유연</option>
+<option ${e.status==="재택"?"selected":""}>재택</option>
+<option ${e.status==="병가"?"selected":""}>병가</option>
+<option ${e.status==="공가"?"selected":""}>공가</option>
 </select>
 </td>
 </tr>
@@ -384,44 +390,139 @@ XLSX.writeFile(wb,`무등산_근무현황_${dateStr}.xlsx`);
 /* 엑셀 업로드 */
 document.getElementById("excelInput").addEventListener("change", loadExcel);
 
-function loadExcel(event){
-const file=event.target.files[0];
-if(!file) return;
+  function loadExcel(event){
 
-const reader=new FileReader();
+    const file = event.target.files[0];
+    if(!file) return;
 
-reader.onload=function(e){
-const data=new Uint8Array(e.target.result);
-const workbook=XLSX.read(data,{type:'array'});
+    const reader = new FileReader();
 
-const sheetName=workbook.SheetNames[0];
-const sheet=workbook.Sheets[sheetName];
+    reader.onload = function(e){
 
-const json=XLSX.utils.sheet_to_json(sheet);
+        const data = new Uint8Array(e.target.result);
 
-applyExcelData(json);
-};
+        const workbook = XLSX.read(data,{
+            type:'array'
+        });
 
-reader.readAsArrayBuffer(file);
+        const sheet =
+            workbook.Sheets[
+                workbook.SheetNames[0]
+            ];
+
+        const rows =
+            XLSX.utils.sheet_to_json(sheet,{
+                header:1
+            });
+
+        const today =
+            new Date().getDate();
+
+        let dayCol = -1;
+
+        for(let r=0;r<10;r++){
+
+            if(!rows[r]) continue;
+
+            for(let c=0;c<rows[r].length;c++){
+
+                const value =
+                    String(rows[r][c] || '')
+                    .replace('일','')
+                    .trim();
+
+                if(Number(value) === today){
+
+                    dayCol = c;
+                    break;
+                }
+            }
+
+            if(dayCol !== -1) break;
+        }
+
+        if(dayCol === -1){
+
+            alert(today + "일 날짜 열을 찾지 못했습니다.");
+            return;
+        }
+
+        applyExcelData(rows,dayCol);
+    };
+
+    reader.readAsArrayBuffer(file);
 }
 
-function applyExcelData(data){
+function applyExcelData(rows,dayCol){
 
-data.forEach(row=>{
-const dept=departments.find(d=>d.name===row["부서"]);
-if(!dept) return;
+    let updatedCount = 0;
 
-const emp=dept.employees.find(e=>e.name===row["이름"]);
-if(!emp) return;
+    for(let i=0;i<rows.length;i++){
 
-if(row["직급"]!==undefined) emp.grade=row["직급"];
-if(row["업무"]!==undefined) emp.work=row["업무"];
-if(row["상태"]!==undefined) emp.status=row["상태"];
-});
+        const row = rows[i];
 
-render();
+        if(!row) continue;
+
+        const name =
+            String(row[2] || '')
+            .trim();
+
+        if(!name) continue;
+
+        const cell =
+            String(row[dayCol] || '')
+            .trim();
+
+        let status = "근무";
+
+        // ○ = 휴무
+        if(cell === "○"){
+            status = "휴일";
+        }
+        else if(cell.includes("연")){
+            status = "연가";
+        }
+        else if(cell.includes("출")){
+            status = "출장";
+        }
+        else if(cell.includes("교")){
+            status = "교육";
+        }
+        else if(cell.includes("재")){
+            status = "재택";
+        }
+        else if(cell.includes("병")){
+            status = "병가";
+        }
+        else if(cell.includes("공")){
+            status = "공가";
+        }
+      else if(cell.includes("유")){
+            status = "유연";
+        }
+
+        departments.forEach(dept=>{
+
+            const emp =
+                dept.employees.find(
+                    e => e.name.trim() === name
+                );
+
+            if(emp){
+
+                emp.status = status;
+                updatedCount++;
+            }
+        });
+    }
+
+    render();
+
+    alert(
+        `${new Date().getMonth()+1}월 ${new Date().getDate()}일 근무표 적용 완료\n${updatedCount}명 반영`
+    );
 }
-
+  
 /* init */
 setToday();
 render();
