@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>무등산사무소 근무현황</title>
+<title>무등산 근무현황</title>
 
 <style>
 body{
@@ -25,7 +25,7 @@ h1{
     position:absolute;
     right:20px;
     top:20px;
-    width:200px;
+    width:240px;
 }
 
 .summary table{
@@ -49,9 +49,11 @@ h1{
 .container{
     display:flex;
     gap:10px;
+    flex-wrap:wrap;
 }
 
 .dept{
+    min-width:320px;
     flex:1;
     background:white;
     border:1px solid #ccc;
@@ -89,103 +91,69 @@ input,select{
     width:100%;
     border:none;
     padding:4px;
-    font-size:13px;
+    font-size:11px;   /* ⭐ 근무형태 글씨 더 작게 */
     text-align:center;
 }
 
 /* =========================
-   ⭐ 컬럼 비율 (핵심)
+   컬럼 비율 (업무 확대)
 ========================= */
-th:nth-child(1), td:nth-child(1){
-    width:60px;   /* 직급 */
-}
-
-th:nth-child(2), td:nth-child(2){
-    width:80px;   /* 이름 */
-}
-
-th:nth-child(3), td:nth-child(3){
-    width:120px;  /* 업무 */
-}
-
-th:nth-child(4), td:nth-child(4){
-    width:180px;  /* 근무형태 (확대) */
-}
+th:nth-child(1), td:nth-child(1){ width:60px; }
+th:nth-child(2), td:nth-child(2){ width:80px; }
+th:nth-child(3), td:nth-child(3){ width:160px; } /* ⭐ 업무 칸 확대 */
+th:nth-child(4), td:nth-child(4){ width:240px; }
 
 /* =========================
    근무형태 색상
 ========================= */
-.status-work{
-    background:#4CAF50;
-    color:white;
-    font-weight:bold;
-}
+.status-work{background:#4CAF50;color:white;font-weight:bold;}
+.status-holiday{background:#9E9E9E;color:white;}
+.status-leave{background:#FF9800;color:white;}
+.status-trip{background:#9C27B0;color:white;}
+.status-edu{background:#2196F3;color:white;}
+.status-child{background:#E91E63;color:white;}
+.status-flex{background:#607D8B;color:white;}
 
-.status-holiday{
-    background:#9E9E9E;
-    color:white;
-}
-
-.status-leave{
-    background:#FF9800;
-    color:white;
-}
-
-.status-trip{
-    background:#9C27B0;
-    color:white;
-}
-
-.status-edu{
-    background:#2196F3;
-    color:white;
-}
-
-.status-child{
-    background:#E91E63;
-    color:white;
-}
-
-.status-flex{
-    background:#607D8B;
-    color:white;
-}
 </style>
 </head>
 
 <body>
 
-<h1>무등산 사무소 근무현황</h1>
+<h1>무등산 근무현황</h1>
 
 <!-- =========================
-     현황
+   현황
 ========================= -->
 <div class="summary">
-    <table>
-        <tr>
-            <th>총원</th>
-            <td id="total">0명</td>
-        </tr>
-        <tr>
-            <th>본소</th>
-            <td>50명</td>
-        </tr>
-        <tr>
-            <th>분소</th>
-            <td>20명</td>
-        </tr>
-    </table>
+<table>
+<tr>
+<th>총원</th>
+<td id="total">0명</td>
+</tr>
+<tr>
+<th>본소 총원</th>
+<td id="hqTotal">0명</td>
+</tr>
+<tr>
+<th>원효분소 총원</th>
+<td id="wonhyoTotal">0명</td>
+</tr>
+<tr>
+<th>근무 인원</th>
+<td id="workTotal">0명</td>
+</tr>
+</table>
 </div>
 
 <!-- =========================
-     부서
+   부서
 ========================= -->
 <div class="container" id="wrap"></div>
 
 <script>
 
 /* =========================
-   초기 데이터
+   데이터
 ========================= */
 let departments = [
 {
@@ -203,7 +171,8 @@ employees:[
 },
 {name:"자원보전과",color:"green",employees:[]},
 {name:"탐방시설과",color:"navy",employees:[]},
-{name:"재난안전과",color:"red",employees:[]}
+{name:"재난안전과",color:"red",employees:[]},
+{name:"원효분소",color:"green",employees:[]}
 ];
 
 /* =========================
@@ -254,13 +223,12 @@ let cls=getStatusClass(emp.status);
 
 html+=`
 <tr>
-
 <td><input value="${emp.grade||""}"></td>
 <td><input value="${emp.name||""}"></td>
 <td><input value="${emp.work||""}"></td>
 
 <td>
-<select class="${cls}" onchange="this.className=getStatusClass(this.value)">
+<select class="${cls}" onchange="this.className=getStatusClass(this.value);calc()">
 <option ${emp.status==="근무"?"selected":""}>근무</option>
 <option ${emp.status==="휴일"?"selected":""}>휴일</option>
 <option ${emp.status==="연가"?"selected":""}>연가</option>
@@ -270,7 +238,6 @@ html+=`
 <option ${emp.status==="유연"?"selected":""}>유연</option>
 </select>
 </td>
-
 </tr>
 `;
 });
@@ -284,14 +251,48 @@ calc();
 }
 
 /* =========================
-   총원
+   통계
 ========================= */
 function calc(){
-let total=0;
-departments.forEach(d=>total+=d.employees.length);
-document.getElementById("total").innerText=total+"명";
+
+let total = 0;
+let hqTotal = 0;
+let wonhyoTotal = 0;
+let workTotal = 0;
+
+const hqGroup = [
+"행정과",
+"자원보전과",
+"탐방시설과",
+"재난안전과"
+];
+
+const totalGroup = [
+...hqGroup,
+"원효분소"
+];
+
+departments.forEach(d=>{
+
+d.employees.forEach(e=>{
+
+if(totalGroup.includes(d.name)) total++;
+if(hqGroup.includes(d.name)) hqTotal++;
+if(d.name==="원효분소") wonhyoTotal++;
+if(e.status==="근무") workTotal++;
+
+});
+
+});
+
+document.getElementById("total").innerText = total+"명";
+document.getElementById("hqTotal").innerText = hqTotal+"명";
+document.getElementById("wonhyoTotal").innerText = wonhyoTotal+"명";
+document.getElementById("workTotal").innerText = workTotal+"명";
+
 }
 
+/* 실행 */
 render();
 
 </script>
