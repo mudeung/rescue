@@ -11,11 +11,9 @@ html, body{
     font-family:'맑은 고딕',sans-serif;
     background:#dfe4ec;
     font-size:13px;
-
-    /* ❌ 기존 overflow:hidden 제거 */
 }
 
-/* 🔥 상단 고정 */
+/* 상단 */
 .top-bar{
     position:fixed;
     top:0;
@@ -25,22 +23,20 @@ html, body{
     display:flex;
     justify-content:space-between;
     align-items:center;
-    gap:10px;
     padding:8px 10px;
     background:#dfe4ec;
     border-bottom:1px solid #ccc;
 }
 
-/* 🔥 본문 스크롤 영역 */
+/* 본문 */
 .main{
     position:absolute;
-    top:110px;
+    top:120px;
     left:0;
     right:0;
     bottom:0;
-    overflow:auto;   /* ⭐ 핵심 스크롤 */
+    overflow:auto;
     padding:15px;
-    box-sizing:border-box;
 }
 
 /* 제목 */
@@ -48,12 +44,6 @@ h1{
     text-align:center;
     font-size:30px;
     margin:10px 0;
-}
-
-/* 버튼 영역 */
-.controls{
-    text-align:center;
-    margin-bottom:10px;
 }
 
 /* 버튼 */
@@ -65,12 +55,6 @@ button{
     border-radius:6px;
     background:#1da1f2;
     color:white;
-    box-shadow:0 3px 8px rgba(0,0,0,0.2);
-}
-
-/* 파일 input */
-input[type="file"]{
-    font-size:12px;
 }
 
 /* 그리드 */
@@ -84,8 +68,6 @@ input[type="file"]{
 .dept{
     background:white;
     border:1px solid #ccc;
-    display:flex;
-    flex-direction:column;
 }
 
 /* 헤더 */
@@ -94,9 +76,9 @@ input[type="file"]{
     text-align:center;
     font-weight:bold;
     padding:6px;
-    font-size:14px;
 }
 
+/* 색 */
 .red{background:#d32f2f;}
 .blue{background:#1da1f2;}
 .green{background:#8bc34a;}
@@ -114,7 +96,7 @@ th, td{
     text-align:center;
 }
 
-/* 입력 깨짐 방지 */
+/* input */
 input, select{
     width:100%;
     border:none;
@@ -127,9 +109,9 @@ input, select{
 /* 상태 컬럼 넓히기 */
 td:last-child, th:last-child{
     min-width:120px;
-}  
+}    
   
-/* 상태 */
+/* 상태 색 */
 .status-work{background:#4CAF50;color:white;}
 .status-holiday{background:#9E9E9E;color:white;}
 .status-leave{background:#FF9800;color:white;}
@@ -141,12 +123,7 @@ td:last-child, th:last-child{
 </head>
 
 <body>
-<br>
-  <br>
-  <br>
-  <br>
-  <br>
-  <br>
+
 <h1>무등산 일일 근무현황</h1>
 
 <div class="top-bar">
@@ -164,12 +141,13 @@ td:last-child, th:last-child{
 </div>
 </div>
 
+<div class="main">
 <div class="container" id="wrap"></div>
+</div>
 
 <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
 <script>
-
 /* ================= 데이터 ================= */
 let departments = [
 {
@@ -273,13 +251,13 @@ function getStatusClass(v){
 switch(v){
 case "근무": return "status-work";
 case "휴일": return "status-holiday";
-case "연가": return "status-leave";
-case "출장": return "status-trip";
+case "연가":
+case "병가": return "status-leave";
+case "출장":
+case "공가": return "status-trip";
 case "교육": return "status-edu";
 case "육아": return "status-child";
-case "유연": return "status-flex";
-case "병가": return "status-leave";
-case "공가": return "status-trip";
+case "유연":
 case "재택": return "status-flex";
 default: return "";
 }
@@ -295,7 +273,7 @@ document.getElementById("today").innerText =
 
 /* ================= 렌더 ================= */
 function render(){
-let wrap=document.getElementById("wrap");
+const wrap=document.getElementById("wrap");
 wrap.innerHTML="";
 
 departments.forEach((dept,di)=>{
@@ -351,26 +329,16 @@ departments[di].employees[i].status=val;
 render();
 }
 
-/* ================= 핵심 수정된 통계 ================= */
+/* ================= 통계 ================= */
 function calc(){
-
-let total=0;
-let work=0;
-let hq=0;
-let wr=0;
+let total=0, work=0, hq=0, wr=0;
 
 departments.forEach(d=>{
-    d.employees.forEach(e=>{
-        total++;
-
-        if(e.status==="근무") work++;
-
-        if(d.name==="원효분소"){
-            wr++;
-        } else {
-            hq++;
-        }
-    });
+d.employees.forEach(e=>{
+total++;
+if(e.status==="근무") work++;
+if(d.name==="원효분소") wr++; else hq++;
+});
 });
 
 document.getElementById("total").innerText=total+"명";
@@ -379,7 +347,63 @@ document.getElementById("wrTotal").innerText=wr+"명";
 document.getElementById("workTotal").innerText=work+"명";
 }
 
-/* ================= 엑셀 ================= */
+/* ================= 엑셀 업로드 ================= */
+document.getElementById("excelInput").addEventListener("change", async (e)=>{
+const file=e.target.files[0];
+if(!file) return;
+
+const data=await file.arrayBuffer();
+const wb=XLSX.read(data,{type:"array"});
+const ws=wb.Sheets["근무계획표"];
+
+if(!ws){
+alert("근무계획표 시트 없음");
+return;
+}
+
+const rows=XLSX.utils.sheet_to_json(ws,{header:1});
+
+const today=String(new Date().getDate()).padStart(2,"0");
+
+const dateRow=rows[3];
+let dateCol=-1;
+
+for(let c=0;c<dateRow.length;c++){
+if(String(dateRow[c])===today){
+dateCol=c;
+break;
+}
+}
+
+if(dateCol<0){
+alert("오늘 날짜 없음");
+return;
+}
+
+departments.forEach(d=>{
+d.employees.forEach(emp=>{
+for(let r=0;r<rows.length;r++){
+if(rows[r][2]===emp.name){
+const v=rows[r][dateCol];
+emp.status =
+v==="○"?"휴일":
+v==="연"?"연가":
+v==="병"?"병가":
+v==="공"?"공가":
+v==="재"?"재택":
+v==="교"?"교육":
+v==="출"?"출장":
+"근무";
+break;
+}
+}
+});
+});
+
+render();
+});
+
+/* ================= 다운로드 ================= */
 function downloadExcel(){
 let data=[];
 
@@ -395,8 +419,8 @@ data.push({
 });
 });
 
-let ws=XLSX.utils.json_to_sheet(data);
-let wb=XLSX.utils.book_new();
+const ws=XLSX.utils.json_to_sheet(data);
+const wb=XLSX.utils.book_new();
 XLSX.utils.book_append_sheet(wb,ws,"근무현황");
 XLSX.writeFile(wb,"무등산_근무현황.xlsx");
 }
