@@ -135,6 +135,13 @@ input,select{
 <body>
 
 <h1>무등산 근무현황</h1>
+<!-- 파일 + 버튼 -->
+
+<div style="text-align:center; margin-bottom:10px;">
+    <input type="file" id="excelInput"
+           accept=".xlsx,.xls"
+           onchange="loadExcel(event)">
+</div>
 <button onclick="downloadExcel()">엑셀 다운로드</button>
 <!-- 🔥 상단 고정 바 -->
 <div class="top-bar">
@@ -147,12 +154,6 @@ input,select{
             <tr><th>본소 총원</th><td id="hqTotal">0명</td></tr>
             <tr><th>근무 인원</th><td id="workTotal">0명</td></tr>
         </table>
-    </div>
-
-    <!-- 파일 + 버튼 -->
-    <div style="display:flex; gap:8px; align-items:center;">
-        <input type="file" id="excelInput" accept=".xlsx,.xls" onchange="loadExcel(event)">
-        
     </div>
 
 </div>
