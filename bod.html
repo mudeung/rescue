@@ -124,6 +124,11 @@ input, select{
     box-sizing:border-box;
 }
 
+/* 상태 컬럼 넓히기 */
+td:last-child, th:last-child{
+    min-width:120px;
+}  
+  
 /* 상태 */
 .status-work{background:#4CAF50;color:white;}
 .status-holiday{background:#9E9E9E;color:white;}
@@ -142,17 +147,18 @@ input, select{
   <br>
   <br>
   <br>
-  <h1>무등산 일일 근무현황</h1>
+<h1>무등산 일일 근무현황</h1>
+
 <div class="top-bar">
 <table>
 <tr><th>날짜</th><td id="today"></td></tr>
 <tr><th>총원</th><td id="total">0명</td></tr>
-<tr><th>본소</th><td id="hqTotal">0명</td></tr>
+<tr><th>사무소</th><td id="hqTotal">0명</td></tr>
 <tr><th>원효분소</th><td id="wrTotal">0명</td></tr>
 <tr><th>근무</th><td id="workTotal">0명</td></tr>
 </table>
 
-<div style="margin-top:8px;">
+<div>
 <input type="file" id="excelInput" accept=".xlsx,.xls">
 <button onclick="downloadExcel()">엑셀 다운로드</button>
 </div>
@@ -345,7 +351,7 @@ departments[di].employees[i].status=val;
 render();
 }
 
-/* ================= 통계 (수정 완료) ================= */
+/* ================= 핵심 수정된 통계 ================= */
 function calc(){
 
 let total=0;
@@ -353,20 +359,18 @@ let work=0;
 let hq=0;
 let wr=0;
 
-const hqList=[
-"사무소장","행정과","자원보전과",
-"탐방시설과","재난안전과","증심지구 현장관리"
-];
-
 departments.forEach(d=>{
-d.employees.forEach(e=>{
-total++;
-if(e.status==="근무") work++;
+    d.employees.forEach(e=>{
+        total++;
 
-if(hqList.includes(d.name)) hq++;
+        if(e.status==="근무") work++;
 
-if(d.name==="원효분소") wr++;
-});
+        if(d.name==="원효분소"){
+            wr++;
+        } else {
+            hq++;
+        }
+    });
 });
 
 document.getElementById("total").innerText=total+"명";
@@ -375,7 +379,7 @@ document.getElementById("wrTotal").innerText=wr+"명";
 document.getElementById("workTotal").innerText=work+"명";
 }
 
-/* ================= 엑셀 다운로드 ================= */
+/* ================= 엑셀 ================= */
 function downloadExcel(){
 let data=[];
 
@@ -394,90 +398,10 @@ data.push({
 let ws=XLSX.utils.json_to_sheet(data);
 let wb=XLSX.utils.book_new();
 XLSX.utils.book_append_sheet(wb,ws,"근무현황");
-
 XLSX.writeFile(wb,"무등산_근무현황.xlsx");
 }
 
-/* ================= 엑셀 업로드 ================= */
-document.getElementById("excelInput").addEventListener("change",function(e){
-
-const file=e.target.files[0];
-if(!file) return;
-
-const reader=new FileReader();
-
-reader.onload=function(ev){
-const data=new Uint8Array(ev.target.result);
-const wb=XLSX.read(data,{type:"array"});
-const sheet=wb.Sheets[wb.SheetNames[0]];
-const rows=XLSX.utils.sheet_to_json(sheet,{header:1});
-
-let day=new Date().getDate();
-let col=-1;
-
-for(let r=0;r<10;r++){
-if(!rows[r]) continue;
-for(let c=0;c<rows[r].length;c++){
-if(Number(String(rows[r][c]).replace("일","").trim())===day){
-col=c;
-break;
-}
-}
-if(col!==-1) break;
-}
-
-if(col===-1){
-alert("날짜 열 못 찾음");
-return;
-}
-
-applyExcel(rows,col);
-};
-
-reader.readAsArrayBuffer(file);
-});
-
-/* ================= 엑셀 적용 ================= */
-function applyExcel(rows,col){
-
-let count=0;
-
-const norm=s=>String(s||"").replace(/\s/g,"").trim();
-
-rows.forEach(row=>{
-if(!row) return;
-
-let name=norm(row[2]);
-if(!name) return;
-
-let val=String(row[col]||"");
-
-let status="근무";
-
-if(val==="○") status="휴일";
-else if(val.includes("연")) status="연가";
-else if(val.includes("출")) status="출장";
-else if(val.includes("교")) status="교육";
-else if(val.includes("재")) status="재택";
-else if(val.includes("병")) status="병가";
-else if(val.includes("공")) status="공가";
-else if(val.includes("유")) status="유연";
-
-departments.forEach(d=>{
-d.employees.forEach(e=>{
-if(norm(e.name)===name){
-e.status=status;
-count++;
-}
-});
-});
-});
-
-render();
-alert("적용 완료: "+count+"명");
-}
-
-/* init */
+/* ================= 초기 ================= */
 setToday();
 render();
 
