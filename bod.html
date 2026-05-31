@@ -78,7 +78,6 @@ button{
     padding:6px;
 }
 
-/* 색 */
 .red{background:#d32f2f;}
 .blue{background:#1da1f2;}
 .green{background:#8bc34a;}
@@ -96,7 +95,7 @@ th, td{
     text-align:center;
 }
 
-/* input */
+/* input / select */
 input, select{
     width:100%;
     border:none;
@@ -105,7 +104,7 @@ input, select{
     text-align:center;
     box-sizing:border-box;
 }
-
+  
 /* 상태 컬럼 넓히기 */
 td:last-child, th:last-child{
     min-width:120px;
@@ -148,6 +147,7 @@ td:last-child, th:last-child{
 <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
 <script>
+
 /* ================= 데이터 ================= */
 let departments = [
 {
@@ -246,6 +246,18 @@ name:"탐방시설과",color:"navy",employees:[
 }
 ];
 
+/* ================= 저장/불러오기 ================= */
+function saveData(){
+localStorage.setItem("mudeungsan_departments", JSON.stringify(departments));
+}
+
+function loadData(){
+const saved = localStorage.getItem("mudeungsan_departments");
+if(saved){
+departments = JSON.parse(saved);
+}
+}
+
 /* ================= 상태 ================= */
 function getStatusClass(v){
 switch(v){
@@ -318,14 +330,16 @@ wrap.innerHTML+=html;
 calc();
 }
 
-/* ================= 수정 ================= */
+/* ================= 수정 + 저장 ================= */
 function updateField(di,i,key,val){
 departments[di].employees[i][key]=val;
+saveData();
 render();
 }
 
 function updateStatus(di,i,val){
 departments[di].employees[i].status=val;
+saveData();
 render();
 }
 
@@ -400,6 +414,7 @@ break;
 });
 });
 
+saveData();
 render();
 });
 
@@ -426,6 +441,7 @@ XLSX.writeFile(wb,"무등산_근무현황.xlsx");
 }
 
 /* ================= 초기 ================= */
+loadData();
 setToday();
 render();
 
