@@ -119,7 +119,9 @@ table td:nth-child(4) {
 }
 </style>
 </head>
-
+    
+<button onclick="downloadExcel()">엑셀 다운로드</button>
+    
 <body>
 
 <h1>무등산 근무현황</h1>
@@ -352,6 +354,37 @@ document.getElementById("hqTotal").innerText=hq+"명";
 document.getElementById("workTotal").innerText=work+"명";
 }
 
+  /* =========================
+   엑셀 다운로드 (오늘 날짜 포함)
+========================= */
+function downloadExcel(){
+
+let now = new Date();
+let dateStr =
+now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,'0')+"-"+String(now.getDate()).padStart(2,'0');
+
+let data = [];
+
+departments.forEach(dept=>{
+dept.employees.forEach(emp=>{
+data.push({
+부서: dept.name,
+직급: emp.grade,
+이름: emp.name,
+업무: emp.work,
+상태: emp.status
+});
+});
+});
+
+let ws = XLSX.utils.json_to_sheet(data);
+let wb = XLSX.utils.book_new();
+
+XLSX.utils.book_append_sheet(wb, ws, "근무현황");
+
+XLSX.writeFile(wb, `무등산_근무현황_${dateStr}.xlsx`);
+}
+    
 /* 실행 */
 setToday();
 render();
