@@ -311,13 +311,31 @@ reader.readAsDataURL(file);
 }
 
 function renderTopFiles(){
-let files = JSON.parse(localStorage.getItem("top_files") || "[]");
+    let files = JSON.parse(localStorage.getItem("top_files") || "[]");
 
-document.getElementById("fileList").innerHTML =
-files.map(f =>
-`📎 <a href="${f.data}" download="${f.name}">${f.name}</a><br>`
-).join("");
+    document.getElementById("fileList").innerHTML =
+    files.map((f, i) =>
+        `📎 <a href="${f.data}" download="${f.name}">${f.name}</a>
+         <button onclick="deleteTopFile(${i})" style="margin-left:5px;font-size:10px;">
+            삭제
+         </button><br>`
+    ).join("");
 }
+/* ================= 삭제함수 ================= */
+function deleteTopFile(index){
+    let files = JSON.parse(localStorage.getItem("top_files") || "[]");
+
+    files.splice(index, 1); // 해당 파일 삭제
+
+    if(files.length === 0){
+        localStorage.removeItem("top_files"); // 완전히 초기화
+    } else {
+        localStorage.setItem("top_files", JSON.stringify(files));
+    }
+
+    renderTopFiles();
+}  
+  
 
 /* ================= 상태 ================= */
 function getStatusClass(v){
