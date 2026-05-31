@@ -123,6 +123,7 @@ table td:nth-child(4) {
 <body>
     
 <button onclick="downloadExcel()">엑셀 다운로드</button>
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     
 <h1>무등산 근무현황</h1>
 
@@ -295,8 +296,8 @@ let cls=getStatusClass(emp.status);
 html+=`
 <tr>
 <td><input value="${emp.grade||""}" onchange="departmentsUpdate('${dept.name}',${i},'grade',this.value)"></td>
-<td><input value="${emp.name||""}"></td>
-<td><input value="${emp.work||""}"></td>
+<td><input value="${emp.name||""}" onchange="departmentsUpdate('${dept.name}',${i},'name',this.value)"></td>
+<td><input value="${emp.work||""}" onchange="departmentsUpdate('${dept.name}',${i},'work',this.value)"></td>
 <td>
 <select class="${cls}" onchange="updateStatus('${dept.name}',${i},this.value)">
 <option ${emp.status==="근무"?"selected":""}>근무</option>
