@@ -5,25 +5,35 @@
 <title>무등산 근무현황</title>
 
 <style>
-body{
+html, body{
+    height:100vh;
     margin:0;
-    padding:20px;
-    background:#dfe4ec;
+    overflow:hidden;
     font-family:'맑은 고딕',sans-serif;
-    font-size:16px;
+    background:#dfe4ec;
+    font-size:13px;
 }
 
+/* 전체 축소 */
+body{
+    padding:10px;
+}
+
+/* 제목 */
 h1{
     text-align:center;
-    font-size:60px;
-    margin-bottom:20px;
+    font-size:32px;
+    margin:5px 0 10px;
 }
 
+/* 요약 */
 .summary{
     position:absolute;
-    right:20px;
-    top:20px;
-    width:260px;
+    right:10px;
+    top:10px;
+    width:220px;
+    transform:scale(0.9);
+    transform-origin: top right;
 }
 
 .summary table{
@@ -36,38 +46,40 @@ h1{
 .summary th,
 .summary td{
     border:1px solid #ddd;
-    padding:8px;
-    font-size:16px;
+    padding:4px;
+    font-size:12px;
     text-align:center;
 }
 
+/* 전체 레이아웃 (핵심) */
 .container{
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap;
-    margin-bottom:15px;
+    display:grid;
+    grid-template-columns: repeat(4, 1fr); /* 한 화면 핵심 */
+    gap:6px;
 }
 
+/* 카드 */
 .dept{
-    min-width:320px;
-    flex:1;
     background:white;
     border:1px solid #ccc;
 }
 
+/* 헤더 */
 .dept-header{
     color:white;
     text-align:center;
     font-weight:bold;
-    padding:10px;
-    font-size:20px;
+    padding:6px;
+    font-size:14px;
 }
 
+/* 색상 */
 .blue{background:#1da1f2;}
 .green{background:#8bc34a;}
 .navy{background:#3f51b5;}
 .red{background:#d32f2f;}
 
+/* 테이블 */
 table{
     width:100%;
     border-collapse:collapse;
@@ -75,20 +87,20 @@ table{
 
 th,td{
     border:1px solid #ddd;
-    padding:8px;
-    font-size:15px;
+    padding:3px;
+    font-size:11px;
     text-align:center;
 }
 
 input,select{
     width:100%;
     border:none;
-    padding:6px;
-    font-size:14px;
+    padding:2px;
+    font-size:11px;
     text-align:center;
 }
 
-/* 상태 */
+/* 상태 색 */
 .status-work{background:#4CAF50;color:white;font-weight:bold;}
 .status-holiday{background:#9E9E9E;color:white;}
 .status-leave{background:#FF9800;color:white;}
@@ -100,30 +112,31 @@ input,select{
 /* 버튼 */
 button{
     position:fixed;
-    right:20px;
-    bottom:20px;
-    padding:14px 18px;
-    font-size:15px;
+    right:10px;
+    bottom:10px;
+    padding:10px 14px;
+    font-size:12px;
     cursor:pointer;
     border:none;
-    border-radius:8px;
+    border-radius:6px;
     background:#1da1f2;
     color:white;
-    box-shadow:0 4px 10px rgba(0,0,0,0.2);
+    box-shadow:0 3px 8px rgba(0,0,0,0.2);
 }
-    /* 4번째 컬럼(근무형태)만 넓게 */
+
+/* 4번째 컬럼 고정 */
 table th:nth-child(4),
 table td:nth-child(4) {
-    width: 180px;
-    min-width: 180px;
+    width:120px;
+    min-width:120px;
 }
 </style>
 </head>
-        
+
 <body>
-    
+
 <button onclick="downloadExcel()">엑셀 다운로드</button>
-    
+
 <h1>무등산 근무현황</h1>
 
 <div class="summary">
@@ -135,13 +148,10 @@ table td:nth-child(4) {
 </table>
 </div>
 
-<br><br>
-
 <div class="container" id="wrapTop"></div>
 <div class="container" id="wrapBottom"></div>
 
 <script>
-
 /* =========================
    데이터
 ========================= */
@@ -204,7 +214,7 @@ name:"탐방시설과",color:"navy",employees:[
 {grade:"안전",name:"김월중",work:"탐방객안전관리",status:"근무"},
 {grade:"안전",name:"박병수",work:"탐방객안전관리",status:"근무"},
 {grade:"안전",name:"송시온",work:"탐방객안전관리",status:"유연"},
-{grade:"안전",name:"공민",work:"일경험인턴",status:"근무"},    
+{grade:"안전",name:"공민",work:"일경험인턴",status:"근무"}
 ]
 },
 {name:"증심지구 현장관리",color:"green",employees:[
@@ -217,7 +227,7 @@ name:"탐방시설과",color:"navy",employees:[
 {grade:"녹색",name:"김명옥",work:"환경정화",status:"근무"},
 {grade:"녹색",name:"장미숙",work:"환경정화",status:"근무"},
 {grade:"녹색",name:"이용경",work:"환경정화",status:"근무"},
-{grade:"녹색",name:"김경년",work:"환경정화",status:"근무"},    
+{grade:"녹색",name:"김경년",work:"환경정화",status:"근무"},
 {grade:"환경",name:"황광익",work:"환경정화",status:"근무"}
 ]
 }
@@ -239,9 +249,7 @@ default: return "";
 }
 }
 
-/* =========================
-   날짜
-========================= */
+/* 날짜 */
 function setToday(){
 const now=new Date();
 const week=["일","월","화","수","목","금","토"];
@@ -250,20 +258,21 @@ document.getElementById("today").innerText =
 `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} (${week[now.getDay()]})`;
 }
 
-/* =========================
-   상태 변경
-========================= */
+/* update */
+function departmentsUpdate(deptName, index, field, value){
+const dept = departments.find(d => d.name === deptName);
+dept.employees[index][field] = value;
+render();
+}
+
 function updateStatus(deptName, index, value){
 const dept = departments.find(d => d.name === deptName);
 dept.employees[index].status = value;
 render();
 }
 
-/* =========================
-   렌더
-========================= */
+/* render */
 function render(){
-
 let top=document.getElementById("wrapTop");
 let bottom=document.getElementById("wrapBottom");
 
@@ -273,19 +282,14 @@ bottom.innerHTML="";
 const topGroups=["사무소장","행정과","자원보전과"];
 
 departments.forEach(dept=>{
-
 let html=`
 <div class="dept">
 <div class="dept-header ${dept.color}">
 ${dept.name} (${dept.employees.filter(e=>e.status==="근무").length})
 </div>
-
 <table>
 <tr>
-<th>직급</th>
-<th>이름</th>
-<th>업무</th>
-<th>근무형태</th>
+<th>직급</th><th>이름</th><th>업무</th><th>근무형태</th>
 </tr>
 `;
 
@@ -294,9 +298,9 @@ let cls=getStatusClass(emp.status);
 
 html+=`
 <tr>
-<td><input value="${emp.grade||""}" onchange="departmentsUpdate('${dept.name}',${i},'grade',this.value)"></td>
-<td><input value="${emp.name||""}" onchange="departmentsUpdate('${dept.name}',${i},'name',this.value)"></td>
-<td><input value="${emp.work||""}" onchange="departmentsUpdate('${dept.name}',${i},'work',this.value)"></td>
+<td><input value="${emp.grade}" onchange="departmentsUpdate('${dept.name}',${i},'grade',this.value)"></td>
+<td><input value="${emp.name}" onchange="departmentsUpdate('${dept.name}',${i},'name',this.value)"></td>
+<td><input value="${emp.work}" onchange="departmentsUpdate('${dept.name}',${i},'work',this.value)"></td>
 <td>
 <select class="${cls}" onchange="updateStatus('${dept.name}',${i},this.value)">
 <option ${emp.status==="근무"?"selected":""}>근무</option>
@@ -319,26 +323,17 @@ top.innerHTML+=html;
 }else{
 bottom.innerHTML+=html;
 }
-
 });
 
 calc();
 }
 
-/* =========================
-   통계
-========================= */
+/* 통계 */
 function calc(){
-
-let total=0,hq=0,wonhyo=0,work=0;
+let total=0,hq=0,work=0;
 
 const hqGroup=[
-"사무소장",
-"행정과",
-"자원보전과",
-"탐방시설과",
-"재난안전과",
-"증심지구 현장관리"
+"사무소장","행정과","자원보전과","탐방시설과","재난안전과","증심지구 현장관리"
 ];
 
 departments.forEach(d=>{
@@ -354,49 +349,39 @@ document.getElementById("hqTotal").innerText=hq+"명";
 document.getElementById("workTotal").innerText=work+"명";
 }
 
-    function departmentsUpdate(deptName, index, field, value){
-    const dept = departments.find(d => d.name === deptName);
-    dept.employees[index][field] = value;
-    render();
-}
-
-  /* =========================
-   엑셀 다운로드 (오늘 날짜 포함)
-========================= */
+/* 엑셀 */
 function downloadExcel(){
-
-let now = new Date();
+let now=new Date();
 let dateStr =
 now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,'0')+"-"+String(now.getDate()).padStart(2,'0');
 
-let data = [];
+let data=[];
 
 departments.forEach(dept=>{
 dept.employees.forEach(emp=>{
 data.push({
-  부서: dept.name,
-  직급: emp.grade || "",
-  이름: emp.name || "",
-  업무: emp.work || "",
-  상태: emp.status || ""
+부서:dept.name,
+직급:emp.grade,
+이름:emp.name,
+업무:emp.work,
+상태:emp.status
 });
 });
 });
 
-let ws = XLSX.utils.json_to_sheet(data);
-let wb = XLSX.utils.book_new();
+let ws=XLSX.utils.json_to_sheet(data);
+let wb=XLSX.utils.book_new();
+XLSX.utils.book_append_sheet(wb,ws,"근무현황");
 
-XLSX.utils.book_append_sheet(wb, ws, "근무현황");
-
-XLSX.writeFile(wb, `무등산_근무현황_${dateStr}.xlsx`);
+XLSX.writeFile(wb,`무등산_근무현황_${dateStr}.xlsx`);
 }
-    
+
 /* 실행 */
 setToday();
 render();
-
 </script>
 
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
 </body>
-    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 </html>
