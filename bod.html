@@ -294,7 +294,7 @@ let cls=getStatusClass(emp.status);
 
 html+=`
 <tr>
-<td><input value="${emp.grade||""}"></td>
+<td><input value="${emp.grade||""}" onchange="departmentsUpdate('${dept.name}',${i},'grade',this.value)"></td>
 <td><input value="${emp.name||""}"></td>
 <td><input value="${emp.work||""}"></td>
 <td>
@@ -352,6 +352,12 @@ if(e.status==="근무") work++;
 document.getElementById("total").innerText=total+"명";
 document.getElementById("hqTotal").innerText=hq+"명";
 document.getElementById("workTotal").innerText=work+"명";
+}
+
+    function departmentsUpdate(deptName, index, field, value){
+    const dept = departments.find(d => d.name === deptName);
+    dept.employees[index][field] = value;
+    render();
 }
 
   /* =========================
