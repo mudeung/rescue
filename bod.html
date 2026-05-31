@@ -4,20 +4,18 @@
 <meta charset="UTF-8">
 <title>무등산 근무현황</title>
 
-<!-- ✅ XLSX 라이브러리 추가 (필수 수정) -->
-<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-
 <style>
 body{
     margin:0;
     padding:20px;
     background:#dfe4ec;
     font-family:'맑은 고딕',sans-serif;
+    font-size:16px;
 }
 
 h1{
     text-align:center;
-    font-size:50px;
+    font-size:60px;
     margin-bottom:20px;
 }
 
@@ -25,7 +23,7 @@ h1{
     position:absolute;
     right:20px;
     top:20px;
-    width:240px;
+    width:260px;
 }
 
 .summary table{
@@ -38,8 +36,8 @@ h1{
 .summary th,
 .summary td{
     border:1px solid #ddd;
-    padding:6px;
-    font-size:14px;
+    padding:8px;
+    font-size:16px;
     text-align:center;
 }
 
@@ -62,7 +60,7 @@ h1{
     text-align:center;
     font-weight:bold;
     padding:10px;
-    font-size:18px;
+    font-size:20px;
 }
 
 .blue{background:#1da1f2;}
@@ -77,19 +75,20 @@ table{
 
 th,td{
     border:1px solid #ddd;
-    padding:5px;
-    font-size:13px;
+    padding:8px;
+    font-size:15px;
     text-align:center;
 }
 
 input,select{
     width:100%;
     border:none;
-    padding:4px;
-    font-size:11px;
+    padding:6px;
+    font-size:14px;
     text-align:center;
 }
 
+/* 상태 */
 .status-work{background:#4CAF50;color:white;font-weight:bold;}
 .status-holiday{background:#9E9E9E;color:white;}
 .status-leave{background:#FF9800;color:white;}
@@ -98,12 +97,13 @@ input,select{
 .status-child{background:#E91E63;color:white;}
 .status-flex{background:#607D8B;color:white;}
 
+/* 버튼 */
 button{
     position:fixed;
     right:20px;
     bottom:20px;
-    padding:12px 16px;
-    font-size:14px;
+    padding:14px 18px;
+    font-size:15px;
     cursor:pointer;
     border:none;
     border-radius:8px;
@@ -117,9 +117,6 @@ button{
 <body>
 
 <h1>무등산 근무현황</h1>
-
-<!-- ✅ 엑셀 다운로드 버튼 추가 -->
-<button onclick="downloadExcel()">엑셀 다운로드</button>
 
 <div class="summary">
 <table>
@@ -142,8 +139,12 @@ button{
    데이터
 ========================= */
 let departments = [
+{
+name:"사무소장",color:"red",employees:[
+{grade:"사무소장",name:"(미지정)",work:"총괄",status:"근무"}
+]
+},
 {name:"행정과",color:"blue",employees:[
-{grade:"소장",name:"노희동",work:"사무소총괄",status:"근무"},
 {grade:"과장",name:"이동훈",work:"부서총괄",status:"근무"},
 {grade:"5급",name:"김용현",work:"기획·성과·민원",status:"근무"},
 {grade:"6급",name:"고경은",work:"인사·계약·예산",status:"근무"},
@@ -183,8 +184,7 @@ name:"탐방시설과",color:"navy",employees:[
 {grade:"인턴",name:"최다은",work:"탐방해설",status:"근무"}
 ]
 },
-{
-name:"재난안전과",color:"red",employees:[
+{name:"재난안전과",color:"red",employees:[
 {grade:"과장",name:"이동훈",work:"부서총괄",status:"근무"},
 {grade:"5급",name:"김용현",work:"기획·성과·민원",status:"근무"},
 {grade:"6급",name:"고경은",work:"인사·계약·예산",status:"근무"},
@@ -194,19 +194,7 @@ name:"재난안전과",color:"red",employees:[
 {grade:"환경",name:"정태윤",work:"환경정화",status:"근무"}
 ]
 },
-{
-name:"증심지구 현장관리",color:"green",employees:[
-{grade:"과장",name:"이동훈",work:"부서총괄",status:"근무"},
-{grade:"5급",name:"김용현",work:"기획·성과·민원",status:"근무"},
-{grade:"6급",name:"고경은",work:"인사·계약·예산",status:"근무"},
-{grade:"6급",name:"백지원",work:"구매·홍보·보안",status:"근무"},
-{grade:"8급",name:"안은비",work:"급여·복무",status:"근무"},
-{grade:"환경",name:"안효순",work:"청사관리",status:"근무"},
-{grade:"환경",name:"정태윤",work:"환경정화",status:"근무"}
-]
-},
-{
-name:"원효분소",color:"green",employees:[
+{name:"증심지구 현장관리",color:"green",employees:[
 {grade:"과장",name:"이동훈",work:"부서총괄",status:"근무"},
 {grade:"5급",name:"김용현",work:"기획·성과·민원",status:"근무"},
 {grade:"6급",name:"고경은",work:"인사·계약·예산",status:"근무"},
@@ -218,7 +206,9 @@ name:"원효분소",color:"green",employees:[
 }
 ];
 
-/* 상태 클래스 */
+/* =========================
+   상태
+========================= */
 function getStatusClass(v){
 switch(v){
 case "근무": return "status-work";
@@ -232,7 +222,9 @@ default: return "";
 }
 }
 
-/* 날짜 */
+/* =========================
+   날짜
+========================= */
 function setToday(){
 const now=new Date();
 const week=["일","월","화","수","목","금","토"];
@@ -241,14 +233,18 @@ document.getElementById("today").innerText =
 `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} (${week[now.getDay()]})`;
 }
 
-/* 상태 변경 */
-function updateStatus(deptName,index,value){
-const dept = departments.find(d=>d.name===deptName);
-dept.employees[index].status=value;
+/* =========================
+   상태 변경
+========================= */
+function updateStatus(deptName, index, value){
+const dept = departments.find(d => d.name === deptName);
+dept.employees[index].status = value;
 render();
 }
 
-/* 렌더 */
+/* =========================
+   렌더
+========================= */
 function render(){
 
 let top=document.getElementById("wrapTop");
@@ -257,15 +253,14 @@ let bottom=document.getElementById("wrapBottom");
 top.innerHTML="";
 bottom.innerHTML="";
 
-const topGroups=["행정과","자원보전과","탐방시설과"];
-const bottomGroups=["재난안전과","증심지구 현장관리","원효분소"];
+const topGroups=["사무소장","행정과","자원보전과"];
 
 departments.forEach(dept=>{
 
 let html=`
 <div class="dept">
 <div class="dept-header ${dept.color}">
-${dept.name}
+${dept.name} (${dept.employees.filter(e=>e.status==="근무").length})
 </div>
 
 <table>
@@ -278,15 +273,15 @@ ${dept.name}
 `;
 
 dept.employees.forEach((emp,i)=>{
+let cls=getStatusClass(emp.status);
 
 html+=`
 <tr>
-<td><input value="${emp.grade}"></td>
-<td><input value="${emp.name}"></td>
-<td><input value="${emp.work}"></td>
+<td><input value="${emp.grade||""}"></td>
+<td><input value="${emp.name||""}"></td>
+<td><input value="${emp.work||""}"></td>
 <td>
-<select class="${getStatusClass(emp.status)}"
-onchange="updateStatus('${dept.name}',${i},this.value)">
+<select class="${cls}" onchange="updateStatus('${dept.name}',${i},this.value)">
 <option ${emp.status==="근무"?"selected":""}>근무</option>
 <option ${emp.status==="휴일"?"selected":""}>휴일</option>
 <option ${emp.status==="연가"?"selected":""}>연가</option>
@@ -313,47 +308,33 @@ bottom.innerHTML+=html;
 calc();
 }
 
-/* 통계 */
+/* =========================
+   통계
+========================= */
 function calc(){
 
 let total=0,hq=0,wonhyo=0,work=0;
 
-const hqGroup=["행정과","자원보전과","탐방시설과","재난안전과","증심지구 현장관리"];
+const hqGroup=[
+"사무소장",
+"행정과",
+"자원보전과",
+"탐방시설과",
+"재난안전과",
+"증심지구 현장관리"
+];
 
 departments.forEach(d=>{
 d.employees.forEach(e=>{
-if([...hqGroup,"원효분소"].includes(d.name)) total++;
+total++;
 if(hqGroup.includes(d.name)) hq++;
-if(d.name==="원효분소") wonhyo++;
 if(e.status==="근무") work++;
 });
 });
 
 document.getElementById("total").innerText=total+"명";
 document.getElementById("hqTotal").innerText=hq+"명";
-document.getElementById("wonhyoTotal").innerText=wonhyo+"명";
 document.getElementById("workTotal").innerText=work+"명";
-}
-
-/* 엑셀 다운로드 */
-function downloadExcel(){
-
-let data=[["부서","직급","이름","업무","근무형태"]];
-
-departments.forEach(d=>{
-d.employees.forEach(e=>{
-data.push([d.name,e.grade,e.name,e.work,e.status]);
-});
-});
-
-let ws=XLSX.utils.aoa_to_sheet(data);
-let wb=XLSX.utils.book_new();
-XLSX.utils.book_append_sheet(wb,ws,"근무현황");
-
-XLSX.writeFile(
-wb,
-`무등산_근무현황_${document.getElementById("today").innerText}.xlsx`
-);
 }
 
 /* 실행 */
