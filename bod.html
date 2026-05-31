@@ -139,30 +139,29 @@ td:last-child, th:last-child{
 .status-child{background:#E91E63;color:white;}
 .status-flex{background:#607D8B;color:white;}
 </style>
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 </head>
 
 <body>
 
 <div class="top-bar">
 
-    <!-- 왼쪽: 날짜 + 파일 -->
     <div class="left">
         <table>
             <tr><th>날짜</th><td id="today"></td></tr>
         </table>
 
         <div style="margin-top:6px;">
-            <input type="file" id="topFileInput">
+            <input type="file" id="topFileInput" accept=".xlsx, .xls, image/*, .pdf, .hwp">
+            <button onclick="saveBackToExcel()" style="margin-top:4px; font-size:11px; cursor:pointer;">수정본 엑셀 다운로드</button>
             <div id="fileList"></div>
         </div>
     </div>
 
-    <!-- 가운데: 제목 -->
     <div class="center">
         <h1 class="title">무등산 일일 근무현황</h1>
     </div>
 
-    <!-- 오른쪽: 통계 -->
     <div class="right">
         <table>
             <tr><th>총원</th><td id="total">0명</td></tr>
@@ -175,285 +174,432 @@ td:last-child, th:last-child{
 </div>
 
 <div class="main">
-<div class="container" id="wrap"></div>
+    <div class="container" id="wrap"></div>
 </div>
 
 <script>
 
-/* ================= 데이터 ================= */
+/* ================= 전역 변수 ================= */
+let uploadedFileName = "";
+let originalWorkbook = null;
+let originalSheet = null;
+
+/* ================= 기본 직원 데이터 구조 ================= */
 let departments = [
-{
-name:"사무소장",color:"red",employees:[
-{grade:"사무소장",name:"노회동",work:"사무소 총괄",status:"근무"}
-]
-},
-{name:"행정과",color:"blue",employees:[
-{grade:"과장",name:"이동훈",work:"부서총괄",status:"근무"},
-{grade:"5급",name:"김용현",work:"기획·성과·민원",status:"근무"},
-{grade:"6급",name:"고경은",work:"인사·계약·예산",status:"근무"},
-{grade:"6급",name:"백지원",work:"구매·홍보·보안",status:"근무"},
-{grade:"8급",name:"안은비",work:"급여·복무",status:"근무"},
-{grade:"환경",name:"이효순",work:"청사관리",status:"유연"},
-{grade:"환경",name:"정태윤",work:"환경정화",status:"근무"}
-]
-},
-{
-name:"자원보전과",color:"green",employees:[
-{grade:"과장",name:"김동훈",work:"부서총괄",status:"근무"},
-{grade:"4급",name:"현재성",work:"인허가·청소",status:"근무"},
-{grade:"5급",name:"한윤미",work:"자원봉사·지역협력",status:"근무"},
-{grade:"5급",name:"김한나",work:"모니터링·훼손지복원",status:"근무"},
-{grade:"5급",name:"유상범",work:"불법·지킴이",status:"근무"},
-{grade:"6급",name:"김인엽",work:"모니터링·묘지이장",status:"근무"}
-]
-},
-{
-name:"탐방시설과",color:"navy",employees:[
-{grade:"과장",name:"이관옥",work:"부서총괄",status:"근무"},
-{grade:"4급",name:"김옥전",work:"탐방",status:"근무"},
-{grade:"5급",name:"박준홍",work:"이주사업",status:"근무"},
-{grade:"5급",name:"이태성",work:"화장실·주차장",status:"근무"},
-{grade:"5급",name:"김양수",work:"시설",status:"유연"},
-{grade:"6급",name:"고창현",work:"탐방",status:"유연"},
-{grade:"해설",name:"박헌주",work:"탐방해설",status:"유연"},
-{grade:"해설",name:"임희진",work:"탐방해설",status:"근무"},
-{grade:"해설",name:"이유경",work:"탐방해설",status:"근무"},
-{grade:"해설",name:"왕혜진",work:"탐방해설",status:"근무"},
-{grade:"해설",name:"고정향",work:"탐방해설",status:"근무"},
-{grade:"해설",name:"김형은",work:"탐방해설",status:"유연"},
-{grade:"해설",name:"최희영",work:"탐방해설",status:"근무"},
-{grade:"해설",name:"임지원",work:"탐방해설",status:"근무"},
-{grade:"시설",name:"김태훈",work:"시설유지보수",status:"근무"},
-{grade:"시설",name:"김대운",work:"시설유지보수",status:"근무"},
-{grade:"인턴",name:"최다은",work:"일경험인턴",status:"근무"}
-]
-},
-{name:"재난안전과",color:"red",employees:[
-{grade:"과장",name:"최진희",work:"부서총괄",status:"근무"},
-{grade:"5급",name:"염종석",work:"재난취약지구",status:"근무"},
-{grade:"6급",name:"신영환",work:"특수산악구조팀운영",status:"근무"},
-{grade:"6급",name:"김형욱",work:"산불·안전관리",status:"근무"},
-{grade:"6급",name:"최성현",work:"구급물자관리",status:"근무"},
-{grade:"6급",name:"이대환",work:"구조물자관리",status:"근무"},
-{grade:"6급",name:"김동현",work:"산업안전보건",status:"근무"},
-{grade:"안전",name:"양지만",work:"탐방안전",status:"유연"},
-{grade:"안전",name:"김월중",work:"탐방안전",status:"근무"},
-{grade:"안전",name:"박병수",work:"탐방안전",status:"근무"},
-{grade:"안전",name:"송시온",work:"탐방안전",status:"유연"},
-{grade:"안전",name:"공민",work:"일경험인턴",status:"근무"}
-]
-},
-{name:"증심지구 현장관리",color:"green",employees:[
-{grade:"환경",name:"문관태",work:"환경정화",status:"유연"},
-{grade:"환경",name:"류병갑",work:"환경정화",status:"유연"},
-{grade:"환경",name:"김희겸",work:"환경정화",status:"유연"},
-{grade:"녹색",name:"김천두",work:"환경정화",status:"근무"},
-{grade:"녹색",name:"배상돈",work:"환경정화",status:"근무"},
-{grade:"녹색",name:"고재남",work:"환경정화",status:"근무"},
-{grade:"녹색",name:"김명옥",work:"환경정화",status:"근무"},
-{grade:"녹색",name:"장미숙",work:"환경정화",status:"근무"},
-{grade:"녹색",name:"이용경",work:"환경정화",status:"근무"},
-{grade:"녹색",name:"김경년",work:"환경정화",status:"근무"},
-{grade:"환경",name:"황광익",work:"환경정화",status:"근무"}
-]
-},
-{name:"원효분소",color:"navy",employees:[
-{grade:"분소장",name:"이재성",work:"부서총괄",status:"근무"},
-{grade:"5급",name:"김종범",work:"원효분소",status:"근무"},
-{grade:"8급",name:"최애정",work:"원효분소",status:"근무"},
-{grade:"해설",name:"손연서",work:"탐방해설",status:"근무"},
-{grade:"안전",name:"김도형",work:"탐방안전",status:"근무"},
-{grade:"안전",name:"김성훈",work:"탐방안전",status:"근무"},
-{grade:"환경",name:"김용후",work:"환경정화",status:"근무"},
-{grade:"환경",name:"김영자",work:"환경정화",status:"근무"},
-{grade:"환경",name:"박철수",work:"환경정화",status:"근무"},
-{grade:"환경",name:"류용명",work:"환경정화",status:"유연"},    
-{grade:"녹색",name:"최흥기",work:"환경정화",status:"근무"},
-{grade:"녹색",name:"김호산",work:"환경정화",status:"근무"},
-{grade:"녹색",name:"조경용",work:"환경정화",status:"근무"},
-{grade:"녹색",name:"김언철",work:"환경정화",status:"근무"},
-{grade:"녹색",name:"김경수",work:"환경정화",status:"근무"},
-{grade:"녹색",name:"김종원",work:"환경정화",status:"근무"}
-]
-}
+    {
+        name:"사무소장",color:"red",employees:[
+            {grade:"사무소장",name:"노회동",work:"사무소 총괄",status:"근무"}
+        ]
+    },
+    {
+        name:"행정과",color:"blue",employees:[
+            {grade:"과장",name:"이동훈",work:"부서총괄",status:"근무"},
+            {grade:"5급",name:"김용현",work:"기획·성과·민원",status:"근무"},
+            {grade:"6급",name:"고경은",work:"인사·계약·예산",status:"근무"},
+            {grade:"6급",name:"백지원",work:"구매·홍보·보안",status:"근무"},
+            {grade:"8급",name:"안은비",work:"급여·복무",status:"근무"},
+            {grade:"환경",name:"이효순",work:"청사관리",status:"유연"},
+            {grade:"환경",name:"정태윤",work:"환경정화",status:"근무"}
+        ]
+    },
+    {
+        name:"자원보전과",color:"green",employees:[
+            {grade:"과장",name:"김동훈",work:"부서총괄",status:"근무"},
+            {grade:"4급",name:"현재성",work:"인허가·청소",status:"근무"},
+            {grade:"5급",name:"한윤미",work:"자원봉사·지역협력",status:"근무"},
+            {grade:"5급",name:"김한나",work:"모니터링·훼손지복원",status:"근무"},
+            {grade:"5급",name:"유상범",work:"불법·지킴이",status:"근무"},
+            {grade:"6급",name:"김인엽",work:"모니터링·묘지이장",status:"근무"}
+        ]
+    },
+    {
+        name:"탐방시설과",color:"navy",employees:[
+            {grade:"과장",name:"이관옥",work:"부서총괄",status:"근무"},
+            {grade:"4급",name:"김옥전",work:"탐방",status:"근무"},
+            {grade:"5급",name:"박준홍",work:"이주사업",status:"근무"},
+            {grade:"5급",name:"이태성",work:"화장실·주차장",status:"근무"},
+            {grade:"5급",name:"김양수",work:"시설",status:"유연"},
+            {grade:"6급",name:"고창현",work:"탐방",status:"유연"},
+            {grade:"해설",name:"박헌주",work:"탐방해설",status:"유연"},
+            {grade:"해설",name:"임희진",work:"탐방해설",status:"근무"},
+            {grade:"해설",name:"이유경",work:"탐방해설",status:"근무"},
+            {grade:"해설",name:"왕혜진",work:"탐방해설",status:"근무"},
+            {grade:"해설",name:"고정향",work:"탐방해설",status:"근무"},
+            {grade:"해설",name:"김형은",work:"탐방해설",status:"유연"},
+            {grade:"해설",name:"최희영",work:"탐방해설",status:"근무"},
+            {grade:"해설",name:"임지원",work:"탐방해설",status:"근무"},
+            {grade:"시설",name:"김태훈",work:"시설유지보수",status:"근무"},
+            {grade:"시설",name:"김대운",work:"시설유지보수",status:"근무"},
+            {grade:"인턴",name:"최다은",work:"일경험인턴",status:"근무"}
+        ]
+    },
+    {
+        name:"재난안전과",color:"red",employees:[
+            {grade:"과장",name:"최진희",work:"부서총괄",status:"근무"},
+            {grade:"5급",name:"염종석",work:"재난취약지구",status:"근무"},
+            {grade:"6급",name:"신영환",work:"특수산악구조팀운영",status:"근무"},
+            {grade:"6급",name:"김형욱",work:"산불·안전관리",status:"근무"},
+            {grade:"6급",name:"최성현",work:"구급물자관리",status:"근무"},
+            {grade:"6급",name:"이대환",work:"구조물자관리",status:"근무"},
+            {grade:"6급",name:"김동현",work:"산업안전보건",status:"근무"},
+            {grade:"안전",name:"양지만",work:"탐방안전",status:"유연"},
+            {grade:"안전",name:"김월중",work:"탐방안전",status:"근무"},
+            {grade:"안전",name:"박병수",work:"탐방안전",status:"근무"},
+            {grade:"안전",name:"송시온",work:"탐방안전",status:"유연"},
+            {grade:"안전",name:"공민",work:"일경험인턴",status:"근무"}
+        ]
+    },
+    {
+        name:"증심지구 현장관리",color:"green",employees:[
+            {grade:"환경",name:"문관태",work:"환경정화",status:"유연"},
+            {grade:"환경",name:"류병갑",work:"환경정화",status:"유연"},
+            {grade:"환경",name:"김희겸",work:"환경정화",status:"유연"},
+            {grade:"녹색",name:"김천두",work:"환경정화",status:"근무"},
+            {grade:"녹색",name:"배상돈",work:"환경정화",status:"근무"},
+            {grade:"녹색",name:"고재남",work:"환경정화",status:"근무"},
+            {grade:"녹색",name:"김명옥",work:"환경정화",status:"근무"},
+            {grade:"녹색",name:"장미숙",work:"환경정화",status:"근무"},
+            {grade:"녹색",name:"이용경",work:"환경정화",status:"근무"},
+            {grade:"녹색",name:"김경년",work:"환경정화",status:"근무"},
+            {grade:"환경",name:"황광익",work:"환경정화",status:"근무"}
+        ]
+    },
+    {
+        name:"원효분소",color:"navy",employees:[
+            {grade:"분소장",name:"이재성",work:"부서총괄",status:"근무"},
+            {grade:"5급",name:"김종범",work:"원효분소",status:"근무"},
+            {grade:"8급",name:"최애정",work:"원효분소",status:"근무"},
+            {grade:"해설",name:"손연서",work:"탐방해설",status:"근무"},
+            {grade:"안전",name:"김도형",work:"탐방안전",status:"근무"},
+            {grade:"안전",name:"김성훈",work:"탐방안전",status:"근무"},
+            {grade:"환경",name:"김용후",work:"환경정화",status:"근무"},
+            {grade:"환경",name:"김영자",work:"환경정화",status:"근무"},
+            {grade:"환경",name:"박철수",work:"환경정화",status:"근무"},
+            {grade:"환경",name:"류용명",work:"환경정화",status:"유연"},    
+            {grade:"녹색",name:"최흥기",work:"환경정화",status:"근무"},
+            {grade:"녹색",name:"김호산",work:"환경정화",status:"근무"},
+            {grade:"녹색",name:"조경용",work:"환경정화",status:"근무"},
+            {grade:"녹색",name:"김언철",work:"환경정화",status:"근무"},
+            {grade:"녹색",name:"김경수",work:"환경정화",status:"근무"},
+            {grade:"녹색",name:"김종원",work:"환경정화",status:"근무"}
+        ]
+    }
 ];
 
-/* ================= 저장 ================= */
+/* ================= LocalStorage 제어 ================= */
 function saveData(){
-localStorage.setItem("mudeungsan_departments", JSON.stringify(departments));
+    localStorage.setItem("mudeungsan_departments", JSON.stringify(departments));
 }
 
 function loadData(){
-const saved = localStorage.getItem("mudeungsan_departments");
-if(saved){
-departments = JSON.parse(saved);
-}
+    const saved = localStorage.getItem("mudeungsan_departments");
+    if(saved){
+        departments = JSON.parse(saved);
+    }
 }
 
-/* ================= 파일 (상단) ================= */
+/* ================= 일반 첨부파일 관리 ================= */
 function saveTopFile(file){
-const reader = new FileReader();
-
-reader.onload = function(){
-let files = JSON.parse(localStorage.getItem("top_files") || "[]");
-
-files.push({
-name: file.name,
-data: reader.result
-});
-
-localStorage.setItem("top_files", JSON.stringify(files));
-
-renderTopFiles();
-};
-
-reader.readAsDataURL(file);
+    const reader = new FileReader();
+    reader.onload = function(){
+        let files = JSON.parse(localStorage.getItem("top_files") || "[]");
+        files.push({
+            name: file.name,
+            data: reader.result
+        });
+        localStorage.setItem("top_files", JSON.stringify(files));
+        renderTopFiles();
+    };
+    reader.readAsDataURL(file);
 }
 
 function renderTopFiles(){
     let files = JSON.parse(localStorage.getItem("top_files") || "[]");
-
     document.getElementById("fileList").innerHTML =
     files.map((f, i) =>
         `📎 <a href="${f.data}" download="${f.name}">${f.name}</a>
-         <button onclick="deleteTopFile(${i})" style="margin-left:5px;font-size:10px;">
-            삭제
-         </button><br>`
+         <button onclick="deleteTopFile(${i})" style="margin-left:5px; font-size:10px; cursor:pointer;">삭제</button><br>`
     ).join("");
 }
-/* ================= 삭제함수 ================= */
+
 function deleteTopFile(index){
     let files = JSON.parse(localStorage.getItem("top_files") || "[]");
-
-    files.splice(index, 1); // 해당 파일 삭제
+    files.splice(index, 1);
 
     if(files.length === 0){
-        localStorage.removeItem("top_files"); // 완전히 초기화
+        localStorage.removeItem("top_files");
     } else {
         localStorage.setItem("top_files", JSON.stringify(files));
     }
-
     renderTopFiles();
 }  
-  
 
-/* ================= 상태 ================= */
+/* ================= 스타일 매칭 ================= */
 function getStatusClass(v){
-switch(v){
-case "근무": return "status-work";
-case "휴일": return "status-holiday";
-case "연가":
-case "병가": return "status-leave";
-case "출장":
-case "공가": return "status-trip";
-case "교육": return "status-edu";
-case "육아": return "status-child";
-case "유연":
-case "재택": return "status-flex";
-default: return "";
-}
+    switch(v){
+        case "근무": return "status-work";
+        case "휴일": return "status-holiday";
+        case "연가":
+        case "병가": return "status-leave";
+        case "출장":
+        case "공가": return "status-trip";
+        case "교육": return "status-edu";
+        case "육아": return "status-child";
+        case "유연":
+        case "재택": return "status-flex";
+        default: return "";
+    }
 }
 
-/* ================= 날짜 ================= */
+/* ================= 상단 날짜 출력 ================= */
 function setToday(){
-const now=new Date();
-const week=["일","월","화","수","목","금","토"];
-
-document.getElementById("today").innerText =
-`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} (${week[now.getDay()]})`;
+    const now = new Date();
+    const week = ["일","월","화","수","목","금","토"];
+    document.getElementById("today").innerText =
+    `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} (${week[now.getDay()]})`;
 }
 
-/* ================= 렌더 ================= */
+/* ================= UI 생성 렌더러 ================= */
 function render(){
-const wrap=document.getElementById("wrap");
-wrap.innerHTML="";
+    const wrap = document.getElementById("wrap");
+    wrap.innerHTML = "";
 
-departments.forEach((dept,di)=>{
-let html=`
-<div class="dept">
-<div class="dept-header ${dept.color}">
-${dept.name} (${dept.employees.filter(e=>e.status==="근무").length})
-</div>
-<table>
-<tr><th>직급</th><th>이름</th><th>업무</th><th>근무형태</th></tr>
-`;
+    departments.forEach((dept, di) => {
+        let html = `
+        <div class="dept">
+        <div class="dept-header ${dept.color}">
+        ${dept.name} (${dept.employees.filter(e => e.status === "근무").length})
+        </div>
+        <table>
+        <tr><th>직급</th><th>이름</th><th>업무</th><th>근무형태</th></tr>
+        `;
 
-dept.employees.forEach((e,i)=>{
-html+=`
-<tr>
-<td><input value="${e.grade}" onchange="updateField(${di},${i},'grade',this.value)"></td>
-<td><input value="${e.name}" onchange="updateField(${di},${i},'name',this.value)"></td>
-<td><input value="${e.work}" onchange="updateField(${di},${i},'work',this.value)"></td>
-<td>
-<select class="${getStatusClass(e.status)}"
-onchange="updateStatus(${di},${i},this.value)">
-<option ${e.status==="근무"?"selected":""}>근무</option>
-<option ${e.status==="휴일"?"selected":""}>휴일</option>
-<option ${e.status==="연가"?"selected":""}>연가</option>
-<option ${e.status==="출장"?"selected":""}>출장</option>
-<option ${e.status==="교육"?"selected":""}>교육</option>
-<option ${e.status==="육아"?"selected":""}>육아</option>
-<option ${e.status==="유연"?"selected":""}>유연</option>
-<option ${e.status==="재택"?"selected":""}>재택</option>
-<option ${e.status==="병가"?"selected":""}>병가</option>
-<option ${e.status==="공가"?"selected":""}>공가</option>
-</select>
-</td>
-</tr>
-`;
-});
+        dept.employees.forEach((e, i) => {
+            html += `
+            <tr>
+            <td><input value="${e.grade}" onchange="updateField(${di},${i},'grade',this.value)"></td>
+            <td><input value="${e.name}" onchange="updateField(${di},${i},'name',this.value)"></td>
+            <td><input value="${e.work}" onchange="updateField(${di},${i},'work',this.value)"></td>
+            <td>
+            <select class="${getStatusClass(e.status)}" onchange="updateStatus(${di},${i},this.value)">
+            <option ${e.status==="근무"?"selected":""}>근무</option>
+            <option ${e.status==="휴일"?"selected":""}>휴일</option>
+            <option ${e.status==="연가"?"selected":""}>연가</option>
+            <option ${e.status==="출장"?"selected":""}>출장</option>
+            <option ${e.status==="교육"?"selected":""}>교육</option>
+            <option ${e.status==="육아"?"selected":""}>육아</option>
+            <option ${e.status==="유연"?"selected":""}>유연</option>
+            <option ${e.status==="재택"?"selected":""}>재택</option>
+            <option ${e.status==="병가"?"selected":""}>병가</option>
+            <option ${e.status==="공가"?"selected":""}>공가</option>
+            </select>
+            </td>
+            </tr>
+            `;
+        });
 
-html+=`</table></div>`;
-wrap.innerHTML+=html;
-});
+        html += `</table></div>`;
+        wrap.innerHTML += html;
+    });
 
-calc();
+    calc();
 }
 
-/* ================= 수정 ================= */
+/* ================= 엑셀 데이터를 화면에 매칭 ================= */
+function applyTodayStatus(rows){
+    const today = new Date().getDate(); 
+    let dateCol = -1;
+
+    for(let r=0; r<10; r++){
+        if(!rows[r]) continue;
+        for(let c=0; c<rows[r].length; c++){
+            if(Number(rows[r][c]) === today){
+                dateCol = c;
+                break;
+            }
+        }
+        if(dateCol > -1) break;
+    }
+
+    if(dateCol === -1){
+        alert("엑셀 시트에서 오늘 날짜("+today+"일)에 해당하는 열을 찾지 못했습니다.");
+        return;
+    }
+        
+    departments.forEach(dept => {
+        dept.employees.forEach(emp => {
+            for(let r=0; r<rows.length; r++){
+                if(!rows[r]) continue;
+                const name = String(rows[r][2] || "").trim(); 
+
+                if(name === emp.name){
+                    const val = String(rows[r][dateCol] || "").trim();
+                    emp.status = convertStatus(val); // 새로 정의된 기준 적용
+                    break;
+                }
+            }
+        });
+    });
+
+    saveData();
+    render();
+}  
+  
+/* ================= 데이터 수동 수정 관리 ================= */
 function updateField(di,i,key,val){
-departments[di].employees[i][key]=val;
-saveData();
-render();
+    departments[di].employees[i][key] = val;
+    saveData();
+    render();
 }
 
 function updateStatus(di,i,val){
-departments[di].employees[i].status=val;
-saveData();
-render();
+    departments[di].employees[i].status = val;
+    saveData();
+    render();
 }
 
-/* ================= 통계 ================= */
+/* ================= 통계 계산기 ================= */
 function calc(){
-let total=0, work=0, hq=0, wr=0;
+    let total=0, work=0, hq=0, wr=0;
 
-departments.forEach(d=>{
-d.employees.forEach(e=>{
-total++;
-if(e.status==="근무") work++;
-if(d.name==="원효분소") wr++; else hq++;
-});
-});
+    departments.forEach(d => {
+        d.employees.forEach(e => {
+            total++;
+            if(e.status === "근무") work++;
+            if(d.name === "원효분소") wr++; else hq++;
+        });
+    });
 
-document.getElementById("total").innerText=total+"명";
-document.getElementById("hqTotal").innerText=hq+"명";
-document.getElementById("wrTotal").innerText=wr+"명";
-document.getElementById("workTotal").innerText=work+"명";
+    document.getElementById("total").innerText = total + "명";
+    document.getElementById("hqTotal").innerText = hq + "명";
+    document.getElementById("wrTotal").innerText = wr + "명";
+    document.getElementById("workTotal").innerText = work + "명";
 }
 
-/* ================= 이벤트 ================= */
-document.getElementById("topFileInput").addEventListener("change",(e)=>{
-const file=e.target.files[0];
-if(file) saveTopFile(file);
-});
+/* ================= [수정] 기호 -> 상태 텍스트 변환 기준 변경 ================= */
+function convertStatus(v){
+    switch(v){
+        case "○": return "휴일"; // "○" 면 휴무(휴일) 처리
+        case "연": return "연가";
+        case "병": return "병가";
+        case "공": return "공가";
+        case "교": return "교육";
+        case "출": return "출장";
+        case "육": return "육아";
+        case "유": return "유연";
+        case "재": return "재택";
+        default: return "근무"; // 그 외 빈칸이나 알 수 없는 기호는 모두 "근무"로 지정
+    }
+}  
+  
+/* ================= 엑셀 파일 로드 ================= */
+async function loadExcelFile(file){
+    uploadedFileName = file.name;
+    const data = await file.arrayBuffer();
 
-/* ================= 초기 ================= */
+    originalWorkbook = XLSX.read(data, {
+        type: "array",
+        cellStyles: true
+    });
+
+    const sheetName = originalWorkbook.SheetNames[0];
+    originalSheet = originalWorkbook.Sheets[sheetName];
+
+    const rows = XLSX.utils.sheet_to_json(originalSheet, {header:1});
+    applyTodayStatus(rows);
+}
+  
+/* ================= 파일 체인지 이벤트 바인딩 ================= */
+document.getElementById("topFileInput").addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+
+    if(file.type.includes("sheet") || file.name.endsWith(".xlsx") || file.name.endsWith(".xls")){
+        loadExcelFile(file);
+    } else {
+        saveTopFile(file);
+    }
+});
+  
+/* ================= 데이터 수정 후 다시 엑셀로 내보내기 ================= */
+function saveBackToExcel(){
+    if(!originalWorkbook || !originalSheet){
+        alert("수정본을 받으시려면 먼저 출근부 엑셀 파일을 업로드하셔야 합니다.");
+        return;
+    }
+
+    const rows = XLSX.utils.sheet_to_json(originalSheet, {header:1});
+    const today = new Date().getDate();
+    let dateCol = -1;
+
+    for(let r=0; r<10; r++){
+        if(!rows[r]) continue;
+        for(let c=0; c<rows[r].length; c++){
+            if(Number(rows[r][c]) === today){
+                dateCol = c;
+                break;
+            }
+        }
+        if(dateCol > -1) break;
+    }
+    
+    if(dateCol === -1){
+        alert("오늘 날짜의 열 위치를 찾을 수 없어 저장이 불가합니다.");
+        return;
+    }
+        
+    departments.forEach(dept => {
+        dept.employees.forEach(emp => {
+            for(let r=0; r<rows.length; r++){
+                if(!rows[r]) continue;
+                if(String(rows[r][2] || "").trim() === emp.name){
+                    rows[r][dateCol] = excelCode(emp.status); // 변경 기준 적용
+                    break;
+                }
+            }
+        });
+    });
+        
+    /* ================= [수정] 내보낼 때 반대로 기호 매칭 ================= */
+    function excelCode(status){
+        switch(status){
+            case "휴일": return "○"; // 휴일(휴무) 상태일 때 엑셀에 "○" 기록
+            case "연가": return "연";
+            case "병가": return "병";
+            case "공가": return "공";
+            case "출장": return "출";
+            case "교육": return "교";
+            case "육아": return "육";
+            case "유연": return "유";
+            case "재택": return "재";
+            default: return "";    // 기본값인 "근무" 상태는 빈칸(공백) 처리
+        }
+    }
+        
+    const newSheet = XLSX.utils.aoa_to_sheet(rows);
+
+    /* 원본 구조 복사 */
+    newSheet["!merges"] = originalSheet["!merges"];
+    newSheet["!cols"] = originalSheet["!cols"];
+    newSheet["!rows"] = originalSheet["!rows"];
+
+    Object.keys(originalSheet).forEach(addr => {
+        if(addr.startsWith("!")) return;
+        if(newSheet[addr] && originalSheet[addr].s){
+            newSheet[addr].s = JSON.parse(JSON.stringify(originalSheet[addr].s));
+        }
+    });
+
+    originalWorkbook.Sheets[originalWorkbook.SheetNames[0]] = newSheet;
+    XLSX.writeFile(originalWorkbook, "수정_" + uploadedFileName);
+}
+
+/* ================= 브라우저 초기 구동 로직 ================= */
 loadData();
 setToday();
 render();
 renderTopFiles();
 
 </script>
-
 </body>
 </html>
