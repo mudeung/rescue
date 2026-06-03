@@ -523,26 +523,6 @@ async function loadExcelFile(file){
     applyTodayStatus(rows);
 }
   
-/* ================= 파일 체인지 이벤트 바인딩 ================= */
-const fileInput = document.getElementById("topFileInput");
-
-if(fileInput){
-    fileInput.addEventListener("change", (e) => {
-
-        const file = e.target.files[0];
-        if(!file) return;
-
-        if(
-            file.type.includes("sheet") ||
-            file.name.endsWith(".xlsx") ||
-            file.name.endsWith(".xls")
-        ){
-            loadExcelFile(file);
-        }else{
-            saveTopFile(file);
-        }
-    });
-}
   
 /* ================= 데이터 수정 후 다시 엑셀로 내보내기 ================= */
 function saveBackToExcel(){
@@ -556,15 +536,23 @@ function saveBackToExcel(){
     let dateCol = -1;
 
     for(let r=0; r<10; r++){
-        if(!rows[r]) continue;
-        for(let c=0; c<rows[r].length; c++){
-            if(Number(rows[r][c]) === today){
-                dateCol = c;
-                break;
-            }
+    if(!rows[r]) continue;
+
+    for(let c=0; c<rows[r].length; c++){
+
+        const cell = String(rows[r][c] || "").trim();
+
+        if(
+            Number(cell) === today ||
+            cell === `${today}일`
+        ){
+            dateCol = c;
+            break;
         }
-        if(dateCol > -1) break;
     }
+
+    if(dateCol > -1) break;
+}
     
     if(dateCol === -1){
         alert("오늘 날짜의 열 위치를 찾을 수 없어 저장이 불가합니다.");
@@ -626,6 +614,26 @@ window.onload = async function(){
 
     renderTopFiles();
 
+    const fileInput = document.getElementById("topFileInput");
+
+    if(fileInput){
+        fileInput.addEventListener("change", (e) => {
+
+            const file = e.target.files[0];
+            if(!file) return;
+
+            if(
+                file.type.includes("sheet") ||
+                file.name.endsWith(".xlsx") ||
+                file.name.endsWith(".xls")
+            ){
+                loadExcelFile(file);
+            }else{
+                saveTopFile(file);
+            }
+        });
+    }
+
     await loadAttendanceExcel();
 
     render();
@@ -662,8 +670,6 @@ async function loadAttendanceExcel(){
         applyTodayStatus(rows);
 
     }catch(err){
-
-        console.error(err);
 
         console.error(err);
 
