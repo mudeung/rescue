@@ -150,12 +150,6 @@ td:last-child, th:last-child{
         <table>
             <tr><th>날짜</th><td id="today"></td></tr>
         </table>
-
-        <div style="margin-top:6px;">
-            <input type="file" id="topFileInput" accept=".xlsx, .xls, image/*, .pdf, .hwp">
-            <button onclick="saveBackToExcel()" style="margin-top:4px; font-size:11px; cursor:pointer;">수정본 엑셀 다운로드</button>
-            <div id="fileList"></div>
-        </div>
     </div>
 
     <div class="center">
@@ -595,11 +589,75 @@ function saveBackToExcel(){
 }
 
 /* ================= 브라우저 초기 구동 로직 ================= */
-loadData();
-setToday();
-render();
-renderTopFiles();
+window.onload = async function(){
 
+    setToday();
+
+    await loadAttendanceExcel();
+
+    render();
+
+    refreshAtMidnight();
+
+};
+
+/* ================= 자동 로드 함수 추가 ================= */
+async function loadAttendanceExcel(){
+
+    try{
+
+        const response = await fetch("attendance.xlsx");
+
+        if(!response.ok){
+            throw new Error("attendance.xlsx 파일을 찾을 수 없습니다.");
+        }
+
+        const data = await response.arrayBuffer();
+
+        originalWorkbook = XLSX.read(data,{
+            type:"array",
+            cellStyles:true
+        });
+
+        const sheetName = originalWorkbook.SheetNames[0];
+        originalSheet = originalWorkbook.Sheets[sheetName];
+
+        const rows = XLSX.utils.sheet_to_json(
+            originalSheet,
+            {header:1}
+        );
+
+        applyTodayStatus(rows);
+
+    }catch(err){
+
+        console.error(err);
+
+        alert(
+            "attendance.xlsx 파일을 불러오지 못했습니다."
+        );
+    }
+}
+    
+/* ================= 자동 로드 함수 추가 ================= */
+function refreshAtMidnight(){
+
+    const now = new Date();
+
+    const tomorrow = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate()+1,
+        0,0,1
+    );
+
+    const delay = tomorrow - now;
+
+    setTimeout(()=>{
+        location.reload();
+    }, delay);
+}    
+    
 </script>
 </body>
 </html>
