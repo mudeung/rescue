@@ -520,9 +520,13 @@ async function loadExcelFile(file){
     originalSheet = originalWorkbook.Sheets[sheetName];
 
     const rows = XLSX.utils.sheet_to_json(originalSheet, {header:1});
+
     applyTodayStatus(rows);
+
+    // ✅ 🔥 핵심 추가 (완전 강제 갱신)
+    render();
+    calc();
 }
-  
   
 /* ================= 데이터 수정 후 다시 엑셀로 내보내기 ================= */
 function saveBackToExcel(){
@@ -649,8 +653,6 @@ async function autoReloadUploadedExcel(intervalMs = 10000){
     setInterval(async () => {
 
         if(!uploadedFile) return;
-
-        console.log("엑셀 자동 재로드 실행");
 
         await loadExcelFile(uploadedFile);
 
