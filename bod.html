@@ -146,11 +146,21 @@ td:last-child, th:last-child{
 
 <div class="top-bar">
 
-    <div class="left">
-        <table>
-            <tr><th>날짜</th><td id="today"></td></tr>
-        </table>
+   <div class="left">
+    <table>
+        <tr><th>날짜</th><td id="today"></td></tr>
+    </table>
+
+    <div style="margin-top:5px;">
+        <input type="file" id="topFileInput">
     </div>
+
+    <div id="fileList" style="margin-top:5px;"></div>
+
+    <div style="margin-top:5px;">
+        <button onclick="saveBackToExcel()">엑셀 저장</button>
+    </div>
+</div>
 
     <div class="center">
         <h1 class="title">무등산 일일 근무현황</h1>
@@ -345,6 +355,11 @@ function getStatusClass(v){
     }
 }
 
+/* ================= 근무 여부 판단 ================= */
+function isWorking(status){
+    return ["근무","유연","재택"].includes(status);
+}
+    
 /* ================= 상단 날짜 출력 ================= */
 function setToday(){
     const now = new Date();
@@ -362,7 +377,7 @@ function render(){
         let html = `
         <div class="dept">
         <div class="dept-header ${dept.color}">
-        ${dept.name} (${dept.employees.filter(e => e.status === "근무").length})
+        ${dept.name} (${dept.employees.filter(e => isWorking(e.status)).length})
         </div>
         <table>
         <tr><th>직급</th><th>이름</th><th>업무</th><th>근무형태</th></tr>
@@ -407,7 +422,12 @@ function applyTodayStatus(rows){
     for(let r=0; r<10; r++){
         if(!rows[r]) continue;
         for(let c=0; c<rows[r].length; c++){
-            if(Number(rows[r][c]) === today){
+            const cell = String(rows[r][c] || "").trim();
+
+if(
+    Number(cell) === today ||
+    cell === `${today}일`
+){
                 dateCol = c;
                 break;
             }
@@ -459,7 +479,7 @@ function calc(){
     departments.forEach(d => {
         d.employees.forEach(e => {
             total++;
-            if(e.status === "근무") work++;
+            if(isWorking(e.status)) work++;
             if(d.name === "원효분소") wr++; else hq++;
         });
     });
@@ -504,16 +524,25 @@ async function loadExcelFile(file){
 }
   
 /* ================= 파일 체인지 이벤트 바인딩 ================= */
-document.getElementById("topFileInput").addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if(!file) return;
+const fileInput = document.getElementById("topFileInput");
 
-    if(file.type.includes("sheet") || file.name.endsWith(".xlsx") || file.name.endsWith(".xls")){
-        loadExcelFile(file);
-    } else {
-        saveTopFile(file);
-    }
-});
+if(fileInput){
+    fileInput.addEventListener("change", (e) => {
+
+        const file = e.target.files[0];
+        if(!file) return;
+
+        if(
+            file.type.includes("sheet") ||
+            file.name.endsWith(".xlsx") ||
+            file.name.endsWith(".xls")
+        ){
+            loadExcelFile(file);
+        }else{
+            saveTopFile(file);
+        }
+    });
+}
   
 /* ================= 데이터 수정 후 다시 엑셀로 내보내기 ================= */
 function saveBackToExcel(){
@@ -593,6 +622,10 @@ window.onload = async function(){
 
     setToday();
 
+    loadData();
+
+    renderTopFiles();
+
     await loadAttendanceExcel();
 
     render();
@@ -600,7 +633,6 @@ window.onload = async function(){
     refreshAtMidnight();
 
 };
-
 /* ================= 자동 로드 함수 추가 ================= */
 async function loadAttendanceExcel(){
 
@@ -633,9 +665,13 @@ async function loadAttendanceExcel(){
 
         console.error(err);
 
-        alert(
-            "attendance.xlsx 파일을 불러오지 못했습니다."
-        );
+        console.error(err);
+
+alert(
+    "attendance.xlsx 파일을 불러오지 못했습니다.\n\n" +
+    "1. attendance.xlsx 파일이 같은 폴더에 있는지 확인\n" +
+    "2. 웹서버(IIS, Apache, Python HTTP Server)에서 실행 중인지 확인"
+);
     }
 }
     
