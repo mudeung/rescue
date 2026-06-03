@@ -627,6 +627,7 @@ window.onload = async function(){
                 file.name.endsWith(".xlsx") ||
                 file.name.endsWith(".xls")
             ){
+                uploadedFile = file;   // 🔥 저장
                 loadExcelFile(file);
             }else{
                 saveTopFile(file);
@@ -638,7 +639,25 @@ window.onload = async function(){
 
     refreshAtMidnight();
 
+    // ✅ 🔥 여기 추가 (자동 갱신 시작)
+    autoReloadUploadedExcel(10000);
 };
+
+/* ================= 자동 재갱신 함수 추가 ================= */
+async function autoReloadUploadedExcel(intervalMs = 10000){
+
+    setInterval(async () => {
+
+        if(!uploadedFile) return;
+
+        console.log("엑셀 자동 재로드 실행");
+
+        await loadExcelFile(uploadedFile);
+
+    }, intervalMs);
+}
+    
+    
 /* ================= 자동 로드 함수 추가 ================= */
 async function loadAttendanceExcel(){
 
