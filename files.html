@@ -1,38 +1,91 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>파일 공유</title>
-
-<style>
-body{
-    font-family: "맑은 고딕", sans-serif;
-    text-align:center;
-    padding-top:50px;
-}
-
-.share-btn{
-    background:#4285F4;
-    color:white;
-    border:none;
-    padding:15px 30px;
-    font-size:18px;
-    border-radius:10px;
-    cursor:pointer;
-}
-
-.share-btn:hover{
-    opacity:0.9;
-}
-</style>
+  <meta charset="UTF-8" />
+  <title>Firebase 게시판</title>
 </head>
 <body>
+  <h1>게시판</h1>
 
-<button class="share-btn"
-onclick="window.open('https://drive.google.com/drive/folders/1sie1wSv_dGcZhO7aEieDjNj-yH4fKj_L','_blank')">
-📁 파일 공유
-</button>
+  <input id="title" placeholder="제목" />
+  <input id="content" placeholder="내용" />
+  <button onclick="addPost()">등록</button>
 
+  <hr />
+
+  <ul id="postList"></ul>
+
+  <!-- Firebase SDK (모듈 방식) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      getDocs,
+      onSnapshot,
+      query,
+      orderBy
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+    // 1. Firebase 설정 (여기 본인 값 넣기)
+     // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyB5eWq7xb9QJTbY9XftYEt5L6wov27R8UI",
+    authDomain: "mudeungrescue-d4ef9.firebaseapp.com",
+    projectId: "mudeungrescue-d4ef9",
+    storageBucket: "mudeungrescue-d4ef9.firebasestorage.app",
+    messagingSenderId: "845241211078",
+    appId: "1:845241211078:web:50b5f30b216ddffddcdfc7",
+    measurementId: "G-SJ74PPBGG5"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+
+    // 2. 초기화
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // 3. 글 등록
+    window.addPost = async function () {
+      const title = document.getElementById("title").value;
+      const content = document.getElementById("content").value;
+
+      if (!title || !content) return;
+
+      await addDoc(collection(db, "posts"), {
+        title,
+        content,
+        createdAt: Date.now()
+      });
+
+      document.getElementById("title").value = "";
+      document.getElementById("content").value = "";
+    };
+
+    // 4. 실시간 글 목록
+    const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+
+    onSnapshot(q, (snapshot) => {
+      const list = document.getElementById("postList");
+      list.innerHTML = "";
+
+      snapshot.forEach((doc) => {
+        const post = doc.data();
+        const li = document.createElement("li");
+        li.innerText = `${post.title} - ${post.content}`;
+        list.appendChild(li);
+      });
+    });
+  </script>
 </body>
 </html>
