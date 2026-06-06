@@ -7,8 +7,6 @@
 
 <!-- Tailwind CDN -->
 <script src="https://cdn.tailwindcss.com"></script>
-<!-- Kakao Map SDK -->
-<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
 
 <style>
 /* 전체 배경 */
@@ -121,6 +119,54 @@ button{
       <input type="datetime-local" name="도착시간" required>
       <input type="text" name="사고장소" placeholder="사고장소" required>
       <input type="text" name="주증상" placeholder="환자 증상" required>
+      
+      <div class="card">
+      <label>사고유형</label>
+<select id="accidentType" required>
+    <option value="">선택하세요</option>
+
+    <optgroup label="외상 (Trauma)">
+        <option>실족·추락</option>
+        <option>낙석</option>
+        <option>미끄러짐</option>
+        <option>등산스틱/장비 손상</option>
+        <option>충돌(나무, 바위 등)</option>
+        <option>절단·열상</option>
+    </optgroup>
+
+    <optgroup label="질환 (Medical)">
+        <option>흉통</option>
+        <option>심정지</option>
+        <option>호흡곤란</option>
+        <option>뇌졸중 의심</option>
+        <option>경련</option>
+        <option>의식저하</option>
+        <option>저혈당</option>
+        <option>고혈당</option>
+    </optgroup>
+
+    <optgroup label="환경 (Environmental)">
+        <option>저체온증</option>
+        <option>열탈진</option>
+        <option>열사병</option>
+        <option>탈수</option>
+        <option>번개 손상</option>
+        <option>동상</option>
+    </optgroup>
+
+    <optgroup label="조난·고립 (Stranded)">
+        <option>길 잃음</option>
+        <option>야간 고립</option>
+        <option>체력 고갈</option>
+        <option>장비 부족</option>
+    </optgroup>
+
+    <optgroup label="동물·곤충">
+        <option>벌 쏘임</option>
+        <option>뱀 물림</option>
+        <option>야생동물 공격</option>
+    </optgroup>
+</select>
       </div>
  
     <!-- 의식평가 GCS -->
@@ -172,7 +218,7 @@ button{
     <!-- 응급처치 -->
     <div class="card">
       <h2>응급처치</h2>
-      <textarea name="응급처치" placeholder="처치 내용"></textarea>
+      <textarea name="응급처치" placeholder="환자상태 및 응급처치 내용"></textarea>
     </div>
 
     <!-- 출동대원 정보 -->
@@ -258,30 +304,78 @@ calculateGCS();
 
 
 // 기록 저장 + 공유
-document.getElementById("recordForm").onsubmit = async e=>{
+document.getElementById("recordForm").onsubmit = async e => {
   e.preventDefault();
-  let data={}, text="";
-  new FormData(e.target).forEach((v,k)=>{ data[k]=v; text+=`${k}: ${v}\n`; });
-  data["GCS"]=document.getElementById("gcsResult").textContent;
-  text+=`GCS: ${data["GCS"]}`;
 
-  document.getElementById("savedData").innerHTML=`<div class="board-item">${text}</div>`;
+  const formData = new FormData(e.target);
 
-  // 다운로드
-  const blob=new Blob([text],{type:"text/plain"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download="무등산_환자기록.txt";
+  const text = `
+🚑 무등산 특수구조팀 구조출동 기록지
+
+[현장정보]
+도착시간 : ${formData.get("도착시간")}
+사고장소 : ${formData.get("사고장소")}
+주증상 : ${formData.get("주증상")}
+사고유형 : ${document.getElementById("accidentType").value}
+
+[의식평가]
+GCS : ${document.getElementById("gcsResult").textContent}
+
+[환자정보]
+이름 : ${formData.get("환자이름")}
+생년월일 : ${formData.get("생년월일")}
+거주지 : ${formData.get("거주지")}
+연락처 : ${formData.get("연락처")}
+
+[응급처치]
+${formData.get("응급처치")}
+
+[출동대원]
+${formData.get("출동대원")}
+
+작성일시 : ${new Date().toLocaleString("ko-KR")}
+`;
+
+  // 화면 표시
+  document.getElementById("savedData").innerHTML =
+    `<div class="board-item">${text.replace(/\n/g,"<br>")}</div>`;
+
+  // TXT 저장
+  const blob = new Blob([text], {
+    type: "text/plain;charset=utf-8"
+  });
+
+  const fileName =
+    `구조출동기록_${new Date().toISOString().slice(0,10)}.txt`;
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = fileName;
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
 
-  // 구글 스프레드시트 전송
-  fetch(GOOGLE_SCRIPT_URL,{method:"POST",body:JSON.stringify(data)}).catch(()=>{});
+  // 스프레드시트 저장용 데이터
+  let data = {};
+  formData.forEach((v, k) => data[k] = v);
+  data["사고유형"] = document.getElementById("accidentType").value;
+  data["GCS"] = document.getElementById("gcsResult").textContent;
 
-  // Web Share
-  if(navigator.share){
-    navigator.share({title:"무등산 산악사고 기록", text:text});
+  fetch(GOOGLE_SCRIPT_URL, {
+    method: "POST",
+    body: JSON.stringify(data)
+  }).catch(() => {});
+
+  // 공유
+  if (navigator.share) {
+    navigator.share({
+      title: "무등산 구조출동 기록",
+      text: text
+    });
   }
 };
+  
+  
 </script>
 </body>
 </html>
