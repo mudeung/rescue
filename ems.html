@@ -122,6 +122,12 @@ button{
       <input type="text" name="사고장소" placeholder="사고장소" required>
       <input type="text" name="주증상" placeholder="환자 증상" required>
 
+      <div id="locationDisplay" class="coordinate-box">위도: , 경도:</div>
+      <button type="button" id="getLocation" class="bg-green-600 text-white">🌐 현장도착 좌표</button>
+      <input type="hidden" name="사고좌표" id="hiddenCoordinate">
+      <div id="map"></div>
+      </div>
+ 
     <!-- 의식평가 GCS -->
     <div class="card">
       <h2>의식평가(GCS)</h2>
@@ -262,6 +268,21 @@ function calculateGCS(){
 });
 calculateGCS();
 
+// GPS
+document.getElementById("getLocation").onclick = ()=>{
+  navigator.geolocation.getCurrentPosition(p=>{
+    const lat=p.coords.latitude;
+    const lng=p.coords.longitude;
+    const txt=`위도:${lat}, 경도:${lng}`;
+    document.getElementById("locationDisplay").textContent=txt;
+    document.getElementById("hiddenCoordinate").value=txt;
+
+    const loc = new kakao.maps.LatLng(lat,lng);
+    const map = new kakao.maps.Map(document.getElementById("map"), {center:loc, level:3});
+    new kakao.maps.Marker({position:loc,map:map});
+  });
+};
+  
 // 기록 저장 + 공유
 document.getElementById("recordForm").onsubmit = async e=>{
   e.preventDefault();
