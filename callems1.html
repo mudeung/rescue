@@ -76,25 +76,25 @@ const API_URL="https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6
 
 let map, markers=[], allData=[];
 
-
 window.onload=function(){
   initMap();
   loadData();
   setInterval(loadData,10000);
 };
 
-/* ✅ 수정된 시간 함수 */
+/* 시간 처리 */
 function parseKST(dateStr){
   if(!dateStr) return null;
   const d = new Date(dateStr);
   if(isNaN(d)) return null;
-  return d; // ❗ +9시간 제거
+  return d;
 }
 
 function formatTime(date){
-  return date.toLocaleString('ko-KR',{timeZone:'Asia/Seoul'});
+  return date ? date.toLocaleString('ko-KR',{timeZone:'Asia/Seoul'}) : "";
 }
 
+/* 지도 초기화 */
 function initMap(){
   map=new kakao.maps.Map(document.getElementById("map"),{
     center:new kakao.maps.LatLng(35.1345,126.9902),
@@ -102,6 +102,7 @@ function initMap(){
   });
 }
 
+/* 모달 */
 function showModal(item){
   document.getElementById("modalOverlay").style.display="flex";
   document.getElementById("modalBody").innerHTML=`
@@ -118,11 +119,7 @@ function closeModal(){
   document.getElementById("modalOverlay").style.display="none";
 }
 
-function renderData(data){
-  document.getElementById("listArea").innerHTML="";
-  markers.forEach(m=>m.setMap(null));
-  markers=[];
-
+/* 🔥 통계 핵심 함수 */
 function updateStats(data){
   let emergency = 0;
   let dispatch = 0;
@@ -130,7 +127,7 @@ function updateStats(data){
   let other = 0;
 
   data.forEach(item=>{
-    const t = (item.type || "").trim();
+    const t = (item.type || "");
 
     if(t.includes("응급")) emergency++;
     else if(t.includes("구조")) dispatch++;
@@ -143,7 +140,17 @@ function updateStats(data){
   document.getElementById("statLost").innerText = lost;
   document.getElementById("statOther").innerText = other;
 }
-  
+
+/* 데이터 렌더 */
+function renderData(data){
+
+  document.getElementById("listArea").innerHTML="";
+
+  markers.forEach(m=>m.setMap(null));
+  markers=[];
+
+  updateStats(data); // ✅ 반드시 여기서 호출
+
   let bounds=new kakao.maps.LatLngBounds();
 
   data.forEach(item=>{
@@ -155,7 +162,7 @@ function updateStats(data){
         map:map,
         position:new kakao.maps.LatLng(lat,lng)
       });
-      marker.item=item;
+
       kakao.maps.event.addListener(marker,'click',()=>showModal(item));
       markers.push(marker);
       bounds.extend(marker.getPosition());
@@ -165,6 +172,7 @@ function updateStats(data){
     div.className="card";
     div.innerText=`${formatTime(parseKST(item.time))} | ${item.type} | ${item.address}`;
     div.onclick=()=>showModal(item);
+
     document.getElementById("listArea").appendChild(div);
   });
 
@@ -173,11 +181,14 @@ function updateStats(data){
   renderTable(data);
 }
 
+/* 테이블 */
 function renderTable(data){
   const tbody=document.querySelector("#sheetTable tbody");
   tbody.innerHTML="";
+
   data.forEach(item=>{
     const tr=document.createElement("tr");
+
     tr.innerHTML=`
       <td>${formatTime(parseKST(item.time))}</td>
       <td>${item.type}</td>
@@ -186,19 +197,24 @@ function renderTable(data){
       <td>${item.symptom||''}</td>
       <td>${item.status||''}</td>
     `;
+
     tbody.appendChild(tr);
   });
 }
 
+/* 데이터 로드 */
 async function loadData(){
   try{
     const res=await fetch(API_URL+"?action=list");
     let data=await res.json();
+
     if(!Array.isArray(data)) data=[];
+
     allData=data;
     renderData(allData);
+
   }catch(e){
-    document.getElementById("listArea").innerText="❌ 오류";
+    document.getElementById("listArea").innerText="❌ 데이터 로딩 오류";
   }
 }
 
