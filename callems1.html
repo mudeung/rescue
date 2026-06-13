@@ -123,6 +123,27 @@ function renderData(data){
   markers.forEach(m=>m.setMap(null));
   markers=[];
 
+function updateStats(data){
+  let emergency = 0;
+  let dispatch = 0;
+  let lost = 0;
+  let other = 0;
+
+  data.forEach(item=>{
+    const t = (item.type || "").trim();
+
+    if(t.includes("응급환자")) emergency++;
+    else if(t.includes("구조출동")) dispatch++;
+    else if(t.includes("조난") || t.includes("실종")) lost++;
+    else other++;
+  });
+
+  document.getElementById("statEmergency").innerText = emergency;
+  document.getElementById("statDispatch").innerText = dispatch;
+  document.getElementById("statLost").innerText = lost;
+  document.getElementById("statOther").innerText = other;
+}
+  
   let bounds=new kakao.maps.LatLngBounds();
 
   data.forEach(item=>{
