@@ -129,10 +129,24 @@ function updateStats(data){
   data.forEach(item=>{
     const t = (item.type || "");
 
-    if(t.includes("응급")) emergency++;
-    else if(t.includes("구조")) dispatch++;
-    else if(t.includes("조난") || t.includes("실종")) lost++;
-    else other++;
+    if(t.includes("응급")) {
+      emergency++;
+
+    } else if(
+      t.includes("구조") ||
+      t.includes("산악사고")
+    ){
+      dispatch++;
+
+    } else if(
+      t.includes("조난") ||
+      t.includes("실종")
+    ){
+      lost++;
+
+    } else {
+      other++;
+    }
   });
 
   document.getElementById("statEmergency").innerText = emergency;
@@ -140,7 +154,7 @@ function updateStats(data){
   document.getElementById("statLost").innerText = lost;
   document.getElementById("statOther").innerText = other;
 }
-
+  
 /* 데이터 렌더 */
 function renderData(data){
 
