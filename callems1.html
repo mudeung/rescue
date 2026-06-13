@@ -75,6 +75,7 @@ header{background:#b71c1c;padding:15px;text-align:center;font-size:20px;}
 const API_URL="https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
 
 let map, markers=[], allData=[];
+let lastDataLength = 0;
 
 window.onload=function(){
   initMap();
@@ -82,7 +83,7 @@ window.onload=function(){
   setInterval(loadData,10000);
 };
 
-/* 시간 처리 */
+/* 시간 */
 function parseKST(dateStr){
   if(!dateStr) return null;
   const d = new Date(dateStr);
@@ -94,7 +95,7 @@ function formatTime(date){
   return date ? date.toLocaleString('ko-KR',{timeZone:'Asia/Seoul'}) : "";
 }
 
-/* 지도 초기화 */
+/* 지도 */
 function initMap(){
   map=new kakao.maps.Map(document.getElementById("map"),{
     center:new kakao.maps.LatLng(35.1345,126.9902),
@@ -119,32 +120,23 @@ function closeModal(){
   document.getElementById("modalOverlay").style.display="none";
 }
 
-/* 🔥 통계 핵심 함수 */
+/* 통계 */
 function updateStats(data){
-  let emergency = 0;
-  let dispatch = 0;
-  let lost = 0;
-  let other = 0;
+  let emergency=0, dispatch=0, lost=0, other=0;
 
   data.forEach(item=>{
     const t = (item.type || "");
 
-    if(t.includes("응급")) {
+    if(t.includes("응급")){
       emergency++;
-
-    } else if(
-      t.includes("구조") ||
-      t.includes("산악사고")
-    ){
+    }
+    else if(t.includes("구조") || t.includes("산악사고")){
       dispatch++;
-
-    } else if(
-      t.includes("조난") ||
-      t.includes("실종")
-    ){
+    }
+    else if(t.includes("조난") || t.includes("실종")){
       lost++;
-
-    } else {
+    }
+    else{
       other++;
     }
   });
@@ -154,8 +146,46 @@ function updateStats(data){
   document.getElementById("statLost").innerText = lost;
   document.getElementById("statOther").innerText = other;
 }
-  
-/* 데이터 렌더 */
+
+/* 🚨 긴급 알림 */
+function triggerAlert(item){
+
+  const msg = `🚨 긴급 접수
+유형: ${item.type}
+주소: ${item.address}
+상태: ${item.status || ""}`;
+
+  // 브라우저 알림
+  if("Notification" in window){
+    if(Notification.permission === "granted"){
+      new Notification("산악사고 긴급", { body: item.type });
+    } else {
+      Notification.requestPermission();
+    }
+  }
+
+  // 화면 팝업
+  const popup=document.createElement("div");
+  popup.style.position="fixed";
+  popup.style.top="20px";
+  popup.style.right="20px";
+  popup.style.background="#b71c1c";
+  popup.style.color="#fff";
+  popup.style.padding="12px";
+  popup.style.borderRadius="8px";
+  popup.style.zIndex="99999";
+  popup.style.maxWidth="260px";
+  popup.style.boxShadow="0 0 10px rgba(0,0,0,0.5)";
+  popup.style.whiteSpace="pre-line";
+
+  popup.innerText=msg;
+
+  document.body.appendChild(popup);
+
+  setTimeout(()=>popup.remove(),5000);
+}
+
+/* 렌더 */
 function renderData(data){
 
   document.getElementById("listArea").innerHTML="";
@@ -163,7 +193,7 @@ function renderData(data){
   markers.forEach(m=>m.setMap(null));
   markers=[];
 
-  updateStats(data); // ✅ 반드시 여기서 호출
+  updateStats(data);
 
   let bounds=new kakao.maps.LatLngBounds();
 
@@ -172,12 +202,32 @@ function renderData(data){
     const lng=parseFloat(item.lng||item.longitude);
 
     if(!isNaN(lat)&&!isNaN(lng)){
+
+      let iconUrl;
+
+      const t = (item.type || "");
+
+      if(t.includes("응급")){
+        iconUrl="https://maps.google.com/mapfiles/ms/icons/red-dot.png";
+      }
+      else if(t.includes("구조") || t.includes("산악사고")){
+        iconUrl="https://maps.google.com/mapfiles/ms/icons/blue-dot.png";
+      }
+      else if(t.includes("조난") || t.includes("실종")){
+        iconUrl="https://maps.google.com/mapfiles/ms/icons/yellow-dot.png";
+      }
+      else{
+        iconUrl="https://maps.google.com/mapfiles/ms/icons/green-dot.png";
+      }
+
       const marker=new kakao.maps.Marker({
         map:map,
-        position:new kakao.maps.LatLng(lat,lng)
+        position:new kakao.maps.LatLng(lat,lng),
+        image:new kakao.maps.MarkerImage(iconUrl,new kakao.maps.Size(32,32))
       });
 
       kakao.maps.event.addListener(marker,'click',()=>showModal(item));
+
       markers.push(marker);
       bounds.extend(marker.getPosition());
     }
@@ -202,7 +252,6 @@ function renderTable(data){
 
   data.forEach(item=>{
     const tr=document.createElement("tr");
-
     tr.innerHTML=`
       <td>${formatTime(parseKST(item.time))}</td>
       <td>${item.type}</td>
@@ -211,18 +260,25 @@ function renderTable(data){
       <td>${item.symptom||''}</td>
       <td>${item.status||''}</td>
     `;
-
     tbody.appendChild(tr);
   });
 }
 
-/* 데이터 로드 */
+/* 데이터 로드 + 신규 감지 */
 async function loadData(){
   try{
     const res=await fetch(API_URL+"?action=list");
     let data=await res.json();
 
     if(!Array.isArray(data)) data=[];
+
+    // 🔥 신규 데이터 감지
+    if(lastDataLength > 0 && data.length > lastDataLength){
+      const newItems = data.slice(0, data.length - lastDataLength);
+      newItems.forEach(triggerAlert);
+    }
+
+    lastDataLength = data.length;
 
     allData=data;
     renderData(allData);
