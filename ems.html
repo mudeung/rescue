@@ -200,114 +200,179 @@ button{
 
 <script>
 
-/* 세션 유지 (새로고침해도 유지) */
-window.addEventListener("load",function(){
-  if(sessionStorage.getItem("authorized_record")==="true"){
-    document.getElementById("loginOverlay").style.display="none";
+let lat = null;
+let lng = null;
+
+/* 세션 유지 */
+window.addEventListener("load", function () {
+  if (sessionStorage.getItem("authorized_record") === "true") {
+    const el = document.getElementById("loginOverlay");
+    if (el) el.style.display = "none";
   }
-});  
-  
+});
+
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxm_oLeGMIGh5PRokCURztVx6-1Ijug2KtuGbsFH-cZVOKE5LgaKDnLbTgFl2sWWDdkwA/exec";
 
-// 🔊 중증 음성
+/* ===== 중증 알림 ===== */
 let voiceInterval = null;
-function speakCritical(){
-  if(!('speechSynthesis' in window)) return;
+
+function speakCritical() {
+  if (!('speechSynthesis' in window)) return;
   speechSynthesis.cancel();
-  const msg = new SpeechSynthesisUtterance("중증 환자입니다. 즉시 기도와 호흡을 확인하십시오.");
-  msg.lang="ko-KR";
+
+  const msg = new SpeechSynthesisUtterance(
+    "중증 환자입니다. 즉시 기도와 호흡을 확인하십시오."
+  );
+
+  msg.lang = "ko-KR";
   speechSynthesis.speak(msg);
 }
 
-// 🚨 반복 시작
-function startCriticalAlert(){
-  if(voiceInterval) return;
+function startCriticalAlert() {
+  if (voiceInterval) return;
   speakCritical();
   voiceInterval = setInterval(speakCritical, 10000);
 }
 
-// 🛑 반복 중단
-function stopCriticalAlert(){
-  if(voiceInterval){ clearInterval(voiceInterval); voiceInterval=null; }
+function stopCriticalAlert() {
+  if (voiceInterval) {
+    clearInterval(voiceInterval);
+    voiceInterval = null;
+  }
   speechSynthesis.cancel();
 }
 
-// 🧠 GCS 계산 및 경고
-function calculateGCS(){
-  const eye=parseInt(document.getElementById("eye").value);
-  const verbal=parseInt(document.getElementById("verbal").value);
-  const motor=parseInt(document.getElementById("motor").value);
-  const total=eye+verbal+motor;
+/* ===== GCS 계산 ===== */
+function calculateGCS() {
 
-  let state='', color='';
-  if (total === 15) { state = '정상-Normal'; color = '#2563eb'; } 
-  else if(total>=13){ state='경도-Mild'; color='#16a34a'; }
-  else if(total>=9){ state='중등도-Moderate'; color='#f59e0b'; }
-  else if(total>=4){ state='중증-Severe'; color='#dc2626'; }
-  else{ state='혼수'; color='#000'; }
+  const eye = parseInt(document.getElementById("eye").value);
+  const verbal = parseInt(document.getElementById("verbal").value);
+  const motor = parseInt(document.getElementById("motor").value);
 
-  const gcsResult=document.getElementById("gcsResult");
-  gcsResult.textContent=`${total}점 (${state})`;
-  gcsResult.style.color=color;
+  const total = eye + verbal + motor;
 
-  const gcsWarning=document.getElementById("gcsWarning");
-  if(total<=8){
-    if(gcsWarning) gcsWarning.style.display="block";
+  let state = '';
+  let color = '';
+
+  if (total === 15) { state = '정상'; color = '#2563eb'; }
+  else if (total >= 13) { state = '경도'; color = '#16a34a'; }
+  else if (total >= 9) { state = '중등도'; color = '#f59e0b'; }
+  else if (total >= 4) { state = '중증'; color = '#dc2626'; }
+  else { state = '혼수'; color = '#000'; }
+
+  const gcsResult = document.getElementById("gcsResult");
+  gcsResult.textContent = `${total}점 (${state})`;
+  gcsResult.style.color = color;
+
+  const gcsWarning = document.getElementById("gcsWarning");
+
+  if (total <= 8) {
+    if (gcsWarning) gcsWarning.style.display = "block";
     document.body.classList.add("critical-mode");
-    if(navigator.vibrate){ navigator.vibrate([500,300,500]); }
+    if (navigator.vibrate) navigator.vibrate([500, 300, 500]);
     startCriticalAlert();
-  }else{
-    if(gcsWarning) gcsWarning.style.display="none";
+  } else {
+    if (gcsWarning) gcsWarning.style.display = "none";
     document.body.classList.remove("critical-mode");
     stopCriticalAlert();
   }
 }
 
-["eye","verbal","motor"].forEach(id=>{
-  document.getElementById(id).addEventListener("change", calculateGCS);
+["eye", "verbal", "motor"].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener("change", calculateGCS);
 });
+
 calculateGCS();
 
-// GPS
-document.getElementById("getLocation").onclick = ()=>{
-  navigator.geolocation.getCurrentPosition(p=>{
-    const lat=p.coords.latitude;
-    const lng=p.coords.longitude;
-    const txt=`위도:${lat}, 경도:${lng}`;
-    document.getElementById("locationDisplay").textContent=txt;
-    document.getElementById("hiddenCoordinate").value=txt;
+/* ===== GPS ===== */
+document.getElementById("getLocation").onclick = () => {
 
-    const loc = new kakao.maps.LatLng(lat,lng);
-    const map = new kakao.maps.Map(document.getElementById("map"), {center:loc, level:3});
-    new kakao.maps.Marker({position:loc,map:map});
+  navigator.geolocation.getCurrentPosition(p => {
+
+    lat = p.coords.latitude;
+    lng = p.coords.longitude;
+
+    const txt = `위도:${lat}, 경도:${lng}`;
+
+    document.getElementById("locationDisplay").textContent = txt;
+    document.getElementById("hiddenCoordinate").value = txt;
+
+    const loc = new kakao.maps.LatLng(lat, lng);
+
+    const map = new kakao.maps.Map(
+      document.getElementById("map"),
+      { center: loc, level: 3 }
+    );
+
+    new kakao.maps.Marker({
+      position: loc,
+      map: map
+    });
   });
 };
-  
-// 기록 저장 + 공유
-document.getElementById("recordForm").onsubmit = async e=>{
+
+/* ===== 기록 저장 + 공유 (핵심) ===== */
+document.getElementById("recordForm").onsubmit = async e => {
+
   e.preventDefault();
-  let data={}, text="";
-  new FormData(e.target).forEach((v,k)=>{ data[k]=v; text+=`${k}: ${v}\n`; });
-  data["GCS"]=document.getElementById("gcsResult").textContent;
-  text+=`GCS: ${data["GCS"]}`;
 
-  document.getElementById("savedData").innerHTML=`<div class="board-item">${text}</div>`;
+  let data = {};
+  let text = "";
 
-  // 다운로드
-  const blob=new Blob([text],{type:"text/plain"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download="무등산_환자기록.txt";
+  new FormData(e.target).forEach((v, k) => {
+    data[k] = v;
+    text += `${k}: ${v}\n`;
+  });
+
+  const gcs = document.getElementById("gcsResult").textContent;
+
+  data["GCS"] = gcs;
+  text += `GCS: ${gcs}`;
+
+  document.getElementById("savedData").innerHTML =
+    `<div class="board-item">${text}</div>`;
+
+  /* ===== 파일 저장 ===== */
+  const fileName = `무등산_환자기록_${Date.now()}.txt`;
+
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
   a.click();
 
-  // 구글 스프레드시트 전송
-  fetch(GOOGLE_SCRIPT_URL,{method:"POST",body:JSON.stringify(data)}).catch(()=>{});
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 1000);
 
-  // Web Share
-  if(navigator.share){
-    navigator.share({title:"무등산 산악사고 기록", text:text});
+  /* ===== 구글시트 전송 ===== */
+  fetch(GOOGLE_SCRIPT_URL, {
+    method: "POST",
+    body: JSON.stringify(data)
+  }).catch(() => {});
+
+  /* ===== APK 공유 ===== */
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  const shareText = text;
+
+  if (navigator.share && !isAndroid) {
+
+    navigator.share({
+      title: "무등산 산악사고 기록",
+      text: shareText
+    });
+
+  } else {
+
+    window.location.href = "share://" + encodeURIComponent(shareText);
   }
 };
+
 </script>
 </body>
 </html>
