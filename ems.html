@@ -312,7 +312,25 @@ document.getElementById("getLocation").onclick = () => {
   });
 };
 
-/* ===== 기록 저장 + 공유 (핵심) ===== */
+/* ===== 삽입 ===== */
+function shareToApp(text) {
+
+  if (window.Android && Android.shareData) {
+    Android.shareData(text);
+    return;
+  }
+
+  // fallback
+  const blob = new Blob([text], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "record.txt";
+  a.click();
+}
+  
+/* ===== 기록 저장 + 공유 ===== */
 document.getElementById("recordForm").onsubmit = async e => {
 
   e.preventDefault();
