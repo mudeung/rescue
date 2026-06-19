@@ -375,21 +375,35 @@ document.getElementById("recordForm").onsubmit = async e => {
   }).catch(() => {});
 
   /* ===== APK 공유 ===== */
-  const isAndroid = /Android/i.test(navigator.userAgent);
-  const shareText = text;
+const isAndroid = /Android/i.test(navigator.userAgent);
+const shareText = text;
 
-  if (navigator.share && !isAndroid) {
+// 🔥 Android 앱(WebView)
+if (window.Android && Android.shareData) {
+  Android.shareData(shareText);
+}
 
-    navigator.share({
-      title: "무등산 산악사고 기록",
-      text: shareText
-    });
+// 🔥 일반 브라우저 share API
+else if (navigator.share) {
+  navigator.share({
+    title: "무등산 산악사고 기록",
+    text: shareText
+  });
+}
 
-  } else {
+// 🔥 fallback (다운로드)
+else {
+  const blob = new Blob([shareText], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
 
-    window.location.href = "share://" + encodeURIComponent(shareText);
-  }
-};
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "record.txt";
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+
   /* ===== 추가 ===== */
 window.addEventListener("load", () => {
 
