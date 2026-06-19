@@ -203,46 +203,9 @@ button{
 let lat = null;
 let lng = null;
 
-/* 세션 유지 */
-window.addEventListener("load", function () {
-  if (sessionStorage.getItem("authorized_record") === "true") {
-    const el = document.getElementById("loginOverlay");
-    if (el) el.style.display = "none";
-  }
-});
-
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxm_oLeGMIGh5PRokCURztVx6-1Ijug2KtuGbsFH-cZVOKE5LgaKDnLbTgFl2sWWDdkwA/exec";
-
-/* ===== 중증 알림 ===== */
-let voiceInterval = null;
-
-function speakCritical() {
-  if (!('speechSynthesis' in window)) return;
-  speechSynthesis.cancel();
-
-  const msg = new SpeechSynthesisUtterance(
-    "중증 환자입니다. 즉시 기도와 호흡을 확인하십시오."
-  );
-
-  msg.lang = "ko-KR";
-  speechSynthesis.speak(msg);
-}
-
-function startCriticalAlert() {
-  if (voiceInterval) return;
-  speakCritical();
-  voiceInterval = setInterval(speakCritical, 10000);
-}
-
-function stopCriticalAlert() {
-  if (voiceInterval) {
-    clearInterval(voiceInterval);
-    voiceInterval = null;
-  }
-  speechSynthesis.cancel();
-}
-
-/* ===== GCS 계산 ===== */
+/* =========================
+   GCS 계산
+========================= */
 function calculateGCS() {
 
   const eye = parseInt(document.getElementById("eye").value);
@@ -252,67 +215,81 @@ function calculateGCS() {
   const total = eye + verbal + motor;
 
   let state = '';
-  let color = '';
 
-  if (total === 15) { state = '정상'; color = '#2563eb'; }
-  else if (total >= 13) { state = '경도'; color = '#16a34a'; }
-  else if (total >= 9) { state = '중등도'; color = '#f59e0b'; }
-  else if (total >= 4) { state = '중증'; color = '#dc2626'; }
-  else { state = '혼수'; color = '#000'; }
+  if (total === 15) state = '정상';
+  else if (total >= 13) state = '경도';
+  else if (total >= 9) state = '중등도';
+  else if (total >= 4) state = '중증';
+  else state = '혼수';
 
-  const gcsResult = document.getElementById("gcsResult");
-  gcsResult.textContent = `${total}점 (${state})`;
-  gcsResult.style.color = color;
+  document.getElementById("gcsResult").textContent = `${total}점 (${state})`;
 
-  const gcsWarning = document.getElementById("gcsWarning");
+  const warn = document.getElementById("gcsWarning");
 
   if (total <= 8) {
-    if (gcsWarning) gcsWarning.style.display = "block";
+    warn.style.display = "block";
     document.body.classList.add("critical-mode");
-    if (navigator.vibrate) navigator.vibrate([500, 300, 500]);
-    startCriticalAlert();
   } else {
-    if (gcsWarning) gcsWarning.style.display = "none";
+    warn.style.display = "none";
     document.body.classList.remove("critical-mode");
-    stopCriticalAlert();
   }
 }
 
-["eye", "verbal", "motor"].forEach(id => {
-  const el = document.getElementById(id);
-  if (el) el.addEventListener("change", calculateGCS);
+["eye","verbal","motor"].forEach(id => {
+  document.getElementById(id).addEventListener("change", calculateGCS);
 });
 
 calculateGCS();
 
-/* ===== GPS ===== */
-document.getElementById("getLocation").onclick = () => {
+/* =========================
+   GPS + 지도 (핵심 수정)
+========================= */
+document.getElementById("getLocation").addEventListener("click", () => {
 
-  navigator.geolocation.getCurrentPosition(p => {
+  if (!navigator.geolocation) {
+    alert("GPS를 지원하지 않는 브라우저입니다.");
+    return;
+  }
 
-    lat = p.coords.latitude;
-    lng = p.coords.longitude;
+  navigator.geolocation.getCurrentPosition(
+    (p) => {
 
-    const txt = `위도:${lat}, 경도:${lng}`;
+      lat = p.coords.latitude;
+      lng = p.coords.longitude;
 
-    document.getElementById("locationDisplay").textContent = txt;
-    document.getElementById("hiddenCoordinate").value = txt;
+      const txt = `위도:${lat}, 경도:${lng}`;
 
-    const loc = new kakao.maps.LatLng(lat, lng);
+      document.getElementById("locationDisplay").textContent = txt;
+      document.getElementById("hiddenCoordinate").value = txt;
 
-    const map = new kakao.maps.Map(
-      document.getElementById("map"),
-      { center: loc, level: 3 }
-    );
+      if (window.kakao && kakao.maps) {
 
-    new kakao.maps.Marker({
-      position: loc,
-      map: map
-    });
-  });
-};
+        const loc = new kakao.maps.LatLng(lat, lng);
 
-/* ===== 삽입 ===== */
+        const map = new kakao.maps.Map(
+          document.getElementById("map"),
+          {
+            center: loc,
+            level: 3
+          }
+        );
+
+        new kakao.maps.Marker({
+          position: loc,
+          map: map
+        });
+      }
+
+    },
+    (err) => {
+      alert("GPS 실패: " + err.message);
+    }
+  );
+});
+
+/* =========================
+   Android 공유 브릿지
+========================= */
 function shareToApp(text) {
 
   if (window.Android && Android.shareData) {
@@ -320,80 +297,7 @@ function shareToApp(text) {
     return;
   }
 
-  // fallback
   const blob = new Blob([text], { type: "text/plain" });
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "record.txt";
-  a.click();
-}
-  
-/* ===== 기록 저장 + 공유 ===== */
-document.getElementById("recordForm").onsubmit = async e => {
-
-  e.preventDefault();
-
-  let data = {};
-  let text = "";
-
-  new FormData(e.target).forEach((v, k) => {
-    data[k] = v;
-    text += `${k}: ${v}\n`;
-  });
-
-  const gcs = document.getElementById("gcsResult").textContent;
-
-  data["GCS"] = gcs;
-  text += `GCS: ${gcs}`;
-
-  document.getElementById("savedData").innerHTML =
-    `<div class="board-item">${text}</div>`;
-
-  /* ===== 파일 저장 ===== */
-  const fileName = `무등산_환자기록_${Date.now()}.txt`;
-
-  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = fileName;
-  document.body.appendChild(a);
-  a.click();
-
-  setTimeout(() => {
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }, 1000);
-
-  /* ===== 구글시트 전송 ===== */
-  fetch(GOOGLE_SCRIPT_URL, {
-    method: "POST",
-    body: JSON.stringify(data)
-  }).catch(() => {});
-
-  /* ===== APK 공유 ===== */
-const isAndroid = /Android/i.test(navigator.userAgent);
-const shareText = text;
-
-// 🔥 Android 앱(WebView)
-if (window.Android && Android.shareData) {
-  Android.shareData(shareText);
-}
-
-// 🔥 일반 브라우저 share API
-else if (navigator.share) {
-  navigator.share({
-    title: "무등산 산악사고 기록",
-    text: shareText
-  });
-}
-
-// 🔥 fallback (다운로드)
-else {
-  const blob = new Blob([shareText], { type: "text/plain" });
   const url = URL.createObjectURL(blob);
 
   const a = document.createElement("a");
@@ -404,43 +308,54 @@ else {
   URL.revokeObjectURL(url);
 }
 
-  /* ===== 추가 ===== */
-window.addEventListener("load", () => {
+/* =========================
+   기록 저장 + 공유
+========================= */
+document.getElementById("recordForm").addEventListener("submit", (e) => {
 
-  const btn = document.getElementById("getLocation");
+  e.preventDefault();
 
-  if (!btn) {
-    console.log("getLocation 버튼 없음");
-    return;
-  }
+  let data = {};
+  let text = "";
 
-  btn.addEventListener("click", () => {
-
-    if (!navigator.geolocation) {
-      alert("GPS 지원 안됨");
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (p) => {
-
-        const lat = p.coords.latitude;
-        const lng = p.coords.longitude;
-
-        const txt = `위도:${lat}, 경도:${lng}`;
-
-        document.getElementById("locationDisplay").textContent = txt;
-        document.getElementById("hiddenCoordinate").value = txt;
-      },
-      (err) => {
-        alert("GPS 실패: " + err.message);
-      }
-    );
-
+  new FormData(e.target).forEach((v,k) => {
+    data[k] = v;
+    text += `${k}: ${v}\n`;
   });
 
+  const gcs = document.getElementById("gcsResult").textContent;
+  data["GCS"] = gcs;
+  text += `GCS: ${gcs}`;
+
+  document.getElementById("savedData").innerHTML =
+    `<div class="board-item">${text}</div>`;
+
+  /* Google Sheet 전송 */
+  fetch("https://script.google.com/macros/s/AKfycbxm_oLeGMIGh5PRokCURztVx6-1Ijug2KtuGbsFH-cZVOKE5LgaKDnLbTgFl2sWWDdkwA/exec", {
+    method: "POST",
+    body: JSON.stringify(data)
+  }).catch(() => {});
+
+  /* 공유 (핵심 수정) */
+  const isAndroid = /Android/i.test(navigator.userAgent);
+
+  if (window.Android && Android.shareData) {
+    Android.shareData(text);
+  }
+
+  else if (navigator.share && !isAndroid) {
+    navigator.share({
+      title: "무등산 구조 기록",
+      text: text
+    });
+  }
+
+  else {
+    shareToApp(text);
+  }
+
 });
-  
+
 </script>
 </body>
 </html>
