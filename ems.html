@@ -373,6 +373,42 @@ document.getElementById("recordForm").onsubmit = async e => {
   }
 };
 
+window.addEventListener("load", () => {
+
+  const btn = document.getElementById("getLocation");
+
+  if (!btn) {
+    console.log("getLocation 버튼 없음");
+    return;
+  }
+
+  btn.addEventListener("click", () => {
+
+    if (!navigator.geolocation) {
+      alert("GPS 지원 안됨");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (p) => {
+
+        const lat = p.coords.latitude;
+        const lng = p.coords.longitude;
+
+        const txt = `위도:${lat}, 경도:${lng}`;
+
+        document.getElementById("locationDisplay").textContent = txt;
+        document.getElementById("hiddenCoordinate").value = txt;
+      },
+      (err) => {
+        alert("GPS 실패: " + err.message);
+      }
+    );
+
+  });
+
+});
+  
 </script>
 </body>
 </html>
