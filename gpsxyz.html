@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>📡 산악사고 위치좌표</title>
+<title>📡 특수구조팀 산악사고 위치좌표</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.js"></script>
@@ -20,7 +20,7 @@ button { width:100%; padding:14px; font-size:18px; background:#00eaff; border:no
 
 <body>
 
-<h2>📡 산악사고 위치좌표</h2>
+<h2>📡 특수구조팀 산악사고 위치좌표</h2>
 <div id="status" class="status">📡 GPS 대기중…</div>
 
 <button onclick="openBothMaps()" style="margin-top:10px;background:#ff9800;">
@@ -124,7 +124,7 @@ async function shareLocation(){
     const kakaoUrl = `https://map.kakao.com/link/map/📍현위치,${currentData.lat},${currentData.lon}`;
     const naverUrl = `https://map.naver.com/v5/search/${currentData.lat},${currentData.lon}`;
 
-    const text = `📡 산악사고 현위치
+    const text = `📡 위치좌표 공유
 
 🕒 수신시간
 ${now}
@@ -152,7 +152,7 @@ ${naverUrl}
     if (navigator.share) {
         try {
             await navigator.share({
-                title: "📡 산악사고 현위치",
+                title: " 위치좌표",
                 text: text,
                 url: kakaoUrl
             });
