@@ -24,6 +24,15 @@ button { width:100%; padding:14px; font-size:18px; background:#00eaff; border:no
 <div id="status" class="status">📡 GPS 대기중…</div>
 
 <button onclick="getLocation()">📡 현재 위치 수신</button>
+<button onclick="shareLocation()" style="margin-top:10px;background:#22c55e;">
+📤 위치 공유
+</button>
+<button onclick="openKakaoMap()" style="margin-top:10px;background:#fee500;color:#000;">
+📍 카카오맵으로 보기
+</button>
+  <button onclick="openNaverMap()" style="margin-top:10px;background:#03c75a;">
+🗺 네이버맵으로 보기
+</button>
 
 <div class="box"><div class="label">위도 / 경도</div><div id="latlon" class="value">-</div></div>
 <div class="box"><div class="label">도분초 (DMS)</div><div id="dms" class="value">-</div></div>
@@ -31,6 +40,7 @@ button { width:100%; padding:14px; font-size:18px; background:#00eaff; border:no
 <div class="box"><div class="label">국가지점번호</div><div id="national" class="value">-</div></div>
 
 <script>
+  
 proj4.defs("EPSG:5179",
   "+proj=tmerc +lat_0=38 +lon_0=127.5 +k=0.9996 +x_0=1000000 +y_0=2000000 +ellps=GRS80 +units=m +no_defs"
 );
@@ -39,26 +49,28 @@ function getLocation() {
   const status = document.getElementById("status");
   status.textContent = "📡 위성 수신중…";
 
-  navigator.geolocation.getCurrentPosition(pos => {
+navigator.geolocation.getCurrentPosition(
+  pos => {
     const lat = pos.coords.latitude;
     const lon = pos.coords.longitude;
     const acc = Math.round(pos.coords.accuracy);
 
     status.textContent = `✅ 수신 완료 (±${acc}m)`;
-    processCoord(lat, lon);
-  }, () => {
+   processCoord(lat, lon, acc);
+
+  },
+  () => {
     status.textContent = "❌ GPS 수신 실패";
-  }, { enableHighAccuracy:true });
+  },
+  {
+    enableHighAccuracy: true,
+    timeout: 10000,
+    maximumAge: 0
+  }
+);
 }
-
-function processCoord(lat, lon) {
-  document.getElementById("latlon").innerText = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
-  document.getElementById("dms").innerText = toDMS(lat, lon);
-
-  const [x, y] = proj4("WGS84", "EPSG:5179", [lon, lat]);
-  document.getElementById("utmk").innerText = `E ${Math.floor(x)} N ${Math.floor(y)}`;
-  document.getElementById("national").innerText = `${Math.floor(x/100)} ${Math.floor(y/100)}`;
-}
+let currentData = null;
+  
 
 function dms(v){
   const d = Math.floor(Math.abs(v));
@@ -70,6 +82,98 @@ function dms(v){
 function toDMS(lat, lon){
   return `N ${dms(lat)} / E ${dms(lon)}`;
 }
+  
+function processCoord(lat, lon, acc) {
+
+  document.getElementById("latlon").innerText =
+    `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+
+  document.getElementById("dms").innerText =
+    toDMS(lat, lon);
+
+  const [x, y] =
+    proj4("WGS84", "EPSG:5179", [lon, lat]);
+
+  document.getElementById("utmk").innerText =
+    `E ${Math.floor(x)} N ${Math.floor(y)}`;
+
+  document.getElementById("national").innerText =
+    `${Math.floor(x/100)} ${Math.floor(y/100)}`;
+
+currentData = {
+    lat,
+    lon,
+    accuracy: acc,
+    utmkX: Math.floor(x),
+    utmkY: Math.floor(y),
+    national: `${Math.floor(x/100)} ${Math.floor(y/100)}`
+};
+}  
+  
+async function shareLocation(){
+
+    if(!currentData){
+        alert("먼저 현재 위치를 수신하세요.");
+        return;
+    }
+
+    const now = new Date().toLocaleString("ko-KR");
+
+const text = `📡 산악사고 현위치
+
+수신시간
+${now}
+
+위도/경도
+${currentData.lat.toFixed(6)}, ${currentData.lon.toFixed(6)}
+
+GPS 정확도
+±${currentData.accuracy}m
+
+UTM-K
+E ${currentData.utmkX}
+N ${currentData.utmkY}
+
+국가지점번호
+${currentData.national}
+
+지도
+https://maps.google.com/?q=${currentData.lat},${currentData.lon}`;
+
+if (navigator.share) {
+    try {
+        await navigator.share({
+            title: "📡 산악사고 현위치",
+            text: text,
+            url: `https://maps.google.com/?q=${currentData.lat},${currentData.lon}`
+        });
+    } catch (e) {}
+} else {
+    navigator.clipboard.writeText(text);
+
+    alert("공유를 지원하지 않는 브라우저입니다.\n위치정보를 클립보드에 복사했습니다.");
+}
+}
+  
+function openKakaoMap() {
+    if (!currentData) {
+        alert("먼저 현재 위치를 수신하세요.");
+        return;
+    }
+
+    const url = `https://map.kakao.com/link/map/${currentData.lat},${currentData.lon}`;
+    window.open(url, "_blank");
+}
+
+function openNaverMap() {
+    if (!currentData) {
+        alert("먼저 현재 위치를 수신하세요.");
+        return;
+    }
+
+    const url = `https://map.naver.com/v5/search/${currentData.lon},${currentData.lat}`;
+    window.open(url, "_blank");
+}  
 </script>
 
 </body>
