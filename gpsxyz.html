@@ -116,40 +116,46 @@ async function shareLocation(){
 
     const now = new Date().toLocaleString("ko-KR");
 
-const text = `📡 산악사고 현위치
+    const kakaoUrl = `https://map.kakao.com/link/map/📍현위치,${currentData.lat},${currentData.lon}`;
+    const naverUrl = `https://map.naver.com/v5/search/${currentData.lat},${currentData.lon}`;
 
-수신시간
+    const text = `📡 산악사고 현위치
+
+🕒 수신시간
 ${now}
 
-위도/경도
+📍 위도/경도
 ${currentData.lat.toFixed(6)}, ${currentData.lon.toFixed(6)}
 
-GPS 정확도
+📡 GPS 정확도
 ±${currentData.accuracy}m
 
-UTM-K
+🧭 UTM-K
 E ${currentData.utmkX}
 N ${currentData.utmkY}
 
-국가지점번호
+📌 국가지점번호
 ${currentData.national}
 
-지도
-url: `https://map.kakao.com/link/map/현위치,${currentData.lat},${currentData.lon}`
+📍 카카오맵
+${kakaoUrl}
 
-if (navigator.share) {
-    try {
-        await navigator.share({
-            title: "📡 산악사고 현위치",
-            text: text,
-            url: `https://map.kakao.com/link/map/현위치,${currentData.lat},${currentData.lon}`
-        });
-    } catch (e) {}
-} else {
-    navigator.clipboard.writeText(text);
+🗺 네이버맵
+${naverUrl}
+`;
 
-    alert("공유를 지원하지 않는 브라우저입니다.\n위치정보를 클립보드에 복사했습니다.");
-}
+    if (navigator.share) {
+        try {
+            await navigator.share({
+                title: "📡 산악사고 현위치",
+                text: text,
+                url: kakaoUrl
+            });
+        } catch (e) {}
+    } else {
+        navigator.clipboard.writeText(text);
+        alert("위치 복사 완료");
+    }
 }
   
 function openKakaoMap() {
@@ -179,7 +185,7 @@ function openNaverMap() {
     }
 
     const kakaoUrl = `https://map.kakao.com/link/map/현위치,${currentData.lat},${currentData.lon}`;
-    const naverUrl = `https://map.naver.com/v5/?c=${currentData.lon},${currentData.lat},18,0,0,0,dh`;
+    const naverUrl = `https://map.naver.com/v5/search/위치/${currentData.lat},${currentData.lon}`;
 
     window.open(kakaoUrl, "_blank");
     window.open(naverUrl, "_blank");
