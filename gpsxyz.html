@@ -33,6 +33,9 @@ button { width:100%; padding:14px; font-size:18px; background:#00eaff; border:no
   <button onclick="openNaverMap()" style="margin-top:10px;background:#03c75a;">
 🗺 네이버맵으로 보기
 </button>
+  <button onclick="openBothMaps()" style="margin-top:10px;background:#ff9800;">
+📍 카카오 + 네이버 동시에 보기
+</button>
 
 <div class="box"><div class="label">위도 / 경도</div><div id="latlon" class="value">-</div></div>
 <div class="box"><div class="label">도분초 (DMS)</div><div id="dms" class="value">-</div></div>
@@ -171,9 +174,22 @@ function openNaverMap() {
         return;
     }
 
-    const url = `https://map.naver.com/v5/search/${currentData.lon},${currentData.lat}`;
+    const url = `https://map.naver.com/v5/?c=${currentData.lon},${currentData.lat},18,0,0,0,dh`;
     window.open(url, "_blank");
-}  
+}
+  
+  function openBothMaps() {
+    if (!currentData) {
+        alert("먼저 현재 위치를 수신하세요.");
+        return;
+    }
+
+    const kakaoUrl = `https://map.kakao.com/link/map/현위치,${currentData.lat},${currentData.lon}`;
+    const naverUrl = `https://map.naver.com/v5/?c=${currentData.lon},${currentData.lat},18,0,0,0,dh`;
+
+    window.open(kakaoUrl, "_blank");
+    window.open(naverUrl, "_blank");
+}
 </script>
 
 </body>
