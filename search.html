@@ -17,7 +17,6 @@ body{
     overflow:hidden;
 }
 
-/* HEADER */
 header{
     background:#071a2f;
     padding:10px;
@@ -26,13 +25,11 @@ header{
     font-size:14px;
 }
 
-/* LAYOUT */
 #container{
     display:flex;
     height:calc(100vh - 50px);
 }
 
-/* PANEL */
 #panel{
     width:300px;
     background:#07101f;
@@ -43,7 +40,6 @@ header{
     overflow-y:auto;
 }
 
-/* MAP */
 #map{
     flex:1;
 }
@@ -57,16 +53,14 @@ input,button,select{
     font-size:13px;
 }
 
-/* MOBILE OPTIMIZATION */
+button:disabled{
+    opacity:0.5;
+}
+
+/* MOBILE */
 @media (max-width:768px){
-
-    body{
-        overflow:auto;
-    }
-
     #container{
         flex-direction:column;
-        height:100vh;
     }
 
     #panel{
@@ -83,20 +77,6 @@ input,button,select{
     input,button,select{
         flex:1;
         min-width:120px;
-        font-size:12px;
-    }
-}
-
-/* SMALL PHONE */
-@media (max-width:420px){
-
-    #panel{
-        max-height:40vh;
-    }
-
-    input,button,select{
-        min-width:100px;
-        font-size:11px;
     }
 }
 </style>
@@ -104,7 +84,7 @@ input,button,select{
 
 <body>
 
-<header>🛰 RESCUE AI MAP v10 (RESPONSIVE + DIRECTION TRACKING)</header>
+<header>🛰 RESCUE AI MAP v10 (PIN + DIRECTION OVERLAY)</header>
 
 <div id="container">
 
@@ -149,6 +129,7 @@ let intervalLoad=null;
 
 let allData=[];
 let markers={};
+let arrowLayers={};
 let polyline={};
 let paths={};
 let lastPosByUser={};
@@ -163,35 +144,39 @@ nameInput.addEventListener("input",()=>{
 
 // ================= ID CHECK =================
 async function checkDuplicateID(id){
-
     const res=await fetch(API_URL+"?checkId="+id);
     const data=await res.json();
-
     return data.exists;
 }
 
 // ================= ANGLE =================
 function getAngle(prev,curr){
-
     const dy=curr.lat-prev.lat;
     const dx=curr.lng-prev.lng;
-
     return Math.atan2(dy,dx)*180/Math.PI;
 }
+
+// ================= BLUE ICON =================
+const blueIcon = L.icon({
+    iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png",
+    shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
+    iconSize: [25, 41],
+    iconAnchor: [12, 41]
+});
 
 // ================= START =================
 async function start(){
 
-    myName=nameInput.value.trim();
+    myName = nameInput.value.trim();
     if(!myName) return alert("UNIT ID required");
 
-    const exists=await checkDuplicateID(myName);
+    const exists = await checkDuplicateID(myName);
     if(exists) return alert("이미 사용 중인 ID입니다");
 
     nameInput.disabled=true;
     startBtn.disabled=true;
 
-    watchId=navigator.geolocation.watchPosition(pos=>{
+    watchId = navigator.geolocation.watchPosition(pos=>{
 
         lastPos={
             name:myName,
@@ -232,11 +217,9 @@ function sendData(){
 
 // ================= LOAD =================
 function loadData(){
-
     fetch(API_URL)
     .then(r=>r.json())
     .then(data=>{
-
         allData=data;
         updateNameFilter(data);
         renderMap(data);
@@ -252,7 +235,7 @@ function updateNameFilter(data){
     sel.innerHTML=`<option value="ALL">👥 전체 보기</option>`;
 
     names.forEach(n=>{
-        const opt=document.createElement("option");
+        let opt=document.createElement("option");
         opt.value=n;
         opt.textContent="📍 "+n;
         sel.appendChild(opt);
@@ -267,13 +250,15 @@ function filterByName(){
     else renderMap(allData.filter(p=>p.name===v));
 }
 
-// ================= MAP =================
+// ================= MAP RENDER =================
 function renderMap(data){
 
     Object.values(markers).forEach(m=>map.removeLayer(m));
+    Object.values(arrowLayers).forEach(a=>map.removeLayer(a));
     Object.values(polyline).forEach(p=>map.removeLayer(p));
 
     markers={};
+    arrowLayers={};
     polyline={};
     paths={};
 
@@ -282,56 +267,48 @@ function renderMap(data){
         const key=p.name;
         const pos=[p.lat,p.lng];
 
-        if(!paths[key]) paths[key]=[];
-        paths[key].push(pos);
-
-        // marker
+        // ================= BLUE PIN =================
         if(!markers[key]){
-            markers[key]=L.marker(pos).addTo(map);
+            markers[key]=L.marker(pos,{icon:blueIcon}).addTo(map);
         }else{
             markers[key].setLatLng(pos);
         }
 
-        // direction update
+        // ================= DIRECTION OVERLAY =================
         if(lastPosByUser[key]){
 
             const angle=getAngle(lastPosByUser[key],{lat:p.lat,lng:p.lng});
 
-            markers[key].setIcon(
-                L.divIcon({
-                    className:"unit-icon",
-                    html:`
-                        <div style="text-align:center;color:#00ff9d;">
-                            <div style="transform:rotate(${angle}deg);font-size:18px;">
-                                ➤
-                            </div>
-                            <div style="font-size:11px;font-weight:bold;">
-                                ${p.name}
-                            </div>
-                        </div>
-                    `
-                })
-            );
+            const arrowIcon=L.divIcon({
+                className:"",
+                html:`<div style="transform:rotate(${angle}deg);font-size:18px;color:#00ff9d;">➤</div>`
+            });
+
+            if(!arrowLayers[key]){
+                arrowLayers[key]=L.marker(pos,{icon:arrowIcon}).addTo(map);
+            }else{
+                arrowLayers[key].setLatLng(pos);
+                arrowLayers[key].setIcon(arrowIcon);
+            }
         }
 
         lastPosByUser[key]={lat:p.lat,lng:p.lng};
 
-        drawPath(key);
+        // ================= PATH =================
+        if(!paths[key]) paths[key]=[];
+        paths[key].push(pos);
+
+        if(paths[key].length>1){
+
+            if(polyline[key]) map.removeLayer(polyline[key]);
+
+            polyline[key]=L.polyline(paths[key],{
+                color:"#00ff9d",
+                weight:3,
+                opacity:0.8
+            }).addTo(map);
+        }
     });
-}
-
-// ================= PATH =================
-function drawPath(key){
-
-    if(paths[key].length<2) return;
-
-    if(polyline[key]) map.removeLayer(polyline[key]);
-
-    polyline[key]=L.polyline(paths[key],{
-        color:"#00ff9d",
-        weight:3,
-        opacity:0.8
-    }).addTo(map);
 }
 
 // ================= SOS =================
