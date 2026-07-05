@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MUDEUNGSAN RESCUE AI MAP v7</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+<style>
+body { margin:0; background:#050b18; color:#00ff9d; font-family:monospace; }
+header {
+    background:#071a2f;
+    padding:10px;
+    text-align:center;
+    font-weight:bold;
+}
+#map { height: calc(100vh - 120px); }
+
+#panel {
+    display:flex;
+    gap:6px;
+    padding:8px;
+    background:#07101f;
+}
+
+input, button {
+    padding:8px;
+    border:1px solid #00ff9d;
+    background:#001a14;
+    color:#00ff9d;
+}
+button { cursor:pointer; }
+</style>
+</head>
+
+<body>
+
+<header>🛰 MUDEUNGSAN TERRAIN AI SEARCH MAP</header>
+
+<div id="panel">
+<input id="name" placeholder="UNIT ID">
+<button onclick="start()">START</button>
+<button onclick="sendSOS()">🚨 SOS</button>
+</div>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+
+const API_URL = "https://script.google.com/macros/s/AKfycbyiPxj65S0kt91fVwVKNPqbaIJNAzuRMKcR3X8k84OI6HgIZckqChCRqt9iDpCbppf0FA/exec";
+
+// 📍 무등산 서석대 기준
+const BASE = [35.1239, 126.9883];
+
+// ================= MAP =================
+const map = L.map('map').setView(BASE, 14);
+
+// 🧭 실제 등고선 지도 (핵심)
+L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenTopoMap contributors'
+}).addTo(map);
+
+// ================= STATE =================
+let myName = "";
+let lastPos = null;
+
+let markers = {};
+let lastSeen = {};
+let prevPos = {};
+
+let riskLayer = L.layerGroup().addTo(map);
+let heatLayer = L.layerGroup().addTo(map);
+
+// ================= START =================
+function start(){
+
+    myName = document.getElementById("name").value;
+    if(!myName) return alert("UNIT ID required");
+
+    navigator.geolocation.watchPosition(pos=>{
+
+        lastPos = {
+            name: myName,
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            status: "normal",
+            behavior: detectBehavior(pos),
+            altitude: pos.coords.altitude || 0
+        };
+
+    }, err=>alert("GPS ERROR"), {
+        enableHighAccuracy:true
+    });
+
+    setInterval(sendData, 6000);
+    setInterval(loadData, 5000);
+}
+
+// ================= BEHAVIOR =================
+function detectBehavior(pos){
+
+    const speed = pos.coords.speed || 0;
+
+    if(speed < 0.2) return "immobile";
+    if(speed < 1) return "injured";
+    if(speed < 3) return "confused";
+    return "normal";
+}
+
+// ================= SEND =================
+function sendData(){
+    if(!lastPos) return;
+
+    fetch(API_URL,{
+        method:"POST",
+        body: JSON.stringify(lastPos)
+    });
+}
+
+// ================= LOAD =================
+function loadData(){
+
+    fetch(API_URL)
+    .then(res=>res.json())
+    .then(data=>{
+
+        const now = Date.now();
+
+        riskLayer.clearLayers();
+        heatLayer.clearLayers();
+
+        data.forEach(p=>{
+
+            lastSeen[p.name] = now;
+
+            updateDirection(p);
+
+            const score = survivalProbability({
+                hours: 4,
+                slope: estimateSlope(p.lat,p.lng),
+                forest: 0.6,
+                water: isNearValley(p.lat,p.lng),
+                behavior: p.behavior,
+                distance: distanceFromBase(p.lat,p.lng)
+            });
+
+            const color =
+                score > 0.7 ? "red" :
+                score > 0.4 ? "orange" :
+                "yellow";
+
+            if(markers[p.name]){
+
+                markers[p.name].setLatLng([p.lat,p.lng]);
+
+            } else {
+
+                markers[p.name] = L.marker([p.lat,p.lng],{
+                    icon: L.divIcon({html:getIcon(score)})
+                }).addTo(map);
+            }
+
+            drawRisk(p.lat,p.lng,score);
+        });
+
+        checkOffline();
+    });
+}
+
+// ================= TERRAIN MODEL (SIMPLIFIED DEM) =================
+
+// 🔥 slope estimation (fake DEM approximation)
+function estimateSlope(lat,lng){
+
+    const noise = Math.sin(lat*50)*Math.cos(lng*50);
+    return Math.abs(noise)*40; // 0~40deg
+}
+
+// 🌲 valley detection
+function isNearValley(lat,lng){
+    return (Math.cos(lat*10) > 0.7);
+}
+
+// 📏 distance from base (서석대 기준)
+function distanceFromBase(lat,lng){
+
+    const R = 6371e3;
+
+    const φ1 = BASE[0]*Math.PI/180;
+    const φ2 = lat*Math.PI/180;
+
+    const dφ = (lat-BASE[0])*Math.PI/180;
+    const dλ = (lng-BASE[1])*Math.PI/180;
+
+    const a = Math.sin(dφ/2)*Math.sin(dφ/2) +
+              Math.cos(φ1)*Math.cos(φ2)*
+              Math.sin(dλ/2)*Math.sin(dλ/2);
+
+    return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+// ================= BAYESIAN =================
+function survivalProbability(p){
+
+    const timeFactor = Math.exp(-p.hours/24);
+
+    const terrain =
+        1 - (p.slope/45)*0.5
+        - p.forest*0.3
+        - (p.water?0.2:0);
+
+    const behaviorMap = {
+        normal:0.9,
+        confused:0.6,
+        injured:0.3,
+        immobile:0.1
+    };
+
+    const behavior = behaviorMap[p.behavior] || 0.5;
+
+    const move = Math.exp(-p.distance/800);
+
+    return Math.max(0,Math.min(1,
+        timeFactor * terrain * behavior * move
+    ));
+}
+
+// ================= RISK =================
+function drawRisk(lat,lng,score){
+
+    if(score < 0.3) return;
+
+    L.circle([lat,lng],{
+        radius:100,
+        color:
+            score>0.7?"red":
+            score>0.4?"orange":"yellow",
+        fillOpacity:0.25
+    }).addTo(riskLayer);
+}
+
+// ================= OFFLINE =================
+function checkOffline(){
+
+    const now = Date.now();
+
+    Object.keys(markers).forEach(n=>{
+        const diff = (now-lastSeen[n])/1000;
+
+        if(diff > 30){
+            markers[n].setOpacity(0.3);
+        }
+    });
+}
+
+// ================= DIRECTION =================
+function updateDirection(p){
+
+    if(prevPos[p.name] && markers[p.name]){
+
+        const angle = getHeading(
+            prevPos[p.name].lat,
+            prevPos[p.name].lng,
+            p.lat,
+            p.lng
+        );
+
+        markers[p.name].setIcon(
+            L.divIcon({
+                className: "unit-icon",
+                html: `
+                    <div style="text-align:center;color:#00ff9d;">
+                        <div style="transform:rotate(${angle}deg);font-size:16px;">➡️</div>
+                        <div style="font-size:11px;font-weight:bold;">${p.name}</div>
+                    </div>
+                `
+            })
+        );
+    }
+
+    prevPos[p.name] = {lat:p.lat,lng:p.lng};
+}
+
+// ================= HEADING =================
+function getHeading(lat1,lon1,lat2,lon2){
+
+    const toRad=x=>x*Math.PI/180;
+    const toDeg=x=>x*180/Math.PI;
+
+    const d=toRad(lon2-lon1);
+
+    const y=Math.sin(d)*Math.cos(toRad(lat2));
+    const x=Math.cos(toRad(lat1))*Math.sin(toRad(lat2))
+           -Math.sin(toRad(lat1))*Math.cos(toRad(lat2))*Math.cos(d);
+
+    return (toDeg(Math.atan2(y,x))+360)%360;
+}
+
+// ================= ICON =================
+function getIcon(score){
+    if(score>0.7) return "🔴";
+    if(score>0.4) return "🟠";
+    return "🟡";
+}
+
+// ================= SOS =================
+function sendSOS(){
+
+    if(!lastPos) return;
+
+    lastPos.status="SOS";
+
+    fetch(API_URL,{
+        method:"POST",
+        body:JSON.stringify(lastPos)
+    });
+
+    L.circle([lastPos.lat,lastPos.lng],{
+        radius:500,
+        color:"red",
+        fillOpacity:0.1
+    }).addTo(map);
+}
+
+</script>
+
+</body>
+</html>
