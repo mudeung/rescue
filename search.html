@@ -260,7 +260,7 @@ function checkOffline(){
 // ================= DIRECTION =================
 function updateDirection(p){
 
-    if(prevPos[p.name]){
+    if(prevPos[p.name] && markers[p.name]){
 
         const angle = getHeading(
             prevPos[p.name].lat,
@@ -269,16 +269,17 @@ function updateDirection(p){
             p.lng
         );
 
-       markers[p.name].setIcon(
-    L.divIcon({
-        html: `
-            <div style="text-align:center;color:#00ff9d;">
-                <div style="transform:rotate(${angle}deg);font-size:16px;">➡️</div>
-                <div style="font-size:11px;font-weight:bold;">${p.name}</div>
-            </div>
-        `
-    })
-);
+        markers[p.name].setIcon(
+            L.divIcon({
+                className: "unit-icon",
+                html: `
+                    <div style="text-align:center;color:#00ff9d;">
+                        <div style="transform:rotate(${angle}deg);font-size:16px;">➡️</div>
+                        <div style="font-size:11px;font-weight:bold;">${p.name}</div>
+                    </div>
+                `
+            })
+        );
     }
 
     prevPos[p.name] = {lat:p.lat,lng:p.lng};
