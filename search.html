@@ -3,7 +3,6 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>🛰 RESCUE AI COMMAND SYSTEM</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
@@ -47,7 +46,6 @@ input, button {
 <button onclick="goMyLocation()">📍 MY LOCATION</button>
 <button onclick="stopTracking()">⛔ STOP</button>
 <button onclick="sendSOS()">🚨 SOS</button>
-
 </div>
 
 <div id="map"></div>
@@ -57,15 +55,13 @@ input, button {
 <script>
 
 const API_URL = "https://script.google.com/macros/s/AKfycbyiPxj65S0kt91fVwVKNPqbaIJNAzuRMKcR3X8k84OI6HgIZckqChCRqt9iDpCbppf0FA/exec";
-
 const BASE = [35.1239, 126.9883];
 
-// ================= MAP =================
+// MAP
 const map = L.map('map').setView(BASE, 14);
-
 L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png').addTo(map);
 
-// ================= STATE =================
+// STATE
 let myName = "";
 let lastPos = null;
 let watchId = null;
@@ -78,7 +74,7 @@ let markers = {};
 let lastSeen = {};
 let prevPos = {};
 
-// ================= START =================
+// START
 function start(){
 
     myName = document.getElementById("name").value;
@@ -103,13 +99,12 @@ function start(){
     if(sendInterval) clearInterval(sendInterval);
     if(loadInterval) clearInterval(loadInterval);
 
-    sendInterval = setInterval(sendData, 6000);
+    sendInterval = setInterval(sendData, 8000);
     loadInterval = setInterval(loadData, 5000);
 }
 
-// ================= STOP =================
+// STOP
 function stopTracking(){
-
     tracking = false;
 
     if(watchId !== null){
@@ -117,26 +112,20 @@ function stopTracking(){
         watchId = null;
     }
 
-    if(sendInterval) clearInterval(sendInterval);
-    if(loadInterval) clearInterval(loadInterval);
+    clearInterval(sendInterval);
+    clearInterval(loadInterval);
 
     alert("⛔ 위치 전송 중지됨");
 }
 
-// ================= MY LOCATION =================
+// MY LOCATION
 function goMyLocation(){
-
-    if(!lastPos){
-        alert("현재 위치 없음");
-        return;
-    }
-
-    map.setView([lastPos.lat, lastPos.lng], 17, { animate:true });
+    if(!lastPos) return alert("현재 위치 없음");
+    map.setView([lastPos.lat, lastPos.lng], 17);
 }
 
-// ================= BEHAVIOR =================
+// BEHAVIOR
 function detectBehavior(pos){
-
     const speed = pos.coords.speed || 0;
 
     if(speed < 0.2) return "immobile";
@@ -145,49 +134,44 @@ function detectBehavior(pos){
     return "normal";
 }
 
-// ================= SEND =================
+// ===================== SEND (핵심 수정) =====================
 function sendData(){
 
     if(!lastPos || !tracking) return;
 
-    fetch(API_URL,{
-        method:"POST",
-        headers:{
-            "Content-Type":"application/json"
-        },
-        body:JSON.stringify(lastPos)
+    fetch(API_URL, {
+        method: "POST",
+        body: new URLSearchParams({
+            name: lastPos.name,
+            lat: lastPos.lat,
+            lng: lastPos.lng,
+            status: lastPos.status,
+            behavior: lastPos.behavior
+        })
     })
-    .then(r=>r.json())
-    .then(data=>{
-        console.log("SERVER:", data);
-    })
-    .catch(err=>{
-        console.error("POST ERROR:", err);
-    });
-
+    .catch(err => console.log("SEND FAIL:", err));
 }
 
-// ================= LOAD =================
+// LOAD
 function loadData(){
 
     fetch(API_URL)
-    .then(res=>res.json())
-    .then(data=>{
+    .then(res => res.json())
+    .then(data => {
 
         const now = Date.now();
 
-        data.forEach(p=>{
+        data.forEach(p => {
 
             lastSeen[p.name] = now;
 
             updateDirection(p);
 
             if(!markers[p.name]){
-
                 markers[p.name] = L.marker([p.lat,p.lng],{
                     icon: L.divIcon({
                         className:"",
-                        html:`<div style="color:#00ff9d;text-align:center;font-size:12px">${p.name}</div>`
+                        html:`<div style="color:#00ff9d;font-size:12px">${p.name}</div>`
                     })
                 }).addTo(map);
             }
@@ -199,24 +183,17 @@ function loadData(){
     });
 }
 
-// ================= OFFLINE =================
+// OFFLINE CHECK
 function checkOffline(){
-
     const now = Date.now();
 
     Object.keys(markers).forEach(n=>{
-
         const diff = (now - lastSeen[n]) / 1000;
-
-        if(diff > 30){
-            markers[n].setOpacity(0.3);
-        } else {
-            markers[n].setOpacity(1);
-        }
+        markers[n].setOpacity(diff > 30 ? 0.3 : 1);
     });
 }
 
-// ================= DIRECTION =================
+// DIRECTION
 function updateDirection(p){
 
     if(prevPos[p.name] && markers[p.name]){
@@ -230,7 +207,6 @@ function updateDirection(p){
 
         markers[p.name].setIcon(
             L.divIcon({
-                className:"",
                 html:`
                     <div style="text-align:center;color:#00ff9d;">
                         <div style="transform:rotate(${angle}deg);font-size:16px;">➡️</div>
@@ -244,7 +220,7 @@ function updateDirection(p){
     prevPos[p.name] = {lat:p.lat,lng:p.lng};
 }
 
-// ================= HEADING =================
+// HEADING
 function getHeading(lat1,lon1,lat2,lon2){
 
     const toRad=x=>x*Math.PI/180;
@@ -259,25 +235,22 @@ function getHeading(lat1,lon1,lat2,lon2){
     return (toDeg(Math.atan2(y,x))+360)%360;
 }
 
-// ================= SOS =================
+// SOS
 function sendSOS(){
 
     if(!lastPos) return;
 
     lastPos.status = "SOS";
 
-    fetch(API_URL,{
-        method:"POST",
-        headers:{
-            "Content-Type":"application/json"
-        },
-        body:JSON.stringify(lastPos)
+    fetch(API_URL, {
+        method: "POST",
+        body: new URLSearchParams(lastPos)
     });
 
     L.circle([lastPos.lat,lastPos.lng],{
         radius:500,
         color:"red",
-        fillOpacity:0.1
+        fillOpacity:0.2
     }).addTo(map);
 }
 
