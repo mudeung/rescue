@@ -1,16 +1,78 @@
+const SHEET_NAME="data";
+
+function doGet(e){
+
+  const sheet=SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+
+  // ID 중복 체크
+  if(e.parameter.checkId){
+
+    const id=e.parameter.checkId;
+    const data=sheet.getDataRange().getValues();
+
+    for(let i=1;i<data.length;i++){
+      if(data[i][1]===id){
+        return json({exists:true});
+      }
+    }
+
+    return json({exists:false});
+  }
+
+  // 전체 데이터
+  const rows=sheet.getDataRange().getValues();
+  let result=[];
+
+  for(let i=1;i<rows.length;i++){
+    result.push({
+      time:rows[i][0],
+      name:rows[i][1],
+      lat:rows[i][2],
+      lng:rows[i][3],
+      status:rows[i][4],
+      behavior:rows[i][5]
+    });
+  }
+
+  return json(result);
+}
+
+function doPost(e){
+
+  const sheet=SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+
+  const data=JSON.parse(e.postData.contents);
+
+  sheet.appendRow([
+    new Date(),
+    data.name,
+    data.lat,
+    data.lng,
+    data.status,
+    data.behavior
+  ]);
+
+  return ContentService.createTextOutput("ok");
+}
+
+function json(obj){
+  return ContentService
+    .createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🛰 MUDEUNGSAN RESCUE AI MAP v8 (Leaflet)</title>
+<title>RESCUE AI MAP v9</title>
 
-<!-- Leaflet -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <style>
-body {
+body{
     margin:0;
     background:#050b18;
     color:#00ff9d;
@@ -18,8 +80,7 @@ body {
     overflow:hidden;
 }
 
-/* HEADER */
-header {
+header{
     background:#071a2f;
     padding:10px;
     text-align:center;
@@ -27,66 +88,59 @@ header {
     font-size:14px;
 }
 
-/* LAYOUT */
-#container {
+#container{
     display:flex;
     height:calc(100vh - 50px);
 }
 
-/* PANEL */
-#panel {
+#panel{
     width:280px;
-    min-width:220px;
     background:#07101f;
     padding:10px;
     display:flex;
     flex-direction:column;
     gap:6px;
-    overflow-y:auto;
 }
 
-/* MAP */
-#map {
+#map{
     flex:1;
 }
 
-/* INPUT */
-input, button, select {
+input,button,select{
     padding:10px;
     border:1px solid #00ff9d;
     background:#001a14;
     color:#00ff9d;
     font-size:13px;
-    cursor:pointer;
 }
 
-/* MOBILE */
-@media (max-width:768px){
-    #container{flex-direction:column;}
-    #panel{width:100%; flex-direction:row; flex-wrap:wrap;}
-    #map{height:60vh;}
+button:disabled{
+    opacity:0.5;
+    cursor:not-allowed;
 }
 </style>
 </head>
 
 <body>
 
-<header>🛰 MUDEUNGSAN RESCUE AI SEARCH MAP</header>
+<header>🛰 RESCUE AI MAP v9 (ID LOCK + SHEET TRACKING)</header>
 
 <div id="container">
 
 <div id="panel">
-    <input id="name" placeholder="UNIT ID">
 
-    <button onclick="start()">START</button>
-    <button onclick="goMyLocation()">📍 MY LOCATION</button>
-    <button onclick="stopTracking()">⛔ STOP</button>
-    <button onclick="sendSOS()">🚨 SOS</button>
-    <button onclick="loadAllRecords()">📦 전체 기록</button>
+<input id="name" placeholder="UNIT ID">
 
-    <select id="nameFilter" onchange="filterByName()">
-        <option value="ALL">👥 전체 보기</option>
-    </select>
+<button id="startBtn" onclick="start()" disabled>START</button>
+<button onclick="goMyLocation()">📍 MY LOCATION</button>
+<button onclick="stopTracking()">⛔ STOP</button>
+<button onclick="sendSOS()">🚨 SOS</button>
+<button onclick="loadAllRecords()">📦 전체 기록</button>
+
+<select id="nameFilter" onchange="filterByName()">
+    <option value="ALL">👥 전체 보기</option>
+</select>
+
 </div>
 
 <div id="map"></div>
@@ -98,32 +152,58 @@ input, button, select {
 // ================= API =================
 const API_URL = "https://script.google.com/macros/s/AKfycbyiPxj65S0kt91fVwVKNPqbaIJNAzuRMKcR3X8k84OI6HgIZckqChCRqt9iDpCbppf0FA/exec";
 
-// ================= MAP INIT (LEAFLET) =================
+// ================= MAP =================
 const map = L.map('map').setView([35.1239, 126.9883], 13);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
+    attribution:'&copy; OpenStreetMap'
 }).addTo(map);
 
 // ================= STATE =================
-let myName = "";
-let lastPos = null;
+let myName="";
+let lastPos=null;
+let watchId=null;
+let intervalSend=null;
+let intervalLoad=null;
 
-let watchId = null;
-let intervalSend = null;
-let intervalLoad = null;
+let allData=[];
+let markers={};
+let polyline={};
+let paths={};
 
-let allData = [];
+// ================= INPUT LOCK =================
+const nameInput=document.getElementById("name");
+const startBtn=document.getElementById("startBtn");
 
-let markers = {};
-let polyline = {};
-let paths = {};
+nameInput.addEventListener("input",()=>{
+    startBtn.disabled = nameInput.value.trim().length === 0;
+});
+
+// ================= ID CHECK =================
+async function checkDuplicateID(id){
+
+    const res = await fetch(API_URL + "?checkId=" + id);
+    const data = await res.json();
+
+    return data.exists;
+}
 
 // ================= START =================
-function start(){
+async function start(){
 
-    myName = document.getElementById("name").value;
+    myName = nameInput.value.trim();
+
     if(!myName) return alert("UNIT ID required");
+
+    const exists = await checkDuplicateID(myName);
+
+    if(exists){
+        alert("이미 사용 중인 UNIT ID입니다");
+        return;
+    }
+
+    nameInput.disabled = true;
+    startBtn.disabled = true;
 
     watchId = navigator.geolocation.watchPosition(pos=>{
 
@@ -145,97 +225,84 @@ function start(){
 
 // ================= STOP =================
 function stopTracking(){
-
     if(watchId) navigator.geolocation.clearWatch(watchId);
-
     clearInterval(intervalSend);
     clearInterval(intervalLoad);
-
-    alert("TRACKING STOPPED");
+    alert("STOPPED");
 }
 
 // ================= MY LOCATION =================
 function goMyLocation(){
-
-    if(!lastPos) return alert("No GPS data");
-
-    map.setView([lastPos.lat, lastPos.lng], 16);
+    if(!lastPos) return alert("No GPS");
+    map.setView([lastPos.lat,lastPos.lng],16);
 }
 
 // ================= SEND =================
 function sendData(){
-
     if(!lastPos) return;
 
     fetch(API_URL,{
         method:"POST",
-        body: JSON.stringify(lastPos)
+        body:JSON.stringify(lastPos)
     });
 }
 
 // ================= LOAD =================
 function loadData(){
-
     fetch(API_URL)
     .then(res=>res.json())
     .then(data=>{
-        allData = data;
+        allData=data;
         updateNameFilter(data);
         renderMap(data);
     });
 }
 
-// ================= FULL LOAD =================
-function loadAllRecords(){
-    loadData();
-}
-
 // ================= FILTER =================
 function updateNameFilter(data){
 
-    const select = document.getElementById("nameFilter");
-    const names = [...new Set(data.map(p=>p.name))];
+    const select=document.getElementById("nameFilter");
+    const names=[...new Set(data.map(p=>p.name))];
 
-    select.innerHTML = `<option value="ALL">👥 전체 보기</option>`;
+    select.innerHTML=`<option value="ALL">👥 전체 보기</option>`;
 
     names.forEach(n=>{
-        const opt = document.createElement("option");
-        opt.value = n;
-        opt.textContent = "📍 " + n;
+        let opt=document.createElement("option");
+        opt.value=n;
+        opt.textContent="📍 "+n;
         select.appendChild(opt);
     });
 }
 
 function filterByName(){
 
-    const value = document.getElementById("nameFilter").value;
+    const v=document.getElementById("nameFilter").value;
 
-    if(value === "ALL") renderMap(allData);
-    else renderMap(allData.filter(p=>p.name === value));
+    if(v==="ALL") renderMap(allData);
+    else renderMap(allData.filter(p=>p.name===v));
 }
 
-// ================= MAP RENDER =================
+// ================= MAP =================
 function renderMap(data){
 
-    Object.values(markers).forEach(m => map.removeLayer(m));
-    markers = {};
+    Object.values(markers).forEach(m=>map.removeLayer(m));
+    Object.values(polyline).forEach(p=>map.removeLayer(p));
 
-    Object.values(polyline).forEach(p => map.removeLayer(p));
-    polyline = {};
-
-    paths = {};
+    markers={};
+    polyline={};
+    paths={};
 
     data.forEach(p=>{
 
-        const key = p.name;
-        const pos = [p.lat, p.lng];
+        const key=p.name;
+        const pos=[p.lat,p.lng];
 
-        if(!paths[key]) paths[key] = [];
+        if(!paths[key]) paths[key]=[];
         paths[key].push(pos);
 
         if(!markers[key]){
-            markers[key] = L.marker(pos).addTo(map);
-        } else {
+            markers[key]=L.marker(pos).addTo(map);
+        }else{
             markers[key].setLatLng(pos);
         }
 
@@ -246,16 +313,14 @@ function renderMap(data){
 // ================= PATH =================
 function drawPath(key){
 
-    if(paths[key].length < 2) return;
+    if(paths[key].length<2) return;
 
-    if(polyline[key]){
-        map.removeLayer(polyline[key]);
-    }
+    if(polyline[key]) map.removeLayer(polyline[key]);
 
-    polyline[key] = L.polyline(paths[key], {
-        color: "#00ff9d",
-        weight: 3,
-        opacity: 0.8
+    polyline[key]=L.polyline(paths[key],{
+        color:"#00ff9d",
+        weight:3,
+        opacity:0.8
     }).addTo(map);
 }
 
@@ -264,11 +329,11 @@ function sendSOS(){
 
     if(!lastPos) return;
 
-    lastPos.status = "SOS";
+    lastPos.status="SOS";
 
     fetch(API_URL,{
         method:"POST",
-        body: JSON.stringify(lastPos)
+        body:JSON.stringify(lastPos)
     });
 
     alert("🚨 SOS SENT");
@@ -277,11 +342,11 @@ function sendSOS(){
 // ================= BEHAVIOR =================
 function detectBehavior(pos){
 
-    const speed = pos.coords.speed || 0;
+    const speed=pos.coords.speed||0;
 
-    if(speed < 0.2) return "immobile";
-    if(speed < 1) return "injured";
-    if(speed < 3) return "confused";
+    if(speed<0.2) return "immobile";
+    if(speed<1) return "injured";
+    if(speed<3) return "confused";
     return "normal";
 }
 
