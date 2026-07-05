@@ -57,7 +57,6 @@ input, button {
 
 const API_URL = "https://script.google.com/macros/s/AKfycbyiPxj65S0kt91fVwVKNPqbaIJNAzuRMKcR3X8k84OI6HgIZckqChCRqt9iDpCbppf0FA/exec";
 
-// 📍 무등산 기준
 const BASE = [35.1239, 126.9883];
 
 // ================= MAP =================
@@ -70,6 +69,9 @@ let myName = "";
 let lastPos = null;
 let watchId = null;
 let tracking = false;
+
+let sendInterval = null;
+let loadInterval = null;
 
 let markers = {};
 let lastSeen = {};
@@ -97,8 +99,11 @@ function start(){
         enableHighAccuracy:true
     });
 
-    setInterval(sendData, 6000);
-    setInterval(loadData, 5000);
+    if(sendInterval) clearInterval(sendInterval);
+    if(loadInterval) clearInterval(loadInterval);
+
+    sendInterval = setInterval(sendData, 6000);
+    loadInterval = setInterval(loadData, 5000);
 }
 
 // ================= STOP =================
@@ -111,6 +116,9 @@ function stopTracking(){
         watchId = null;
     }
 
+    if(sendInterval) clearInterval(sendInterval);
+    if(loadInterval) clearInterval(loadInterval);
+
     alert("⛔ 위치 전송 중지됨");
 }
 
@@ -122,9 +130,7 @@ function goMyLocation(){
         return;
     }
 
-    map.setView([lastPos.lat, lastPos.lng], 17, {
-        animate:true
-    });
+    map.setView([lastPos.lat, lastPos.lng], 17, { animate:true });
 }
 
 // ================= BEHAVIOR =================
@@ -167,18 +173,17 @@ function loadData(){
 
             updateDirection(p);
 
-            if(markers[p.name]){
-
-                markers[p.name].setLatLng([p.lat,p.lng]);
-
-            } else {
+            if(!markers[p.name]){
 
                 markers[p.name] = L.marker([p.lat,p.lng],{
                     icon: L.divIcon({
-                        html:`<div style="color:#00ff9d;text-align:center">${p.name}</div>`
+                        className:"",
+                        html:`<div style="color:#00ff9d;text-align:center;font-size:12px">${p.name}</div>`
                     })
                 }).addTo(map);
             }
+
+            markers[p.name].setLatLng([p.lat,p.lng]);
         });
 
         checkOffline();
@@ -192,10 +197,12 @@ function checkOffline(){
 
     Object.keys(markers).forEach(n=>{
 
-        const diff = (now - lastSeen[n])/1000;
+        const diff = (now - lastSeen[n]) / 1000;
 
         if(diff > 30){
             markers[n].setOpacity(0.3);
+        } else {
+            markers[n].setOpacity(1);
         }
     });
 }
@@ -212,14 +219,17 @@ function updateDirection(p){
             p.lng
         );
 
-        markers[p.name].setIcon(L.divIcon({
-            html:`
-                <div style="text-align:center;color:#00ff9d;">
-                    <div style="transform:rotate(${angle}deg);font-size:16px;">➡️</div>
-                    <div style="font-size:11px;">${p.name}</div>
-                </div>
-            `
-        }));
+        markers[p.name].setIcon(
+            L.divIcon({
+                className:"",
+                html:`
+                    <div style="text-align:center;color:#00ff9d;">
+                        <div style="transform:rotate(${angle}deg);font-size:16px;">➡️</div>
+                        <div style="font-size:11px;">${p.name}</div>
+                    </div>
+                `
+            })
+        );
     }
 
     prevPos[p.name] = {lat:p.lat,lng:p.lng};
@@ -265,41 +275,4 @@ function sendSOS(){
 </script>
 
 </body>
-</html>function doPost(e) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("log");
-
-  const data = JSON.parse(e.postData.contents);
-
-  sheet.appendRow([
-    new Date(),
-    data.name,
-    data.lat,
-    data.lng,
-    data.status || "normal",
-    data.behavior || "normal"
-  ]);
-
-  return ContentService.createTextOutput("ok");
-}
-
-function doGet() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("log");
-  const rows = sheet.getDataRange().getValues();
-
-  let result = [];
-
-  for (let i = 1; i < rows.length; i++) {
-    result.push({
-      time: rows[i][0],
-      name: rows[i][1],
-      lat: rows[i][2],
-      lng: rows[i][3],
-      status: rows[i][4],
-      behavior: rows[i][5]
-    });
-  }
-
-  return ContentService
-    .createTextOutput(JSON.stringify(result))
-    .setMimeType(ContentService.MimeType.JSON);
-}
+</html>
