@@ -43,6 +43,8 @@ button { cursor:pointer; }
 <input id="name" placeholder="UNIT ID">
 <button onclick="start()">START</button>
 <button onclick="sendSOS()">🚨 SOS</button>
+<button onclick="stopTracking()">⛔ STOP</button>
+<button onclick="goMyLocation()">📍 MY LOCATION</button>
 </div>
 
 <div id="map"></div>
@@ -59,7 +61,6 @@ const BASE = [35.1239, 126.9883];
 // ================= MAP =================
 const map = L.map('map').setView(BASE, 14);
 
-// 🧭 실제 등고선 지도 (핵심)
 L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenTopoMap contributors'
 }).addTo(map);
@@ -72,8 +73,12 @@ let markers = {};
 let lastSeen = {};
 let prevPos = {};
 
+// intervals + watcher
+let watchId = null;
+let intervalSend = null;
+let intervalLoad = null;
+
 let riskLayer = L.layerGroup().addTo(map);
-let heatLayer = L.layerGroup().addTo(map);
 
 // ================= START =================
 function start(){
@@ -81,7 +86,7 @@ function start(){
     myName = document.getElementById("name").value;
     if(!myName) return alert("UNIT ID required");
 
-    navigator.geolocation.watchPosition(pos=>{
+    watchId = navigator.geolocation.watchPosition(pos=>{
 
         lastPos = {
             name: myName,
@@ -96,8 +101,32 @@ function start(){
         enableHighAccuracy:true
     });
 
-    setInterval(sendData, 6000);
-    setInterval(loadData, 5000);
+    intervalSend = setInterval(sendData, 6000);
+    intervalLoad = setInterval(loadData, 5000);
+}
+
+// ================= STOP =================
+function stopTracking(){
+
+    if(watchId !== null){
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+    }
+
+    if(intervalSend) clearInterval(intervalSend);
+    if(intervalLoad) clearInterval(intervalLoad);
+
+    alert("Tracking stopped");
+}
+
+// ================= MY LOCATION =================
+function goMyLocation(){
+
+    if(!lastPos) return alert("No GPS data yet");
+
+    map.setView([lastPos.lat, lastPos.lng], 17, {
+        animate:true
+    });
 }
 
 // ================= BEHAVIOR =================
@@ -129,9 +158,7 @@ function loadData(){
     .then(data=>{
 
         const now = Date.now();
-
         riskLayer.clearLayers();
-        heatLayer.clearLayers();
 
         data.forEach(p=>{
 
@@ -154,11 +181,8 @@ function loadData(){
                 "yellow";
 
             if(markers[p.name]){
-
                 markers[p.name].setLatLng([p.lat,p.lng]);
-
             } else {
-
                 markers[p.name] = L.marker([p.lat,p.lng],{
                     icon: L.divIcon({html:getIcon(score)})
                 }).addTo(map);
@@ -171,21 +195,16 @@ function loadData(){
     });
 }
 
-// ================= TERRAIN MODEL (SIMPLIFIED DEM) =================
-
-// 🔥 slope estimation (fake DEM approximation)
+// ================= TERRAIN =================
 function estimateSlope(lat,lng){
-
     const noise = Math.sin(lat*50)*Math.cos(lng*50);
-    return Math.abs(noise)*40; // 0~40deg
+    return Math.abs(noise)*40;
 }
 
-// 🌲 valley detection
 function isNearValley(lat,lng){
     return (Math.cos(lat*10) > 0.7);
 }
 
-// 📏 distance from base (서석대 기준)
 function distanceFromBase(lat,lng){
 
     const R = 6371e3;
@@ -203,7 +222,7 @@ function distanceFromBase(lat,lng){
     return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
-// ================= BAYESIAN =================
+// ================= PROBABILITY =================
 function survivalProbability(p){
 
     const timeFactor = Math.exp(-p.hours/24);
@@ -271,8 +290,8 @@ function updateDirection(p){
 
         markers[p.name].setIcon(
             L.divIcon({
-                className: "unit-icon",
-                html: `
+                className:"unit-icon",
+                html:`
                     <div style="text-align:center;color:#00ff9d;">
                         <div style="transform:rotate(${angle}deg);font-size:16px;">➡️</div>
                         <div style="font-size:11px;font-weight:bold;">${p.name}</div>
