@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MUDEUNGSAN RESCUE AI MAP v8</title>
+<title>MUDEUNGSAN RESCUE AI MAP v8+</title>
 
 <style>
 body {
@@ -14,7 +14,6 @@ body {
     overflow:hidden;
 }
 
-/* ================= HEADER ================= */
 header {
     background:#071a2f;
     padding:10px;
@@ -23,13 +22,11 @@ header {
     font-size:14px;
 }
 
-/* ================= MAIN LAYOUT ================= */
 #container {
     display:flex;
     height:calc(100vh - 50px);
 }
 
-/* ================= PANEL ================= */
 #panel {
     width:280px;
     min-width:220px;
@@ -41,12 +38,10 @@ header {
     overflow-y:auto;
 }
 
-/* ================= MAP ================= */
 #map {
     flex:1;
 }
 
-/* ================= INPUT STYLE ================= */
 input, button, select {
     padding:10px;
     border:1px solid #00ff9d;
@@ -55,49 +50,12 @@ input, button, select {
     font-size:13px;
 }
 
-button, select {
-    cursor:pointer;
-}
+button, select { cursor:pointer; }
 
-/* ================= MOBILE RESPONSIVE ================= */
-@media (max-width: 768px) {
-
-    #container {
-        flex-direction:column;
-    }
-
-    #panel {
-        width:100%;
-        flex-direction:row;
-        flex-wrap:wrap;
-        gap:5px;
-        padding:8px;
-        max-height:40vh;
-    }
-
-    #map {
-        height:60vh;
-    }
-
-    input, button, select {
-        flex:1;
-        min-width:120px;
-        font-size:12px;
-        padding:8px;
-    }
-}
-
-/* ================= SMALL PHONE ================= */
-@media (max-width: 420px) {
-
-    #panel {
-        max-height:45vh;
-    }
-
-    input, button, select {
-        min-width:100px;
-        font-size:11px;
-    }
+@media (max-width:768px){
+    #container { flex-direction:column; }
+    #panel { width:100%; flex-wrap:wrap; }
+    #map { height:60vh; }
 }
 </style>
 
@@ -106,7 +64,7 @@ button, select {
 
 <body>
 
-<header>🛰 MUDEUNGSAN RESCUE AI SEARCH MAP</header>
+<header>🛰 MUDEUNGSAN RESCUE AI MAP v8+</header>
 
 <div id="container">
 
@@ -151,7 +109,9 @@ let intervalLoad = null;
 
 let allData = [];
 
+// 🔥 LIVE + HISTORY 분리
 let markers = {};
+let historyMarkers = {};
 let polyline = {};
 let paths = {};
 
@@ -190,7 +150,7 @@ function stopTracking(){
     alert("TRACKING STOPPED");
 }
 
-// ================= MAP CENTER =================
+// ================= CENTER =================
 function goMyLocation(){
 
     if(!lastPos) return alert("No GPS data");
@@ -221,9 +181,9 @@ function loadData(){
     });
 }
 
-// ================= FULL LOAD =================
+// ================= FULL HISTORY =================
 function loadAllRecords(){
-    loadData();
+    loadData(); // 그대로 사용
 }
 
 // ================= FILTER =================
@@ -253,8 +213,13 @@ function filterByName(){
 // ================= MAP RENDER =================
 function renderMap(data){
 
+    // LIVE 초기화
     Object.values(markers).forEach(m=>m.setMap(null));
     markers = {};
+
+    // HISTORY 초기화
+    Object.values(historyMarkers).forEach(m=>m.setMap(null));
+    historyMarkers = {};
 
     Object.values(polyline).forEach(p=>p.setMap(null));
     polyline = {};
@@ -266,9 +231,11 @@ function renderMap(data){
         const key = p.name;
         const pos = new kakao.maps.LatLng(p.lat, p.lng);
 
+        // ================= PATH =================
         if(!paths[key]) paths[key] = [];
         paths[key].push(pos);
 
+        // ================= LIVE MARKER =================
         if(!markers[key]){
             markers[key] = new kakao.maps.Marker({
                 position: pos,
@@ -277,6 +244,15 @@ function renderMap(data){
         } else {
             markers[key].setPosition(pos);
         }
+
+        // ================= HISTORY MARKERS =================
+
+        const histKey = key + "_" + paths[key].length;
+
+        historyMarkers[histKey] = new kakao.maps.Marker({
+            position: pos,
+            map: map
+        });
 
         drawPath(key);
     });
