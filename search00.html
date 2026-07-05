@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MUDEUNGSAN RESCUE AI MAP v7</title>
+
+<style>
+body { margin:0; background:#050b18; color:#00ff9d; font-family:monospace; }
+
+header {
+    background:#071a2f;
+    padding:10px;
+    text-align:center;
+    font-weight:bold;
+}
+
+#map { height: calc(100vh - 120px); }
+
+#panel {
+    display:flex;
+    gap:6px;
+    padding:8px;
+    background:#07101f;
+    flex-wrap:wrap;
+}
+
+input, button {
+    padding:8px;
+    border:1px solid #00ff9d;
+    background:#001a14;
+    color:#00ff9d;
+}
+
+button { cursor:pointer; }
+</style>
+
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
+
+</head>
+
+<body>
+
+<header>🛰 MUDEUNGSAN TERRAIN AI SEARCH MAP</header>
+
+<div id="panel">
+<input id="name" placeholder="UNIT ID">
+<button onclick="start()">START</button>
+<button onclick="goMyLocation()">📍 MY LOCATION</button>
+<button onclick="stopTracking()">⛔ STOP</button>
+<button onclick="sendSOS()">🚨 SOS</button>
+<button onclick="showMyWarnings()">⚠️ WARNINGS</button>
+</div>
+
+<div id="map"></div>
+
+<script>
+
+// ================= API =================
+const API_URL = "https://script.google.com/macros/s/AKfycbyiPxj65S0kt91fVwVKNPqbaIJNAzuRMKcR3X8k84OI6HgIZckqChCRqt9iDpCbppf0FA/exec";
+
+// ================= MAP =================
+const BASE = new kakao.maps.LatLng(35.1239, 126.9883);
+
+const map = new kakao.maps.Map(document.getElementById('map'), {
+    center: BASE,
+    level: 4
+});
+
+// ================= STATE =================
+let myName = "";
+let lastPos = null;
+
+let watchId = null;
+let intervalSend = null;
+let intervalLoad = null;
+
+let markers = {};
+let paths = {};
+let polyline = {};
+let lastPosition = {};
+let lastMoveTime = {};
+
+let warnings = {};   // ⭐ 이름별 경고 저장
+
+// ================= START =================
+function start(){
+
+    myName = document.getElementById("name").value;
+    if(!myName) return alert("UNIT ID required");
+
+    watchId = navigator.geolocation.watchPosition(pos=>{
+
+        const newPos = {
+            name: myName,
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            behavior: detectBehavior(pos),
+            status: "normal"
+        };
+
+        lastPos = newPos;
+
+    }, err=>alert("GPS ERROR"), {
+        enableHighAccuracy:true
+    });
+
+    intervalSend = setInterval(sendData, 5000);
+    intervalLoad = setInterval(loadData, 5000);
+}
+
+// ================= STOP =================
+function stopTracking(){
+
+    if(watchId) navigator.geolocation.clearWatch(watchId);
+
+    clearInterval(intervalSend);
+    clearInterval(intervalLoad);
+
+    alert("TRACKING STOPPED");
+}
+
+// ================= MY LOCATION =================
+function goMyLocation(){
+
+    if(!lastPos) return alert("No GPS data yet");
+
+    map.setCenter(new kakao.maps.LatLng(lastPos.lat, lastPos.lng));
+}
+
+// ================= SEND =================
+function sendData(){
+
+    if(!lastPos) return;
+
+    fetch(API_URL,{
+        method:"POST",
+        body: JSON.stringify(lastPos)
+    });
+}
+
+// ================= LOAD =================
+function loadData(){
+
+    fetch(API_URL)
+    .then(res=>res.json())
+    .then(data=>{
+
+        const now = Date.now();
+
+        data.forEach(p=>{
+
+            const key = p.name;
+
+            const currentPos = new kakao.maps.LatLng(p.lat, p.lng);
+
+            // ================= PATH =================
+            if(!paths[key]) paths[key] = [];
+            paths[key].push(currentPos);
+            if(paths[key].length > 50) paths[key].shift();
+
+            // ================= STOP DETECT =================
+            if(lastPosition[key]){
+
+                const dist = getDistance(
+                    lastPosition[key].lat,
+                    lastPosition[key].lng,
+                    p.lat,
+                    p.lng
+                );
+
+                if(dist < 3){
+                    if(!lastMoveTime[key]){
+                        lastMoveTime[key] = now;
+                    }
+                } else {
+                    lastMoveTime[key] = now;
+                }
+
+                // ⛔ STOP WARNING
+                if(now - lastMoveTime[key] > 30000){
+
+                    L_RED_MARK(p.lat, p.lng);
+
+                    if(!warnings[key]) warnings[key] = [];
+
+                    warnings[key].push({
+                        type:"STOP_WARNING",
+                        lat:p.lat,
+                        lng:p.lng,
+                        time:now
+                    });
+                }
+            }
+
+            lastPosition[key] = p;
+
+            // ================= MARKER =================
+            if(markers[key]){
+                markers[key].setPosition(currentPos);
+            } else {
+                markers[key] = new kakao.maps.Marker({
+                    position: currentPos,
+                    map: map
+                });
+            }
+
+            drawPath(key);
+        });
+    });
+}
+
+// ================= PATH =================
+function drawPath(key){
+
+    if(!paths[key] || paths[key].length < 2) return;
+
+    if(polyline[key]){
+        polyline[key].setMap(null);
+    }
+
+    polyline[key] = new kakao.maps.Polyline({
+        path: paths[key],
+        strokeWeight: 3,
+        strokeColor: "#00ff9d",
+        strokeOpacity: 0.8
+    });
+
+    polyline[key].setMap(map);
+}
+
+// ================= RED MARK =================
+function L_RED_MARK(lat,lng){
+
+    new kakao.maps.Circle({
+        center: new kakao.maps.LatLng(lat, lng),
+        radius: 8,
+        strokeWeight: 0,
+        fillColor: "#ff0000",
+        fillOpacity: 0.9,
+        map: map
+    });
+}
+
+// ================= DISTANCE =================
+function getDistance(lat1,lon1,lat2,lon2){
+
+    const R = 6371e3;
+
+    const φ1 = lat1 * Math.PI/180;
+    const φ2 = lat2 * Math.PI/180;
+
+    const dφ = (lat2-lat1)*Math.PI/180;
+    const dλ = (lon2-lon1)*Math.PI/180;
+
+    const a = Math.sin(dφ/2)**2 +
+              Math.cos(φ1)*Math.cos(φ2) *
+              Math.sin(dλ/2)**2;
+
+    return R * 2 * Math.atan2(Math.sqrt(1-a), Math.sqrt(1-a));
+}
+
+// ================= SOS =================
+function sendSOS(){
+
+    if(!lastPos) return;
+
+    lastPos.status = "SOS";
+
+    if(!warnings[myName]) warnings[myName] = [];
+
+    warnings[myName].push({
+        type:"SOS",
+        lat:lastPos.lat,
+        lng:lastPos.lng,
+        time:Date.now()
+    });
+
+    fetch(API_URL,{
+        method:"POST",
+        body: JSON.stringify(lastPos)
+    });
+
+    alert("🚨 SOS SENT");
+}
+
+// ================= BEHAVIOR =================
+function detectBehavior(pos){
+
+    const speed = pos.coords.speed || 0;
+
+    if(speed < 0.2) return "immobile";
+    if(speed < 1) return "injured";
+    if(speed < 3) return "confused";
+    return "normal";
+}
+
+// ================= WARNINGS VIEW =================
+function showMyWarnings(){
+
+    const list = warnings[myName] || [];
+
+    console.log("WARNINGS:", list);
+
+    alert(`${myName} 경고 수: ${list.length}`);
+}
+
+</script>
+
+</body>
+</html>
