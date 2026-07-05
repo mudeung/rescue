@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RESCUE AI MAP PRO</title>
+<title>🛰 SEARCH AND RESCUE AI MAP</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -49,20 +49,12 @@ input,button{
 }
 
 button:disabled{ opacity:0.5; }
-
-#logBox{
-    font-size:12px;
-    max-height:150px;
-    overflow:auto;
-    background:#000;
-    padding:5px;
-}
 </style>
 </head>
 
 <body>
 
-<header>🛰 RESCUE AI MAP PRO</header>
+<header>🛰 SEARCH AND RESCUE AI MAP</header>
 
 <div id="container">
 
@@ -74,11 +66,7 @@ button:disabled{ opacity:0.5; }
 <button onclick="stopTracking()">⛔ STOP</button>
 <button onclick="sendSOS()">🚨 SOS</button>
 
-<!-- 🔥 추가 -->
-<button onclick="loadAllHistory()">📦 전체 기록 불러오기</button>
-
-<div id="logBox"></div>
-
+<button onclick="loadAllHistory()">📦 전체 기록 (지도)</button>
 </div>
 
 <div id="map"></div>
@@ -87,13 +75,17 @@ button:disabled{ opacity:0.5; }
 
 <script>
 
-const API_URL = "https://script.google.com/macros/s/AKfycbyem5fAs2XGxNy6wrHO3s68CmJyHy7GI31IBKdiz49KtN3sfikYdfmpP07-3dWqna2R/exec
+// ================= API =================
+const API_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
+
+// ================= MAP =================
 const map = L.map('map').setView([35.1239, 126.9883], 13);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
     attribution:'&copy; OpenStreetMap'
 }).addTo(map);
 
+// ================= STATE =================
 let myName="";
 let lastPos=null;
 let watchId=null;
@@ -102,9 +94,13 @@ let intervalLoad=null;
 
 const markers={};
 
+// 🔥 LIVE / HISTORY 분리
+const historyMarkers = L.layerGroup().addTo(map);
+const historyLines = L.layerGroup().addTo(map);
+
+// ================= INPUT =================
 const nameInput=document.getElementById("name");
 const startBtn=document.getElementById("startBtn");
-const logBox=document.getElementById("logBox");
 
 nameInput.addEventListener("input",()=>{
     startBtn.disabled = nameInput.value.trim().length===0;
@@ -128,10 +124,13 @@ function start(){
             status:"normal"
         };
 
+    },{
+        enableHighAccuracy:true,
+        maximumAge:1000
     });
 
     intervalSend=setInterval(sendData,5000);
-    intervalLoad=setInterval(loadData,3000);
+    intervalLoad=setInterval(loadLive,3000);
 }
 
 // ================= SEND =================
@@ -145,38 +144,15 @@ function sendData(){
     });
 }
 
-// ================= LOAD (CURRENT) =================
-function loadData(){
+// ================= LIVE =================
+function loadLive(){
     fetch(API_URL + "?t=" + Date.now())
     .then(r=>r.json())
-    .then(render);
+    .then(renderLive);
 }
 
-// ================= 🚀 전체 기록 =================
-function loadAllHistory(){
-
-    fetch(API_URL + "?history=all&t=" + Date.now())
-    .then(r=>r.json())
-    .then(showHistory);
-}
-
-// ================= HISTORY VIEW =================
-function showHistory(data){
-
-    logBox.innerHTML = "";
-
-    data.forEach(d=>{
-        const div=document.createElement("div");
-        div.textContent =
-            `${d.time} | ${d.name} | ${d.lat},${d.lng} | ${d.status}`;
-        logBox.appendChild(div);
-    });
-
-    alert("📦 전체 기록 로드 완료");
-}
-
-// ================= MAP =================
-function render(data){
+// ================= LIVE RENDER =================
+function renderLive(data){
 
     for(const p of data){
 
@@ -187,6 +163,17 @@ function render(data){
             markers[key]=L.marker(pos).addTo(map);
         }else{
             markers[key].setLatLng(pos);
+        }
+
+        if(p.status==="SOS"){
+            markers[key].setIcon(
+                L.icon({
+                    iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+                    shadowUrl:"https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
+                    iconSize:[25,41],
+                    iconAnchor:[12,41]
+                })
+            );
         }
     }
 }
@@ -217,6 +204,62 @@ function stopTracking(){
     if(watchId) navigator.geolocation.clearWatch(watchId);
     clearInterval(intervalSend);
     clearInterval(intervalLoad);
+}
+
+// ================= 📦 HISTORY =================
+function loadAllHistory(){
+
+    fetch(API_URL + "?history=all&t=" + Date.now())
+    .then(r=>r.json())
+    .then(showHistoryMap);
+}
+
+// ================= HISTORY RENDER =================
+function showHistoryMap(data){
+
+    // 기존 삭제
+    historyMarkers.clearLayers();
+    historyLines.clearLayers();
+
+    const grouped={};
+
+    data.forEach(d=>{
+        if(!grouped[d.name]) grouped[d.name]=[];
+        grouped[d.name].push([d.lat,d.lng]);
+    });
+
+    for(const name in grouped){
+
+        const path = grouped[name];
+
+        // 🔴 시작
+        L.marker(path[0])
+        .bindPopup("🚩 START: " + name)
+        .addTo(historyMarkers);
+
+        // 🏁 끝
+        L.marker(path[path.length-1])
+        .bindPopup("🏁 END: " + name)
+        .addTo(historyMarkers);
+
+        // 📍 중간 점
+        for(let i=1;i<path.length-1;i++){
+            L.circleMarker(path[i],{
+                radius:4,
+                color:"#ffcc00",
+                fillColor:"#ffcc00",
+                fillOpacity:0.8
+            }).addTo(historyMarkers);
+        }
+
+        // 🧭 라인
+        L.polyline(path,{
+            color:"#ffcc00",
+            weight:3
+        }).addTo(historyLines);
+    }
+
+    alert("📦 전체 기록 지도 표시 완료");
 }
 
 </script>
