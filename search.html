@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RESCUE AI MAP v10</title>
+<title>RESCUE AI MAP PRO</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -56,14 +56,13 @@ button:disabled{ opacity:0.5; }
     #container{ flex-direction:column; }
     #panel{ width:100%; flex-direction:row; flex-wrap:wrap; max-height:35vh; }
     #map{ height:65vh; }
-    input,button,select{ flex:1; min-width:120px; }
 }
 </style>
 </head>
 
 <body>
 
-<header>🛰 SEARCH and RESCUE AI MAP</header>
+<header>🛰 SEARCH & RESCUE AI MAP PRO</header>
 
 <div id="container">
 
@@ -74,6 +73,7 @@ button:disabled{ opacity:0.5; }
 <button onclick="goMyLocation()">📍 MY LOCATION</button>
 <button onclick="stopTracking()">⛔ STOP</button>
 <button onclick="sendSOS()">🚨 SOS</button>
+<button onclick="toggleFollow()">🎯 FOLLOW MODE</button>
 
 <select id="nameFilter" onchange="filterByName()">
     <option value="ALL">👥 전체 보기</option>
@@ -81,31 +81,45 @@ button:disabled{ opacity:0.5; }
 </div>
 
 <div id="map"></div>
+
 </div>
 
 <script>
 
+// ================= API =================
 const API_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
 
+// ================= MAP =================
 const map = L.map('map').setView([35.1239, 126.9883], 13);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
     attribution:'&copy; OpenStreetMap'
 }).addTo(map);
 
+// ================= STATE =================
 let myName="";
 let lastPos=null;
 let watchId=null;
 let intervalSend=null;
-let allData=[];
+let intervalLoad=null;
+
+let followMode=false;
+let followTarget="ALL";
 
 const markers={};
-
 const nameInput=document.getElementById("name");
 const startBtn=document.getElementById("startBtn");
 
 nameInput.addEventListener("input",()=>{
     startBtn.disabled = nameInput.value.trim().length===0;
+});
+
+// ================= ICONS =================
+const redIcon = L.icon({
+    iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+    shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
+    iconSize: [25, 41],
+    iconAnchor: [12, 41]
 });
 
 // ================= START =================
@@ -134,12 +148,14 @@ async function start(){
     });
 
     intervalSend=setInterval(sendData,5000);
+    intervalLoad=setInterval(loadData,3000);
 }
 
 // ================= STOP =================
 function stopTracking(){
     if(watchId) navigator.geolocation.clearWatch(watchId);
     clearInterval(intervalSend);
+    clearInterval(intervalLoad);
 }
 
 // ================= SEND =================
@@ -148,38 +164,76 @@ function sendData(){
 
     fetch(API_URL,{
         method:"POST",
-        headers:{
-            "Content-Type":"application/json"
-        },
+        headers:{ "Content-Type":"application/json" },
         body:JSON.stringify(lastPos)
-    }).then(r=>r.text())
-      .then(t=>console.log("SEND:",t))
-      .catch(e=>console.error(e));
+    })
+    .catch(e=>console.error(e));
 }
 
 // ================= LOAD =================
-async function loadData(){
-    const res = await fetch(API_URL);
-    const data = await res.json();
-    allData=data;
-    render(data);
+function loadData(){
+    fetch(API_URL)
+    .then(r=>r.json())
+    .then(render)
+    .catch(e=>console.error(e));
 }
 
-setInterval(loadData,5000);
+// ================= FOLLOW =================
+function toggleFollow(){
+    followMode = !followMode;
+    alert(followMode ? "FOLLOW ON" : "FOLLOW OFF");
+}
 
+// ================= RENDER (OPTIMIZED) =================
 function render(data){
 
-    data.forEach(p=>{
+    for(const p of data){
 
         const key=p.name;
         const pos=[p.lat,p.lng];
 
+        // marker 생성/업데이트
         if(!markers[key]){
             markers[key]=L.marker(pos).addTo(map);
+
+            markers[key].on("click",()=>{
+                followTarget=key;
+                followMode=true;
+            });
+
         }else{
             markers[key].setLatLng(pos);
         }
-    });
+
+        // SOS 처리
+        if(p.status==="SOS"){
+            markers[key].setIcon(redIcon);
+
+            if(!markers[key]._blink){
+                markers[key]._blink=true;
+
+                setInterval(()=>{
+                    const el=markers[key]._icon;
+                    if(el){
+                        el.style.visibility =
+                            el.style.visibility==="hidden"
+                            ? "visible"
+                            : "hidden";
+                    }
+                },500);
+
+                alert("🚨 SOS: " + key);
+
+                const audio=new Audio("https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg");
+                audio.play();
+            }
+        }
+
+        // FOLLOW MODE
+        if(followMode && followTarget===key){
+            map.setView(pos);
+        }
+    }
 }
 
 // ================= SOS =================
@@ -191,22 +245,21 @@ function sendSOS(){
 
     fetch(API_URL,{
         method:"POST",
-        headers:{
-            "Content-Type":"application/json"
-        },
+        headers:{ "Content-Type":"application/json" },
         body:JSON.stringify(lastPos)
     });
 
     alert("🚨 SOS SENT");
 }
 
-// ================= FILTER =================
-function filterByName(){}
-
+// ================= LOCATION =================
 function goMyLocation(){
     if(!lastPos) return;
     map.setView([lastPos.lat,lastPos.lng],16);
 }
+
+// ================= FILTER =================
+function filterByName(){}
 
 </script>
 </body>
