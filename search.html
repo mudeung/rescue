@@ -2,301 +2,362 @@
 <html>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>무등산특수산악구조팀 고/중/저 지대별 현장조사 자료</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MUDEUNGSAN RESCUE AI MAP v7</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 <style>
-*{box-sizing:border-box;-webkit-tap-highlight-color: transparent;}
-body{margin:0;font-family:Arial, sans-serif;background:#0f172a;color:#f1f5f9;overflow:hidden;}
-
-header{
-    background:#1e3a8a;
-    padding:15px;
+body { margin:0; background:#050b18; color:#00ff9d; font-family:monospace; }
+header {
+    background:#071a2f;
+    padding:10px;
     text-align:center;
-    font-size:18px;
     font-weight:bold;
-    letter-spacing:1px;
-    box-shadow:0 3px 10px rgba(0,0,0,0.4);
 }
+#map { height: calc(100vh - 120px); }
 
-#controls{
-    position:absolute;
-    top:70px;
-    left:10px;
-    z-index:1000;
+#panel {
     display:flex;
-    flex-direction:column;
-    align-items:center;
+    gap:6px;
+    padding:8px;
+    background:#07101f;
 }
 
-#controls button{
-    width:190px;
-    height:42px;
-    margin-bottom:8px;
-    border:none;
-    border-radius:8px;
-    background:#1e40af;
-    color:white;
-    font-size:14px;
-    font-weight:bold;
-    cursor:pointer;
+input, button {
+    padding:8px;
+    border:1px solid #00ff9d;
+    background:#001a14;
+    color:#00ff9d;
 }
-
-#map{
-    width:100%;
-    height:calc(100vh - 60px);
-}
+button { cursor:pointer; }
 </style>
 </head>
 
 <body>
 
-<header>무등산특수산악구조팀 고/중/저 지대별 현장조사 자료</header>
+<header>🛰 MUDEUNGSAN TERRAIN AI SEARCH MAP</header>
 
-<div id="controls">
-    <button onclick="toggleZone('high')">🔵 고지대 ON/OFF</button>
-    <button onclick="toggleZone('middle')">🟡 중지대 ON/OFF</button>
-    <button onclick="toggleZone('low')">🟢 저지대 ON/OFF</button>
-    <button onclick="startRectangleMode()">⬜ 지도 사각형 표시</button>
-    <button onclick="deleteLastRectangle()">⬜ 지도 사각형 삭제</button>
-    <button onclick="loadRecords()">📥 기록 불러오기</button>
+<div id="panel">
+<input id="name" placeholder="UNIT ID">
+<button onclick="start()">START</button>
+<button onclick="sendSOS()">🚨 SOS</button>
 </div>
 
 <div id="map"></div>
 
-<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424"></script>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
 
-// ================= 지도 생성 =================
-var map = new kakao.maps.Map(document.getElementById('map'), {
-    center: new kakao.maps.LatLng(35.124019, 126.008190),
-    level: 4
-});
+const API_URL = "https://script.google.com/macros/s/XXXX/exec";
 
-map.setZoomable(true);
-map.setDraggable(true);
+// 📍 무등산 서석대 기준
+const BASE = [35.1239, 126.9883];
 
-// ================= 인포윈도우 공통 스타일 함수 =================
-function createInfoContent(html){
-    return `
-        <div style="
-            padding:10px;
-            font-size:10px;
-            color:#000;
-            max-width:600px;
-            text-align:center;
-            line-height:1.5;
-        ">
-            ${html}
-        </div>
-    `;
+// ================= MAP =================
+const map = L.map('map').setView(BASE, 14);
+
+// 🧭 실제 등고선 지도 (핵심)
+L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenTopoMap contributors'
+}).addTo(map);
+
+// ================= STATE =================
+let myName = "";
+let lastPos = null;
+
+let markers = {};
+let lastSeen = {};
+let prevPos = {};
+
+let riskLayer = L.layerGroup().addTo(map);
+let heatLayer = L.layerGroup().addTo(map);
+
+// ================= START =================
+function start(){
+
+    myName = document.getElementById("name").value;
+    if(!myName) return alert("UNIT ID required");
+
+    navigator.geolocation.watchPosition(pos=>{
+
+        lastPos = {
+            name: myName,
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            status: "normal",
+            behavior: detectBehavior(pos),
+            altitude: pos.coords.altitude || 0
+        };
+
+    }, err=>alert("GPS ERROR"), {
+        enableHighAccuracy:true
+    });
+
+    setInterval(sendData, 6000);
+    setInterval(loadData, 5000);
 }
 
-// ================= 예시 원 데이터 (기존 데이터 그대로 사용 가능) =================
-var circleData = [
-   { lat:35.121000, lng:127.002681, radius:300, color:"#0000FF", name:"고지대원효:서석대", zone:"high" }, 
-   { lat:35.117408, lng:127.002317, radius:300, color:"#0000FF", name:"고지대원효:입석대", zone:"high" }, 
-   { lat:35.116332, lng:126.998781, radius:300, color:"#0000FF", name:"고지대원효:장불재", zone:"high" }, 
-    { lat:35.122537, lng:126.992581, radius:300, color:"#0000FF", name:"고지대원효:중봉", zone:"high" }, 
-    { lat:35.126846, lng:126.993461, radius:300, color:"#0000FF", name:"고지대원효:얼음바위", zone:"high" }, 
-    { lat:35.119166, lng:126.994473, radius:300, color:"#0000FF", name:"고지대원효:용추삼거리", zone:"high" }, 
-    { lat:35.136860, lng:126.981961, radius:300, color:"#FFFF00", name:"중지대원효:늦재삼거리", zone:"middle" },
-    { lat:35.131065, lng:126.977755, radius:300, color:"#FFFF00", name:"중지대원효:토끼등", zone:"middle" },
-    { lat:35.133099, lng:126.985547, radius:300, color:"#FFFF00", name:"중지대원효:동화사터", zone:"middle" },
-    { lat:35.123940, lng:126.982866, radius:300, color:"#FFFF00", name:"중지대원효:백운암터", zone:"middle" },
-    { lat:35.125883, lng:126.978439, radius:300, color:"#FFFF00", name:"중지대원효:봉황대", zone:"middle" },
-    { lat:35.138809, lng:126.986800, radius:300, color:"#FFFF00", name:"중지대원효:물통거리", zone:"middle" },
-    { lat:35.141982, lng:126.983762, radius:300, color:"#FFFF00", name:"중지대원효:늦재삼거리", zone:"middle" },
-    { lat:35.144595, lng:126.988845, radius:300, color:"#FFFF00", name:"중지대원효:원효광장", zone:"middle" },
-    { lat:35.141437, lng:126.995007, radius:300, color:"#FFFF00", name:"중지대원효:무등산장", zone:"middle" },
-    { lat:35.147757, lng:126.985220, radius:300, color:"#FFFF00", name:"중지대원효:원효사후문", zone:"middle" },
-    { lat:35.121645, lng:126.967070, radius:300, color:"#FFFF00", name:"중지대증심:운소봉", zone:"middle" },
-    { lat:35.114570, lng:126.987328, radius:300, color:"#FFFF00", name:"중지대증심:용추폭포삼거리", zone:"middle" },
-    { lat:35.138202, lng:126.977384, radius:300, color:"#FFFF00", name:"중지대증심:바람재", zone:"middle" }, 
-    { lat:35.119082, lng:126.984469, radius:300, color:"#FFFF00", name:"중지대증심:중머리재", zone:"middle" },
-    { lat:35.117489, lng:126.981037, radius:300, color:"#FFFF00", name:"중지대증심:서인봉", zone:"middle" },
-    { lat:35.120585, lng:126.969019, radius:300, color:"#FFFF00", name:"중지대증심:새인봉", zone:"middle" },
-    { lat:35.119564, lng:126.972893, radius:300, color:"#FFFF00", name:"중지대증심:새인봉갈림길", zone:"middle" },
-    { lat:35.111009, lng:126.967922, radius:300, color:"#FFFF00", name:"중지대증심:마집봉", zone:"middle" },
-    { lat:35.107561, lng:126.963588, radius:300, color:"#FFFF00", name:"중지대증심:탑봉", zone:"middle" }, 
-    { lat:35.136684, lng:126.967882, radius:300, color:"#FFFF00", name:"중지대증심:장군봉", zone:"middle" }, 
-    { lat:35.113241, lng:126.975947, radius:300, color:"#FFFF00", name:"중지대증심:선주암갈림길상단", zone:"middle" },
-    { lat:35.116191, lng:126.970680, radius:300, color:"#00AA00", name:"저지대증심:선주암갈림길하단", zone:"low" }, 
-    { lat:35.125583, lng:126.972202, radius:300, color:"#00AA00", name:"저지대증심:당산나무", zone:"low" }, 
-    { lat:35.122200, lng:126.971525, radius:300, color:"#00AA00", name:"저지대증심:약사사", zone:"low" }, 
-    { lat:35.127789, lng:126.969612, radius:300, color:"#00AA00", name:"저지대증심:증심사", zone:"low" },
-    { lat:35.133364, lng:126.971471, radius:300, color:"#00AA00", name:"저지대증심:덕산골", zone:"low" },
-    { lat:35.131413, lng:126.963440, radius:300, color:"#00AA00", name:"저지대증심:증심교", zone:"low"}, 
-    { lat:35.099325, lng:126.964050, radius:300, color:"#00AA00", name:"저지대증심:제2수원지", zone:"low" },
-    { lat:35.162281, lng:126.980286, radius:300, color:"#FFFFFF", name:"원효지구:원효분소", zone:"low" },
-    { lat:35.131429, lng:126.948076, radius:300, color:"#FFFFFF", name:"증심지구:무등산사무소", zone:"low" },
-    { lat:35.133163, lng:126.960296, radius:300, color:"#00AA00", name:"증심지구:증심센터", zone:"low" }
-];
+// ================= BEHAVIOR =================
+function detectBehavior(pos){
 
-var circles = [];
-var zoneVisibility = {high:true, middle:true, low:true};
-var bounds = new kakao.maps.LatLngBounds();
-var infowindow = new kakao.maps.InfoWindow({ removable: true });
+    const speed = pos.coords.speed || 0;
 
-circleData.forEach(function(data){
+    if(speed < 0.2) return "immobile";
+    if(speed < 1) return "injured";
+    if(speed < 3) return "confused";
+    return "normal";
+}
 
-    var position = new kakao.maps.LatLng(data.lat, data.lng);
+// ================= SEND =================
+function sendData(){
+    if(!lastPos) return;
 
-    var circle = new kakao.maps.Circle({
-        center: position,
-        radius: data.radius,
-        strokeWeight: 2,
-        strokeColor: data.color,
-        strokeOpacity: 0.9,
-        fillColor: data.color,
-        fillOpacity: 0.4
+    fetch(API_URL,{
+        method:"POST",
+        body: JSON.stringify(lastPos)
     });
+}
 
-    circle.setMap(map);
+// ================= LOAD =================
+function loadData(){
 
-    var marker = new kakao.maps.Marker({
-        position: position,
-        map: map,
-        title: data.name
+    fetch(API_URL)
+    .then(res=>res.json())
+    .then(data=>{
+
+        const now = Date.now();
+
+        riskLayer.clearLayers();
+        heatLayer.clearLayers();
+
+        data.forEach(p=>{
+
+            lastSeen[p.name] = now;
+
+            updateDirection(p);
+
+            const score = survivalProbability({
+                hours: 4,
+                slope: estimateSlope(p.lat,p.lng),
+                forest: 0.6,
+                water: isNearValley(p.lat,p.lng),
+                behavior: p.behavior,
+                distance: distanceFromBase(p.lat,p.lng)
+            });
+
+            const color =
+                score > 0.7 ? "red" :
+                score > 0.4 ? "orange" :
+                "yellow";
+
+            if(markers[p.name]){
+
+                markers[p.name].setLatLng([p.lat,p.lng]);
+
+            } else {
+
+                markers[p.name] = L.marker([p.lat,p.lng],{
+                    icon: L.divIcon({html:getIcon(score)})
+                }).addTo(map);
+            }
+
+            drawRisk(p.lat,p.lng,score);
+        });
+
+        checkOffline();
     });
+}
 
-    kakao.maps.event.addListener(marker, 'click', function(){
-        infowindow.setContent(
-            createInfoContent(`<strong>${data.name}</strong>`)
-        );
-        infowindow.open(map, marker);
-    });
+// ================= TERRAIN MODEL (SIMPLIFIED DEM) =================
 
-    circles.push({circle:circle, zone:data.zone});
-    bounds.extend(position);
-});
+// 🔥 slope estimation (fake DEM approximation)
+function estimateSlope(lat,lng){
 
-map.setBounds(bounds);
+    const noise = Math.sin(lat*50)*Math.cos(lng*50);
+    return Math.abs(noise)*40; // 0~40deg
+}
 
-// ================= 지대 토글 =================
-function toggleZone(zone){
-    zoneVisibility[zone] = !zoneVisibility[zone];
-    circles.forEach(function(item){
-        if(item.zone === zone){
-            item.circle.setMap(zoneVisibility[zone] ? map : null);
+// 🌲 valley detection
+function isNearValley(lat,lng){
+    return (Math.cos(lat*10) > 0.7);
+}
+
+// 📏 distance from base (서석대 기준)
+function distanceFromBase(lat,lng){
+
+    const R = 6371e3;
+
+    const φ1 = BASE[0]*Math.PI/180;
+    const φ2 = lat*Math.PI/180;
+
+    const dφ = (lat-BASE[0])*Math.PI/180;
+    const dλ = (lng-BASE[1])*Math.PI/180;
+
+    const a = Math.sin(dφ/2)*Math.sin(dφ/2) +
+              Math.cos(φ1)*Math.cos(φ2)*
+              Math.sin(dλ/2)*Math.sin(dλ/2);
+
+    return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+// ================= BAYESIAN =================
+function survivalProbability(p){
+
+    const timeFactor = Math.exp(-p.hours/24);
+
+    const terrain =
+        1 - (p.slope/45)*0.5
+        - p.forest*0.3
+        - (p.water?0.2:0);
+
+    const behaviorMap = {
+        normal:0.9,
+        confused:0.6,
+        injured:0.3,
+        immobile:0.1
+    };
+
+    const behavior = behaviorMap[p.behavior] || 0.5;
+
+    const move = Math.exp(-p.distance/800);
+
+    return Math.max(0,Math.min(1,
+        timeFactor * terrain * behavior * move
+    ));
+}
+
+// ================= RISK =================
+function drawRisk(lat,lng,score){
+
+    if(score < 0.3) return;
+
+    L.circle([lat,lng],{
+        radius:100,
+        color:
+            score>0.7?"red":
+            score>0.4?"orange":"yellow",
+        fillOpacity:0.25
+    }).addTo(riskLayer);
+}
+
+// ================= OFFLINE =================
+function checkOffline(){
+
+    const now = Date.now();
+
+    Object.keys(markers).forEach(n=>{
+        const diff = (now-lastSeen[n])/1000;
+
+        if(diff > 30){
+            markers[n].setOpacity(0.3);
         }
     });
 }
 
-// ================= 사각형 기능 =================
-var drawingMode = false;
-var startPoint = null;
-var rectangles = [];
+// ================= DIRECTION =================
+function updateDirection(p){
 
-function startRectangleMode(){
-    alert("지도에서 시작점 클릭 → 끝점 클릭");
-    drawingMode = true;
-}
+    if(prevPos[p.name]){
 
-kakao.maps.event.addListener(map, 'click', function(mouseEvent){
-
-    if(!drawingMode) return;
-
-    if(!startPoint){
-        startPoint = mouseEvent.latLng;
-    }else{
-
-        var endPoint = mouseEvent.latLng;
-
-        var bounds = new kakao.maps.LatLngBounds(
-            new kakao.maps.LatLng(
-                Math.min(startPoint.getLat(), endPoint.getLat()),
-                Math.min(startPoint.getLng(), endPoint.getLng())
-            ),
-            new kakao.maps.LatLng(
-                Math.max(startPoint.getLat(), endPoint.getLat()),
-                Math.max(startPoint.getLng(), endPoint.getLng())
-            )
+        const angle = getHeading(
+            prevPos[p.name].lat,
+            prevPos[p.name].lng,
+            p.lat,
+            p.lng
         );
 
-        var rectangle = new kakao.maps.Rectangle({
-            bounds: bounds,
-            strokeWeight: 3,
-            strokeColor: '#FF0000',
-            strokeOpacity: 0.9,
-            fillColor: '#FF0000',
-            fillOpacity: 0.3
-        });
-
-        rectangle.setMap(map);
-        rectangles.push(rectangle);
-
-        startPoint = null;
-        drawingMode = false;
-        alert("사각형이 생성되었습니다.");
+        markers[p.name].setIcon(
+            L.divIcon({html:`<div style="transform:rotate(${angle}deg)">➡️</div>`})
+        );
     }
-});
 
-// ================= 사각형 삭제 =================
-function deleteLastRectangle(){
-    if(rectangles.length === 0){
-        alert("삭제할 사각형이 없습니다.");
-        return;
-    }
-    let last = rectangles.pop();
-    last.setMap(null);
-    alert("마지막 사각형 삭제 완료");
+    prevPos[p.name] = {lat:p.lat,lng:p.lng};
 }
 
-// ================= 기록 불러오기 =================
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyQSj47r-l2fSmBePIC11bAGtICM4eoQ7_WXXH3DuEkytDfyf524ROm0PLIQJSJmgikow/exec";
+// ================= HEADING =================
+function getHeading(lat1,lon1,lat2,lon2){
 
-var recordMarkers = [];
+    const toRad=x=>x*Math.PI/180;
+    const toDeg=x=>x*180/Math.PI;
 
-function loadRecords(){
+    const d=toRad(lon2-lon1);
 
-    recordMarkers.forEach(m=>m.setMap(null));
-    recordMarkers = [];
+    const y=Math.sin(d)*Math.cos(toRad(lat2));
+    const x=Math.cos(toRad(lat1))*Math.sin(toRad(lat2))
+           -Math.sin(toRad(lat1))*Math.cos(toRad(lat2))*Math.cos(d);
 
-    fetch(WEB_APP_URL)
-    .then(res=>res.json())
-    .then(data=>{
+    return (toDeg(Math.atan2(y,x))+360)%360;
+}
 
-        data.forEach(item=>{
+// ================= ICON =================
+function getIcon(score){
+    if(score>0.7) return "🔴";
+    if(score>0.4) return "🟠";
+    return "🟡";
+}
 
-            let pos = new kakao.maps.LatLng(item.lat, item.lng);
+// ================= SOS =================
+function sendSOS(){
 
-            let marker = new kakao.maps.Marker({
-                map: map,
-                position: pos
-            });
+    if(!lastPos) return;
 
-            recordMarkers.push(marker);
+    lastPos.status="SOS";
 
-            let recordInfo = new kakao.maps.InfoWindow({
-                removable: true
-            });
-
-            kakao.maps.event.addListener(marker, 'click', function(){
-
-                recordInfo.setContent(
-                    createInfoContent(`
-                        <strong>📍 현장 기록</strong><br><br>
-                        ${item.memo ? item.memo : "내용 없음"}<br><br>
-                        <small>
-                        🕒 ${item.time ? new Date(item.time).toLocaleString() : ""}
-                        </small>
-                    `)
-                );
-
-                recordInfo.open(map, marker);
-            });
-
-        });
-
-    })
-    .catch(err=>{
-        alert("기록 불러오기 실패");
+    fetch(API_URL,{
+        method:"POST",
+        body:JSON.stringify(lastPos)
     });
+
+    L.circle([lastPos.lat,lastPos.lng],{
+        radius:500,
+        color:"red",
+        fillOpacity:0.1
+    }).addTo(map);
 }
 
 </script>
 
 </body>
 </html>
+
+구글시트
+function doPost(e) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("log");
+
+  const data = JSON.parse(e.postData.contents);
+
+  sheet.appendRow([
+    new Date(),
+    data.name,
+    data.lat,
+    data.lng,
+    data.status || "normal",
+    data.behavior || "normal"
+  ]);
+
+  return ContentService.createTextOutput("ok");
+}
+
+function doGet() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("log");
+  const rows = sheet.getDataRange().getValues();
+
+  let out = [];
+
+  for (let i = 1; i < rows.length; i++) {
+    out.push({
+      time: rows[i][0],
+      name: rows[i][1],
+      lat: rows[i][2],
+      lng: rows[i][3],
+      status: rows[i][4],
+      behavior: rows[i][5]
+    });
+  }
+
+  return ContentService.createTextOutput(JSON.stringify(out))
+    .setMimeType(ContentService.MimeType.JSON);
+}
