@@ -155,8 +155,16 @@ function sendData(){
         headers:{
             "Content-Type":"application/json"
         },
-        body: JSON.stringify(lastPos)
+        body:JSON.stringify(lastPos)
+    })
+    .then(r=>r.json())
+    .then(data=>{
+        console.log("SERVER:", data);
+    })
+    .catch(err=>{
+        console.error("POST ERROR:", err);
     });
+
 }
 
 // ================= LOAD =================
