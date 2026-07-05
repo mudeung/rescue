@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🛰 SEARCH AND RESCUE AI MAP</title>
+<title>RESCUE AI MAP PRO</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -62,7 +62,7 @@ button:disabled{ opacity:0.5; }
 
 <body>
 
-<header>🛰 SEARCH AND RESCUE AI MAP</header>
+<header>🛰 RESCUE AI MAP PRO</header>
 
 <div id="container">
 
@@ -74,8 +74,8 @@ button:disabled{ opacity:0.5; }
 <button onclick="stopTracking()">⛔ STOP</button>
 <button onclick="sendSOS()">🚨 SOS</button>
 
-<!-- 🔥 HISTORY -->
-<button onclick="loadAllHistory()">📦 전체 기록 (지도)</button>
+<!-- 🔥 추가 -->
+<button onclick="loadAllHistory()">📦 전체 기록 불러오기</button>
 
 <div id="logBox"></div>
 
@@ -87,17 +87,13 @@ button:disabled{ opacity:0.5; }
 
 <script>
 
-// ================= API =================
-const API_URL = "https://script.google.com/macros/s/AKfycbyem5fAs2XGxNy6wrHO3s68CmJyHy7GI31IBKdiz49KtN3sfikYdfmpP07-3dWqna2R/exec;
-
-// ================= MAP =================
+const API_URL = "https://script.google.com/macros/s/AKfycbyem5fAs2XGxNy6wrHO3s68CmJyHy7GI31IBKdiz49KtN3sfikYdfmpP07-3dWqna2R/exec
 const map = L.map('map').setView([35.1239, 126.9883], 13);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
     attribution:'&copy; OpenStreetMap'
 }).addTo(map);
 
-// ================= STATE =================
 let myName="";
 let lastPos=null;
 let watchId=null;
@@ -105,7 +101,6 @@ let intervalSend=null;
 let intervalLoad=null;
 
 const markers={};
-const historyLayer = L.layerGroup().addTo(map);
 
 const nameInput=document.getElementById("name");
 const startBtn=document.getElementById("startBtn");
@@ -133,13 +128,10 @@ function start(){
             status:"normal"
         };
 
-    },{
-        enableHighAccuracy:true,
-        maximumAge:1000
     });
 
     intervalSend=setInterval(sendData,5000);
-    intervalLoad=setInterval(loadLive,3000);
+    intervalLoad=setInterval(loadData,3000);
 }
 
 // ================= SEND =================
@@ -153,15 +145,38 @@ function sendData(){
     });
 }
 
-// ================= LIVE LOAD =================
-function loadLive(){
+// ================= LOAD (CURRENT) =================
+function loadData(){
     fetch(API_URL + "?t=" + Date.now())
     .then(r=>r.json())
-    .then(renderLive);
+    .then(render);
 }
 
-// ================= LIVE RENDER =================
-function renderLive(data){
+// ================= 🚀 전체 기록 =================
+function loadAllHistory(){
+
+    fetch(API_URL + "?history=all&t=" + Date.now())
+    .then(r=>r.json())
+    .then(showHistory);
+}
+
+// ================= HISTORY VIEW =================
+function showHistory(data){
+
+    logBox.innerHTML = "";
+
+    data.forEach(d=>{
+        const div=document.createElement("div");
+        div.textContent =
+            `${d.time} | ${d.name} | ${d.lat},${d.lng} | ${d.status}`;
+        logBox.appendChild(div);
+    });
+
+    alert("📦 전체 기록 로드 완료");
+}
+
+// ================= MAP =================
+function render(data){
 
     for(const p of data){
 
@@ -173,21 +188,10 @@ function renderLive(data){
         }else{
             markers[key].setLatLng(pos);
         }
-
-        if(p.status==="SOS"){
-            markers[key].setIcon(
-                L.icon({
-                    iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
-                    shadowUrl:"https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
-                    iconSize:[25,41],
-                    iconAnchor:[12,41]
-                })
-            );
-        }
     }
 }
 
-// ================= 🚨 SOS =================
+// ================= SOS =================
 function sendSOS(){
 
     if(!lastPos) return;
@@ -213,50 +217,6 @@ function stopTracking(){
     if(watchId) navigator.geolocation.clearWatch(watchId);
     clearInterval(intervalSend);
     clearInterval(intervalLoad);
-}
-
-// ================= 📦 HISTORY (MAP) =================
-function loadAllHistory(){
-
-    fetch(API_URL + "?history=all&t=" + Date.now())
-    .then(r=>r.json())
-    .then(showHistoryMap);
-}
-
-// ================= HISTORY RENDER =================
-function showHistoryMap(data){
-
-    historyLayer.clearLayers();
-
-    const grouped={};
-
-    data.forEach(d=>{
-        if(!grouped[d.name]) grouped[d.name]=[];
-        grouped[d.name].push([d.lat,d.lng]);
-    });
-
-    for(const name in grouped){
-
-        const path=grouped[name];
-
-        // 시작점
-        L.marker(path[0])
-        .bindPopup("START: " + name)
-        .addTo(historyLayer);
-
-        // 끝점
-        L.marker(path[path.length-1])
-        .bindPopup("END: " + name)
-        .addTo(historyLayer);
-
-        // 경로
-        L.polyline(path,{
-            color:"#ffcc00",
-            weight:3
-        }).addTo(historyLayer);
-    }
-
-    alert("📦 전체 기록 지도 표시 완료");
 }
 
 </script>
