@@ -1,22 +1,60 @@
+function doPost(e) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("log");
+
+  const data = JSON.parse(e.postData.contents);
+
+  sheet.appendRow([
+    new Date(),
+    data.name,
+    data.lat,
+    data.lng,
+    data.status || "normal",
+    data.behavior || "normal"
+  ]);
+
+  return ContentService.createTextOutput("ok");
+}
+
+function doGet() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("log");
+  const rows = sheet.getDataRange().getValues();
+
+  let result = [];
+
+  for (let i = 1; i < rows.length; i++) {
+    result.push({
+      time: rows[i][0],
+      name: rows[i][1],
+      lat: rows[i][2],
+      lng: rows[i][3],
+      status: rows[i][4],
+      behavior: rows[i][5]
+    });
+  }
+
+  return ContentService
+    .createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🛰 RESCUE AI COMMAND SYSTEM</title>
+
+<title>MUDEUNGSAN RESCUE AI MAP v7</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 <style>
 body { margin:0; background:#050b18; color:#00ff9d; font-family:monospace; }
-
 header {
     background:#071a2f;
     padding:10px;
     text-align:center;
     font-weight:bold;
 }
-
 #map { height: calc(100vh - 120px); }
 
 #panel {
@@ -31,20 +69,18 @@ input, button {
     border:1px solid #00ff9d;
     background:#001a14;
     color:#00ff9d;
-    cursor:pointer;
 }
+button { cursor:pointer; }
 </style>
 </head>
 
 <body>
 
-<header>🛰 RESCUE AI COMMAND SYSTEM</header>
+<header>🛰 MUDEUNGSAN TERRAIN AI SEARCH MAP</header>
 
 <div id="panel">
 <input id="name" placeholder="UNIT ID">
 <button onclick="start()">START</button>
-<button onclick="goMyLocation()">📍 MY LOCATION</button>
-<button onclick="stopTracking()">⛔ STOP</button>
 <button onclick="sendSOS()">🚨 SOS</button>
 </div>
 
@@ -55,77 +91,57 @@ input, button {
 <script>
 
 const API_URL = "https://script.google.com/macros/s/AKfycbyiPxj65S0kt91fVwVKNPqbaIJNAzuRMKcR3X8k84OI6HgIZckqChCRqt9iDpCbppf0FA/exec";
+
+// 📍 무등산 서석대 기준
 const BASE = [35.1239, 126.9883];
 
-// MAP
+// ================= MAP =================
 const map = L.map('map').setView(BASE, 14);
-L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png').addTo(map);
 
-// STATE
+// 🧭 실제 등고선 지도 (핵심)
+L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenTopoMap contributors'
+}).addTo(map);
+
+// ================= STATE =================
 let myName = "";
 let lastPos = null;
-let watchId = null;
-let tracking = false;
-
-let sendInterval = null;
-let loadInterval = null;
 
 let markers = {};
 let lastSeen = {};
 let prevPos = {};
 
-// START
+let riskLayer = L.layerGroup().addTo(map);
+let heatLayer = L.layerGroup().addTo(map);
+
+// ================= START =================
 function start(){
 
     myName = document.getElementById("name").value;
     if(!myName) return alert("UNIT ID required");
 
-    tracking = true;
-
-    watchId = navigator.geolocation.watchPosition(pos=>{
+    navigator.geolocation.watchPosition(pos=>{
 
         lastPos = {
             name: myName,
             lat: pos.coords.latitude,
             lng: pos.coords.longitude,
             status: "normal",
-            behavior: detectBehavior(pos)
+            behavior: detectBehavior(pos),
+            altitude: pos.coords.altitude || 0
         };
 
     }, err=>alert("GPS ERROR"), {
         enableHighAccuracy:true
     });
 
-    if(sendInterval) clearInterval(sendInterval);
-    if(loadInterval) clearInterval(loadInterval);
-
-    sendInterval = setInterval(sendData, 8000);
-    loadInterval = setInterval(loadData, 5000);
+    setInterval(sendData, 6000);
+    setInterval(loadData, 5000);
 }
 
-// STOP
-function stopTracking(){
-    tracking = false;
-
-    if(watchId !== null){
-        navigator.geolocation.clearWatch(watchId);
-        watchId = null;
-    }
-
-    clearInterval(sendInterval);
-    clearInterval(loadInterval);
-
-    alert("⛔ 위치 전송 중지됨");
-}
-
-// MY LOCATION
-function goMyLocation(){
-    if(!lastPos) return alert("현재 위치 없음");
-    map.setView([lastPos.lat, lastPos.lng], 17);
-}
-
-// BEHAVIOR
+// ================= BEHAVIOR =================
 function detectBehavior(pos){
+
     const speed = pos.coords.speed || 0;
 
     if(speed < 0.2) return "immobile";
@@ -134,66 +150,153 @@ function detectBehavior(pos){
     return "normal";
 }
 
-// ===================== SEND (핵심 수정) =====================
+// ================= SEND =================
 function sendData(){
+    if(!lastPos) return;
 
-    if(!lastPos || !tracking) return;
-
-    fetch(API_URL, {
-        method: "POST",
-        body: new URLSearchParams({
-            name: lastPos.name,
-            lat: lastPos.lat,
-            lng: lastPos.lng,
-            status: lastPos.status,
-            behavior: lastPos.behavior
-        })
-    })
-    .catch(err => console.log("SEND FAIL:", err));
+    fetch(API_URL,{
+        method:"POST",
+        body: JSON.stringify(lastPos)
+    });
 }
 
-// LOAD
+// ================= LOAD =================
 function loadData(){
 
     fetch(API_URL)
-    .then(res => res.json())
-    .then(data => {
+    .then(res=>res.json())
+    .then(data=>{
 
         const now = Date.now();
 
-        data.forEach(p => {
+        riskLayer.clearLayers();
+        heatLayer.clearLayers();
+
+        data.forEach(p=>{
 
             lastSeen[p.name] = now;
 
             updateDirection(p);
 
-            if(!markers[p.name]){
+            const score = survivalProbability({
+                hours: 4,
+                slope: estimateSlope(p.lat,p.lng),
+                forest: 0.6,
+                water: isNearValley(p.lat,p.lng),
+                behavior: p.behavior,
+                distance: distanceFromBase(p.lat,p.lng)
+            });
+
+            const color =
+                score > 0.7 ? "red" :
+                score > 0.4 ? "orange" :
+                "yellow";
+
+            if(markers[p.name]){
+
+                markers[p.name].setLatLng([p.lat,p.lng]);
+
+            } else {
+
                 markers[p.name] = L.marker([p.lat,p.lng],{
-                    icon: L.divIcon({
-                        className:"",
-                        html:`<div style="color:#00ff9d;font-size:12px">${p.name}</div>`
-                    })
+                    icon: L.divIcon({html:getIcon(score)})
                 }).addTo(map);
             }
 
-            markers[p.name].setLatLng([p.lat,p.lng]);
+            drawRisk(p.lat,p.lng,score);
         });
 
         checkOffline();
     });
 }
 
-// OFFLINE CHECK
+// ================= TERRAIN MODEL (SIMPLIFIED DEM) =================
+
+// 🔥 slope estimation (fake DEM approximation)
+function estimateSlope(lat,lng){
+
+    const noise = Math.sin(lat*50)*Math.cos(lng*50);
+    return Math.abs(noise)*40; // 0~40deg
+}
+
+// 🌲 valley detection
+function isNearValley(lat,lng){
+    return (Math.cos(lat*10) > 0.7);
+}
+
+// 📏 distance from base (서석대 기준)
+function distanceFromBase(lat,lng){
+
+    const R = 6371e3;
+
+    const φ1 = BASE[0]*Math.PI/180;
+    const φ2 = lat*Math.PI/180;
+
+    const dφ = (lat-BASE[0])*Math.PI/180;
+    const dλ = (lng-BASE[1])*Math.PI/180;
+
+    const a = Math.sin(dφ/2)*Math.sin(dφ/2) +
+              Math.cos(φ1)*Math.cos(φ2)*
+              Math.sin(dλ/2)*Math.sin(dλ/2);
+
+    return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+// ================= BAYESIAN =================
+function survivalProbability(p){
+
+    const timeFactor = Math.exp(-p.hours/24);
+
+    const terrain =
+        1 - (p.slope/45)*0.5
+        - p.forest*0.3
+        - (p.water?0.2:0);
+
+    const behaviorMap = {
+        normal:0.9,
+        confused:0.6,
+        injured:0.3,
+        immobile:0.1
+    };
+
+    const behavior = behaviorMap[p.behavior] || 0.5;
+
+    const move = Math.exp(-p.distance/800);
+
+    return Math.max(0,Math.min(1,
+        timeFactor * terrain * behavior * move
+    ));
+}
+
+// ================= RISK =================
+function drawRisk(lat,lng,score){
+
+    if(score < 0.3) return;
+
+    L.circle([lat,lng],{
+        radius:100,
+        color:
+            score>0.7?"red":
+            score>0.4?"orange":"yellow",
+        fillOpacity:0.25
+    }).addTo(riskLayer);
+}
+
+// ================= OFFLINE =================
 function checkOffline(){
+
     const now = Date.now();
 
     Object.keys(markers).forEach(n=>{
-        const diff = (now - lastSeen[n]) / 1000;
-        markers[n].setOpacity(diff > 30 ? 0.3 : 1);
+        const diff = (now-lastSeen[n])/1000;
+
+        if(diff > 30){
+            markers[n].setOpacity(0.3);
+        }
     });
 }
 
-// DIRECTION
+// ================= DIRECTION =================
 function updateDirection(p){
 
     if(prevPos[p.name] && markers[p.name]){
@@ -207,10 +310,11 @@ function updateDirection(p){
 
         markers[p.name].setIcon(
             L.divIcon({
-                html:`
+                className: "unit-icon",
+                html: `
                     <div style="text-align:center;color:#00ff9d;">
                         <div style="transform:rotate(${angle}deg);font-size:16px;">➡️</div>
-                        <div style="font-size:11px;">${p.name}</div>
+                        <div style="font-size:11px;font-weight:bold;">${p.name}</div>
                     </div>
                 `
             })
@@ -220,7 +324,7 @@ function updateDirection(p){
     prevPos[p.name] = {lat:p.lat,lng:p.lng};
 }
 
-// HEADING
+// ================= HEADING =================
 function getHeading(lat1,lon1,lat2,lon2){
 
     const toRad=x=>x*Math.PI/180;
@@ -235,22 +339,29 @@ function getHeading(lat1,lon1,lat2,lon2){
     return (toDeg(Math.atan2(y,x))+360)%360;
 }
 
-// SOS
+// ================= ICON =================
+function getIcon(score){
+    if(score>0.7) return "🔴";
+    if(score>0.4) return "🟠";
+    return "🟡";
+}
+
+// ================= SOS =================
 function sendSOS(){
 
     if(!lastPos) return;
 
-    lastPos.status = "SOS";
+    lastPos.status="SOS";
 
-    fetch(API_URL, {
-        method: "POST",
-        body: new URLSearchParams(lastPos)
+    fetch(API_URL,{
+        method:"POST",
+        body:JSON.stringify(lastPos)
     });
 
     L.circle([lastPos.lat,lastPos.lng],{
         radius:500,
         color:"red",
-        fillOpacity:0.2
+        fillOpacity:0.1
     }).addTo(map);
 }
 
