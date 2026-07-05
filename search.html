@@ -276,3 +276,42 @@ function sendSOS(){
 
 </body>
 </html>
+
+function doPost(e) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("log");
+
+  const data = JSON.parse(e.postData.contents);
+
+  sheet.appendRow([
+    new Date(),
+    data.name,
+    data.lat,
+    data.lng,
+    data.status || "normal",
+    data.behavior || "normal"
+  ]);
+
+  return ContentService.createTextOutput("ok");
+}
+
+function doGet() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("log");
+  const rows = sheet.getDataRange().getValues();
+
+  let result = [];
+
+  for (let i = 1; i < rows.length; i++) {
+    result.push({
+      time: rows[i][0],
+      name: rows[i][1],
+      lat: rows[i][2],
+      lng: rows[i][3],
+      status: rows[i][4],
+      behavior: rows[i][5]
+    });
+  }
+
+  return ContentService
+    .createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
+}
