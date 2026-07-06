@@ -77,6 +77,13 @@ button:disabled{
 // ================= API =================
 const API_URL = "https://script.google.com/macros/s/AKfycbyem5fAs2XGxNy6wrHO3s68CmJyHy7GI31IBKdiz49KtN3sfikYdfmpP07-3dWqna2R/exec";
 
+// ================= DEVICE ID (PC/MOBILE 자동 연동 핵심) =================
+const DEVICE_ID = localStorage.getItem("device_id") || crypto.randomUUID();
+localStorage.setItem("device_id", DEVICE_ID);
+
+// ================= DEVICE TYPE =================
+const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
 // ================= MAP =================
 const map = new kakao.maps.Map(document.getElementById('map'), {
     center: new kakao.maps.LatLng(35.1239, 126.9883),
@@ -96,13 +103,13 @@ const markers = {};
 const nameInput = document.getElementById("name");
 const startBtn = document.getElementById("startBtn");
 
-// ✅ 버튼 활성화 (공백 제거)
+// 버튼 활성화 (빈칸 방지)
 nameInput.addEventListener("input", () => {
     const valid = nameInput.value.trim().length > 0;
     startBtn.disabled = !valid;
 });
 
-// ✅ ENTER 방지/실행 제어
+// ENTER 방지 + 실행
 nameInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
         e.preventDefault();
@@ -115,8 +122,8 @@ function start(){
 
     myName = nameInput.value.trim();
 
-    // 🚨 최종 방어 (핵심)
-    if (!myName || myName.length === 0) {
+    // 🚨 최종 검증
+    if (!myName) {
         alert("❌ RESCUE ID를 입력하세요");
         return;
     }
@@ -128,6 +135,7 @@ function start(){
 
         lastPos = {
             name: myName,
+            device: DEVICE_ID,
             lat: pos.coords.latitude,
             lng: pos.coords.longitude,
             status: "normal"
@@ -139,6 +147,15 @@ function start(){
 
     intervalSend = setInterval(sendData, 5000);
     intervalLoad = setInterval(loadLive, 3000);
+
+    // 📱 모바일 자동 중심 고정
+    if(isMobile){
+        setInterval(() => {
+            if(lastPos){
+                map.setCenter(new kakao.maps.LatLng(lastPos.lat, lastPos.lng));
+            }
+        }, 5000);
+    }
 }
 
 // ================= SEND =================
@@ -159,10 +176,17 @@ function loadLive(){
     .then(renderLive);
 }
 
-// ================= RENDER =================
+// ================= RENDER (PC/MOBILE SYNC 핵심) =================
 function renderLive(data){
 
+    const latest = {};
+
+    // 🔥 name 기준 최신 데이터만 유지
     data.forEach(p => {
+        latest[p.name] = p;
+    });
+
+    Object.values(latest).forEach(p => {
 
         const key = p.name;
         const pos = new kakao.maps.LatLng(p.lat, p.lng);
@@ -199,7 +223,7 @@ function renderLive(data){
     });
 }
 
-// ================= MY LOCATION =================
+// ================= CENTER =================
 function goMyLocation(){
     if(!lastPos) return;
     map.setCenter(new kakao.maps.LatLng(lastPos.lat, lastPos.lng));
