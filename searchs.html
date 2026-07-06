@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🛰 SEARCH AND RESCUE AI MAP (KAKAO FULL)</title>
+<title>🛰 SEARCH AND RESCUE AI MAP</title>
 
 <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_APP_KEY"></script>
 
@@ -45,12 +45,16 @@ input,button{
     background:#001a14;
     color:#00ff9d;
 }
+
+button:disabled{
+    opacity:0.5;
+}
 </style>
 </head>
 
 <body>
 
-<header>🛰 SEARCH AND RESCUE AI MAP (KAKAO FULL)</header>
+<header>🛰 SEARCH AND RESCUE AI MAP</header>
 
 <div id="container">
 
@@ -74,40 +78,51 @@ input,button{
 const API_URL = "https://script.google.com/macros/s/AKfycbyem5fAs2XGxNy6wrHO3s68CmJyHy7GI31IBKdiz49KtN3sfikYdfmpP07-3dWqna2R/exec";
 
 // ================= MAP =================
-const mapContainer = document.getElementById('map');
-
-const map = new kakao.maps.Map(mapContainer, {
+const map = new kakao.maps.Map(document.getElementById('map'), {
     center: new kakao.maps.LatLng(35.1239, 126.9883),
     level: 5
 });
 
 // ================= STATE =================
-let myName="";
-let lastPos=null;
-let watchId=null;
-let intervalSend=null;
-let intervalLoad=null;
+let myName = "";
+let lastPos = null;
+let watchId = null;
+let intervalSend = null;
+let intervalLoad = null;
 
-const markers={};
-const polylines=[];
-const historyMarkers=[];
+const markers = {};
 
 // ================= INPUT =================
-const nameInput=document.getElementById("name");
-const startBtn=document.getElementById("startBtn");
+const nameInput = document.getElementById("name");
+const startBtn = document.getElementById("startBtn");
 
-nameInput.addEventListener("input",()=>{
-    startBtn.disabled = nameInput.value.trim().length===0;
+// ✅ 버튼 활성화 (공백 제거)
+nameInput.addEventListener("input", () => {
+    const valid = nameInput.value.trim().length > 0;
+    startBtn.disabled = !valid;
+});
+
+// ✅ ENTER 방지/실행 제어
+nameInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        if (!startBtn.disabled) start();
+    }
 });
 
 // ================= START =================
 function start(){
 
     myName = nameInput.value.trim();
-    if(!myName) return alert("UNIT ID required");
 
-    nameInput.disabled=true;
-    startBtn.disabled=true;
+    // 🚨 최종 방어 (핵심)
+    if (!myName || myName.length === 0) {
+        alert("❌ RESCUE ID를 입력하세요");
+        return;
+    }
+
+    nameInput.disabled = true;
+    startBtn.disabled = true;
 
     watchId = navigator.geolocation.watchPosition((pos)=>{
 
@@ -115,15 +130,15 @@ function start(){
             name: myName,
             lat: pos.coords.latitude,
             lng: pos.coords.longitude,
-            status:"normal"
+            status: "normal"
         };
 
     }, ()=>alert("GPS 오류"), {
-        enableHighAccuracy:true
+        enableHighAccuracy: true
     });
 
-    intervalSend=setInterval(sendData,5000);
-    intervalLoad=setInterval(loadLive,3000);
+    intervalSend = setInterval(sendData, 5000);
+    intervalLoad = setInterval(loadLive, 3000);
 }
 
 // ================= SEND =================
@@ -133,24 +148,24 @@ function sendData(){
     fetch(API_URL,{
         method:"POST",
         headers:{ "Content-Type":"text/plain" },
-        body:JSON.stringify(lastPos)
+        body: JSON.stringify(lastPos)
     });
 }
 
 // ================= LIVE =================
 function loadLive(){
     fetch(API_URL + "?t=" + Date.now())
-    .then(r=>r.json())
+    .then(r => r.json())
     .then(renderLive);
 }
 
 // ================= RENDER =================
 function renderLive(data){
 
-    data.forEach(p=>{
+    data.forEach(p => {
 
-        const key=p.name;
-        const pos = new kakao.maps.LatLng(p.lat,p.lng);
+        const key = p.name;
+        const pos = new kakao.maps.LatLng(p.lat, p.lng);
 
         if(!markers[key]){
 
@@ -163,8 +178,8 @@ function renderLive(data){
             markers[key].setPosition(pos);
         }
 
-        // SOS
-        if(p.status==="SOS"){
+        // ================= STATUS =================
+        if(p.status === "SOS"){
             markers[key].setImage(
                 new kakao.maps.MarkerImage(
                     "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
@@ -173,8 +188,7 @@ function renderLive(data){
             );
         }
 
-        // SHARE
-        if(p.status==="SHARE"){
+        if(p.status === "SHARE"){
             markers[key].setImage(
                 new kakao.maps.MarkerImage(
                     "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png",
@@ -185,10 +199,10 @@ function renderLive(data){
     });
 }
 
-// ================= CENTER =================
+// ================= MY LOCATION =================
 function goMyLocation(){
     if(!lastPos) return;
-    map.setCenter(new kakao.maps.LatLng(lastPos.lat,lastPos.lng));
+    map.setCenter(new kakao.maps.LatLng(lastPos.lat, lastPos.lng));
 }
 
 // ================= STOP =================
@@ -199,14 +213,18 @@ function stopTracking(){
     clearInterval(intervalSend);
     clearInterval(intervalLoad);
 
-    lastPos=null;
-    myName="";
+    watchId = null;
+    intervalSend = null;
+    intervalLoad = null;
 
-    nameInput.disabled=false;
-    nameInput.value="";
-    startBtn.disabled=true;
+    lastPos = null;
+    myName = "";
 
-    alert("STOP 완료");
+    nameInput.disabled = false;
+    nameInput.value = "";
+    startBtn.disabled = true;
+
+    alert("⛔ STOP 완료");
 }
 
 // ================= SHARE =================
@@ -224,7 +242,7 @@ https://map.kakao.com/link/map/${lastPos.lat},${lastPos.lng}`;
     fetch(API_URL,{
         method:"POST",
         headers:{ "Content-Type":"text/plain" },
-        body:JSON.stringify({...lastPos, status:"SHARE"})
+        body: JSON.stringify({...lastPos, status:"SHARE"})
     });
 
     if(navigator.share){
@@ -233,7 +251,7 @@ https://map.kakao.com/link/map/${lastPos.lat},${lastPos.lng}`;
             text:text
         });
     } else {
-        prompt("복사", text);
+        prompt("복사:", text);
     }
 }
 
@@ -241,17 +259,17 @@ https://map.kakao.com/link/map/${lastPos.lat},${lastPos.lng}`;
 function loadAllHistory(){
 
     fetch(API_URL + "?history=all&t=" + Date.now())
-    .then(r=>r.json())
+    .then(r => r.json())
     .then(showHistory);
 }
 
 function showHistory(data){
 
-    const grouped={};
+    const grouped = {};
 
-    data.forEach(d=>{
-        if(!grouped[d.name]) grouped[d.name]=[];
-        grouped[d.name].push(new kakao.maps.LatLng(d.lat,d.lng));
+    data.forEach(d => {
+        if(!grouped[d.name]) grouped[d.name] = [];
+        grouped[d.name].push(new kakao.maps.LatLng(d.lat, d.lng));
     });
 
     for(const name in grouped){
@@ -262,7 +280,7 @@ function showHistory(data){
             map: map,
             path: path,
             strokeWeight: 3,
-            strokeColor: '#ffcc00'
+            strokeColor: "#ffcc00"
         });
 
         new kakao.maps.Marker({
@@ -272,7 +290,7 @@ function showHistory(data){
 
         new kakao.maps.Marker({
             map: map,
-            position: path[path.length-1]
+            position: path[path.length - 1]
         });
     }
 }
