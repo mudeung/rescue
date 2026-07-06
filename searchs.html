@@ -49,6 +49,11 @@ input, button, select {
 
 button { cursor:pointer; }
 
+button:disabled {
+    opacity:0.4;
+    cursor:not-allowed;
+}
+
 @media (max-width:768px){
     #container { flex-direction:column; }
     #panel { width:100%; flex-direction:row; flex-wrap:wrap; max-height:35vh; }
@@ -68,7 +73,7 @@ button { cursor:pointer; }
 <div id="panel">
     <input id="name" placeholder="UNIT ID">
 
-    <button id="startBtn" onclick="start()">START</button>
+    <button id="startBtn" onclick="start()" disabled>START</button>
     <button onclick="goMyLocation()">📍 MY LOCATION</button>
     <button onclick="stopTracking()">⛔ STOP</button>
     <button onclick="sendSOS()">🚨 SOS</button>
@@ -111,18 +116,26 @@ let historyMarkers = {};
 let polyline = {};
 let paths = {};
 
+// ================= INPUT CONTROL =================
+const nameInput = document.getElementById("name");
+const startBtn = document.getElementById("startBtn");
+
+nameInput.addEventListener("input", function () {
+    startBtn.disabled = this.value.trim() === "";
+});
+
 // ================= START =================
 function start(){
 
-    myName = document.getElementById("name").value.trim();
+    myName = nameInput.value.trim();
 
     if(!myName){
         alert("UNIT ID required");
         return;
     }
 
-    document.getElementById("name").disabled = true;
-    document.getElementById("startBtn").disabled = true;
+    startBtn.disabled = true;
+    nameInput.disabled = true;
 
     watchId = navigator.geolocation.watchPosition(pos=>{
 
@@ -150,16 +163,17 @@ function stopTracking(){
 
     clearInterval(intervalSend);
     clearInterval(intervalLoad);
+
     intervalSend = null;
     intervalLoad = null;
 
     lastPos = null;
     myName = "";
 
-    document.getElementById("name").value = "";
-    document.getElementById("name").disabled = false;
+    nameInput.value = "";
+    nameInput.disabled = false;
 
-    document.getElementById("startBtn").disabled = false;
+    startBtn.disabled = true;
 
     // 지도 초기화
     Object.values(markers).forEach(m=>m.setMap(null));
@@ -202,6 +216,7 @@ function loadData(){
 
 // ================= FILTER =================
 function updateNameFilter(data){
+
     const select = document.getElementById("nameFilter");
     const names = [...new Set(data.map(p=>p.name))];
 
@@ -221,7 +236,7 @@ function filterByName(){
     else renderMap(allData.filter(p=>p.name === value));
 }
 
-// ================= MAP RENDER =================
+// ================= MAP =================
 function renderMap(data){
 
     Object.values(markers).forEach(m=>m.setMap(null));
