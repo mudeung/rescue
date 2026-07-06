@@ -211,7 +211,13 @@ function loadData(){
         allData = data;
         updateNameFilter(data);
         renderMap(data);
-    });
+    })
+    .catch(err => console.error("LOAD ERROR:", err));
+}
+
+// ================= ⭐ FIX: MISSING FUNCTION =================
+function loadAllRecords(){
+    loadData();
 }
 
 // ================= FILTER =================
@@ -323,3 +329,4 @@ function detectBehavior(pos){
 
 </body>
 </html>
+
