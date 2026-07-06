@@ -50,11 +50,10 @@ input,button{
 
 button:disabled{ opacity:0.5; }
 
-@media (max-width: 768px){
-    #container{ flex-direction:column; }
-    #panel{ width:100%; flex-direction:row; flex-wrap:wrap; max-height:35vh; }
-    #map{ height:65vh; }
-    button, input{ flex:1; min-width:120px; font-size:12px; }
+@media (max-width:768px){
+    #container{flex-direction:column;}
+    #panel{width:100%;flex-wrap:wrap;max-height:35vh;}
+    #map{height:65vh;}
 }
 </style>
 </head>
@@ -70,10 +69,10 @@ button:disabled{ opacity:0.5; }
 <button id="startBtn" onclick="start()" disabled>START</button>
 
 <button onclick="goMyLocation()">📍 MY LOCATION</button>
-<button onclick="shareLocation()">📡 위치 공유</button>
+<button onclick="shareLocation()">📡 위치 공유 (카카오/문자)</button>
 <button onclick="stopTracking()">⛔ STOP</button>
 
-<button onclick="loadAllHistory()">📦 전체 기록 (지도)</button>
+<button onclick="loadAllHistory()">📦 전체 기록</button>
 </div>
 
 <div id="map"></div>
@@ -88,25 +87,19 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyem5fAs2XGxNy6wrHO3s68
 // ================= MAP =================
 const map = L.map('map').setView([35.1239, 126.9883], 13);
 
-// ================= BASE LAYERS =================
+// ================= BASE MAPS =================
 const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
-
 const topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png');
-
 const satellite = L.tileLayer(
     'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
 );
 
 osm.addTo(map);
 
-const baseMaps = {
+L.control.layers({
     "🗺 일반지도": osm,
     "⛰ 지형/등고선": topo,
     "🛰 위성지도": satellite
-};
-
-L.control.layers(baseMaps, null, {
-    position: 'topright'
 }).addTo(map);
 
 // ================= STATE =================
@@ -214,12 +207,11 @@ function renderLive(data){
             });
 
             markers[key].setIcon(icon);
-            markers[key].bindPopup("📡 SHARED: " + key);
         }
     }
 }
 
-// ================= LOCATION CENTER =================
+// ================= CENTER =================
 function goMyLocation(){
     if(!lastPos) return;
     map.setView([lastPos.lat,lastPos.lng],16);
@@ -232,10 +224,17 @@ function stopTracking(){
     clearInterval(intervalLoad);
 }
 
-// ================= SHARE LOCATION =================
+// ================= 📡 SHARE (카카오톡/문자) =================
 function shareLocation(){
 
     if(!lastPos) return;
+
+    const text =
+`📡 위치 공유
+UNIT: ${lastPos.name}
+LAT: ${lastPos.lat}
+LNG: ${lastPos.lng}
+https://www.google.com/maps?q=${lastPos.lat},${lastPos.lng}`;
 
     const shareData = {
         ...lastPos,
@@ -248,17 +247,16 @@ function shareLocation(){
         body:JSON.stringify(shareData)
     });
 
-    const marker = L.circleMarker([lastPos.lat,lastPos.lng],{
-        radius:10,
-        color:"#00ffff",
-        fillOpacity:0.4
-    }).addTo(map);
-
-    marker.bindPopup("📡 위치 공유됨").openPopup();
-
-    setTimeout(()=>{
-        map.removeLayer(marker);
-    },5000);
+    // ================= NATIVE SHARE =================
+    if(navigator.share){
+        navigator.share({
+            title:"📡 위치 공유",
+            text:text,
+            url:`https://www.google.com/maps?q=${lastPos.lat},${lastPos.lng}`
+        });
+    } else {
+        prompt("복사해서 카카오톡/문자에 붙여넣기:", text);
+    }
 }
 
 // ================= HISTORY =================
@@ -287,13 +285,6 @@ function showHistoryMap(data){
 
         L.marker(path[0]).bindPopup("START: " + name).addTo(historyMarkers);
         L.marker(path[path.length-1]).bindPopup("END: " + name).addTo(historyMarkers);
-
-        for(let i=1;i<path.length-1;i++){
-            L.circleMarker(path[i],{
-                radius:4,
-                color:"#ffcc00"
-            }).addTo(historyMarkers);
-        }
 
         L.polyline(path,{
             color:"#ffcc00"
