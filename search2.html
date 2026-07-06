@@ -138,6 +138,7 @@ let intervalSend=null;
 let intervalLoad=null;
 
 const markers={};
+
 const historyMarkers = L.layerGroup().addTo(map);
 const historyLines = L.layerGroup().addTo(map);
 const sosLayer = L.layerGroup().addTo(map);
@@ -150,7 +151,7 @@ nameInput.addEventListener("input",()=>{
     startBtn.disabled = nameInput.value.trim().length===0;
 });
 
-// ================= START (FIXED watchPosition) =================
+// ================= START =================
 function start(){
 
     myName = nameInput.value.trim();
@@ -171,7 +172,7 @@ function start(){
 
         },
         (err)=>{
-            console.log("GPS ERROR:", err);
+            console.log(err);
             alert("GPS 오류 / 권한 확인 필요");
         },
         {
@@ -251,11 +252,29 @@ function goMyLocation(){
     map.setView([lastPos.lat,lastPos.lng],16);
 }
 
-// ================= STOP =================
+// ================= STOP (RESET FULL) =================
 function stopTracking(){
-    if(watchId) navigator.geolocation.clearWatch(watchId);
+
+    if(watchId){
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+    }
+
     clearInterval(intervalSend);
     clearInterval(intervalLoad);
+
+    intervalSend = null;
+    intervalLoad = null;
+
+    lastPos = null;
+    myName = "";
+
+    nameInput.disabled = false;
+    nameInput.value = "";
+
+    startBtn.disabled = true;
+
+    alert("⛔ STOP 완료 (초기화됨)");
 }
 
 // ================= SHARE =================
@@ -270,15 +289,13 @@ LAT: ${lastPos.lat}
 LNG: ${lastPos.lng}
 https://www.google.com/maps?q=${lastPos.lat},${lastPos.lng}`;
 
-    const shareData = {
-        ...lastPos,
-        status:"SHARE"
-    };
-
     fetch(API_URL,{
         method:"POST",
         headers:{ "Content-Type":"text/plain" },
-        body:JSON.stringify(shareData)
+        body:JSON.stringify({
+            ...lastPos,
+            status:"SHARE"
+        })
     });
 
     if(navigator.share){
