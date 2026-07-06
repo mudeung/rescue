@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🛰 SEARCH AND RESCUE AI MAP</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<style>
+body{
+    margin:0;
+    background:#050b18;
+    color:#00ff9d;
+    font-family:monospace;
+    overflow:hidden;
+}
+
+header{
+    background:#071a2f;
+    padding:10px;
+    text-align:center;
+    font-weight:bold;
+}
+
+#container{
+    display:flex;
+    height:calc(100vh - 50px);
+}
+
+#panel{
+    width:300px;
+    background:#07101f;
+    padding:10px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    overflow-y:auto;
+}
+
+#map{ flex:1; }
+
+input,button{
+    padding:10px;
+    border:1px solid #00ff9d;
+    background:#001a14;
+    color:#00ff9d;
+}
+
+button:disabled{ opacity:0.5; }
+
+@media (max-width: 768px){
+    #container{ flex-direction:column; }
+    #panel{ width:100%; flex-direction:row; flex-wrap:wrap; max-height:35vh; }
+    #map{ height:65vh; }
+    button, input{ flex:1; min-width:120px; font-size:12px; }
+}
+</style>
+</head>
+
+<body>
+
+<header>🛰 SEARCH AND RESCUE AI MAP</header>
+
+<div id="container">
+
+<div id="panel">
+<input id="name" placeholder="UNIT ID">
+<button id="startBtn" onclick="start()" disabled>START</button>
+
+<button onclick="goMyLocation()">📍 MY LOCATION</button>
+<button onclick="shareLocation()">📡 위치 공유</button>
+<button onclick="stopTracking()">⛔ STOP</button>
+
+<button onclick="loadAllHistory()">📦 전체 기록 (지도)</button>
+</div>
+
+<div id="map"></div>
+
+</div>
+
+<script>
+
+// ================= API =================
+const API_URL = "https://script.google.com/macros/s/AKfycbyem5fAs2XGxNy6wrHO3s68CmJyHy7GI31IBKdiz49KtN3sfikYdfmpP07-3dWqna2R/exec";
+
+// ================= MAP =================
+const map = L.map('map').setView([35.1239, 126.9883], 13);
+
+// ================= BASE LAYERS =================
+const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+
+const topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png');
+
+const satellite = L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+);
+
+osm.addTo(map);
+
+const baseMaps = {
+    "🗺 일반지도": osm,
+    "⛰ 지형/등고선": topo,
+    "🛰 위성지도": satellite
+};
+
+L.control.layers(baseMaps, null, {
+    position: 'topright'
+}).addTo(map);
+
+// ================= STATE =================
+let myName="";
+let lastPos=null;
+let watchId=null;
+let intervalSend=null;
+let intervalLoad=null;
+
+const markers={};
+
+const historyMarkers = L.layerGroup().addTo(map);
+const historyLines = L.layerGroup().addTo(map);
+const sosLayer = L.layerGroup().addTo(map);
+
+// ================= INPUT =================
+const nameInput=document.getElementById("name");
+const startBtn=document.getElementById("startBtn");
+
+nameInput.addEventListener("input",()=>{
+    startBtn.disabled = nameInput.value.trim().length===0;
+});
+
+// ================= START =================
+function start(){
+
+    myName = nameInput.value.trim();
+    if(!myName) return alert("UNIT ID required");
+
+    nameInput.disabled=true;
+    startBtn.disabled=true;
+
+    watchId = navigator.geolocation.watchPosition(pos=>{
+
+        lastPos={
+            name:myName,
+            lat:pos.coords.latitude,
+            lng:pos.coords.longitude,
+            status:"normal"
+        };
+
+    },{
+        enableHighAccuracy:true,
+        maximumAge:1000
+    });
+
+    intervalSend=setInterval(sendData,5000);
+    intervalLoad=setInterval(loadLive,3000);
+}
+
+// ================= SEND =================
+function sendData(){
+    if(!lastPos) return;
+
+    fetch(API_URL,{
+        method:"POST",
+        headers:{ "Content-Type":"text/plain" },
+        body:JSON.stringify(lastPos)
+    });
+}
+
+// ================= LIVE =================
+function loadLive(){
+    fetch(API_URL + "?t=" + Date.now())
+    .then(r=>r.json())
+    .then(renderLive);
+}
+
+// ================= RENDER =================
+function renderLive(data){
+
+    sosLayer.clearLayers();
+
+    for(const p of data){
+
+        const key=p.name;
+        const pos=[p.lat,p.lng];
+
+        if(!markers[key]){
+            markers[key]=L.marker(pos).addTo(map);
+        }else{
+            markers[key].setLatLng(pos);
+        }
+
+        // ================= SOS =================
+        if(p.status==="SOS"){
+
+            const icon = L.icon({
+                iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+                shadowUrl:"https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
+                iconSize:[30,50],
+                iconAnchor:[15,50]
+            });
+
+            markers[key].setIcon(icon);
+            markers[key].addTo(sosLayer);
+        }
+
+        // ================= SHARE =================
+        if(p.status==="SHARE"){
+
+            const icon = L.icon({
+                iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png",
+                shadowUrl:"https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png"
+            });
+
+            markers[key].setIcon(icon);
+            markers[key].bindPopup("📡 SHARED: " + key);
+        }
+    }
+}
+
+// ================= LOCATION CENTER =================
+function goMyLocation(){
+    if(!lastPos) return;
+    map.setView([lastPos.lat,lastPos.lng],16);
+}
+
+// ================= STOP =================
+function stopTracking(){
+    if(watchId) navigator.geolocation.clearWatch(watchId);
+    clearInterval(intervalSend);
+    clearInterval(intervalLoad);
+}
+
+// ================= SHARE LOCATION =================
+function shareLocation(){
+
+    if(!lastPos) return;
+
+    const shareData = {
+        ...lastPos,
+        status:"SHARE"
+    };
+
+    fetch(API_URL,{
+        method:"POST",
+        headers:{ "Content-Type":"text/plain" },
+        body:JSON.stringify(shareData)
+    });
+
+    const marker = L.circleMarker([lastPos.lat,lastPos.lng],{
+        radius:10,
+        color:"#00ffff",
+        fillOpacity:0.4
+    }).addTo(map);
+
+    marker.bindPopup("📡 위치 공유됨").openPopup();
+
+    setTimeout(()=>{
+        map.removeLayer(marker);
+    },5000);
+}
+
+// ================= HISTORY =================
+function loadAllHistory(){
+
+    fetch(API_URL + "?history=all&t=" + Date.now())
+    .then(r=>r.json())
+    .then(showHistoryMap);
+}
+
+function showHistoryMap(data){
+
+    historyMarkers.clearLayers();
+    historyLines.clearLayers();
+
+    const grouped={};
+
+    data.forEach(d=>{
+        if(!grouped[d.name]) grouped[d.name]=[];
+        grouped[d.name].push([d.lat,d.lng]);
+    });
+
+    for(const name in grouped){
+
+        const path = grouped[name];
+
+        L.marker(path[0]).bindPopup("START: " + name).addTo(historyMarkers);
+        L.marker(path[path.length-1]).bindPopup("END: " + name).addTo(historyMarkers);
+
+        for(let i=1;i<path.length-1;i++){
+            L.circleMarker(path[i],{
+                radius:4,
+                color:"#ffcc00"
+            }).addTo(historyMarkers);
+        }
+
+        L.polyline(path,{
+            color:"#ffcc00"
+        }).addTo(historyLines);
+    }
+}
+
+</script>
+</body>
+</html>
