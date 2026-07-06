@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🛰 SEARCH AND RESCUE AI MAP (KAKAO)</title>
+<title>🛰 SEARCH AND RESCUE AI MAP (KAKAO FULL)</title>
 
-<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_APP_KEY"></script>
 
 <style>
 body{
@@ -50,7 +50,7 @@ input,button{
 
 <body>
 
-<header>🛰 SEARCH AND RESCUE AI MAP (KAKAO)</header>
+<header>🛰 SEARCH AND RESCUE AI MAP (KAKAO FULL)</header>
 
 <div id="container">
 
@@ -73,10 +73,10 @@ input,button{
 // ================= API =================
 const API_URL = "https://script.google.com/macros/s/AKfycbyem5fAs2XGxNy6wrHO3s68CmJyHy7GI31IBKdiz49KtN3sfikYdfmpP07-3dWqna2R/exec";
 
-// ================= KAKAO MAP =================
-const container = document.getElementById('map');
+// ================= MAP =================
+const mapContainer = document.getElementById('map');
 
-const map = new kakao.maps.Map(container, {
+const map = new kakao.maps.Map(mapContainer, {
     center: new kakao.maps.LatLng(35.1239, 126.9883),
     level: 5
 });
@@ -88,10 +88,9 @@ let watchId=null;
 let intervalSend=null;
 let intervalLoad=null;
 
-const markers = {};
-const historyPolylines = [];
-const historyMarkers = [];
-const sosMarkers = [];
+const markers={};
+const polylines=[];
+const historyMarkers=[];
 
 // ================= INPUT =================
 const nameInput=document.getElementById("name");
@@ -123,8 +122,8 @@ function start(){
         enableHighAccuracy:true
     });
 
-    intervalSend = setInterval(sendData,5000);
-    intervalLoad = setInterval(loadLive,3000);
+    intervalSend=setInterval(sendData,5000);
+    intervalLoad=setInterval(loadLive,3000);
 }
 
 // ================= SEND =================
@@ -150,25 +149,22 @@ function renderLive(data){
 
     data.forEach(p=>{
 
-        const key = p.name;
-        const pos = new kakao.maps.LatLng(p.lat, p.lng);
+        const key=p.name;
+        const pos = new kakao.maps.LatLng(p.lat,p.lng);
 
-        // marker 생성/업데이트
         if(!markers[key]){
 
-            const marker = new kakao.maps.Marker({
+            markers[key] = new kakao.maps.Marker({
                 map: map,
                 position: pos
             });
-
-            markers[key] = marker;
 
         } else {
             markers[key].setPosition(pos);
         }
 
         // SOS
-        if(p.status === "SOS"){
+        if(p.status==="SOS"){
             markers[key].setImage(
                 new kakao.maps.MarkerImage(
                     "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
@@ -178,7 +174,7 @@ function renderLive(data){
         }
 
         // SHARE
-        if(p.status === "SHARE"){
+        if(p.status==="SHARE"){
             markers[key].setImage(
                 new kakao.maps.MarkerImage(
                     "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png",
@@ -251,7 +247,7 @@ function loadAllHistory(){
 
 function showHistory(data){
 
-    const grouped = {};
+    const grouped={};
 
     data.forEach(d=>{
         if(!grouped[d.name]) grouped[d.name]=[];
@@ -262,24 +258,18 @@ function showHistory(data){
 
         const path = grouped[name];
 
-        // polyline
-        const line = new kakao.maps.Polyline({
+        new kakao.maps.Polyline({
             map: map,
             path: path,
             strokeWeight: 3,
-            strokeColor: '#ffcc00',
-            strokeOpacity: 0.8
+            strokeColor: '#ffcc00'
         });
 
-        historyPolylines.push(line);
-
-        // start marker
         new kakao.maps.Marker({
             map: map,
             position: path[0]
         });
 
-        // end marker
         new kakao.maps.Marker({
             map: map,
             position: path[path.length-1]
