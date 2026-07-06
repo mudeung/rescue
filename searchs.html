@@ -3,7 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MUDEUNGSAN RESCUE + FIELD SYSTEM</title>
+<title>🛰 RESCUE FIELD SYSTEM (INTEGRATED)</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <style>
 body{
@@ -27,7 +30,7 @@ header{
 }
 
 #panel{
-    width:340px;
+    width:320px;
     background:#07101f;
     padding:10px;
     display:flex;
@@ -47,51 +50,41 @@ input, textarea, button, select{
 }
 
 button{ cursor:pointer; }
+button:disabled{ opacity:0.4; }
 
-button:disabled{
-    opacity:0.4;
-}
-
-/* FIELD LOG */
-textarea{
-    height:70px;
-    resize:none;
-}
+textarea{ height:70px; resize:none; }
 </style>
-
-<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
 </head>
 
 <body>
 
-<header>🛰 MUDEUNGSAN RESCUE + FIELD SYSTEM</header>
+<header>🛰 RESCUE FIELD SYSTEM (INTEGRATED)</header>
 
 <div id="container">
 
 <div id="panel">
 
-<!-- UNIT -->
 <input id="name" placeholder="UNIT ID">
 <button id="startBtn" onclick="start()" disabled>START TRACK</button>
-<button onclick="stopAll()">⛔ STOP ALL</button>
 
-<hr>
-
-<!-- SOS -->
+<button onclick="stopAll()">⛔ STOP</button>
 <button onclick="sendSOS()">🚨 SOS</button>
 
 <hr>
 
-<!-- FIELD LOG -->
-<textarea id="memo" placeholder="현장 기록 입력"></textarea>
-<button onclick="saveLog()">💾 LOG SAVE</button>
-<button onclick="loadLogs()">📂 LOG LOAD</button>
+<textarea id="memo" placeholder="FIELD LOG"></textarea>
+<button onclick="saveLog()">💾 SAVE LOG</button>
+<button onclick="loadLogs()">📂 LOAD LOGS</button>
 
 <hr>
 
 <select id="filter" onchange="filterUnit()">
 <option value="ALL">👥 ALL UNITS</option>
 </select>
+
+<hr>
+
+<button onclick="loadHistory()">📦 HISTORY VIEW</button>
 
 </div>
 
@@ -106,10 +99,11 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyem5fAs2XGxNy6wrHO3s68
 const LOG_API = "https://script.google.com/macros/s/AKfycbyQSj47r-l2fSmBePIC11bAGtICM4eoQ7_WXXH3DuEkytDfyf524ROm0PLIQJSJmgikow/exec";
 
 // ================= MAP =================
-const map = new kakao.maps.Map(document.getElementById('map'),{
-    center:new kakao.maps.LatLng(35.12,126.98),
-    level:4
-});
+const map = L.map('map').setView([35.1239, 126.9883], 13);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'OSM'
+}).addTo(map);
 
 // ================= STATE =================
 let myName="";
@@ -120,13 +114,15 @@ let loadInt=null;
 
 let allData=[];
 
-let markers={};
-let paths={};
-let poly={};
+const markers={};
+const paths={};
+const polylines={};
 
-let logMarkers=[];
+const logMarkers=[];
 
-// ================= INPUT =================
+const historyLayer = L.layerGroup().addTo(map);
+
+// ================= UI =================
 const nameInput=document.getElementById("name");
 const startBtn=document.getElementById("startBtn");
 
@@ -134,36 +130,35 @@ nameInput.addEventListener("input",()=>{
     startBtn.disabled = nameInput.value.trim()==="";
 });
 
-// ================= START TRACK =================
+// ================= START =================
 function start(){
 
-    myName=nameInput.value.trim();
+    myName = nameInput.value.trim();
     if(!myName) return;
 
     nameInput.disabled=true;
     startBtn.disabled=true;
 
-    watchId=navigator.geolocation.watchPosition(pos=>{
+    watchId = navigator.geolocation.watchPosition(pos=>{
 
-        lastPos={
-            name:myName,
-            lat:pos.coords.latitude,
-            lng:pos.coords.longitude,
-            speed:pos.coords.speed||0,
-            status:"normal"
+        lastPos = {
+            name: myName,
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            speed: pos.coords.speed || 0,
+            status: "normal"
         };
 
     });
 
-    sendInt=setInterval(sendData,4000);
-    loadInt=setInterval(loadData,4000);
+    sendInt = setInterval(sendData,4000);
+    loadInt = setInterval(loadData,4000);
 }
 
-// ================= STOP ALL =================
+// ================= STOP =================
 function stopAll(){
 
     if(watchId) navigator.geolocation.clearWatch(watchId);
-
     clearInterval(sendInt);
     clearInterval(loadInt);
 
@@ -178,12 +173,8 @@ function stopAll(){
     nameInput.disabled=false;
     startBtn.disabled=true;
 
-    Object.values(markers).forEach(m=>m.setMap(null));
-    Object.values(poly).forEach(p=>p.setMap(null));
-
-    markers={};
-    paths={};
-    poly={};
+    Object.values(markers).forEach(m=>map.removeLayer(m));
+    Object.values(polylines).forEach(p=>map.removeLayer(p));
 }
 
 // ================= SEND =================
@@ -192,32 +183,30 @@ function sendData(){
 
     fetch(API_URL,{
         method:"POST",
+        headers:{ "Content-Type":"text/plain" },
         body:JSON.stringify(lastPos)
     });
 }
 
-// ================= LOAD =================
+// ================= LOAD LIVE =================
 function loadData(){
-
-    fetch(API_URL)
+    fetch(API_URL + "?t=" + Date.now())
     .then(r=>r.json())
     .then(data=>{
         allData=data;
         updateFilter(data);
-        render(data);
+        renderLive(data);
     });
 }
 
 // ================= FILTER =================
 function updateFilter(data){
-
-    let sel=document.getElementById("filter");
-    let names=[...new Set(data.map(x=>x.name))];
+    const sel=document.getElementById("filter");
+    const names=[...new Set(data.map(x=>x.name))];
 
     sel.innerHTML=`<option value="ALL">👥 ALL UNITS</option>`;
-
     names.forEach(n=>{
-        let o=document.createElement("option");
+        const o=document.createElement("option");
         o.value=n;
         o.textContent=n;
         sel.appendChild(o);
@@ -225,64 +214,68 @@ function updateFilter(data){
 }
 
 function filterUnit(){
-    let v=document.getElementById("filter").value;
-    if(v==="ALL") render(allData);
-    else render(allData.filter(x=>x.name===v));
+    const v=document.getElementById("filter").value;
+    if(v==="ALL") renderLive(allData);
+    else renderLive(allData.filter(x=>x.name===v));
 }
 
-// ================= MAP RENDER =================
-function render(data){
+// ================= LIVE RENDER =================
+function renderLive(data){
 
-    Object.values(markers).forEach(m=>m.setMap(null));
-    Object.values(poly).forEach(p=>p.setMap(null));
+    Object.values(markers).forEach(m=>map.removeLayer(m));
+    Object.values(polylines).forEach(p=>map.removeLayer(p));
 
-    markers={};
-    paths={};
-    poly={};
+    for(const p of data){
 
-    data.forEach(p=>{
-
-        let key=p.name;
-        let pos=new kakao.maps.LatLng(p.lat,p.lng);
+        const key=p.name;
+        const pos=[p.lat,p.lng];
 
         if(!paths[key]) paths[key]=[];
         paths[key].push(pos);
 
         if(!markers[key]){
-            markers[key]=new kakao.maps.Marker({
-                map:map,
-                position:pos
-            });
+            markers[key]=L.marker(pos).addTo(map);
         }else{
-            markers[key].setPosition(pos);
+            markers[key].setLatLng(pos);
         }
 
         if(paths[key].length>1){
-            poly[key]=new kakao.maps.Polyline({
-                map:map,
-                path:paths[key],
-                strokeColor:"#00ff9d",
-                strokeWeight:3
-            });
+            polylines[key]=L.polyline(paths[key],{
+                color:"#00ff9d",
+                weight:3
+            }).addTo(map);
         }
-    });
+
+        if(p.status==="SOS"){
+            markers[key].setIcon(
+                L.icon({
+                    iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+                    shadowUrl:"https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
+                    iconSize:[25,41],
+                    iconAnchor:[12,41]
+                })
+            );
+        }
+    }
 }
 
 // ================= SOS =================
 function sendSOS(){
+
     if(!lastPos) return;
 
     lastPos.status="SOS";
 
     fetch(API_URL,{
         method:"POST",
+        headers:{ "Content-Type":"text/plain" },
         body:JSON.stringify(lastPos)
     });
 
-    alert("SOS SENT");
+    alert("🚨 SOS SENT");
 }
 
-// ================= FIELD LOG =================
+// ================= LOG =================
 function saveLog(){
 
     if(!navigator.geolocation) return;
@@ -300,7 +293,6 @@ function saveLog(){
 
         alert("LOG SAVED");
         document.getElementById("memo").value="";
-
     });
 }
 
@@ -310,28 +302,46 @@ function loadLogs(){
     .then(r=>r.json())
     .then(data=>{
 
-        logMarkers.forEach(m=>m.setMap(null));
-        logMarkers=[];
+        logMarkers.forEach(m=>map.removeLayer(m));
+        logMarkers.length=0;
 
         data.forEach(item=>{
 
-            let pos=new kakao.maps.LatLng(item.lat,item.lng);
+            const m=L.marker([item.lat,item.lng]).addTo(map);
 
-            let m=new kakao.maps.Marker({
-                map:map,
-                position:pos
-            });
-
-            let iw=new kakao.maps.InfoWindow({
-                content:`<div style="color:black;padding:5px;">${item.memo}</div>`
-            });
-
-            kakao.maps.event.addListener(m,"click",()=>{
-                iw.open(map,m);
-            });
-
+            m.bindPopup(item.memo || "LOG");
             logMarkers.push(m);
         });
+    });
+}
+
+// ================= HISTORY =================
+function loadHistory(){
+
+    fetch(API_URL + "?history=all&t=" + Date.now())
+    .then(r=>r.json())
+    .then(data=>{
+
+        historyLayer.clearLayers();
+
+        const grouped={};
+
+        data.forEach(d=>{
+            if(!grouped[d.name]) grouped[d.name]=[];
+            grouped[d.name].push([d.lat,d.lng]);
+        });
+
+        for(const name in grouped){
+
+            const path=grouped[name];
+
+            L.polyline(path,{color:"#ffcc00"}).addTo(historyLayer);
+
+            L.marker(path[0]).bindPopup("START "+name).addTo(historyLayer);
+            L.marker(path[path.length-1]).bindPopup("END "+name).addTo(historyLayer);
+        }
+
+        alert("HISTORY LOADED");
     });
 }
 
@@ -342,4 +352,3 @@ loadData();
 
 </body>
 </html>
-
