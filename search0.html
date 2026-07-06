@@ -28,8 +28,7 @@ header {
 }
 
 #panel {
-    width:280px;
-    min-width:220px;
+    width:300px;
     background:#07101f;
     padding:10px;
     display:flex;
@@ -38,9 +37,7 @@ header {
     overflow-y:auto;
 }
 
-#map {
-    flex:1;
-}
+#map { flex:1; }
 
 input, button, select {
     padding:10px;
@@ -50,68 +47,13 @@ input, button, select {
     font-size:13px;
 }
 
-button, select { cursor:pointer; }
+button { cursor:pointer; }
 
 @media (max-width:768px){
     #container { flex-direction:column; }
-    #panel { width:100%; flex-wrap:wrap; }
-    #map { height:60vh; }
+    #panel { width:100%; flex-direction:row; flex-wrap:wrap; max-height:35vh; }
+    #map { height:65vh; }
 }
-
-/* ================= PC 기본 ================= */
-#panel{
-    width:300px;
-    transition: all 0.3s ease;
-}
-
-/* ================= TABLET ================= */
-@media (max-width: 1024px){
-    #panel{
-        width:260px;
-    }
-}
-
-/* ================= MOBILE ================= */
-@media (max-width: 768px){
-
-    #container{
-        flex-direction:column;
-    }
-
-    #panel{
-        width:100%;
-        flex-direction:row;
-        flex-wrap:wrap;
-        max-height:35vh;
-        overflow-y:auto;
-    }
-
-    #map{
-        height:65vh;
-    }
-
-    button, input{
-        flex:1;
-        min-width:120px;
-        font-size:12px;
-        padding:8px;
-    }
-}
-
-/* ================= SMALL PHONE ================= */
-@media (max-width: 420px){
-
-    #panel{
-        max-height:40vh;
-    }
-
-    button, input{
-        min-width:100px;
-        font-size:11px;
-        padding:7px;
-    }
-}    
-    
 </style>
 
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
@@ -126,7 +68,7 @@ button, select { cursor:pointer; }
 <div id="panel">
     <input id="name" placeholder="UNIT ID">
 
-    <button onclick="start()">START</button>
+    <button id="startBtn" onclick="start()">START</button>
     <button onclick="goMyLocation()">📍 MY LOCATION</button>
     <button onclick="stopTracking()">⛔ STOP</button>
     <button onclick="sendSOS()">🚨 SOS</button>
@@ -164,7 +106,6 @@ let intervalLoad = null;
 
 let allData = [];
 
-// 🔥 LIVE + HISTORY 분리
 let markers = {};
 let historyMarkers = {};
 let polyline = {};
@@ -173,8 +114,15 @@ let paths = {};
 // ================= START =================
 function start(){
 
-    myName = document.getElementById("name").value;
-    if(!myName) return alert("UNIT ID required");
+    myName = document.getElementById("name").value.trim();
+
+    if(!myName){
+        alert("UNIT ID required");
+        return;
+    }
+
+    document.getElementById("name").disabled = true;
+    document.getElementById("startBtn").disabled = true;
 
     watchId = navigator.geolocation.watchPosition(pos=>{
 
@@ -194,30 +142,47 @@ function start(){
     intervalLoad = setInterval(loadData, 5000);
 }
 
-// ================= STOP =================
+// ================= STOP (FULL RESET) =================
 function stopTracking(){
 
     if(watchId) navigator.geolocation.clearWatch(watchId);
+    watchId = null;
 
     clearInterval(intervalSend);
     clearInterval(intervalLoad);
+    intervalSend = null;
+    intervalLoad = null;
 
-    alert("TRACKING STOPPED");
+    lastPos = null;
+    myName = "";
+
+    document.getElementById("name").value = "";
+    document.getElementById("name").disabled = false;
+
+    document.getElementById("startBtn").disabled = false;
+
+    // 지도 초기화
+    Object.values(markers).forEach(m=>m.setMap(null));
+    Object.values(historyMarkers).forEach(m=>m.setMap(null));
+    Object.values(polyline).forEach(p=>p.setMap(null));
+
+    markers = {};
+    historyMarkers = {};
+    polyline = {};
+    paths = {};
+
+    alert("TRACKING STOPPED & RESET COMPLETE");
 }
 
 // ================= CENTER =================
 function goMyLocation(){
-
     if(!lastPos) return alert("No GPS data");
-
     map.setCenter(new kakao.maps.LatLng(lastPos.lat, lastPos.lng));
 }
 
 // ================= SEND =================
 function sendData(){
-
     if(!lastPos) return;
-
     fetch(API_URL,{
         method:"POST",
         body: JSON.stringify(lastPos)
@@ -226,7 +191,6 @@ function sendData(){
 
 // ================= LOAD =================
 function loadData(){
-
     fetch(API_URL)
     .then(res=>res.json())
     .then(data=>{
@@ -236,14 +200,8 @@ function loadData(){
     });
 }
 
-// ================= FULL HISTORY =================
-function loadAllRecords(){
-    loadData(); // 그대로 사용
-}
-
 // ================= FILTER =================
 function updateNameFilter(data){
-
     const select = document.getElementById("nameFilter");
     const names = [...new Set(data.map(p=>p.name))];
 
@@ -258,9 +216,7 @@ function updateNameFilter(data){
 }
 
 function filterByName(){
-
     const value = document.getElementById("nameFilter").value;
-
     if(value === "ALL") renderMap(allData);
     else renderMap(allData.filter(p=>p.name === value));
 }
@@ -268,17 +224,13 @@ function filterByName(){
 // ================= MAP RENDER =================
 function renderMap(data){
 
-    // LIVE 초기화
     Object.values(markers).forEach(m=>m.setMap(null));
-    markers = {};
-
-    // HISTORY 초기화
     Object.values(historyMarkers).forEach(m=>m.setMap(null));
-    historyMarkers = {};
-
     Object.values(polyline).forEach(p=>p.setMap(null));
-    polyline = {};
 
+    markers = {};
+    historyMarkers = {};
+    polyline = {};
     paths = {};
 
     data.forEach(p=>{
@@ -286,11 +238,9 @@ function renderMap(data){
         const key = p.name;
         const pos = new kakao.maps.LatLng(p.lat, p.lng);
 
-        // ================= PATH =================
         if(!paths[key]) paths[key] = [];
         paths[key].push(pos);
 
-        // ================= LIVE MARKER =================
         if(!markers[key]){
             markers[key] = new kakao.maps.Marker({
                 position: pos,
@@ -299,8 +249,6 @@ function renderMap(data){
         } else {
             markers[key].setPosition(pos);
         }
-
-        // ================= HISTORY MARKERS =================
 
         const histKey = key + "_" + paths[key].length;
 
