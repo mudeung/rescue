@@ -3,43 +3,42 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🛰 MUDEUNGSAN RESCUE AI MAP v8+</title>
+<title>MUDEUNGSAN RESCUE + FIELD SYSTEM</title>
 
 <style>
-body {
+body{
     margin:0;
+    font-family:monospace;
     background:#050b18;
     color:#00ff9d;
-    font-family:monospace;
     overflow:hidden;
 }
 
-header {
+header{
     background:#071a2f;
     padding:10px;
     text-align:center;
     font-weight:bold;
-    font-size:14px;
 }
 
-#container {
+#container{
     display:flex;
     height:calc(100vh - 50px);
 }
 
-#panel {
-    width:300px;
+#panel{
+    width:340px;
     background:#07101f;
     padding:10px;
     display:flex;
     flex-direction:column;
-    gap:6px;
+    gap:8px;
     overflow-y:auto;
 }
 
-#map { flex:1; }
+#map{ flex:1; }
 
-input, button, select {
+input, textarea, button, select{
     padding:10px;
     border:1px solid #00ff9d;
     background:#001a14;
@@ -47,17 +46,16 @@ input, button, select {
     font-size:13px;
 }
 
-button { cursor:pointer; }
+button{ cursor:pointer; }
 
-button:disabled {
+button:disabled{
     opacity:0.4;
-    cursor:not-allowed;
 }
 
-@media (max-width:768px){
-    #container { flex-direction:column; }
-    #panel { width:100%; flex-direction:row; flex-wrap:wrap; max-height:35vh; }
-    #map { height:65vh; }
+/* FIELD LOG */
+textarea{
+    height:70px;
+    resize:none;
 }
 </style>
 
@@ -66,22 +64,35 @@ button:disabled {
 
 <body>
 
-<header>🛰 MUDEUNGSAN RESCUE AI MAP v8+</header>
+<header>🛰 MUDEUNGSAN RESCUE + FIELD SYSTEM</header>
 
 <div id="container">
 
 <div id="panel">
-    <input id="name" placeholder="UNIT ID">
 
-    <button id="startBtn" onclick="start()" disabled>START</button>
-    <button onclick="goMyLocation()">📍 MY LOCATION</button>
-    <button onclick="stopTracking()">⛔ STOP</button>
-    <button onclick="sendSOS()">🚨 SOS</button>
-    <button onclick="loadAllRecords()">📦 전체 기록</button>
+<!-- UNIT -->
+<input id="name" placeholder="UNIT ID">
+<button id="startBtn" onclick="start()" disabled>START TRACK</button>
+<button onclick="stopAll()">⛔ STOP ALL</button>
 
-    <select id="nameFilter" onchange="filterByName()">
-        <option value="ALL">👥 전체 보기</option>
-    </select>
+<hr>
+
+<!-- SOS -->
+<button onclick="sendSOS()">🚨 SOS</button>
+
+<hr>
+
+<!-- FIELD LOG -->
+<textarea id="memo" placeholder="현장 기록 입력"></textarea>
+<button onclick="saveLog()">💾 LOG SAVE</button>
+<button onclick="loadLogs()">📂 LOG LOAD</button>
+
+<hr>
+
+<select id="filter" onchange="filterUnit()">
+<option value="ALL">👥 ALL UNITS</option>
+</select>
+
 </div>
 
 <div id="map"></div>
@@ -92,238 +103,240 @@ button:disabled {
 
 // ================= API =================
 const API_URL = "https://script.google.com/macros/s/AKfycbyem5fAs2XGxNy6wrHO3s68CmJyHy7GI31IBKdiz49KtN3sfikYdfmpP07-3dWqna2R/exec";
+const LOG_API = "https://script.google.com/macros/s/AKfycbyQSj47r-l2fSmBePIC11bAGtICM4eoQ7_WXXH3DuEkytDfyf524ROm0PLIQJSJmgikow/exec";
 
 // ================= MAP =================
-const BASE = new kakao.maps.LatLng(35.1239, 126.9883);
-
-const map = new kakao.maps.Map(document.getElementById('map'), {
-    center: BASE,
-    level: 4
+const map = new kakao.maps.Map(document.getElementById('map'),{
+    center:new kakao.maps.LatLng(35.12,126.98),
+    level:4
 });
 
 // ================= STATE =================
-let myName = "";
-let lastPos = null;
+let myName="";
+let lastPos=null;
+let watchId=null;
+let sendInt=null;
+let loadInt=null;
 
-let watchId = null;
-let intervalSend = null;
-let intervalLoad = null;
+let allData=[];
 
-let allData = [];
+let markers={};
+let paths={};
+let poly={};
 
-let markers = {};
-let historyMarkers = {};
-let polyline = {};
-let paths = {};
+let logMarkers=[];
 
-// ================= INPUT CONTROL =================
-const nameInput = document.getElementById("name");
-const startBtn = document.getElementById("startBtn");
+// ================= INPUT =================
+const nameInput=document.getElementById("name");
+const startBtn=document.getElementById("startBtn");
 
-nameInput.addEventListener("input", function () {
-    startBtn.disabled = this.value.trim() === "";
+nameInput.addEventListener("input",()=>{
+    startBtn.disabled = nameInput.value.trim()==="";
 });
 
-// ================= START =================
+// ================= START TRACK =================
 function start(){
 
-    myName = nameInput.value.trim();
+    myName=nameInput.value.trim();
+    if(!myName) return;
 
-    if(!myName){
-        alert("UNIT ID required");
-        return;
-    }
+    nameInput.disabled=true;
+    startBtn.disabled=true;
 
-    startBtn.disabled = true;
-    nameInput.disabled = true;
+    watchId=navigator.geolocation.watchPosition(pos=>{
 
-    watchId = navigator.geolocation.watchPosition(pos=>{
-
-        lastPos = {
-            name: myName,
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
-            behavior: detectBehavior(pos),
-            status: "normal"
+        lastPos={
+            name:myName,
+            lat:pos.coords.latitude,
+            lng:pos.coords.longitude,
+            speed:pos.coords.speed||0,
+            status:"normal"
         };
 
-    }, err=>alert("GPS ERROR"), {
-        enableHighAccuracy:true
     });
 
-    intervalSend = setInterval(sendData, 5000);
-    intervalLoad = setInterval(loadData, 5000);
+    sendInt=setInterval(sendData,4000);
+    loadInt=setInterval(loadData,4000);
 }
 
-// ================= STOP (FULL RESET) =================
-function stopTracking(){
+// ================= STOP ALL =================
+function stopAll(){
 
     if(watchId) navigator.geolocation.clearWatch(watchId);
-    watchId = null;
 
-    clearInterval(intervalSend);
-    clearInterval(intervalLoad);
+    clearInterval(sendInt);
+    clearInterval(loadInt);
 
-    intervalSend = null;
-    intervalLoad = null;
+    watchId=null;
+    sendInt=null;
+    loadInt=null;
 
-    lastPos = null;
-    myName = "";
+    lastPos=null;
+    myName="";
 
-    nameInput.value = "";
-    nameInput.disabled = false;
+    nameInput.value="";
+    nameInput.disabled=false;
+    startBtn.disabled=true;
 
-    startBtn.disabled = true;
-
-    // 지도 초기화
     Object.values(markers).forEach(m=>m.setMap(null));
-    Object.values(historyMarkers).forEach(m=>m.setMap(null));
-    Object.values(polyline).forEach(p=>p.setMap(null));
+    Object.values(poly).forEach(p=>p.setMap(null));
 
-    markers = {};
-    historyMarkers = {};
-    polyline = {};
-    paths = {};
-
-    alert("TRACKING STOPPED & RESET COMPLETE");
-}
-
-// ================= CENTER =================
-function goMyLocation(){
-    if(!lastPos) return alert("No GPS data");
-    map.setCenter(new kakao.maps.LatLng(lastPos.lat, lastPos.lng));
+    markers={};
+    paths={};
+    poly={};
 }
 
 // ================= SEND =================
 function sendData(){
     if(!lastPos) return;
+
     fetch(API_URL,{
         method:"POST",
-        body: JSON.stringify(lastPos)
+        body:JSON.stringify(lastPos)
     });
 }
 
 // ================= LOAD =================
 function loadData(){
-    fetch(API_URL)
-    .then(res=>res.json())
-    .then(data=>{
-        allData = data;
-        updateNameFilter(data);
-        renderMap(data);
-    })
-    .catch(err => console.error("LOAD ERROR:", err));
-}
 
-// ================= ⭐ FIX: MISSING FUNCTION =================
-function loadAllRecords(){
-    loadData();
+    fetch(API_URL)
+    .then(r=>r.json())
+    .then(data=>{
+        allData=data;
+        updateFilter(data);
+        render(data);
+    });
 }
 
 // ================= FILTER =================
-function updateNameFilter(data){
+function updateFilter(data){
 
-    const select = document.getElementById("nameFilter");
-    const names = [...new Set(data.map(p=>p.name))];
+    let sel=document.getElementById("filter");
+    let names=[...new Set(data.map(x=>x.name))];
 
-    select.innerHTML = `<option value="ALL">👥 전체 보기</option>`;
+    sel.innerHTML=`<option value="ALL">👥 ALL UNITS</option>`;
 
     names.forEach(n=>{
-        const opt = document.createElement("option");
-        opt.value = n;
-        opt.textContent = "📍 " + n;
-        select.appendChild(opt);
+        let o=document.createElement("option");
+        o.value=n;
+        o.textContent=n;
+        sel.appendChild(o);
     });
 }
 
-function filterByName(){
-    const value = document.getElementById("nameFilter").value;
-    if(value === "ALL") renderMap(allData);
-    else renderMap(allData.filter(p=>p.name === value));
+function filterUnit(){
+    let v=document.getElementById("filter").value;
+    if(v==="ALL") render(allData);
+    else render(allData.filter(x=>x.name===v));
 }
 
-// ================= MAP =================
-function renderMap(data){
+// ================= MAP RENDER =================
+function render(data){
 
     Object.values(markers).forEach(m=>m.setMap(null));
-    Object.values(historyMarkers).forEach(m=>m.setMap(null));
-    Object.values(polyline).forEach(p=>p.setMap(null));
+    Object.values(poly).forEach(p=>p.setMap(null));
 
-    markers = {};
-    historyMarkers = {};
-    polyline = {};
-    paths = {};
+    markers={};
+    paths={};
+    poly={};
 
     data.forEach(p=>{
 
-        const key = p.name;
-        const pos = new kakao.maps.LatLng(p.lat, p.lng);
+        let key=p.name;
+        let pos=new kakao.maps.LatLng(p.lat,p.lng);
 
-        if(!paths[key]) paths[key] = [];
+        if(!paths[key]) paths[key]=[];
         paths[key].push(pos);
 
         if(!markers[key]){
-            markers[key] = new kakao.maps.Marker({
-                position: pos,
-                map: map
+            markers[key]=new kakao.maps.Marker({
+                map:map,
+                position:pos
             });
-        } else {
+        }else{
             markers[key].setPosition(pos);
         }
 
-        const histKey = key + "_" + paths[key].length;
-
-        historyMarkers[histKey] = new kakao.maps.Marker({
-            position: pos,
-            map: map
-        });
-
-        drawPath(key);
+        if(paths[key].length>1){
+            poly[key]=new kakao.maps.Polyline({
+                map:map,
+                path:paths[key],
+                strokeColor:"#00ff9d",
+                strokeWeight:3
+            });
+        }
     });
-}
-
-// ================= PATH =================
-function drawPath(key){
-
-    if(paths[key].length < 2) return;
-
-    if(polyline[key]) polyline[key].setMap(null);
-
-    polyline[key] = new kakao.maps.Polyline({
-        path: paths[key],
-        strokeWeight: 3,
-        strokeColor: "#00ff9d",
-        strokeOpacity: 0.8
-    });
-
-    polyline[key].setMap(map);
 }
 
 // ================= SOS =================
 function sendSOS(){
-
     if(!lastPos) return;
 
-    lastPos.status = "SOS";
+    lastPos.status="SOS";
 
     fetch(API_URL,{
         method:"POST",
-        body: JSON.stringify(lastPos)
+        body:JSON.stringify(lastPos)
     });
 
-    alert("🚨 SOS SENT");
+    alert("SOS SENT");
 }
 
-// ================= BEHAVIOR =================
-function detectBehavior(pos){
+// ================= FIELD LOG =================
+function saveLog(){
 
-    const speed = pos.coords.speed || 0;
+    if(!navigator.geolocation) return;
 
-    if(speed < 0.2) return "immobile";
-    if(speed < 1) return "injured";
-    if(speed < 3) return "confused";
-    return "normal";
+    navigator.geolocation.getCurrentPosition(pos=>{
+
+        fetch(LOG_API,{
+            method:"POST",
+            body:JSON.stringify({
+                lat:pos.coords.latitude,
+                lng:pos.coords.longitude,
+                memo:document.getElementById("memo").value
+            })
+        });
+
+        alert("LOG SAVED");
+        document.getElementById("memo").value="";
+
+    });
 }
+
+function loadLogs(){
+
+    fetch(LOG_API)
+    .then(r=>r.json())
+    .then(data=>{
+
+        logMarkers.forEach(m=>m.setMap(null));
+        logMarkers=[];
+
+        data.forEach(item=>{
+
+            let pos=new kakao.maps.LatLng(item.lat,item.lng);
+
+            let m=new kakao.maps.Marker({
+                map:map,
+                position:pos
+            });
+
+            let iw=new kakao.maps.InfoWindow({
+                content:`<div style="color:black;padding:5px;">${item.memo}</div>`
+            });
+
+            kakao.maps.event.addListener(m,"click",()=>{
+                iw.open(map,m);
+            });
+
+            logMarkers.push(m);
+        });
+    });
+}
+
+// ================= INIT =================
+loadData();
 
 </script>
 
