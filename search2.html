@@ -6,7 +6,10 @@
 <title>🛰 SEARCH AND RESCUE AI MAP</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css">
+
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
 
 <style>
 body{
@@ -69,9 +72,8 @@ button:disabled{ opacity:0.5; }
 <button id="startBtn" onclick="start()" disabled>START</button>
 
 <button onclick="goMyLocation()">📍 MY LOCATION</button>
-<button onclick="shareLocation()">📡 위치 공유 (카카오/문자)</button>
+<button onclick="shareLocation()">📡 위치 공유</button>
 <button onclick="stopTracking()">⛔ STOP</button>
-
 <button onclick="loadAllHistory()">📦 전체 기록</button>
 </div>
 
@@ -87,7 +89,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyem5fAs2XGxNy6wrHO3s68
 // ================= MAP =================
 const map = L.map('map').setView([35.1239, 126.9883], 13);
 
-// ================= BASE MAPS =================
+// ================= BASE LAYERS =================
 const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
 const topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png');
 const satellite = L.tileLayer(
@@ -102,6 +104,32 @@ L.control.layers({
     "🛰 위성지도": satellite
 }).addTo(map);
 
+// ================= DRAW =================
+const drawnItems = new L.FeatureGroup();
+map.addLayer(drawnItems);
+
+const drawControl = new L.Control.Draw({
+    position: 'topright',
+    draw: {
+        polygon: true,
+        rectangle: true,
+        circle: true,
+        marker: true,
+        polyline: true,
+        circlemarker: false
+    },
+    edit: {
+        featureGroup: drawnItems,
+        remove: true
+    }
+});
+
+map.addControl(drawControl);
+
+map.on(L.Draw.Event.CREATED, function (e) {
+    drawnItems.addLayer(e.layer);
+});
+
 // ================= STATE =================
 let myName="";
 let lastPos=null;
@@ -110,7 +138,6 @@ let intervalSend=null;
 let intervalLoad=null;
 
 const markers={};
-
 const historyMarkers = L.layerGroup().addTo(map);
 const historyLines = L.layerGroup().addTo(map);
 const sosLayer = L.layerGroup().addTo(map);
@@ -123,7 +150,7 @@ nameInput.addEventListener("input",()=>{
     startBtn.disabled = nameInput.value.trim().length===0;
 });
 
-// ================= START =================
+// ================= START (FIXED watchPosition) =================
 function start(){
 
     myName = nameInput.value.trim();
@@ -132,19 +159,26 @@ function start(){
     nameInput.disabled=true;
     startBtn.disabled=true;
 
-    watchId = navigator.geolocation.watchPosition(pos=>{
+    watchId = navigator.geolocation.watchPosition(
+        (pos)=>{
 
-        lastPos={
-            name:myName,
-            lat:pos.coords.latitude,
-            lng:pos.coords.longitude,
-            status:"normal"
-        };
+            lastPos={
+                name:myName,
+                lat:pos.coords.latitude,
+                lng:pos.coords.longitude,
+                status:"normal"
+            };
 
-    },{
-        enableHighAccuracy:true,
-        maximumAge:1000
-    });
+        },
+        (err)=>{
+            console.log("GPS ERROR:", err);
+            alert("GPS 오류 / 권한 확인 필요");
+        },
+        {
+            enableHighAccuracy:true,
+            maximumAge:1000
+        }
+    );
 
     intervalSend=setInterval(sendData,5000);
     intervalLoad=setInterval(loadLive,3000);
@@ -224,7 +258,7 @@ function stopTracking(){
     clearInterval(intervalLoad);
 }
 
-// ================= 📡 SHARE (카카오톡/문자) =================
+// ================= SHARE =================
 function shareLocation(){
 
     if(!lastPos) return;
@@ -247,7 +281,6 @@ https://www.google.com/maps?q=${lastPos.lat},${lastPos.lng}`;
         body:JSON.stringify(shareData)
     });
 
-    // ================= NATIVE SHARE =================
     if(navigator.share){
         navigator.share({
             title:"📡 위치 공유",
@@ -255,7 +288,7 @@ https://www.google.com/maps?q=${lastPos.lat},${lastPos.lng}`;
             url:`https://www.google.com/maps?q=${lastPos.lat},${lastPos.lng}`
         });
     } else {
-        prompt("복사해서 카카오톡/문자에 붙여넣기:", text);
+        prompt("복사:", text);
     }
 }
 
