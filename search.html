@@ -83,6 +83,7 @@ button:disabled{ opacity:0.5; }
 
 <button onclick="goMyLocation()">📍 MY LOCATION</button>
 <button onclick="shareLocation()">📡 위치 공유</button>
+<button onclick="sendSOS()">🚨 SOS</button>    
 <button onclick="stopTracking()">⛔ STOP</button>
 <button onclick="loadAllHistory()">📦 전체 기록</button>
 </div>
@@ -95,6 +96,9 @@ button:disabled{ opacity:0.5; }
 
 // ================= API =================
 const API_URL = "https://script.google.com/macros/s/AKfycbyem5fAs2XGxNy6wrHO3s68CmJyHy7GI31IBKdiz49KtN3sfikYdfmpP07-3dWqna2R/exec";
+
+// 장치 고유 ID 생성
+const DEVICE_ID = crypto.randomUUID();
 
 // ================= MAP =================
 const map = L.map('map').setView([35.1239, 126.9883], 13);
@@ -146,8 +150,6 @@ let lastPos=null;
 let watchId=null;
 let intervalSend=null;
 let intervalLoad=null;
-let previousPos = null;
-let directionMarker = null;    
 
 const markers={};
 
@@ -175,7 +177,7 @@ function start(){
     watchId = navigator.geolocation.watchPosition(
         (pos)=>{
 
-            const current = {
+           const current = {
     name: myName,
     device: DEVICE_ID,
     lat: pos.coords.latitude,
@@ -185,46 +187,7 @@ function start(){
 
 
 // 이동 방향 표시
-if(previousPos){
 
-    const angle = Math.atan2(
-        current.lng - previousPos.lng,
-        current.lat - previousPos.lat
-    ) * 180 / Math.PI;
-
-
-    if(!directionMarker){
-
-        directionMarker = new kakao.maps.Marker({
-            map: map,
-            position:new kakao.maps.LatLng(
-                current.lat,
-                current.lng
-            ),
-            image:new kakao.maps.MarkerImage(
-                "https://cdn-icons-png.flaticon.com/512/60/60995.png",
-                new kakao.maps.Size(32,32)
-            )
-        });
-
-    }else{
-
-        directionMarker.setPosition(
-            new kakao.maps.LatLng(
-                current.lat,
-                current.lng
-            )
-        );
-
-    }
-
-    directionMarker.setImage(
-        createArrowImage(angle)
-    );
-}
-
-
-previousPos = current;
 lastPos = current;
 
         },
@@ -287,39 +250,76 @@ function renderLive(data){
 
 }
 
-        // ================= SOS =================
-        if(p.status==="SOS"){
+// ================= STATUS =================
+if (p.status === "SOS") {
 
-            const icon = L.icon({
-                iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
-                shadowUrl:"https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
-                iconSize:[30,50],
-                iconAnchor:[15,50]
-            });
+    const icon = L.icon({
+        iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+        shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
+        iconSize: [30, 50],
+        iconAnchor: [15, 50]
+    });
 
-            markers[key].setIcon(icon);
-            markers[key].addTo(sosLayer);
-        }
+    markers[key].setIcon(icon);
+    
+    L.circle(pos, {
+        radius: 50,
+        color: "red",
+        fillColor: "red",
+        fillOpacity: 0.3
+    }).addTo(sosLayer);
 
-        // ================= SHARE =================
-        if(p.status==="SHARE"){
+    
+} else if (p.status === "SHARE") {
 
-            const icon = L.icon({
-                iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png",
-                shadowUrl:"https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png"
-            });
+    const icon = L.icon({
+        iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png",
+        shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
+        iconSize: [25, 41],
+        iconAnchor: [12, 41]
+    });
 
-            markers[key].setIcon(icon);
-        }
+    markers[key].setIcon(icon);
+
+} else {
+
+    const icon = L.icon({
+        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+        iconSize: [25, 41],
+        iconAnchor: [12, 41]
+    });
+
+    markers[key].setIcon(icon);
+}
     }
 }
-
+    
 // ================= CENTER =================
 function goMyLocation(){
     if(!lastPos) return;
     map.setView([lastPos.lat,lastPos.lng],16);
 }
+    
+// ================= SOS =================
+function sendSOS(){
 
+    if(!lastPos){
+        alert("현재 위치가 없습니다.");
+        return;
+    }
+
+    fetch(API_URL,{
+        method:"POST",
+        headers:{ "Content-Type":"text/plain" },
+        body:JSON.stringify({
+            ...lastPos,
+            status:"SOS"
+        })
+    });
+
+    alert("🚨 SOS 전송 완료");
+}    
 // ================= STOP (RESET FULL) =================
 function stopTracking(){
 
@@ -345,6 +345,7 @@ function stopTracking(){
     alert("⛔ STOP 완료 (초기화됨)");
 }
 
+  
 // ================= SHARE =================
 function shareLocation(){
 
@@ -423,35 +424,7 @@ function showHistoryMap(data){
         }).addTo(historyLines);
     }
 }
-// ================= ANGLE =================  
-function createArrowImage(angle){
 
-    const canvas=document.createElement("canvas");
-    canvas.width=40;
-    canvas.height=40;
-
-    const ctx=canvas.getContext("2d");
-
-    ctx.translate(20,20);
-    ctx.rotate(angle*Math.PI/180);
-
-    ctx.fillStyle="#00ff00";
-
-    ctx.beginPath();
-    ctx.moveTo(0,-18);
-    ctx.lineTo(10,10);
-    ctx.lineTo(0,5);
-    ctx.lineTo(-10,10);
-    ctx.closePath();
-
-    ctx.fill();
-
-
-    return new kakao.maps.MarkerImage(
-        canvas.toDataURL(),
-        new kakao.maps.Size(40,40)
-    );
-}  
 </script>
 </body>
 </html>
