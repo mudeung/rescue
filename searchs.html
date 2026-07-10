@@ -185,6 +185,7 @@ let previousPos = null;
 let directionMarker = null;  
 
 const markers = {};
+const labels = {};
 
 // ================= INPUT =================
 const nameInput = document.getElementById("name");
@@ -319,19 +320,85 @@ function renderLive(data){
 
     Object.values(latest).forEach(p => {
 
-        const key = p.name;
-        const pos = new kakao.maps.LatLng(p.lat, p.lng);
+    const key = p.name;
 
-        if(!markers[key]){
+    const pos = new kakao.maps.LatLng(
+        p.lat,
+        p.lng
+    );
 
-            markers[key] = new kakao.maps.Marker({
-                map: map,
-                position: pos
-            });
 
-        } else {
-            markers[key].setPosition(pos);
-        }
+    // ================= MARKER =================
+
+    if(!markers[key]){
+
+        markers[key] = new kakao.maps.Marker({
+            map: map,
+            position: pos
+        });
+
+
+        // ID 표시창 생성
+        labels[key] = new kakao.maps.CustomOverlay({
+            position: pos,
+            content:
+            `
+            <div style="
+                background:#07101f;
+                color:#00ff9d;
+                border:1px solid #00ff9d;
+                padding:5px 8px;
+                border-radius:5px;
+                font-family:monospace;
+                font-size:12px;
+                font-weight:bold;
+                white-space:nowrap;
+            ">
+            🛰 ${p.name}
+            </div>
+            `,
+            yAnchor: 2.2
+        });
+
+
+        labels[key].setMap(map);
+
+
+    }else{
+
+        markers[key].setPosition(pos);
+
+        // ID 위치 이동
+        labels[key].setPosition(pos);
+    }
+
+
+    // ================= STATUS =================
+
+    if(p.status === "SOS"){
+
+        markers[key].setImage(
+            new kakao.maps.MarkerImage(
+                "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
+                new kakao.maps.Size(24,35)
+            )
+        );
+
+    }
+
+
+    if(p.status === "SHARE"){
+
+        markers[key].setImage(
+            new kakao.maps.MarkerImage(
+                "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png",
+                new kakao.maps.Size(24,35)
+            )
+        );
+
+    }
+
+});
 
         // ================= STATUS =================
         if(p.status === "SOS"){
