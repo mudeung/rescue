@@ -1012,42 +1012,34 @@ function loadAllHistory(){
 
 function showHistory(data){
 
-
     const grouped={};
 
 
-
     data.forEach(d=>{
-
 
         if(!grouped[d.name])
         grouped[d.name]=[];
 
 
-
-        grouped[d.name]
-        .push(
-
-        new kakao.maps.LatLng(
-            d.lat,
-            d.lng
-        )
-
+        grouped[d.name].push(
+            new kakao.maps.LatLng(
+                d.lat,
+                d.lng
+            )
         );
 
-
     });
-
 
 
 
     for(const name in grouped){
 
 
-        const path =
-        grouped[name];
+        const path = grouped[name];
 
 
+
+        // ===== 이동 경로 =====
 
         new kakao.maps.Polyline({
 
@@ -1063,31 +1055,112 @@ function showHistory(data){
 
 
 
+        // ===== 시작 위치 =====
+
+        const startMarker =
         new kakao.maps.Marker({
 
             map:map,
 
-            position:path[0]
+            position:path[0],
+
+            image:
+            new kakao.maps.MarkerImage(
+
+            "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
+
+            new kakao.maps.Size(24,35)
+
+            )
 
         });
 
 
 
+        new kakao.maps.CustomOverlay({
+
+            map:map,
+
+            position:path[0],
+
+            content:
+            `
+            <div style="
+            background:#07101f;
+            color:#00ff9d;
+            border:1px solid #00ff9d;
+            padding:4px 8px;
+            border-radius:6px;
+            font-family:monospace;
+            font-size:12px;
+            font-weight:bold;
+            white-space:nowrap;
+            ">
+            🛰 ${name}
+            </div>
+            `,
+
+            yAnchor:1.8
+
+        });
+
+
+
+        // ===== 마지막 위치 =====
+
+        const endMarker =
         new kakao.maps.Marker({
 
             map:map,
 
             position:
-            path[path.length-1]
+            path[path.length-1],
+
+            image:
+            new kakao.maps.MarkerImage(
+
+            "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
+
+            new kakao.maps.Size(24,35)
+
+            )
+
+        });
+
+
+
+        new kakao.maps.CustomOverlay({
+
+            map:map,
+
+            position:
+            path[path.length-1],
+
+            content:
+            `
+            <div style="
+            background:#07101f;
+            color:#00ff9d;
+            border:1px solid #00ff9d;
+            padding:4px 8px;
+            border-radius:6px;
+            font-family:monospace;
+            font-size:12px;
+            font-weight:bold;
+            white-space:nowrap;
+            ">
+            🛰 ${name}
+            </div>
+            `,
+
+            yAnchor:1.8
 
         });
 
 
     }
 
-
 }
-
 
 
 // ================= ARROW IMAGE =================
