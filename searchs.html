@@ -83,7 +83,12 @@ function loadNationalParks(){
 
         data.features.forEach(feature=>{
 
-            const coords = feature.geometry.coordinates[0];
+            if(feature.geometry.type==="Polygon"){
+
+}
+else if(feature.geometry.type==="MultiPolygon"){
+
+}
 
             const path = coords.map(c =>
                 new kakao.maps.LatLng(c[1], c[0])
@@ -204,7 +209,28 @@ nameInput.addEventListener("keydown", (e) => {
         if (!startBtn.disabled) start();
     }
 });
+function getBearing(lat1,lng1,lat2,lng2){
 
+const y=Math.sin(
+(lng2-lng1)*Math.PI/180
+)
+*Math.cos(lat2*Math.PI/180);
+
+const x=
+Math.cos(lat1*Math.PI/180)
+*Math.sin(lat2*Math.PI/180)
+-
+Math.sin(lat1*Math.PI/180)
+*Math.cos(lat2*Math.PI/180)
+*Math.cos(
+(lng2-lng1)*Math.PI/180
+);
+
+return (
+Math.atan2(y,x)*180/Math.PI+360
+)%360;
+
+}
 // ================= START =================
 function start(){
 
@@ -233,10 +259,12 @@ function start(){
 // 이동 방향 표시
 if(previousPos){
 
-    const angle = Math.atan2(
-        current.lng - previousPos.lng,
-        current.lat - previousPos.lat
-    ) * 180 / Math.PI;
+    const angle=getBearing(
+previousPos.lat,
+previousPos.lng,
+current.lat,
+current.lng
+);
 
 
     if(!directionMarker){
