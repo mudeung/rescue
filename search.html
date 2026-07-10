@@ -136,6 +136,8 @@ let lastPos=null;
 let watchId=null;
 let intervalSend=null;
 let intervalLoad=null;
+let previousPos = null;
+let directionMarker = null;    
 
 const markers={};
 
@@ -163,12 +165,57 @@ function start(){
     watchId = navigator.geolocation.watchPosition(
         (pos)=>{
 
-            lastPos={
-                name:myName,
-                lat:pos.coords.latitude,
-                lng:pos.coords.longitude,
-                status:"normal"
-            };
+            const current = {
+    name: myName,
+    device: DEVICE_ID,
+    lat: pos.coords.latitude,
+    lng: pos.coords.longitude,
+    status:"normal"
+};
+
+
+// 이동 방향 표시
+if(previousPos){
+
+    const angle = Math.atan2(
+        current.lng - previousPos.lng,
+        current.lat - previousPos.lat
+    ) * 180 / Math.PI;
+
+
+    if(!directionMarker){
+
+        directionMarker = new kakao.maps.Marker({
+            map: map,
+            position:new kakao.maps.LatLng(
+                current.lat,
+                current.lng
+            ),
+            image:new kakao.maps.MarkerImage(
+                "https://cdn-icons-png.flaticon.com/512/60/60995.png",
+                new kakao.maps.Size(32,32)
+            )
+        });
+
+    }else{
+
+        directionMarker.setPosition(
+            new kakao.maps.LatLng(
+                current.lat,
+                current.lng
+            )
+        );
+
+    }
+
+    directionMarker.setImage(
+        createArrowImage(angle)
+    );
+}
+
+
+previousPos = current;
+lastPos = current;
 
         },
         (err)=>{
@@ -341,7 +388,35 @@ function showHistoryMap(data){
         }).addTo(historyLines);
     }
 }
+// ================= ANGLE =================  
+function createArrowImage(angle){
 
+    const canvas=document.createElement("canvas");
+    canvas.width=40;
+    canvas.height=40;
+
+    const ctx=canvas.getContext("2d");
+
+    ctx.translate(20,20);
+    ctx.rotate(angle*Math.PI/180);
+
+    ctx.fillStyle="#00ff00";
+
+    ctx.beginPath();
+    ctx.moveTo(0,-18);
+    ctx.lineTo(10,10);
+    ctx.lineTo(0,5);
+    ctx.lineTo(-10,10);
+    ctx.closePath();
+
+    ctx.fill();
+
+
+    return new kakao.maps.MarkerImage(
+        canvas.toDataURL(),
+        new kakao.maps.Size(40,40)
+    );
+}  
 </script>
 </body>
 </html>
