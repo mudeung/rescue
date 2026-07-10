@@ -275,7 +275,11 @@ const markers={};
 
 const labels={};
 
+const historyMarkers=[];
 
+const historyLabels=[];
+
+const historyLines=[];
 
 // ================= INPUT =================
 
@@ -992,6 +996,9 @@ https://map.kakao.com/link/map/${lastPos.lat},${lastPos.lng}`;
 
 function loadAllHistory(){
 
+    // 기존 기록 삭제
+    clearHistory();
+
 
     fetch(
 
@@ -1004,10 +1011,45 @@ function loadAllHistory(){
 
     .then(showHistory);
 
-
 }
 
+function clearHistory(){
 
+    // 이동선 삭제
+    historyLines.forEach(line=>{
+
+        line.setMap(null);
+
+    });
+
+
+    historyLines.length=0;
+
+
+
+    // 기록 핀 삭제
+    historyMarkers.forEach(marker=>{
+
+        marker.setMap(null);
+
+    });
+
+
+    historyMarkers.length=0;
+
+
+
+    // 기록 ID 삭제
+    historyLabels.forEach(label=>{
+
+        label.setMap(null);
+
+    });
+
+
+    historyLabels.length=0;
+
+}
 
 
 function showHistory(data){
@@ -1041,6 +1083,7 @@ function showHistory(data){
 
         // ===== 이동 경로 =====
 
+        const line =
         new kakao.maps.Polyline({
 
             map:map,
@@ -1054,8 +1097,11 @@ function showHistory(data){
         });
 
 
+        historyLines.push(line);
 
-        // ===== 시작 위치 =====
+
+
+        // ===== 시작 핀 =====
 
         const startMarker =
         new kakao.maps.Marker({
@@ -1076,7 +1122,13 @@ function showHistory(data){
         });
 
 
+        historyMarkers.push(startMarker);
 
+
+
+        // ===== 시작 ID 표시 =====
+
+        const startLabel =
         new kakao.maps.CustomOverlay({
 
             map:map,
@@ -1105,16 +1157,18 @@ function showHistory(data){
         });
 
 
+        historyLabels.push(startLabel);
 
-        // ===== 마지막 위치 =====
+
+
+        // ===== 마지막 핀 =====
 
         const endMarker =
         new kakao.maps.Marker({
 
             map:map,
 
-            position:
-            path[path.length-1],
+            position:path[path.length-1],
 
             image:
             new kakao.maps.MarkerImage(
@@ -1128,13 +1182,18 @@ function showHistory(data){
         });
 
 
+        historyMarkers.push(endMarker);
 
+
+
+        // ===== 마지막 ID 표시 =====
+
+        const endLabel =
         new kakao.maps.CustomOverlay({
 
             map:map,
 
-            position:
-            path[path.length-1],
+            position:path[path.length-1],
 
             content:
             `
@@ -1158,10 +1217,12 @@ function showHistory(data){
         });
 
 
+        historyLabels.push(endLabel);
+
+
     }
 
 }
-
 
 // ================= ARROW IMAGE =================
 
