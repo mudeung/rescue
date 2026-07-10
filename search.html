@@ -348,15 +348,22 @@ function stopTracking(){
 // ================= SHARE =================
 function shareLocation(){
 
-    if(!lastPos) return;
+    if(!lastPos){
+        alert("현재 위치가 없습니다.");
+        return;
+    }
+
+    const url = `https://www.google.com/maps?q=${lastPos.lat},${lastPos.lng}`;
 
     const text =
-`📡 위치 공유
-UNIT: ${lastPos.name}
-LAT: ${lastPos.lat}
-LNG: ${lastPos.lng}
-https://www.google.com/maps?q=${lastPos.lat},${lastPos.lng}`;
+`📡 구조대 위치공유
 
+UNIT : ${lastPos.name}
+
+위치 :
+${url}`;
+
+    // 서버에도 SHARE 상태 저장
     fetch(API_URL,{
         method:"POST",
         headers:{ "Content-Type":"text/plain" },
@@ -366,14 +373,21 @@ https://www.google.com/maps?q=${lastPos.lat},${lastPos.lng}`;
         })
     });
 
+    // 휴대폰 공유창
     if(navigator.share){
+
         navigator.share({
-            title:"📡 위치 공유",
+            title:"구조대 위치",
             text:text,
-            url:`https://www.google.com/maps?q=${lastPos.lat},${lastPos.lng}`
-        });
-    } else {
-        prompt("복사:", text);
+            url:url
+        }).catch(console.error);
+
+    }else{
+
+        // 지원 안 하면 문자 앱 실행
+        location.href =
+            "sms:?body=" + encodeURIComponent(text);
+
     }
 }
 
