@@ -35,6 +35,7 @@ header{
     display:flex;
     flex-direction:column;
     gap:6px;
+    overflow-y:auto;
 }
 
 #map{ flex:1; }
@@ -46,8 +47,12 @@ input,button{
     color:#00ff9d;
 }
 
-button:disabled{
-    opacity:0.5;
+button:disabled{ opacity:0.5; }
+
+@media (max-width:768px){
+    #container{flex-direction:column;}
+    #panel{width:100%;flex-wrap:wrap;max-height:35vh;}
+    #map{height:65vh;}
 }
 </style>
 </head>
