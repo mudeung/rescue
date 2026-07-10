@@ -89,7 +89,8 @@ function loadNationalParks(){
                 new kakao.maps.LatLng(c[1], c[0])
             );
 
-            new kakao.maps.Polygon({
+
+            const polygon = new kakao.maps.Polygon({
                 map: map,
                 path: path,
                 strokeWeight: 2,
@@ -98,6 +99,58 @@ function loadNationalParks(){
                 fillColor:"#00ffff",
                 fillOpacity:0.08
             });
+
+
+            // ================= 클릭 정보창 =================
+
+            kakao.maps.event.addListener(
+                polygon,
+                'click',
+                function(mouseEvent){
+
+                    const name =
+                    feature.properties.name ||
+                    feature.properties.PARK_NAME ||
+                    "국립공원";
+
+
+                    const info =
+                    `
+                    <div style="
+                    padding:12px;
+                    background:#07101f;
+                    color:#00ff9d;
+                    font-family:monospace;
+                    border:1px solid #00ff9d;
+                    ">
+                    🏔 <b>${name}</b><br><br>
+
+                    📍 위치<br>
+                    ${mouseEvent.latLng.getLat().toFixed(6)}
+                    ,
+                    ${mouseEvent.latLng.getLng().toFixed(6)}
+                    <br><br>
+
+                    🛰 SEARCH AREA
+                    </div>
+                    `;
+
+
+                    const infowindow =
+                    new kakao.maps.InfoWindow({
+                        content:info
+                    });
+
+
+                    infowindow.setPosition(
+                        mouseEvent.latLng
+                    );
+
+                    infowindow.open(map);
+
+                }
+            );
+
 
         });
 
