@@ -271,7 +271,7 @@ let directionMarker=null;
 
 
 
-const markers={};
+const labels={};
 
 
 
@@ -621,26 +621,60 @@ function renderLive(data){
         if(!markers[key]){
 
 
-            markers[key] =
-            new kakao.maps.Marker({
+    markers[key] =
+    new kakao.maps.Marker({
 
-                map:map,
+        map:map,
+        position:pos
 
-                position:pos
-
-            });
-
-
-        }
-
-        else{
+    });
 
 
-            markers[key]
-            .setPosition(pos);
+
+    // ===== PIN ID 표시 =====
+
+    labels[key] =
+    new kakao.maps.CustomOverlay({
+
+        map:map,
+
+        position:pos,
+
+        content:
+        `
+        <div style="
+        background:#07101f;
+        color:#00ff9d;
+        border:1px solid #00ff9d;
+        padding:4px 8px;
+        border-radius:6px;
+        font-family:monospace;
+        font-size:12px;
+        white-space:nowrap;
+        ">
+        🛰 ${p.name}
+        </div>
+        `,
+
+        yAnchor:2
+
+    });
 
 
-        }
+}
+
+else{
+
+
+    markers[key]
+    .setPosition(pos);
+
+
+    labels[key]
+    .setPosition(pos);
+
+
+}
 
 
 
@@ -835,7 +869,16 @@ function stopTracking(){
 
     });
 
+Object.values(labels)
+.forEach(l=>{
+    l.setMap(null);
+});
 
+
+Object.keys(labels)
+.forEach(k=>{
+    delete labels[k];
+});
 
     nameInput.disabled=false;
 
