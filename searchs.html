@@ -271,6 +271,8 @@ let directionMarker=null;
 
 
 
+const markers={};
+
 const labels={};
 
 
@@ -621,13 +623,23 @@ function renderLive(data){
         if(!markers[key]){
 
 
-    markers[key] =
-    new kakao.maps.Marker({
+   markers[key] =
+new kakao.maps.Marker({
 
-        map:map,
-        position:pos
+    map:map,
 
-    });
+    position:pos,
+
+    image:
+    new kakao.maps.MarkerImage(
+
+    "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
+
+    new kakao.maps.Size(24,35)
+
+    )
+
+});
 
 
 
@@ -656,7 +668,7 @@ function renderLive(data){
         </div>
         `,
 
-        yAnchor:2
+       yAnchor:1.5
 
     });
 
