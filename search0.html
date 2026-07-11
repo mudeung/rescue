@@ -98,7 +98,12 @@ button:disabled{ opacity:0.5; }
 const API_URL = "https://script.google.com/macros/s/AKfycbyem5fAs2XGxNy6wrHO3s68CmJyHy7GI31IBKdiz49KtN3sfikYdfmpP07-3dWqna2R/exec";
 
 // 장치 고유 ID 생성
-const DEVICE_ID = crypto.randomUUID();
+let DEVICE_ID = localStorage.getItem("DEVICE_ID");
+
+if(!DEVICE_ID){
+    DEVICE_ID = crypto.randomUUID();
+    localStorage.setItem("DEVICE_ID", DEVICE_ID);
+}
 
 // ================= MAP =================
 const map = L.map('map').setView([35.1239, 126.9883], 13);
@@ -154,6 +159,32 @@ let startTime = "";
 let endTime = "";
   
 const markers={};
+const rescueColors={};
+
+const colors=[
+"#00ff9d",
+"#00aaff",
+"#ffcc00",
+"#ff00ff",
+"#ff6600"
+];
+
+
+function getColor(name){
+
+    if(!rescueColors[name]){
+        rescueColors[name]
+        =
+        colors[
+          Object.keys(rescueColors).length
+          %
+          colors.length
+        ];
+    }
+
+    return rescueColors[name];
+
+}    
 
 const historyMarkers = L.layerGroup().addTo(map);
 const historyLines = L.layerGroup().addTo(map);
@@ -247,11 +278,12 @@ function sendData(){
 
 // ================= LIVE =================
 function loadLive(){
-    fetch(API_URL + "?t=" + Date.now())
+
+    fetch(API_URL + "?live=1&t=" + Date.now())
     .then(r=>r.json())
     .then(renderLive);
-}
 
+}
 // ================= RENDER =================
 function renderLive(data){
 
@@ -275,13 +307,21 @@ function renderLive(data){
 
         if(!markers[key]){
 
-            markers[key] = L.marker(pos)
-                .addTo(map)
-                .bindTooltip(p.name,{
-                    permanent:true,
-                    direction:"top",
-                    className:"name-label"
-                });
+            markers[key] = L.circleMarker(pos,{
+    radius:10,
+    color:getColor(key),
+    fillColor:getColor(key),
+    fillOpacity:1
+})
+.addTo(map)
+.bindTooltip(
+    p.name,
+    {
+      permanent:true,
+      direction:"top",
+      className:"name-label"
+    }
+);
 
             map.setView(pos,16);
 
@@ -455,9 +495,10 @@ ${url}`;
 // ================= HISTORY =================
 function loadAllHistory(){
 
-    fetch(API_URL + "?history=all&t=" + Date.now())
+    fetch(API_URL + "?history=1&t=" + Date.now())
     .then(r=>r.json())
     .then(showHistoryMap);
+
 }
 
 function showHistoryMap(data){
@@ -467,10 +508,24 @@ function showHistoryMap(data){
 
     const grouped={};
 
-    data.forEach(d=>{
-        if(!grouped[d.name]) grouped[d.name]=[];
-        grouped[d.name].push([d.lat,d.lng]);
-    });
+    data.sort((a,b)=>{
+    return new Date(a.time)-new Date(b.time);
+});
+
+
+data.forEach(d=>{
+
+    if(!grouped[d.name]){
+        grouped[d.name]=[];
+    }
+
+
+    grouped[d.name].push([
+        Number(d.lat),
+        Number(d.lng)
+    ]);
+
+});
 
     for(const name in grouped){
 
