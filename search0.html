@@ -238,8 +238,7 @@ function sendData(){
         body:JSON.stringify({
             ...lastPos,
             startTime:startTime,
-            endTime:endTime,
-            status:lastPos.status || "normal"
+            endTime:endTime
         })
     });
 
@@ -336,7 +335,7 @@ function sendSOS(){
     if(!lastPos){
         alert("현재 위치가 없습니다.");
         return;
-    }
+    }function start(){
 
     fetch(API_URL,{
         method:"POST",
@@ -354,7 +353,6 @@ function stopTracking(){
 
     endTime = getNowTime();
 
-    // 종료 정보 마지막 전송
     if(lastPos){
 
         fetch(API_URL,{
@@ -364,9 +362,9 @@ function stopTracking(){
             },
             body:JSON.stringify({
                 ...lastPos,
-                startTime: startTime,
-                endTime: endTime,
-                status: "STOP"
+                startTime:startTime,
+                endTime:endTime,
+                status:"STOP"
             })
         });
 
@@ -385,6 +383,7 @@ function stopTracking(){
 
     lastPos = null;
     myName = "";
+
     startTime = "";
     endTime = "";
 
