@@ -185,9 +185,9 @@ function getNowTime() {
 // ================= START =================
 function start(){
 
-   endTime = getNowTime();  
-    myName = nameInput.value.trim();
-  startTime = getNowTime();
+myName = nameInput.value.trim();
+
+startTime = getNowTime();
 endTime = "";
     if(!myName) return alert("UNIT ID required");
 
@@ -226,16 +226,24 @@ lastPos = current;
 }
 
 // ================= SEND =================
-fetch(API_URL,{
-    method:"POST",
-    headers:{ "Content-Type":"text/plain" },
-    body:JSON.stringify({
-        ...lastPos,
-        startTime: startTime,
-        endTime: endTime,
-        status: "STOP"
-    })
-});
+function sendData(){
+
+    if(!lastPos) return;
+
+    fetch(API_URL,{
+        method:"POST",
+        headers:{
+            "Content-Type":"text/plain"
+        },
+        body:JSON.stringify({
+            ...lastPos,
+            startTime:startTime,
+            endTime:endTime,
+            status:lastPos.status || "normal"
+        })
+    });
+
+}
 
 // ================= LIVE =================
 function loadLive(){
@@ -344,6 +352,26 @@ function sendSOS(){
 // ================= STOP (RESET FULL) =================
 function stopTracking(){
 
+    endTime = getNowTime();
+
+    // 종료 정보 마지막 전송
+    if(lastPos){
+
+        fetch(API_URL,{
+            method:"POST",
+            headers:{
+                "Content-Type":"text/plain"
+            },
+            body:JSON.stringify({
+                ...lastPos,
+                startTime: startTime,
+                endTime: endTime,
+                status: "STOP"
+            })
+        });
+
+    }
+
     if(watchId){
         navigator.geolocation.clearWatch(watchId);
         watchId = null;
@@ -357,6 +385,8 @@ function stopTracking(){
 
     lastPos = null;
     myName = "";
+    startTime = "";
+    endTime = "";
 
     nameInput.disabled = false;
     nameInput.value = "";
