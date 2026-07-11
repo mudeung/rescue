@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
+
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>🛰 SEARCH AND RESCUE AI MAP</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
@@ -11,7 +13,9 @@
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
 
+
 <style>
+
 body{
     margin:0;
     background:#050b18;
@@ -20,6 +24,7 @@ body{
     overflow:hidden;
 }
 
+
 header{
     background:#071a2f;
     padding:10px;
@@ -27,10 +32,12 @@ header{
     font-weight:bold;
 }
 
+
 #container{
     display:flex;
     height:calc(100vh - 50px);
 }
+
 
 #panel{
     width:300px;
@@ -42,421 +49,927 @@ header{
     overflow-y:auto;
 }
 
-#map{ flex:1; }
+
+#map{
+    flex:1;
+}
+
 
 input,button{
+
     padding:10px;
     border:1px solid #00ff9d;
     background:#001a14;
     color:#00ff9d;
+
 }
 
-button:disabled{ opacity:0.5; }
 
-@media (max-width:768px){
-    #container{flex-direction:column;}
-    #panel{width:100%;flex-wrap:wrap;max-height:35vh;}
-    #map{height:65vh;}
+button:disabled{
+    opacity:0.5;
 }
+
+
+@media(max-width:768px){
+
+#container{
+    flex-direction:column;
+}
+
+#panel{
+    width:100%;
+    max-height:35vh;
+}
+
+#map{
+    height:65vh;
+}
+
+}
+
+
 .name-label{
-    background:#001a14;
-    color:#00ff9d;
-    border:1px solid #00ff9d;
-    border-radius:5px;
-    padding:3px 8px;
-    font-size:12px;
-    font-weight:bold;
-    box-shadow:0 0 8px #00ff9d;
-}    
+
+background:#001a14;
+color:#00ff9d;
+border:1px solid #00ff9d;
+border-radius:5px;
+padding:3px 8px;
+font-size:12px;
+font-weight:bold;
+box-shadow:0 0 8px #00ff9d;
+
+}
+
 </style>
+
 </head>
+
 
 <body>
 
-<header>🛰 SEARCH AND RESCUE AI MAP</header>
+
+<header>
+🛰 SEARCH AND RESCUE AI MAP
+</header>
+
+
 
 <div id="container">
 
-<div id="panel">
-<input id="name" placeholder="RESCUE ID">
-<button id="startBtn" onclick="start()" disabled>START</button>
 
-<button onclick="goMyLocation()">📍 MY LOCATION</button>
-<button onclick="shareLocation()">📡 위치 공유</button>
-<button onclick="sendSOS()">🚨 SOS</button>    
-<button onclick="stopTracking()">⛔ STOP</button>
-<button onclick="loadAllHistory()">📦 전체 기록</button>
+<div id="panel">
+
+<input id="name" placeholder="RESCUE ID">
+
+
+<button id="startBtn" onclick="start()" disabled>
+START
+</button>
+
+
+<button onclick="goMyLocation()">
+📍 MY LOCATION
+</button>
+
+
+<button onclick="shareLocation()">
+📡 위치 공유
+</button>
+
+
+<button onclick="sendSOS()">
+🚨 SOS
+</button>
+
+
+<button onclick="stopTracking()">
+⛔ STOP
+</button>
+
+
+<button onclick="loadAllHistory()">
+📦 전체 기록
+</button>
+
+
 </div>
+
+
 
 <div id="map"></div>
 
+
+
 </div>
+
+
+
+
 
 <script>
 
-// ================= API =================
-const API_URL = "https://script.google.com/macros/s/AKfycbyem5fAs2XGxNy6wrHO3s68CmJyHy7GI31IBKdiz49KtN3sfikYdfmpP07-3dWqna2R/exec";
 
-// 장치 고유 ID 생성
-let DEVICE_ID = localStorage.getItem("DEVICE_ID");
+// ================= API =================
+
+
+const API_URL =
+"https://script.google.com/macros/s/AKfycbyem5fAs2XGxNy6wrHO3s68CmJyHy7GI31IBKdiz49KtN3sfikYdfmpP07-3dWqna2R/exec";
+
+
+
+
+// ================= DEVICE ID =================
+
+
+let DEVICE_ID =
+localStorage.getItem("DEVICE_ID");
+
 
 if(!DEVICE_ID){
-    DEVICE_ID = crypto.randomUUID();
-    localStorage.setItem("DEVICE_ID", DEVICE_ID);
+
+    DEVICE_ID =
+    crypto.randomUUID();
+
+    localStorage.setItem(
+        "DEVICE_ID",
+        DEVICE_ID
+    );
+
 }
 
-// ================= MAP =================
-const map = L.map('map').setView([35.1239, 126.9883], 13);
 
-// ================= BASE LAYERS =================
-const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
-const topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png');
-const satellite = L.tileLayer(
-    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+
+
+
+// ================= MAP =================
+
+
+const map =
+L.map('map')
+.setView(
+[35.1239,126.9883],
+13
 );
+
+
+
+
+// ================= MAP LAYER =================
+
+
+const osm =
+L.tileLayer(
+'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+);
+
+
+const topo =
+L.tileLayer(
+'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png'
+);
+
+
+const satellite =
+L.tileLayer(
+'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+);
+
+
 
 osm.addTo(map);
 
+
+
 L.control.layers({
-    "🗺 일반지도": osm,
-    "⛰ 지형/등고선": topo,
-    "🛰 위성지도": satellite
+
+"🗺 일반지도":osm,
+"⛰ 지형지도":topo,
+"🛰 위성지도":satellite
+
 }).addTo(map);
 
+
+
+
+
+
 // ================= DRAW =================
-const drawnItems = new L.FeatureGroup();
+
+
+const drawnItems =
+new L.FeatureGroup();
+
+
 map.addLayer(drawnItems);
 
-const drawControl = new L.Control.Draw({
-    position: 'topright',
-    draw: {
-        polygon: true,
-        rectangle: true,
-        circle: true,
-        marker: true,
-        polyline: true,
-        circlemarker: false
-    },
-    edit: {
-        featureGroup: drawnItems,
-        remove: true
-    }
+
+
+const drawControl =
+new L.Control.Draw({
+
+position:"topright",
+
+draw:{
+
+polygon:true,
+rectangle:true,
+circle:true,
+marker:true,
+polyline:true,
+circlemarker:false
+
+},
+
+edit:{
+
+featureGroup:drawnItems,
+remove:true
+
+}
+
 });
+
 
 map.addControl(drawControl);
 
-map.on(L.Draw.Event.CREATED, function (e) {
-    drawnItems.addLayer(e.layer);
+
+
+map.on(
+L.Draw.Event.CREATED,
+function(e){
+
+drawnItems.addLayer(e.layer);
+
 });
 
+
+
+
+
+
 // ================= STATE =================
+
+
 let myName="";
+
 let lastPos=null;
+
 let watchId=null;
+
 let intervalSend=null;
+
 let intervalLoad=null;
-let startTime = "";
-let endTime = "";
-  
+
+
+let startTime="";
+
+let endTime="";
+
+
+
 const markers={};
+
+
+
 const rescueColors={};
 
+
+
 const colors=[
+
 "#00ff9d",
 "#00aaff",
 "#ffcc00",
 "#ff00ff",
 "#ff6600"
+
 ];
+
 
 
 function getColor(name){
 
-    if(!rescueColors[name]){
-        rescueColors[name]
-        =
-        colors[
-          Object.keys(rescueColors).length
-          %
-          colors.length
-        ];
-    }
 
-    return rescueColors[name];
+if(!rescueColors[name]){
 
-}    
 
-const historyMarkers = L.layerGroup().addTo(map);
-const historyLines = L.layerGroup().addTo(map);
-const sosLayer = L.layerGroup().addTo(map);
+rescueColors[name]
+=
+colors[
+Object.keys(rescueColors).length
+%
+colors.length
+];
+
+
+}
+
+
+return rescueColors[name];
+
+
+}
+
+
+
+
+const historyMarkers =
+L.layerGroup()
+.addTo(map);
+
+
+
+const historyLines =
+L.layerGroup()
+.addTo(map);
+
+
+
+const sosLayer =
+L.layerGroup()
+.addTo(map);
+
+
+
+
+
 
 // ================= INPUT =================
-const nameInput=document.getElementById("name");
-const startBtn=document.getElementById("startBtn");
 
-nameInput.addEventListener("input",()=>{
-    startBtn.disabled = nameInput.value.trim().length===0;
+
+const nameInput =
+document.getElementById("name");
+
+
+const startBtn =
+document.getElementById("startBtn");
+
+
+
+nameInput.addEventListener(
+"input",
+()=>{
+
+
+startBtn.disabled =
+nameInput.value.trim().length===0;
+
+
 });
 
+
+
+
+
+
 // ================= TIME =================
-function getNowTime() {
-    const now = new Date();
 
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, "0");
-    const d = String(now.getDate()).padStart(2, "0");
 
-    const h = String(now.getHours()).padStart(2, "0");
-    const min = String(now.getMinutes()).padStart(2, "0");
-    const s = String(now.getSeconds()).padStart(2, "0");
+function getNowTime(){
 
-    return `${y}-${m}-${d} ${h}:${min}:${s}`;
-}  
-  
+
+const now=new Date();
+
+
+return (
+
+now.getFullYear()
++"-"+
+String(now.getMonth()+1).padStart(2,"0")
++"-"+
+String(now.getDate()).padStart(2,"0")
++" "+
+String(now.getHours()).padStart(2,"0")
++":"
++
+String(now.getMinutes()).padStart(2,"0")
++":"
++
+String(now.getSeconds()).padStart(2,"0")
+
+);
+
+
+}
+
+
+
+
+
+
 // ================= START =================
+
+
 function start(){
 
-myName = nameInput.value.trim();
 
-startTime = getNowTime();
-endTime = "";
-    if(!myName) return alert("UNIT ID required");
+myName =
+nameInput.value.trim();
 
-    nameInput.disabled=true;
-    startBtn.disabled=true;
 
-    watchId = navigator.geolocation.watchPosition(
-        (pos)=>{
+if(!myName)
+return;
 
-           const current = {
-    name: myName,
-    device: DEVICE_ID,
-    lat: pos.coords.latitude,
-    lng: pos.coords.longitude,
-    status:"normal"
+
+
+startTime =
+getNowTime();
+
+
+endTime="";
+
+
+
+nameInput.disabled=true;
+
+startBtn.disabled=true;
+
+
+
+
+watchId =
+navigator.geolocation.watchPosition(
+
+(pos)=>{
+
+
+lastPos={
+
+
+name:myName,
+
+device:DEVICE_ID,
+
+lat:pos.coords.latitude,
+
+lng:pos.coords.longitude,
+
+status:"normal"
+
+
 };
 
 
-// 이동 방향 표시
-
-lastPos = current;
-
-        },
-        (err)=>{
-            console.log(err);
-            alert("GPS 오류 / 권한 확인 필요");
-        },
-        {
-            enableHighAccuracy:true,
-            maximumAge:1000
-        }
-    );
-
-    intervalSend=setInterval(sendData,5000);
-    intervalLoad=setInterval(loadLive,3000);
-}
-
-// ================= SEND =================
-function sendData(){
-
-    console.log("sendData", lastPos);
-    if(!lastPos) return;
-
-    fetch(API_URL,{
-        method:"POST",
-        headers:{
-            "Content-Type":"text/plain"
-        },
-        body:JSON.stringify({
-            ...lastPos,
-            startTime:startTime,
-            endTime:endTime
-        })
-    });
-
-}
-
-// ================= LIVE =================
-function loadLive(){
-
-    fetch(API_URL + "?live=1&t=" + Date.now())
-    .then(r=>r.json())
-    .then(renderLive);
-
-}
-// ================= RENDER =================
-function renderLive(data){
-
-    sosLayer.clearLayers();
-
-    for(const p of data){
-
-        const lat = Number(p.lat);
-        const lng = Number(p.lng);
-
-        console.log("GPS DATA:",p,lat,lng);
-
-        if(!Number.isFinite(lat) || !Number.isFinite(lng)){
-            console.log("좌표 오류:",p);
-            continue;
-        }
-
-        const key = p.name;
-        const pos = [lat,lng];
+},
 
 
-        if(!markers[key]){
+(err)=>{
 
-            markers[key] = L.circleMarker(pos,{
-    radius:10,
-    color:getColor(key),
-    fillColor:getColor(key),
-    fillOpacity:1
-})
-.addTo(map)
-.bindTooltip(
-    p.name,
-    {
-      permanent:true,
-      direction:"top",
-      className:"name-label"
-    }
+
+alert(
+"GPS 오류 / 권한 확인 필요"
 );
 
-            map.setView(pos,16);
 
-        }else{
-
-            markers[key].setLatLng(pos);
-
-        }
+},
 
 
-        // 상태 표시
-        if(p.status==="SOS"){
+{
 
-            markers[key].setIcon(
-                L.icon({
-                    iconUrl:
-                    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
-                    iconSize:[30,50],
-                    iconAnchor:[15,50]
-                })
-            );
+enableHighAccuracy:true,
 
-            L.circle(pos,{
-                radius:50,
-                color:"red",
-                fillOpacity:0.3
-            }).addTo(sosLayer);
+maximumAge:1000
 
-
-        }else if(p.status==="SHARE"){
-
-            markers[key].setIcon(
-                L.icon({
-                    iconUrl:
-                    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png",
-                    iconSize:[25,41],
-                    iconAnchor:[12,41]
-                })
-            );
-
-        }
-
-    }
 }
-    
-    
+
+
+);
+
+
+
+
+intervalSend =
+setInterval(
+sendData,
+5000
+);
+
+
+
+intervalLoad =
+setInterval(
+loadLive,
+3000
+);
+
+
+
+}
+
+
+
+
+
+
+// ================= SEND =================
+
+
+function sendData(){
+
+
+if(!lastPos)
+return;
+
+
+
+fetch(API_URL,{
+
+method:"POST",
+
+headers:{
+
+"Content-Type":"text/plain"
+
+},
+
+body:JSON.stringify({
+
+...lastPos,
+
+startTime:startTime,
+
+endTime:endTime
+
+})
+
+
+});
+
+
+}
+
+
+
+
+
+
+// ================= LIVE LOAD =================
+
+
+function loadLive(){
+
+
+fetch(
+API_URL+
+"?live=1&t="+Date.now()
+)
+
+.then(r=>r.json())
+
+.then(renderLive);
+
+
+}
+
+
+
+
+
+// ================= LIVE RENDER =================
+
+
+function renderLive(data){
+
+
+sosLayer.clearLayers();
+
+
+
+for(const p of data){
+
+
+const lat =
+Number(p.lat);
+
+
+const lng =
+Number(p.lng);
+
+
+
+if(
+!Number.isFinite(lat)
+||
+!Number.isFinite(lng)
+)
+continue;
+
+
+
+const key=p.name;
+
+
+const pos=[
+lat,
+lng
+];
+
+
+
+if(!markers[key]){
+
+
+markers[key] =
+L.circleMarker(
+pos,
+{
+
+radius:10,
+
+color:getColor(key),
+
+fillColor:getColor(key),
+
+fillOpacity:1
+
+}
+
+)
+
+.addTo(map)
+
+.bindTooltip(
+p.name,
+{
+
+permanent:true,
+
+direction:"top",
+
+className:"name-label"
+
+}
+
+);
+
+
+
+map.setView(
+pos,
+16
+);
+
+
+
+}else{
+
+
+markers[key]
+.setLatLng(pos);
+
+
+
+}
+
+
+// SOS 처리
+
+
+if(p.status==="SOS"){
+
+
+markers[key].setStyle({
+
+color:"red",
+
+fillColor:"red"
+
+});
+
+
+
+L.circle(
+
+pos,
+
+{
+
+radius:50,
+
+color:"red",
+
+fillOpacity:0.3
+
+}
+
+)
+
+.addTo(sosLayer);
+
+
+
+}
+
+
+}
+
+
+
+}
+
+
+
 // ================= CENTER =================
+
 function goMyLocation(){
+
     if(!lastPos) return;
-    map.setView([lastPos.lat,lastPos.lng],16);
+
+
+    map.setView(
+        [
+            lastPos.lat,
+            lastPos.lng
+        ],
+        16
+    );
+
 }
-    
+
+
+
+
+
 // ================= SOS =================
+
 function sendSOS(){
 
+
     if(!lastPos){
-        alert("현재 위치가 없습니다.");
+
+        alert(
+        "현재 위치가 없습니다."
+        );
+
         return;
+
     }
 
+
+
     fetch(API_URL,{
+
         method:"POST",
+
         headers:{
             "Content-Type":"text/plain"
         },
+
         body:JSON.stringify({
+
             ...lastPos,
-            startTime: startTime,
-            endTime: endTime,
-            status: "SOS"
+
+            startTime:startTime,
+
+            endTime:endTime,
+
+            status:"SOS"
+
         })
+
     });
 
-    alert("🚨 SOS 전송 완료");
+
+
+    alert(
+    "🚨 SOS 전송 완료"
+    );
+
+
 }
-    
-// ================= STOP (RESET FULL) =================
+
+
+
+
+
+// ================= STOP =================
+
 function stopTracking(){
 
-    endTime = getNowTime();
+
+    endTime =
+    getNowTime();
+
+
 
     if(lastPos){
 
+
         fetch(API_URL,{
+
             method:"POST",
+
             headers:{
                 "Content-Type":"text/plain"
             },
+
             body:JSON.stringify({
+
                 ...lastPos,
+
                 startTime:startTime,
+
                 endTime:endTime,
+
                 status:"STOP"
+
             })
+
+
         });
 
+
     }
+
+
 
     if(watchId){
-        navigator.geolocation.clearWatch(watchId);
-        watchId = null;
+
+
+        navigator.geolocation.clearWatch(
+            watchId
+        );
+
+
+        watchId=null;
+
+
     }
+
+
+
 
     clearInterval(intervalSend);
+
     clearInterval(intervalLoad);
 
-    intervalSend = null;
-    intervalLoad = null;
 
-    lastPos = null;
-    myName = "";
 
-    startTime = "";
-    endTime = "";
+    intervalSend=null;
 
-    nameInput.disabled = false;
-    nameInput.value = "";
+    intervalLoad=null;
 
-    startBtn.disabled = true;
 
-    alert("⛔ STOP 완료 (초기화됨)");
+
+    lastPos=null;
+
+    myName="";
+
+    startTime="";
+
+    endTime="";
+
+
+
+    nameInput.disabled=false;
+
+    nameInput.value="";
+
+
+    startBtn.disabled=true;
+
+
+
+    alert(
+    "⛔ STOP 완료"
+    );
+
+
 }
 
-  
+
+
+
+
+
+
 // ================= SHARE =================
+
 function shareLocation(){
 
+
     if(!lastPos){
-        alert("현재 위치가 없습니다.");
+
+        alert(
+        "현재 위치가 없습니다."
+        );
+
         return;
+
     }
 
-    const url = `https://www.google.com/maps?q=${lastPos.lat},${lastPos.lng}`;
+
+
+    const url =
+
+    `https://www.google.com/maps?q=${lastPos.lat},${lastPos.lng}`;
+
+
+
 
     const text =
+
 `📡 구조대 위치공유
 
 UNIT : ${lastPos.name}
@@ -464,82 +977,250 @@ UNIT : ${lastPos.name}
 위치 :
 ${url}`;
 
-    // 서버에도 SHARE 상태 저장
+
+
     fetch(API_URL,{
+
         method:"POST",
-        headers:{ "Content-Type":"text/plain" },
+
+        headers:{
+            "Content-Type":"text/plain"
+        },
+
+
         body:JSON.stringify({
+
             ...lastPos,
+
             status:"SHARE"
+
         })
+
     });
 
-    // 휴대폰 공유창
+
+
+
+
     if(navigator.share){
 
+
         navigator.share({
+
             title:"구조대 위치",
+
             text:text,
+
             url:url
-        }).catch(console.error);
+
+
+        })
+        .catch(
+            console.error
+        );
+
+
 
     }else{
 
-        // 지원 안 하면 문자 앱 실행
+
         location.href =
-            "sms:?body=" + encodeURIComponent(text);
+
+        "sms:?body="
+        +
+        encodeURIComponent(text);
+
+
 
     }
+
+
+
 }
+
+
+
+
+
+
 
 // ================= HISTORY =================
+
+
 function loadAllHistory(){
 
-    fetch(API_URL + "?history=1&t=" + Date.now())
+
+
+    fetch(
+    API_URL+
+    "?history=1&t="
+    +
+    Date.now()
+    )
+
     .then(r=>r.json())
+
     .then(showHistoryMap);
 
+
+
 }
+
+
+
+
+
 
 function showHistoryMap(data){
 
+
+
     historyMarkers.clearLayers();
+
     historyLines.clearLayers();
+
+
+
 
     const grouped={};
 
-    data.sort((a,b)=>{
-    return new Date(a.time)-new Date(b.time);
-});
 
 
-data.forEach(d=>{
 
-    if(!grouped[d.name]){
-        grouped[d.name]=[];
-    }
+    data.sort(
+
+        (a,b)=>
+
+        new Date(a.time)
+        -
+        new Date(b.time)
+
+    );
 
 
-    grouped[d.name].push([
-        Number(d.lat),
-        Number(d.lng)
-    ]);
 
-});
+
+
+    data.forEach(d=>{
+
+
+        if(!grouped[d.name]){
+
+            grouped[d.name]=[];
+
+        }
+
+
+
+
+        grouped[d.name].push([
+
+            Number(d.lat),
+
+            Number(d.lng)
+
+        ]);
+
+
+
+    });
+
+
+
+
+
 
     for(const name in grouped){
 
-        const path = grouped[name];
 
-        L.marker(path[0]).bindPopup("START: " + name).addTo(historyMarkers);
-        L.marker(path[path.length-1]).bindPopup("END: " + name).addTo(historyMarkers);
 
-        L.polyline(path,{
-            color:"#ffcc00"
-        }).addTo(historyLines);
+        const path =
+        grouped[name];
+
+
+
+        if(path.length===0)
+        continue;
+
+
+
+
+        L.marker(
+            path[0]
+        )
+
+        .bindPopup(
+            "START : "
+            +
+            name
+        )
+
+        .addTo(
+            historyMarkers
+        );
+
+
+
+
+
+        L.marker(
+            path[path.length-1]
+        )
+
+        .bindPopup(
+            "END : "
+            +
+            name
+        )
+
+        .addTo(
+            historyMarkers
+        );
+
+
+
+
+
+
+
+        L.polyline(
+
+            path,
+
+            {
+
+                color:
+                getColor(name),
+
+                weight:5,
+
+                opacity:0.8
+
+            }
+
+        )
+
+        .addTo(
+            historyLines
+        );
+
+
+
     }
+
+
+
+
+
 }
 
+
+
+
+
+
 </script>
+
 </body>
-</html>
+
+</html>    
