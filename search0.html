@@ -259,26 +259,40 @@ function renderLive(data){
 
     for(const p of data){
 
-        const key=p.name;
-        const pos=[p.lat,p.lng];
+        const lat = Number(p.lat);
+        const lng = Number(p.lng);
+
+        console.log("GPS DATA:", p, lat, lng);
+
+        if(!Number.isFinite(lat) || !Number.isFinite(lng)){
+            console.log("좌표 오류 제외:", p);
+            continue;
+        }
+
+        const key = p.name;
+        const pos = [lat, lng];
+
 
         if(!markers[key]){
 
-    markers[key] = L.marker(pos)
-        .addTo(map)
-        .bindTooltip(p.name, {
-            permanent: true,   // 항상 표시
-            direction: "top",
-            className: "name-label"
-        });
+            markers[key] = L.marker(pos)
+                .addTo(map)
+                .bindTooltip(p.name, {
+                    permanent:true,
+                    direction:"top",
+                    className:"name-label"
+                });
 
-}else{
+        }else{
 
-    markers[key].setLatLng(pos);
-    markers[key].setTooltipContent(p.name);
+            markers[key].setLatLng(pos);
+            markers[key].setTooltipContent(p.name);
 
+        }
+
+    }
 }
-
+    
 // ================= STATUS =================
 if (p.status === "SOS") {
 
