@@ -262,31 +262,67 @@ function renderLive(data){
         const lat = Number(p.lat);
         const lng = Number(p.lng);
 
-        console.log("GPS DATA:", p, lat, lng);
+        console.log("GPS DATA:", p);
 
         if(!Number.isFinite(lat) || !Number.isFinite(lng)){
-            console.log("좌표 오류 제외:", p);
+            console.log("좌표 오류:", p);
             continue;
         }
 
         const key = p.name;
-        const pos = [lat, lng];
+        const pos = [lat,lng];
 
 
         if(!markers[key]){
 
             markers[key] = L.marker(pos)
                 .addTo(map)
-                .bindTooltip(p.name, {
+                .bindTooltip(p.name,{
                     permanent:true,
                     direction:"top",
                     className:"name-label"
                 });
 
+            // 첫 위치로 지도 이동
+            map.setView(pos,16);
+
         }else{
 
             markers[key].setLatLng(pos);
-            markers[key].setTooltipContent(p.name);
+
+        }
+
+
+        // 상태별 아이콘
+        if(p.status==="SOS"){
+
+            markers[key].setIcon(
+                L.icon({
+                    iconUrl:
+                    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+                    iconSize:[30,50],
+                    iconAnchor:[15,50]
+                })
+            );
+
+
+            L.circle(pos,{
+                radius:50,
+                color:"red",
+                fillOpacity:0.3
+            }).addTo(sosLayer);
+
+
+        }else if(p.status==="SHARE"){
+
+            markers[key].setIcon(
+                L.icon({
+                    iconUrl:
+                    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png",
+                    iconSize:[25,41],
+                    iconAnchor:[12,41]
+                })
+            );
 
         }
 
