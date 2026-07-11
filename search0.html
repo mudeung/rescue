@@ -335,19 +335,24 @@ function sendSOS(){
     if(!lastPos){
         alert("현재 위치가 없습니다.");
         return;
-    }function start(){
+    }
 
     fetch(API_URL,{
         method:"POST",
-        headers:{ "Content-Type":"text/plain" },
+        headers:{
+            "Content-Type":"text/plain"
+        },
         body:JSON.stringify({
             ...lastPos,
-            status:"SOS"
+            startTime: startTime,
+            endTime: endTime,
+            status: "SOS"
         })
     });
 
     alert("🚨 SOS 전송 완료");
-}    
+}
+    
 // ================= STOP (RESET FULL) =================
 function stopTracking(){
 
