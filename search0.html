@@ -309,24 +309,20 @@ START
 
 
 
-<select id="routeMode">
+<button id="carBtn"
+onclick="toggleCarRoute()">
 
-<option value="foot">
+🚑 차량 경로 ON
 
-🚶 도보 경로
-
-</option>
-  
-<option value="car">
-
-🚑 차량 경로
-
-</option>
+</button>
 
 
+<button id="footBtn"
+onclick="toggleFootRoute()">
 
+🚶 도보 경로 ON
 
-</select>
+</button>
 
 
 
@@ -573,10 +569,18 @@ L.layerGroup()
 
 
 
-const rescueRouteLayer =
-
+const carRouteLayer =
 L.layerGroup()
+.addTo(map);
 
+
+const footRouteLayer =
+L.layerGroup()
+.addTo(map);
+
+
+const infoRouteLayer =
+L.layerGroup()
 .addTo(map);
 
 
@@ -606,11 +610,93 @@ L.layerGroup()
 
 
 
+function toggleCarRoute(){
 
+
+showCarRoute=!showCarRoute;
+
+
+
+document.getElementById("carBtn").innerHTML=
+
+showCarRoute
+
+?
+
+"🚑 차량 경로 ON"
+
+:
+
+"🚑 차량 경로 OFF";
+
+
+
+if(!showCarRoute){
+
+carRouteLayer.clearLayers();
+
+}
+
+
+else{
+
+
+loadEMS();
+
+
+}
+
+
+}
+
+
+
+
+
+function toggleFootRoute(){
+
+
+showFootRoute=!showFootRoute;
+
+
+
+document.getElementById("footBtn").innerHTML=
+
+showFootRoute
+
+?
+
+"🚶 도보 경로 ON"
+
+:
+
+"🚶 도보 경로 OFF";
+
+
+
+if(!showFootRoute){
+
+footRouteLayer.clearLayers();
+
+}
+
+
+else{
+
+
+loadEMS();
+
+
+}
+
+
+}
 // ================= ROUTE =================
 
 
-let routeMode="car";
+let showCarRoute=true;
+
+let showFootRoute=true;
 
 let selectedRouteCache={};
 
@@ -732,7 +818,11 @@ routeMode=this.value;
 
 // 기존 경로 삭제
 
-rescueRouteLayer.clearLayers();
+carRouteLayer.clearLayers();
+
+footRouteLayer.clearLayers();
+
+infoRouteLayer.clearLayers();
 
 
 Object.keys(emsMarkers).forEach(id=>{
@@ -1995,17 +2085,109 @@ return;
 
 
 
-const selectedRoute =
+// 차량 경로
 
-routeMode==="car"
+if(showCarRoute && rescue.eta.car){
 
-?
 
-rescue.eta.car
+const carCoords=[];
 
-:
 
-rescue.eta.walk;
+
+rescue.eta.car.geometry.forEach(p=>{
+
+
+carCoords.push([
+
+p[1],
+
+p[0]
+
+]);
+
+
+});
+
+
+
+L.polyline(
+
+carCoords,
+
+{
+
+color:"red",
+
+weight:6,
+
+dashArray:"15,10"
+
+}
+
+)
+
+.addTo(carRouteLayer);
+
+
+
+}
+
+
+
+
+
+
+// 도보 경로
+
+if(showFootRoute && rescue.eta.walk){
+
+
+
+const footCoords=[];
+
+
+
+rescue.eta.walk.geometry.forEach(p=>{
+
+
+footCoords.push([
+
+p[1],
+
+p[0]
+
+]);
+
+
+});
+
+
+
+
+L.polyline(
+
+footCoords,
+
+{
+
+
+color:"#00aaff",
+
+weight:5,
+
+
+dashArray:"5,10"
+
+
+}
+
+)
+
+.addTo(footRouteLayer);
+
+
+
+}
 
 
 
