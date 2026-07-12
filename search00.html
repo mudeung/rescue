@@ -375,280 +375,51 @@ START
 
 <script>
 
-
-
 // ================= API =================
 
 
-
 const API_URL =
-
 "https://script.google.com/macros/s/AKfycbyem5fAs2XGxNy6wrHO3s68CmJyHy7GI31IBKdiz49KtN3sfikYdfmpP07-3dWqna2R/exec";
 
 
 
-
-
-// EMS API
-
-
-
 const EMS_API =
-
 "https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
 
 
 
 
+// ================= ROUTING =================
 
 
+// 차량
 
+const OSRM_DRIVING =
 
-// ================= DEVICE =================
+"https://router.project-osrm.org/route/v1/driving/";
 
 
 
-let DEVICE_ID =
+// 산악 탐방로 서버
 
-localStorage.getItem("DEVICE_ID");
+// 직접 구축한 OSRM foot 또는 Valhalla 추천
 
+const OSRM_FOOT =
 
+"https://YOUR_FOOT_ROUTER_SERVER/route/v1/foot/";
 
 
 
-if(!DEVICE_ID){
 
+// ================= TRAIL DATA =================
 
 
-DEVICE_ID=
+let hikingTrails=[];
 
-crypto.randomUUID();
 
+// 탐방로 Layer
 
-
-localStorage.setItem(
-
-"DEVICE_ID",
-
-DEVICE_ID
-
-);
-
-
-
-}
-
-
-
-
-
-
-
-
-// ================= MAP =================
-
-
-
-const map =
-
-L.map("map")
-
-.setView(
-
-[35.1239,126.9883],
-
-13
-
-);
-
-
-
-
-
-
-
-
-// ================= TILE =================
-
-
-
-const osm =
-
-L.tileLayer(
-
-"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-
-);
-
-
-
-
-const topo =
-
-L.tileLayer(
-
-"https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
-
-);
-
-
-
-
-
-const satellite =
-
-L.tileLayer(
-
-"https://server.arcgis.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-
-);
-
-
-
-
-
-
-osm.addTo(map);
-
-
-
-
-
-
-
-L.control.layers({
-
-
-
-"🗺 일반지도":osm,
-
-
-"⛰ 지형지도":topo,
-
-
-"🛰 위성지도":satellite
-
-
-
-})
-
-.addTo(map);
-
-
-
-
-
-
-
-
-
-// ================= DRAW =================
-
-
-
-const drawnItems=
-
-new L.FeatureGroup();
-
-
-
-map.addLayer(
-
-drawnItems
-
-);
-
-
-
-
-
-
-const drawControl=
-
-new L.Control.Draw({
-
-
-position:"topright",
-
-
-
-draw:{
-
-
-polygon:true,
-
-rectangle:true,
-
-circle:true,
-
-marker:true,
-
-polyline:true,
-
-circlemarker:false
-
-
-},
-
-
-
-edit:{
-
-
-featureGroup:drawnItems,
-
-
-remove:true
-
-
-}
-
-
-});
-
-
-
-
-map.addControl(drawControl);
-
-
-
-
-
-
-map.on(
-
-L.Draw.Event.CREATED,
-
-function(e){
-
-
-drawnItems.addLayer(
-
-e.layer
-
-);
-
-
-}
-
-);
-
-
-
-
-
-
-
-
-
-// ================= LAYER =================
-
-
-
-// 구조대 위치
-
-const rescueLayer =
+const hikingTrailLayer =
 
 L.layerGroup()
 
@@ -656,38 +427,7 @@ L.layerGroup()
 
 
 
-
-
-
-// EMS 신고
-
-const emsLayer =
-
-L.layerGroup()
-
-.addTo(map);
-
-
-
-
-
-
-
-// SOS
-
-const sosLayer =
-
-L.layerGroup()
-
-.addTo(map);
-
-
-
-
-
-
-
-// 🚒 차량 출동 경로
+// 구조 경로
 
 const vehicleRouteLayer =
 
@@ -695,13 +435,6 @@ L.layerGroup()
 
 .addTo(map);
 
-
-
-
-
-
-
-// 🥾 산악 구조 경로
 
 const mountainRouteLayer =
 
@@ -711,1265 +444,118 @@ L.layerGroup()
 
 
 
+// 자동 배정 데이터
 
+const dispatchCandidates={};
 
+// ================= 정규 탐방로 LOAD =================
 
 
-// 기록
+// trails.json 예시:
+//
+// [
+//   {
+//     "name":"무등산 장불재 탐방로",
+//     "difficulty":"중급",
+//     "elevation":320,
+//     "coordinates":[
+//        [35.1351,126.9871],
+//        [35.1365,126.9890]
+//     ]
+//   }
+// ]
 
-const historyMarkers =
 
-L.layerGroup()
 
-.addTo(map);
-
-
-
-
-const historyLines =
-
-L.layerGroup()
-
-.addTo(map);
-
-
-
-
-
-
-
-
-// ================= STATE =================
-
-
-
-let myName="";
-
-
-let lastPos=null;
-
-
-let watchId=null;
-
-
-let intervalSend=null;
-
-
-let intervalLoad=null;
-
-
-let intervalEMS=null;
-
-
-
-let startTime="";
-
-
-let endTime="";
-
-
-
-
-
-// 구조대 마커 저장
-
-const markers={};
-
-
-
-// EMS 저장
-
-const emsMarkers={};
-
-
-const emsPulseMarkers={};
-
-
-
-// 경로 저장
-
-const vehicleRoutes={};
-
-
-const mountainRoutes={};
-
-
-const routeInfoMarkers={};
-
-
-// ================= COLOR =================
-
-
-const rescueColors={};
-
-
-const colors=[
-
-
-"#00ff9d",
-
-"#00aaff",
-
-"#ffcc00",
-
-"#ff00ff",
-
-"#ff6600",
-
-"#ffffff"
-
-
-];
-
-
-
-
-function getColor(name){
-
-
-
-if(!rescueColors[name]){
-
-
-
-rescueColors[name]=
-
-colors[
-
-Object.keys(rescueColors).length
-
-%
-
-colors.length
-
-];
-
-
-
-}
-
-
-
-return rescueColors[name];
-
-
-
-}
-
-
-
-
-
-
-
-
-
-// ================= INPUT =================
-
-
-
-const nameInput=
-
-document.getElementById("name");
-
-
-
-const startBtn=
-
-document.getElementById("startBtn");
-
-
-
-
-
-
-
-nameInput.addEventListener(
-
-"input",
-
-()=>{
-
-
-startBtn.disabled=
-
-nameInput.value.trim().length===0;
-
-
-}
-
-);
-
-
-
-
-
-
-
-
-
-// ================= TIME =================
-
-
-
-function getNowTime(){
-
-
-
-const now=new Date();
-
-
-
-return (
-
-now.getFullYear()
-
-+
-
-"-"
-
-+
-
-String(now.getMonth()+1).padStart(2,"0")
-
-+
-
-"-"
-
-+
-
-String(now.getDate()).padStart(2,"0")
-
-+
-
-" "
-
-+
-
-String(now.getHours()).padStart(2,"0")
-
-+
-
-":"
-
-+
-
-String(now.getMinutes()).padStart(2,"0")
-
-+
-
-":"
-
-+
-
-String(now.getSeconds()).padStart(2,"0")
-
-
-
-);
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-// ================= START GPS =================
-
-
-
-function start(){
-
-
-
-myName=
-
-nameInput.value.trim();
-
-
-
-
-
-if(!myName){
-
-
-
-alert(
-
-"UNIT ID 입력"
-
-);
-
-
-
-return;
-
-
-}
-
-
-
-
-
-startTime=
-
-getNowTime();
-
-
-
-endTime="";
-
-
-
-
-
-nameInput.disabled=true;
-
-
-startBtn.disabled=true;
-
-
-
-
-
-
-
-watchId=
-
-navigator.geolocation.watchPosition(
-
-
-
-(pos)=>{
-
-
-
-lastPos={
-
-
-
-name:myName,
-
-
-
-device:DEVICE_ID,
-
-
-
-lat:pos.coords.latitude,
-
-
-
-lng:pos.coords.longitude,
-
-
-
-status:"normal"
-
-
-
-};
-
-
-
-
-},
-
-
-
-
-(err)=>{
-
-
-console.log(err);
-
-
-alert(
-
-"GPS 권한 확인"
-
-);
-
-
-
-},
-
-
-
-{
-
-
-enableHighAccuracy:true,
-
-
-maximumAge:1000,
-
-
-timeout:10000
-
-
-
-}
-
-
-
-);
-
-
-
-
-
-
-
-
-intervalSend=
-
-setInterval(
-
-sendData,
-
-5000
-
-);
-
-
-
-
-
-
-intervalLoad=
-
-setInterval(
-
-loadLive,
-
-3000
-
-);
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-// ================= SEND GPS =================
-
-
-
-function sendData(){
-
-
-
-if(!lastPos)
-
-return;
-
-
-
-
+function loadHikingTrails(){
 
 
 fetch(
 
-API_URL,
+"trails.json?t="+Date.now()
 
-{
-
-
-method:"POST",
+)
 
 
-
-headers:{
-
-
-"Content-Type":
-
-"text/plain"
+.then(r=>r.json())
 
 
-},
+.then(data=>{
+
+
+hikingTrails=data;
 
 
 
-body:JSON.stringify({
-
-
-...lastPos,
-
-
-startTime:startTime,
-
-
-endTime:endTime
+drawHikingTrails();
 
 
 
 })
 
 
+.catch(err=>{
 
-}
+
+console.log(
+
+"탐방로 데이터 오류",
+
+err
 
 );
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-// ================= LIVE LOAD =================
-
-
-
-function loadLive(){
-
-
-
-fetch(
-
-API_URL
-
-+
-
-"?live=1&t="
-
-+
-
-Date.now()
-
-)
-
-
-
-.then(r=>r.json())
-
-.then(renderLive)
-
-.catch(console.log);
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-// ================= LIVE RENDER =================
-
-
-
-function renderLive(data){
-
-
-
-sosLayer.clearLayers();
-
-
-
-
-
-data.forEach(p=>{
-
-
-
-const lat=
-
-Number(p.lat);
-
-
-
-const lng=
-
-Number(p.lng);
-
-
-
-
-
-
-if(
-
-!Number.isFinite(lat)
-
-||
-
-!Number.isFinite(lng)
-
-)
-
-return;
-
-
-
-
-
-
-const key=p.name;
-
-
-
-const pos=[lat,lng];
-
-
-
-
-
-
-
-
-
-if(!markers[key]){
-
-
-
-markers[key]=
-
-
-
-L.circleMarker(
-
-pos,
-
-{
-
-
-radius:10,
-
-
-color:getColor(key),
-
-
-fillColor:getColor(key),
-
-
-fillOpacity:1,
-
-
-weight:3
-
-
-
-}
-
-
-
-)
-
-
-
-.bindTooltip(
-
-p.name,
-
-{
-
-
-permanent:true,
-
-
-direction:"top",
-
-
-className:"name-label"
-
-
-
-}
-
-
-
-)
-
-
-
-.addTo(rescueLayer);
-
-
-
-}
-
-
-
-else{
-
-
-
-markers[key]
-
-.setLatLng(pos);
-
-
-
-}
-
-
-
-
-
-
-
-
-// SOS 상태
-
-
-
-if(p.status==="SOS"){
-
-
-
-markers[key]
-
-.setStyle({
-
-
-radius:15,
-
-
-color:"red",
-
-
-fillColor:"red"
-
 
 
 });
 
 
+}
 
 
 
-L.circle(
 
-pos,
+
+
+
+
+// ================= 탐방로 표시 =================
+
+
+
+function drawHikingTrails(){
+
+
+
+hikingTrailLayer.clearLayers();
+
+
+
+
+hikingTrails.forEach(trail=>{
+
+
+
+const line =
+
+L.polyline(
+
+trail.coordinates,
 
 {
 
 
-radius:60,
+color:"#00ff00",
 
+weight:4,
 
-color:"red",
-
-
-fillColor:"red",
-
-
-fillOpacity:0.3
-
-
-
-}
-
-
-
-)
-
-.addTo(sosLayer);
-
-
-
-}
-
-
-
-else{
-
-
-
-markers[key]
-
-.setStyle({
-
-
-color:getColor(key),
-
-
-fillColor:getColor(key)
-
-
-
-});
-
-
-
-}
-
-
-
-
-});
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-// ================= MY LOCATION =================
-
-
-
-function goMyLocation(){
-
-
-
-if(!lastPos)
-
-return;
-
-
-
-
-
-
-map.setView(
-
-
-
-[
-
-lastPos.lat,
-
-lastPos.lng
-
-],
-
-
-
-16
-
-
-
-);
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-// ================= SOS =================
-
-
-
-function sendSOS(){
-
-
-
-if(!lastPos){
-
-
-
-alert(
-
-"현재 위치 없음"
-
-);
-
-
-
-return;
-
-
-
-}
-
-
-
-
-
-
-
-fetch(
-
-API_URL,
-
-{
-
-
-method:"POST",
-
-
-
-headers:{
-
-
-"Content-Type":
-
-"text/plain"
-
-
-},
-
-
-
-body:JSON.stringify({
-
-
-...lastPos,
-
-
-status:"SOS",
-
-
-startTime:startTime,
-
-
-endTime:endTime
-
-
-
-})
-
-
-
-}
-
-
-
-);
-
-
-
-
-
-
-alert(
-
-"🚨 SOS 전송 완료"
-
-);
-
-
-
-}
-
-
-// ================= EMS ICON =================
-
-
-function getEMSIcon(status){
-
-
-let color="red";
-
-
-if(status==="출동")
-color="orange";
-
-
-if(status==="완료")
-color="green";
-
-
-if(status==="취소")
-color="gray";
-
-
-
-
-return L.divIcon({
-
-
-className:"",
-
-
-
-html:
-
-`
-
-<div style="
-
-font-size:34px;
-
-filter:drop-shadow(0 0 8px ${color});
-
-">
-
-🚑
-
-</div>
-
-`,
-
-
-iconSize:[40,40]
-
-
-
-});
-
-
-
-}
-
-
-
-
-
-
-
-
-
-// ================= 사고 유형 분류 =================
-
-
-
-function getRescueMode(type){
-
-
-
-type = type || "";
-
-
-
-
-
-if(
-
-type.includes("산")
-
-||
-
-type.includes("등산")
-
-||
-
-type.includes("조난")
-
-||
-
-type.includes("실종")
-
-||
-
-type.includes("계곡")
-
-
-
-){
-
-
-
-return "mountain";
-
-
-
-}
-
-
-
-
-return "vehicle";
-
-
-
-}
-
-
-
-
-
-
-
-
-
-// ================= EMS LOAD =================
-
-
-
-function loadEMS(){
-
-
-
-fetch(
-
-EMS_API
-
-+
-
-"?t="
-
-+
-
-Date.now()
-
-)
-
-
-
-.then(r=>r.json())
-
-.then(renderEMS)
-
-.catch(console.log);
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-// ================= EMS RENDER =================
-
-
-
-function renderEMS(data){
-
-
-
-const active={};
-
-
-
-
-
-data.forEach(item=>{
-
-
-
-
-
-const lat=
-
-Number(item.lat);
-
-
-
-const lng=
-
-Number(item.lng);
-
-
-
-
-
-
-
-if(
-
-!Number.isFinite(lat)
-
-||
-
-!Number.isFinite(lng)
-
-)
-
-return;
-
-
-
-
-
-
-const key=item.id;
-
-
-
-active[key]=true;
-
-
-
-
-
-
-const pos=[lat,lng];
-
-
-
-
-
-
-
-
-// ================= 🚑 신고 아이콘 =================
-
-
-
-if(!emsMarkers[key]){
-
-
-
-emsMarkers[key]=
-
-
-
-L.marker(
-
-pos,
-
-{
-
-
-icon:getEMSIcon(item.status)
+opacity:0.8
 
 
 
 }
 
 )
+
 
 
 
@@ -1982,282 +568,45 @@ icon:getEMSIcon(item.status)
 <div style="font-family:monospace">
 
 
-<b>🚑 119 신고</b>
-
-<br><br>
-
-
-📌 사고 :
-
-${item.type}
+🥾 정규 탐방로
 
 
 <br><br>
 
 
-📍 위치 :
-
-${item.address}
+<b>${trail.name}</b>
 
 
-<br><br>
+<br>
 
 
-📡 상태 :
+난이도 :
 
-${item.status}
-
-
-<br><br>
+${trail.difficulty}
 
 
-⏰ 접수 :
-
-${item.time}
+<br>
 
 
-<br><br>
+상승고도 :
 
-
-🚨 출동방식 :
-
-${
-
-getRescueMode(item.type)
-
-==="mountain"
-
-?
-
-"🥾 산악 구조"
-
-:
-
-"🚒 차량 출동"
-
-}
-
-
-
-<br><br>
-
-
-<a href="${item.mapURL}"
-
-target="_blank">
-
-지도 열기
-
-</a>
-
+${trail.elevation || 0}m
 
 
 </div>
 
-
-
 `
 
 )
 
 
 
-.addTo(emsLayer);
 
+.addTo(
 
-
-}
-
-
-
-else{
-
-
-
-emsMarkers[key]
-
-.setLatLng(pos);
-
-
-
-emsMarkers[key]
-
-.setIcon(
-
-getEMSIcon(item.status)
+hikingTrailLayer
 
 );
-
-
-
-}
-
-
-
-
-
-
-
-
-
-// ================= 빨간 펄스 =================
-
-
-
-if(
-
-item.status!=="완료"
-
-&&
-
-item.status!=="취소"
-
-){
-
-
-
-if(!emsPulseMarkers[key]){
-
-
-
-emsPulseMarkers[key]=
-
-
-
-L.marker(
-
-pos,
-
-{
-
-
-icon:L.divIcon({
-
-
-className:"",
-
-
-
-html:
-
-`
-
-<div class="ems-pulse"></div>
-
-`,
-
-
-
-iconSize:[30,30]
-
-
-
-}),
-
-
-
-interactive:false
-
-
-
-}
-
-
-
-)
-
-.addTo(emsLayer);
-
-
-
-}
-
-
-
-else{
-
-
-
-emsPulseMarkers[key]
-
-.setLatLng(pos);
-
-
-
-}
-
-
-
-}
-
-
-
-else{
-
-
-
-if(emsPulseMarkers[key]){
-
-
-
-emsLayer.removeLayer(
-
-emsPulseMarkers[key]
-
-);
-
-
-
-delete emsPulseMarkers[key];
-
-
-
-}
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-// ================= 경로 분기 =================
-
-
-
-const mode=
-
-getRescueMode(item.type);
-
-
-
-
-
-
-if(mode==="mountain"){
-
-
-
-drawMountainRoute({
-
-
-id:key,
-
-
-lat:lat,
-
-
-lng:lng,
-
-
-type:item.type
 
 
 
@@ -2266,1091 +615,6 @@ type:item.type
 
 
 }
-
-
-
-else{
-
-
-
-drawVehicleRoute({
-
-
-id:key,
-
-
-lat:lat,
-
-
-lng:lng,
-
-
-type:item.type
-
-
-
-});
-
-
-
-}
-
-
-
-
-
-
-});
-
-
-
-
-
-
-
-
-
-// 삭제된 신고 제거
-
-
-
-Object.keys(emsMarkers)
-
-.forEach(key=>{
-
-
-
-if(!active[key]){
-
-
-
-emsLayer.removeLayer(
-
-emsMarkers[key]
-
-);
-
-
-
-delete emsMarkers[key];
-
-
-
-}
-
-
-
-});
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-// ================= EMS 자동 실행 =================
-
-
-
-loadEMS();
-
-
-
-intervalEMS=
-
-setInterval(
-
-loadEMS,
-
-3000
-
-);
-
-
-// ================= OSRM 차량 길찾기 =================
-
-
-// 무료 OSRM 서버
-
-const OSRM_DRIVING =
-
-"https://router.project-osrm.org/route/v1/driving/";
-
-
-
-
-
-
-
-
-
-// ================= 도로 경로 요청 =================
-
-
-
-function getDrivingRoute(
-
-
-startLat,
-
-
-startLng,
-
-
-endLat,
-
-
-endLng
-
-
-){
-
-
-
-return fetch(
-
-
-OSRM_DRIVING
-
-+
-
-`${startLng},${startLat};${endLng},${endLat}`
-
-+
-
-"?overview=full&geometries=geojson"
-
-
-
-)
-
-
-
-.then(r=>r.json())
-
-
-
-.then(data=>{
-
-
-
-if(
-
-!data.routes
-
-||
-
-!data.routes.length
-
-)
-
-return null;
-
-
-
-
-
-
-const route=
-
-data.routes[0];
-
-
-
-
-
-return {
-
-
-distance:
-
-route.distance,
-
-
-
-duration:
-
-route.duration,
-
-
-
-geometry:
-
-route.geometry.coordinates
-
-
-
-};
-
-
-
-})
-
-
-
-.catch(err=>{
-
-
-console.log(
-
-"OSRM ERROR",
-
-err
-
-);
-
-
-return null;
-
-
-});
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-// ================= 가까운 구조대 검색 =================
-
-
-
-function findNearestRescue(ems){
-
-
-
-let nearest=null;
-
-
-let min=Infinity;
-
-
-
-
-
-
-Object.keys(markers)
-
-.forEach(name=>{
-
-
-
-
-
-const pos=
-
-markers[name].getLatLng();
-
-
-
-
-
-
-const distance=
-
-Math.sqrt(
-
-
-Math.pow(
-
-pos.lat-ems.lat,
-
-2
-
-)
-
-+
-
-Math.pow(
-
-pos.lng-ems.lng,
-
-2
-
-)
-
-
-
-);
-
-
-
-
-
-
-
-if(distance<min){
-
-
-
-min=distance;
-
-
-
-nearest={
-
-
-
-name:name,
-
-
-lat:pos.lat,
-
-
-lng:pos.lng
-
-
-
-};
-
-
-
-}
-
-
-
-
-});
-
-
-
-
-
-
-
-return nearest;
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-// ================= 차량 출동 =================
-
-
-
-function drawVehicleRoute(ems){
-
-
-
-vehicleRouteLayer.clearLayers();
-
-
-
-
-
-
-const rescue=
-
-findNearestRescue(ems);
-
-
-
-
-
-
-if(!rescue)
-
-return;
-
-
-
-
-
-
-
-
-getDrivingRoute(
-
-
-
-ems.lat,
-
-
-ems.lng,
-
-
-rescue.lat,
-
-
-rescue.lng
-
-
-
-)
-
-
-
-.then(route=>{
-
-
-
-if(!route)
-
-return;
-
-
-
-
-
-
-
-
-const path=[];
-
-
-
-
-
-route.geometry.forEach(p=>{
-
-
-
-path.push([
-
-
-p[1],
-
-
-p[0]
-
-
-]);
-
-
-
-});
-
-
-
-
-
-
-
-
-
-
-// ================= 빨간 차량 경로 =================
-
-
-
-L.polyline(
-
-path,
-
-{
-
-
-color:"red",
-
-
-weight:7,
-
-
-opacity:0.9,
-
-
-dashArray:"15,10"
-
-
-
-}
-
-
-
-)
-
-.addTo(vehicleRouteLayer);
-
-
-
-
-
-
-
-
-
-
-// ================= 거리 =================
-
-
-
-const km=
-
-
-
-(
-
-route.distance
-
-/
-
-1000
-
-)
-
-
-
-.toFixed(2);
-
-
-
-
-
-
-
-// ================= ETA =================
-
-
-
-const minute=
-
-
-
-Math.ceil(
-
-
-route.duration
-
-/
-
-60
-
-
-
-);
-
-
-
-
-
-
-
-
-
-
-// ================= 정보 표시 =================
-
-
-
-const info=
-
-L.marker(
-
-
-
-[
-
-
-
-(
-
-ems.lat
-
-+
-
-rescue.lat
-
-)
-
-/
-
-2,
-
-
-
-
-
-(
-
-ems.lng
-
-+
-
-rescue.lng
-
-)
-
-/
-
-2
-
-
-
-
-
-],
-
-
-
-{
-
-
-icon:L.divIcon({
-
-
-
-className:"",
-
-
-
-html:
-
-
-
-`
-
-<div style="
-
-
-background:#050b18;
-
-
-color:#ff3333;
-
-
-border:2px solid red;
-
-
-padding:8px;
-
-
-border-radius:8px;
-
-
-font-size:13px;
-
-
-box-shadow:0 0 10px red;
-
-
-white-space:nowrap;
-
-
-">
-
-
-🚒 ${rescue.name}
-
-<br>
-
-
-🚗 차량 출동
-
-<br>
-
-
-📏 ${km} km
-
-<br>
-
-
-⏱ ${minute}분
-
-
-</div>
-
-
-
-`
-
-
-
-})
-
-
-
-}
-
-
-
-)
-
-
-
-.addTo(vehicleRouteLayer);
-
-
-
-
-
-
-
-});
-
-
-
-}
-
-
-// ================= 산악 구조 =================
-
-
-
-function drawMountainRoute(ems){
-
-
-
-mountainRouteLayer.clearLayers();
-
-
-
-
-
-
-const rescue=
-
-findNearestRescue(ems);
-
-
-
-
-
-if(!rescue)
-
-return;
-
-
-
-
-
-
-
-
-
-
-// 거리 계산
-
-
-
-const distance =
-
-calculateDistance(
-
-ems.lat,
-
-ems.lng,
-
-rescue.lat,
-
-rescue.lng
-
-);
-
-
-
-
-
-
-
-
-
-// 평균 보행속도
-
-// 1.2m/s 약 4.3km/h
-
-
-
-const walkingTime =
-
-
-
-Math.ceil(
-
-
-distance
-
-/
-
-1.2
-
-/
-
-60
-
-
-
-);
-
-
-
-
-
-
-
-
-
-
-
-// 직선 산악 경로 표시
-
-
-
-L.polyline(
-
-[
-
-
-
-[
-
-ems.lat,
-
-ems.lng
-
-],
-
-
-
-[
-
-rescue.lat,
-
-rescue.lng
-
-]
-
-
-
-],
-
-
-
-{
-
-
-color:"orange",
-
-
-weight:6,
-
-
-opacity:0.9,
-
-
-dashArray:"10,10"
-
-
-
-}
-
-
-
-)
-
-
-
-.addTo(mountainRouteLayer);
-
-
-
-
-
-
-
-
-
-
-
-
-// 거리 km
-
-
-
-const km=
-
-(
-
-distance
-
-/
-
-1000
-
-)
-
-.toFixed(2);
-
-
-
-
-
-
-
-
-
-
-
-const info=
-
-L.marker(
-
-
-
-[
-
-
-
-(
-
-ems.lat
-
-+
-
-rescue.lat
-
-)
-
-/
-
-2,
-
-
-
-
-
-(
-
-ems.lng
-
-+
-
-rescue.lng
-
-)
-
-/
-
-2
-
-
-
-
-
-],
-
-
-
-{
-
-
-icon:L.divIcon({
-
-
-
-className:"",
-
-
-
-html:
-
-
-
-`
-
-<div style="
-
-
-background:#050b18;
-
-
-color:orange;
-
-
-border:2px solid orange;
-
-
-padding:8px;
-
-
-border-radius:8px;
-
-
-font-size:13px;
-
-
-box-shadow:0 0 10px orange;
-
-
-white-space:nowrap;
-
-
-">
-
-
-🥾 ${rescue.name}
-
-<br>
-
-
-⛰ 산악 구조
-
-<br>
-
-
-📏 ${km} km
-
-<br>
-
-
-⏱ 도보 ${walkingTime}분
-
-
-</div>
-
-
-
-`
-
-
-
-})
-
-
-
-}
-
-
-
-)
-
-
-
-.addTo(mountainRouteLayer);
-
-
-
-
-
-
-}
-
-
 
 
 
@@ -3364,30 +628,21 @@ white-space:nowrap;
 
 
 
-function calculateDistance(
-
-
+function calcDistance(
 
 lat1,
 
-
 lng1,
-
 
 lat2,
 
-
 lng2
-
-
 
 ){
 
 
 
-const R=
-
-6371000;
+const R=6371000;
 
 
 
@@ -3397,11 +652,7 @@ const dLat=
 
 *
 
-Math.PI
-
-/
-
-180;
+Math.PI/180;
 
 
 
@@ -3411,12 +662,7 @@ const dLng=
 
 *
 
-Math.PI
-
-/
-
-180;
-
+Math.PI/180;
 
 
 
@@ -3424,15 +670,11 @@ Math.PI
 
 const a=
 
-
-
 Math.sin(dLat/2)
 
 *
 
 Math.sin(dLat/2)
-
-
 
 +
 
@@ -3462,14 +704,9 @@ Math.sin(dLng/2);
 
 
 
+return R *
 
-const c=
-
-
-
-2
-
-*
+2 *
 
 Math.atan2(
 
@@ -3481,13 +718,6 @@ Math.sqrt(1-a)
 
 
 
-
-
-
-return R*c;
-
-
-
 }
 
 
@@ -3498,42 +728,81 @@ return R*c;
 
 
 
-
-// ================= 레이어 제어 =================
-
-
-
-const overlays={
+// ================= 가장 가까운 탐방로 검색 =================
 
 
 
-"🚑 EMS 신고":
+function findNearestTrail(
 
-emsLayer,
+lat,
 
+lng
 
-
-"🚒 차량 출동":
-
-vehicleRouteLayer,
+){
 
 
 
-"🥾 산악 구조":
-
-mountainRouteLayer,
+let result=null;
 
 
 
-"🚨 SOS":
-
-sosLayer,
+let minDistance=Infinity;
 
 
 
-"🟢 구조대":
 
-rescueLayer
+
+
+
+hikingTrails.forEach(trail=>{
+
+
+
+trail.coordinates.forEach(point=>{
+
+
+
+const distance=
+
+calcDistance(
+
+lat,
+
+lng,
+
+point[0],
+
+point[1]
+
+);
+
+
+
+
+
+if(distance < minDistance){
+
+
+
+minDistance=
+
+distance;
+
+
+
+result={
+
+
+trail:trail,
+
+
+lat:point[0],
+
+
+lng:point[1],
+
+
+distance:distance
 
 
 
@@ -3541,42 +810,22 @@ rescueLayer
 
 
 
+}
+
+
+
+});
+
+
+
+});
 
 
 
 
-L.control.layers(
-
-null,
-
-overlays
-
-)
-
-.addTo(map);
 
 
-// ================= 위치 공유 =================
-
-
-
-function shareLocation(){
-
-
-
-if(!lastPos){
-
-
-
-alert(
-
-"현재 위치가 없습니다."
-
-);
-
-
-
-return;
+return result;
 
 
 
@@ -3588,124 +837,65 @@ return;
 
 
 
-const url=
 
 
+// ================= 탐방로 ETA 계산 =================
 
-`https://www.google.com/maps?q=${lastPos.lat},${lastPos.lng}`;
 
 
+function calculateMountainETA(
 
 
+distance,
 
 
+elevation=0
 
-const text=
-
-
-
-`
-
-📡 구조대 위치공유
-
-
-UNIT : ${lastPos.name}
-
-
-위치 :
-
-${url}
-
-`;
-
-
-
-
-
-
-
-
-
-fetch(
-
-API_URL,
-
-{
-
-
-method:"POST",
-
-
-
-headers:{
-
-
-"Content-Type":
-
-"text/plain"
-
-
-},
-
-
-
-body:JSON.stringify({
-
-
-...lastPos,
-
-
-status:"SHARE"
-
-
-
-})
-
-
-
-}
-
-
-
-);
-
-
-
-
-
-
-
-
-
-if(
-
-navigator.share
 
 ){
 
 
 
-navigator.share({
+// 기본 산행속도
+
+// 1km 약 20분
 
 
 
-title:"구조대 위치",
+let time =
+
+(distance/1000)
+
+*
+
+20;
 
 
 
-text:text,
 
 
 
-url:url
+
+// 상승고도 보정
+
+// 100m 상승당 +10분
 
 
 
-})
+time +=
+
+(elevation/100)
+
+*
+
+10;
 
 
 
-.catch(console.log);
+
+
+
+return Math.ceil(time);
 
 
 
@@ -3713,273 +903,412 @@ url:url
 
 
 
-else{
 
 
 
-location.href=
 
-"sms:?body="
+
+
+// ================= 초기 탐방로 실행 =================
+
+
+
+loadHikingTrails();
+
+
+// ================= OSRM 차량 길찾기 =================
+
+
+function getVehicleRoute(
+
+startLat,
+
+startLng,
+
+endLat,
+
+endLng
+
+){
+
+
+return fetch(
+
+
+OSRM_DRIVING
 
 +
 
-encodeURIComponent(text);
-
-
-
-}
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-// ================= STOP =================
-
-
-
-function stopTracking(){
-
-
-
-endTime=
-
-getNowTime();
-
-
-
-
-
-
-
-
-if(lastPos){
-
-
-
-fetch(
-
-API_URL,
-
-{
-
-
-method:"POST",
-
-
-
-headers:{
-
-
-"Content-Type":
-
-"text/plain"
-
-
-},
-
-
-
-body:JSON.stringify({
-
-
-...lastPos,
-
-
-status:"STOP",
-
-
-startTime:startTime,
-
-
-endTime:endTime
-
-
-
-})
-
-
-
-}
-
-
-
-);
-
-
-
-}
-
-
-
-
-
-
-
-
-
-if(watchId){
-
-
-
-navigator.geolocation.clearWatch(
-
-watchId
-
-);
-
-
-
-watchId=null;
-
-
-
-}
-
-
-
-
-
-
-
-
-
-clearInterval(
-
-intervalSend
-
-);
-
-
-
-clearInterval(
-
-intervalLoad
-
-);
-
-
-
-clearInterval(
-
-intervalEMS
-
-);
-
-
-
-
-
-
-
-
-
-intervalSend=null;
-
-
-intervalLoad=null;
-
-
-intervalEMS=null;
-
-
-
-
-
-
-
-
-
-lastPos=null;
-
-
-myName="";
-
-
-startTime="";
-
-
-endTime="";
-
-
-
-
-
-
-
-
-nameInput.disabled=false;
-
-
-nameInput.value="";
-
-
-
-startBtn.disabled=true;
-
-
-
-
-
-
-
-alert(
-
-"⛔ STOP 완료"
-
-);
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-// ================= 전체 기록 =================
-
-
-
-function loadAllHistory(){
-
-
-
-fetch(
-
-API_URL
+`${startLng},${startLat};${endLng},${endLat}`
 
 +
 
-"?history=1&t="
+"?overview=full&geometries=geojson"
 
-+
 
-Date.now()
+)
+
+
+.then(r=>r.json())
+
+
+.then(data=>{
+
+
+if(
+
+!data.routes ||
+
+!data.routes.length
+
+)
+
+return null;
+
+
+
+const route=
+
+data.routes[0];
+
+
+
+return {
+
+
+distance:
+
+route.distance,
+
+
+duration:
+
+route.duration,
+
+
+geometry:
+
+route.geometry.coordinates
+
+
+
+};
+
+
+
+});
+
+
+}
+
+
+
+
+
+
+
+
+
+// ================= 탐방로 기반 산악 경로 =================
+
+
+
+function getMountainTrailRoute(ems,rescue){
+
+
+
+const startTrail =
+
+findNearestTrail(
+
+ems.lat,
+
+ems.lng
+
+);
+
+
+
+
+
+if(!startTrail)
+
+return null;
+
+
+
+
+
+const trail =
+
+startTrail.trail;
+
+
+
+
+
+
+let path=[];
+
+
+
+trail.coordinates.forEach(p=>{
+
+
+path.push([
+
+p[0],
+
+p[1]
+
+]);
+
+
+});
+
+
+
+
+
+const distance=
+
+calculateTrailDistance(
+
+path
+
+);
+
+
+
+
+
+const eta=
+
+calculateMountainETA(
+
+distance,
+
+trail.elevation || 0
+
+);
+
+
+
+
+
+
+return {
+
+
+path:path,
+
+
+distance:distance,
+
+
+eta:eta,
+
+
+trail:trail.name
+
+
+
+};
+
+
+
+}
+
+
+
+
+
+
+
+
+
+// ================= 탐방로 총 거리 계산 =================
+
+
+
+function calculateTrailDistance(path){
+
+
+
+let total=0;
+
+
+
+
+for(let i=1;i<path.length;i++){
+
+
+
+total +=
+
+calcDistance(
+
+path[i-1][0],
+
+path[i-1][1],
+
+path[i][0],
+
+path[i][1]
+
+);
+
+
+
+}
+
+
+
+return total;
+
+
+
+}
+
+
+
+
+
+
+
+
+
+// ================= 차량 경로 표시 =================
+
+
+
+function drawVehicleRoute(ems,rescue){
+
+
+
+getVehicleRoute(
+
+
+
+ems.lat,
+
+ems.lng,
+
+rescue.lat,
+
+rescue.lng
+
+
 
 )
 
 
 
-.then(r=>r.json())
+.then(route=>{
 
-.then(showHistoryMap);
+
+if(!route)
+
+return;
+
+
+
+
+
+const path=[];
+
+
+
+route.geometry.forEach(p=>{
+
+
+path.push([
+
+p[1],
+
+p[0]
+
+]);
+
+
+});
+
+
+
+
+
+const line=
+
+L.polyline(
+
+path,
+
+{
+
+
+color:"red",
+
+weight:6,
+
+opacity:0.9
+
+
+
+}
+
+)
+
+.addTo(vehicleRouteLayer);
+
+
+
+
+
+
+const eta=
+
+Math.ceil(
+
+route.duration/60
+
+);
+
+
+
+
+
+
+saveDispatchCandidate({
+
+
+
+emsId:ems.id,
+
+
+name:rescue.name,
+
+
+mode:"🚒 차량",
+
+
+distance:route.distance,
+
+
+eta:eta,
+
+
+layer:line
+
+
+
+});
+
+
+
+
+
+
+});
 
 
 
@@ -3993,22 +1322,31 @@ Date.now()
 
 
 
-function showHistoryMap(data){
+// ================= 산악 탐방로 표시 =================
 
 
 
-historyMarkers.clearLayers();
-
-
-historyLines.clearLayers();
+function drawMountainTrailRoute(ems,rescue){
 
 
 
+const route=
+
+getMountainTrailRoute(
+
+ems,
+
+rescue
+
+);
 
 
 
 
-const grouped={};
+
+if(!route)
+
+return;
 
 
 
@@ -4016,17 +1354,34 @@ const grouped={};
 
 
 
-data.sort(
+const line=
 
-(a,b)=>
-
-new Date(a.time)
-
--
-
-new Date(b.time)
+L.polyline(
 
 
+
+route.path,
+
+{
+
+
+color:"orange",
+
+weight:6,
+
+dashArray:"10,10"
+
+
+
+}
+
+
+
+)
+
+.addTo(
+
+mountainRouteLayer
 
 );
 
@@ -4035,36 +1390,376 @@ new Date(b.time)
 
 
 
+saveDispatchCandidate({
 
 
 
-data.forEach(d=>{
+emsId:ems.id,
+
+
+name:rescue.name,
+
+
+mode:"🥾 산악",
+
+
+distance:route.distance,
+
+
+eta:route.eta,
+
+
+layer:line
 
 
 
-if(!grouped[d.name])
-
-grouped[d.name]=[];
+});
 
 
 
 
 
-
-grouped[d.name].push([
-
-
-
-Number(d.lat),
+}
 
 
 
-Number(d.lng)
 
 
 
-]);
 
+
+
+// ================= 구조대 후보 저장 =================
+
+
+
+function saveDispatchCandidate(data){
+
+
+
+if(!dispatchCandidates[data.emsId]){
+
+
+dispatchCandidates[data.emsId]=[];
+
+}
+
+
+
+dispatchCandidates[data.emsId].push(data);
+
+
+
+console.log(
+
+"출동 후보",
+
+data
+
+);
+
+
+
+}
+
+
+ 
+// ================= 가까운 구조대 전체 검색 =================
+
+
+function findAllRescue(){
+
+
+let list=[];
+
+
+
+Object.keys(markers)
+
+.forEach(name=>{
+
+
+const pos=
+
+markers[name].getLatLng();
+
+
+
+list.push({
+
+
+name:name,
+
+
+lat:pos.lat,
+
+
+lng:pos.lng
+
+
+});
+
+
+
+});
+
+
+
+return list;
+
+
+}
+
+
+
+
+
+
+
+
+
+// ================= EMS 자동 배정 =================
+
+
+
+function autoDispatch(ems){
+
+
+
+dispatchCandidates[ems.id]=[];
+
+
+
+const rescues=
+
+findAllRescue();
+
+
+
+if(!rescues.length)
+
+return;
+
+
+
+
+
+
+
+rescues.forEach(rescue=>{
+
+
+
+// 차량 계산
+
+drawVehicleRoute(
+
+ems,
+
+rescue
+
+);
+
+
+
+
+// 산악 계산
+
+drawMountainTrailRoute(
+
+ems,
+
+rescue
+
+);
+
+
+
+});
+
+
+
+
+
+
+// 계산 완료 후 비교
+
+setTimeout(()=>{
+
+
+compareDispatch(
+
+ems.id
+
+);
+
+
+
+},3000);
+
+
+
+}
+
+
+
+
+
+
+
+
+
+// ================= ETA 비교 =================
+
+
+
+function compareDispatch(emsId){
+
+
+
+const list=
+
+dispatchCandidates[emsId];
+
+
+
+if(
+
+!list ||
+
+!list.length
+
+)
+
+return;
+
+
+
+
+
+
+
+// ETA 순 정렬
+
+
+
+list.sort(
+
+(a,b)=>
+
+a.eta-b.eta
+
+);
+
+
+
+
+
+
+const best=list[0];
+
+
+
+
+
+console.log(
+
+"최적 구조대",
+
+best.name,
+
+best.mode,
+
+best.eta+"분"
+
+);
+
+
+
+
+
+
+highlightDispatch(best);
+
+
+
+
+
+
+
+showDispatchResult(
+
+best,
+
+list
+
+);
+
+
+
+}
+
+
+
+
+
+
+
+
+
+// ================= 최적 경로 강조 =================
+
+
+
+function highlightDispatch(best){
+
+
+
+// 모든 경로 흐리게
+
+
+
+vehicleRouteLayer.eachLayer(layer=>{
+
+
+if(layer.setStyle){
+
+
+layer.setStyle({
+
+
+opacity:0.25
+
+
+});
+
+
+}
+
+
+});
+
+
+
+
+
+
+mountainRouteLayer.eachLayer(layer=>{
+
+
+if(layer.setStyle){
+
+
+layer.setStyle({
+
+
+opacity:0.25
+
+
+});
+
+
+}
 
 
 });
@@ -4076,60 +1771,25 @@ Number(d.lng)
 
 
 
-
-const all=[];
-
+// 선택 경로 강조
 
 
 
+best.layer.setStyle({
 
 
 
+color:"red",
 
-for(const name in grouped){
+weight:10,
 
-
-
-const path=
-
-grouped[name];
+opacity:1
 
 
 
+});
 
 
-
-if(!path.length)
-
-continue;
-
-
-
-
-
-
-all.push(...path);
-
-
-
-
-
-
-
-L.polyline(
-
-path,
-
-{
-
-
-color:getColor(name),
-
-
-weight:5,
-
-
-opacity:0.8
 
 
 
@@ -4137,99 +1797,965 @@ opacity:0.8
 
 
 
+
+
+
+
+
+
+// ================= 배정 결과 표시 =================
+
+
+
+function showDispatchResult(best,list){
+
+
+
+let html=
+
+
+
+`
+
+<div style="
+
+background:#050b18;
+
+color:#00ff9d;
+
+border:2px solid red;
+
+padding:10px;
+
+border-radius:10px;
+
+font-family:monospace;
+
+">
+
+
+<b>🚨 자동 출동 배정</b>
+
+
+<br><br>
+
+
+선택 :
+
+${best.name}
+
+
+<br>
+
+
+방식 :
+
+${best.mode}
+
+
+<br>
+
+
+ETA :
+
+${best.eta}분
+
+
+<br><br>
+
+
+<hr>
+
+
+`;
+
+
+
+
+
+
+list.forEach((x,index)=>{
+
+
+html+=
+
+
+`
+
+${index+1}.
+
+${x.name}
+
+${x.mode}
+
+${x.eta}분
+
+<br>
+
+
+`;
+
+
+
+});
+
+
+
+
+
+html+=
+
+`
+
+</div>
+
+`;
+
+
+
+
+
+
+
+L.popup()
+
+.setLatLng(
+
+best.layer.getBounds()
+
+.getCenter()
+
 )
 
-.addTo(historyLines);
+.setContent(html)
+
+.openOn(map);
+
+
+
+}
 
 
 
 
 
 
+
+
+
+// ================= 수동 구조대 선택 =================
+
+
+
+function selectDispatch(
+
+emsId,
+
+index
+
+){
+
+
+
+const list=
+
+dispatchCandidates[emsId];
+
+
+
+if(!list)
+
+return;
+
+
+
+const selected=
+
+list[index];
+
+
+
+highlightDispatch(selected);
+
+
+
+alert(
+
+selected.name+
+
+" 선택\n"+
+
+selected.mode+
+
+"\nETA "+
+
+selected.eta+"분"
+
+);
+
+
+
+}
+
+
+
+// ================= EMS 상태 관리 =================
+
+
+const emsDispatchState = {};
+
+
+
+
+// ================= EMS RENDER 수정 =================
+
+
+
+function renderEMS(data){
+
+
+
+emsLayer.clearLayers();
+
+
+
+data.forEach(item=>{
+
+
+
+const lat=
+
+Number(item.lat);
+
+
+
+const lng=
+
+Number(item.lng);
+
+
+
+
+if(
+
+!Number.isFinite(lat)
+
+||
+
+!Number.isFinite(lng)
+
+)
+
+return;
+
+
+
+
+
+const pos=[lat,lng];
+
+
+
+const id=item.id;
+
+
+
+// 상태 저장
+
+
+if(!emsDispatchState[id]){
+
+
+emsDispatchState[id]={
+
+
+status:item.status,
+
+
+assigned:null
+
+
+
+};
+
+
+}
+
+
+
+
+
+
+
+
+// ================= 🚑 EMS ICON =================
+
+
+
+const icon =
+
+
+L.divIcon({
+
+
+
+className:"",
+
+
+
+html:
+
+`
+
+<div style="
+
+font-size:34px;
+
+filter:
+
+drop-shadow(0 0 8px red);
+
+">
+
+🚑
+
+</div>
+
+`,
+
+
+
+iconSize:[40,40]
+
+
+
+});
+
+
+
+
+
+
+
+const marker =
 
 
 L.marker(
 
-path[0]
+pos,
+
+{
+
+icon:icon
+
+}
 
 )
+
+
+
+
+
+
+
+
+
+// ================= 팝업 =================
 
 
 
 .bindPopup(
 
-"🟢 START : "
 
-+
 
-name
+`
+
+<div style="
+
+font-family:monospace;
+
+min-width:220px;
+
+">
+
+
+<h3>
+
+🚑 119 신고
+
+</h3>
+
+
+
+<hr>
+
+
+
+📌 유형 :
+
+${item.type}
+
+<br><br>
+
+
+📍 위치 :
+
+${item.address}
+
+<br><br>
+
+
+⏰ 접수 :
+
+${item.time}
+
+<br><br>
+
+
+상태 :
+
+<span id="status_${id}">
+
+${item.status}
+
+</span>
+
+
+<br><br>
+
+
+
+<button onclick="dispatchNow('${id}')">
+
+🚨 자동 출동 배정
+
+</button>
+
+
+
+<br><br>
+
+
+
+<button onclick="showCandidates('${id}')">
+
+📋 구조대 선택
+
+</button>
+
+
+</div>
+
+`
+
 
 )
 
 
 
-.addTo(historyMarkers);
+
+
+
+.addTo(
+
+emsLayer
+
+);
+
+
+
+
+
+// 저장
+
+emsMarkers[id]=marker;
 
 
 
 
 
 
+
+// ================= 빨간 펄스 =================
+
+
+
+if(item.status!=="완료"){
+
+
+
+const pulse=
 
 L.marker(
 
-path[path.length-1]
-
-)
-
-
-
-.bindPopup(
-
-"🔴 END : "
-
-+
-
-name
-
-)
-
-
-
-.addTo(historyMarkers);
-
-
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-if(all.length){
-
-
-
-map.fitBounds(
-
-all,
+pos,
 
 {
 
 
-padding:[50,50]
+icon:L.divIcon({
+
+
+
+className:"",
+
+
+
+html:
+
+`
+
+<div class="ems-pulse"></div>
+
+`,
+
+
+
+iconSize:[30,30]
+
+
+
+}),
+
+
+interactive:false
 
 
 }
 
+)
+
+
+
+.addTo(
+
+emsLayer
+
+);
+
+
+
+emsPulseMarkers[id]=pulse;
+
+
+
+}
+
+
+
+
+
+
+
+// ================= 자동 배정 실행 =================
+
+
+
+if(
+
+item.status==="접수"
+
+&&
+
+!dispatchCandidates[id]
+
+){
+
+
+
+autoDispatch({
+
+id:id,
+
+lat:lat,
+
+lng:lng
+
+});
+
+
+
+}
+
+
+
+
+
+
+});
+
+
+
+}
+
+
+
+
+
+
+
+
+
+// ================= 자동 출동 버튼 =================
+
+
+
+function dispatchNow(id){
+
+
+
+const marker=
+
+emsMarkers[id];
+
+
+
+if(!marker)
+
+return;
+
+
+
+
+
+const pos=
+
+marker.getLatLng();
+
+
+
+
+
+autoDispatch({
+
+
+id:id,
+
+
+lat:pos.lat,
+
+
+lng:pos.lng
+
+
+
+});
+
+
+
+
+alert(
+
+"🚨 자동 출동 분석 시작"
+
+);
+
+
+
+}
+
+
+
+
+
+
+
+
+
+// ================= 후보 구조대 표시 =================
+
+
+
+function showCandidates(id){
+
+
+
+const list=
+
+dispatchCandidates[id];
+
+
+
+if(
+
+!list ||
+
+!list.length
+
+){
+
+
+alert(
+
+"계산 중입니다."
+
+);
+
+
+return;
+
+
+}
+
+
+
+
+
+
+
+let html=
+
+
+`
+
+<div style="font-family:monospace">
+
+
+<b>🚑 출동 후보</b>
+
+<br><br>
+
+`;
+
+
+
+
+
+
+
+list.sort(
+
+(a,b)=>
+
+a.eta-b.eta
+
+);
+
+
+
+
+
+
+
+list.forEach((x,i)=>{
+
+
+
+html+=
+
+
+`
+
+<button
+
+onclick="selectDispatch('${id}',${i})"
+
+style="width:100%;margin:3px">
+
+
+${i+1}
+
+${x.name}
+
+<br>
+
+${x.mode}
+
+ETA :
+
+${x.eta}분
+
+
+</button>
+
+
+`;
+
+
+
+});
+
+
+
+
+
+html+=
+
+`
+
+</div>
+
+`;
+
+
+
+
+
+
+L.popup()
+
+
+.setLatLng(
+
+emsMarkers[id]
+
+.getLatLng()
+
+)
+
+
+.setContent(html)
+
+
+.openOn(map);
+
+
+
+}
+
+
+
+
+
+
+
+
+
+// ================= 출동 상태 변경 =================
+
+
+
+function updateEMSStatus(
+
+id,
+
+status
+
+){
+
+
+
+if(!emsDispatchState[id])
+
+return;
+
+
+
+emsDispatchState[id].status=status;
+
+
+
+const el=
+
+document.getElementById(
+
+"status_"+id
+
+);
+
+
+
+if(el)
+
+el.innerHTML=status;
+
+
+
+}
+
+
+
+
+// ================= 지도 레이어 제어 =================
+
+
+
+L.control.layers(
+
+null,
+
+{
+
+
+"🚑 EMS 신고":
+
+emsLayer,
+
+
+"🚒 차량 출동":
+
+vehicleRouteLayer,
+
+
+"🥾 산악 탐방로":
+
+hikingTrailLayer,
+
+
+"🥾 산악 구조":
+
+mountainRouteLayer,
+
+
+"🚨 SOS":
+
+sosLayer,
+
+
+"📍 기록":
+
+historyMarkers,
+
+
+"🧭 이동경로":
+
+historyLines
+
+
+
+}
+
+
+)
+
+.addTo(map);
+
+
+
+
+
+
+
+
+
+// ================= LIVE 구조대 위치 갱신 =================
+
+
+
+function startLiveTracking(){
+
+
+
+loadLive();
+
+
+
+if(intervalLoad)
+
+clearInterval(intervalLoad);
+
+
+
+
+intervalLoad=
+
+setInterval(
+
+
+loadLive,
+
+
+3000
 
 
 );
@@ -4240,6 +2766,47 @@ padding:[50,50]
 
 
 
+
+
+
+
+
+
+// ================= EMS 갱신 =================
+
+
+
+function startEMSTracking(){
+
+
+
+loadEMS();
+
+
+
+if(intervalEMS)
+
+clearInterval(intervalEMS);
+
+
+
+
+
+intervalEMS=
+
+setInterval(
+
+
+loadEMS,
+
+
+3000
+
+
+);
+
+
+
 }
 
 
@@ -4250,16 +2817,588 @@ padding:[50,50]
 
 
 
-
-
-// ================= 초기 실행 =================
+// ================= LIVE LOAD 보완 =================
 
 
 
-loadLive();
+function loadLive(){
 
 
-loadEMS();
+
+fetch(
+
+API_URL
+
++
+
+"?live=1&t="
+
++
+
+Date.now()
+
+)
+
+
+
+.then(r=>r.json())
+
+
+.then(data=>{
+
+
+renderLive(data);
+
+
+
+})
+
+
+
+.catch(err=>{
+
+
+console.log(
+
+"LIVE 오류",
+
+err
+
+);
+
+
+});
+
+
+
+}
+
+
+
+
+
+
+
+
+
+// ================= 구조대 렌더 =================
+
+
+
+function renderLive(data){
+
+
+
+data.forEach(p=>{
+
+
+
+const lat=
+
+Number(p.lat);
+
+
+const lng=
+
+Number(p.lng);
+
+
+
+if(
+
+!Number.isFinite(lat)
+
+||
+
+!Number.isFinite(lng)
+
+)
+
+return;
+
+
+
+
+
+const key=p.name;
+
+
+
+const pos=[lat,lng];
+
+
+
+
+
+
+
+if(!markers[key]){
+
+
+
+markers[key]=
+
+
+
+L.circleMarker(
+
+pos,
+
+
+{
+
+
+radius:11,
+
+
+color:"#00ff9d",
+
+
+fillColor:"#00ff9d",
+
+
+fillOpacity:1,
+
+
+weight:3
+
+
+
+}
+
+
+)
+
+
+
+.bindTooltip(
+
+key,
+
+
+{
+
+
+permanent:true,
+
+
+direction:"top",
+
+
+className:"name-label"
+
+
+}
+
+
+
+)
+
+
+
+.addTo(
+
+rescueLayer
+
+);
+
+
+
+
+
+}
+
+else{
+
+
+markers[key]
+
+.setLatLng(pos);
+
+
+
+}
+
+
+
+
+
+
+
+});
+
+
+
+}
+
+
+
+
+
+
+
+
+
+// ================= STOP 시 정리 =================
+
+
+
+function clearAllRoutes(){
+
+
+
+vehicleRouteLayer.clearLayers();
+
+
+mountainRouteLayer.clearLayers();
+
+
+dispatchCandidates={};
+
+
+
+}
+
+
+
+
+
+
+
+
+
+// ================= 안전 OSRM 요청 =================
+
+
+
+function safeRouteFetch(url){
+
+
+
+return fetch(url)
+
+
+
+.then(r=>{
+
+
+if(!r.ok)
+
+throw new Error(
+
+"Routing Error"
+
+);
+
+
+return r.json();
+
+
+
+})
+
+
+
+.catch(err=>{
+
+
+console.log(
+
+err
+
+);
+
+
+return null;
+
+
+
+});
+
+
+
+}
+
+
+
+
+
+
+
+
+
+// ================= ETA 표시 =================
+
+
+
+function formatETA(min){
+
+
+
+if(min<60){
+
+
+return min+"분";
+
+
+}
+
+
+
+const hour=
+
+Math.floor(
+
+min/60
+
+);
+
+
+
+const minute=
+
+min%60;
+
+
+
+return hour+
+
+"시간 "
+
++
+
+minute
+
++
+
+"분";
+
+
+
+}
+
+
+
+
+
+
+
+
+
+// ================= 출동 완료 처리 =================
+
+
+
+function completeDispatch(id){
+
+
+
+updateEMSStatus(
+
+id,
+
+"완료"
+
+);
+
+
+
+if(
+
+emsPulseMarkers[id]
+
+){
+
+
+
+emsLayer.removeLayer(
+
+emsPulseMarkers[id]
+
+);
+
+
+
+delete emsPulseMarkers[id];
+
+
+
+}
+
+
+
+
+
+vehicleRouteLayer.clearLayers();
+
+
+mountainRouteLayer.clearLayers();
+
+
+
+}
+
+
+
+
+
+
+
+
+
+// ================= 시스템 시작 =================
+
+
+
+function initRescueSystem(){
+
+
+
+console.log(
+
+"🛰 SEARCH AND RESCUE AI MAP START"
+
+);
+
+
+
+
+
+// 탐방로
+
+loadHikingTrails();
+
+
+
+
+
+// 구조대
+
+startLiveTracking();
+
+
+
+
+
+// EMS
+
+startEMSTracking();
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+// ================= 페이지 실행 =================
+
+
+
+window.onload=function(){
+
+
+initRescueSystem();
+
+
+};
+
+
+// ================= FOOT ROUTING =================
+
+
+function getFootRoute(
+
+startLat,
+
+startLng,
+
+endLat,
+
+endLng
+
+){
+
+
+return fetch(
+
+OSRM_FOOT +
+
+`${startLng},${startLat};${endLng},${endLat}`
+
++
+
+"?overview=full&geometries=geojson"
+
+
+)
+
+
+.then(r=>r.json())
+
+
+.then(data=>{
+
+
+if(
+!data.routes ||
+!data.routes.length
+)
+
+return null;
+
+
+
+const route=data.routes[0];
+
+
+
+return {
+
+
+distance:route.distance,
+
+
+duration:route.duration,
+
+
+geometry:
+route.geometry.coordinates
+
+
+};
+
+
+
+})
+
+
+.catch(err=>{
+
+
+console.log(
+
+"FOOT ROUTE ERROR",
+
+err
+
+);
+
+
+return null;
+
+
+});
+
+
+}  
 
 
 </script>
