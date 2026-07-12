@@ -734,7 +734,11 @@ let emsTimer=null;
 
 
 
-const markers={};
+Object.keys(markers).forEach(k=>{
+delete markers[k];
+});
+
+rescueLayer.clearLayers();
 
 const emsMarkers={};
 
@@ -1962,6 +1966,14 @@ API_URL+
 
 function renderLive(data){
 
+// START 안 했으면 표시 안 함
+if(!myName)
+{
+    rescueLayer.clearLayers();
+    return;
+}
+
+
 if(!Array.isArray(data))
 return;
 
@@ -1972,14 +1984,13 @@ rescueLayer.clearLayers();
 data.forEach(p=>{
 
 
-// START 한 내 ID만 표시
-if(myName && p.name !== myName)
+// 내 ID만 표시
+if(p.name !== myName)
 return;
 
 
 
 const lat = Number(p.lat);
-
 const lng = Number(p.lng);
 
 
@@ -2005,7 +2016,6 @@ icon:getHikerIcon()
 )
 
 
-
 .bindTooltip(
 
 p.name,
@@ -2021,7 +2031,6 @@ className:"name-label"
 )
 
 
-
 .addTo(rescueLayer);
 
 
@@ -2033,9 +2042,6 @@ markers[p.name]=marker;
 
 
 }
-
-
-
 
 
 
@@ -2352,6 +2358,10 @@ clearInterval(liveTimer);
 lastPos=null;
 
 myName="";
+
+markers={};
+
+rescueLayer.clearLayers();
 
 
 nameInput.disabled=false;
