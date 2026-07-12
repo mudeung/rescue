@@ -1,154 +1,284 @@
 <!DOCTYPE html>
 <html>
 <head>
+
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
 
 <title>
 🛰 SEARCH AND RESCUE AI MAP
 </title>
 
+
 <link rel="stylesheet"
 href="https://unpkg.com/leaflet/dist/leaflet.css">
+
 
 <link rel="stylesheet"
 href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css">
 
+
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
 
 <script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
 
+
 <style>
 
+
 body{
+
 margin:0;
+
 background:#050b18;
+
 color:#00ff9d;
+
 font-family:monospace;
+
 overflow:hidden;
+
 }
+
 
 
 header{
+
 height:50px;
+
 background:#071a2f;
+
 display:flex;
+
 align-items:center;
+
 justify-content:center;
+
 font-size:18px;
+
 font-weight:bold;
+
 }
 
 
 
 #container{
+
 display:flex;
+
 height:calc(100vh - 50px);
+
 }
+
+
 
 #panel{
+
 width:300px;
+
 background:#07101f;
+
 padding:10px;
+
 display:flex;
+
 flex-direction:column;
+
 gap:8px;
+
 overflow-y:auto;
+
 }
 
+
+
 #map{
+
 flex:1;
+
 }
-input,button{
+
+
+
+input,
+button{
+
 padding:10px;
+
 border:1px solid #00ff9d;
+
 background:#001a14;
+
 color:#00ff9d;
+
 font-family:monospace;
+
 }
+
+
 
 button:disabled{
-opacity:0.4;
+
+opacity:.4;
+
 }
+
+
 
 .name-label{
+
 background:#001a14;
+
 color:#00ff9d;
+
 border:1px solid #00ff9d;
+
 border-radius:5px;
+
 padding:3px 8px;
+
 font-size:12px;
+
 font-weight:bold;
-box-shadow:0 0 8px #00ff9d;
+
+box-shadow:
+0 0 8px #00ff9d;
+
 }
+
+
 
 .ems-pulse{
+
 width:24px;
+
 height:24px;
+
 border-radius:50%;
+
 background:red;
+
 border:3px solid white;
-box-shadow:0 0 15px red;
+
+box-shadow:
+0 0 15px red;
+
 animation:pulse 1.5s infinite;
+
 }
+
+
 
 @keyframes pulse{
+
+
 0%{
+
 transform:scale(.5);
+
 opacity:1;
+
 }
+
 
 70%{
+
 transform:scale(1.5);
+
 opacity:.2;
+
 }
+
 
 100%{
+
 transform:scale(.5);
+
 opacity:1;
-}
 
 }
+
+
+}
+
+
 
 @media(max-width:768px){
+
+
 #container{
+
 flex-direction:column;
+
 }
+
 
 #panel{
+
 width:auto;
+
 height:35vh;
+
 }
+
 
 #map{
+
 height:65vh;
-}
 
 }
+
+
+}
+
 
 </style>
+
+
 </head>
+
 
 <body>
 
- <header>
+
+
+<header>
 
 🛰 SEARCH AND RESCUE AI MAP
 
 </header>
+
+
+
+
 <div id="container">
+
+
 <div id="panel">
-<input id="name"placeholder="RESCUE ID">
-<button id="startBtn"
-disabled>
+
+
+<input 
+id="name"
+placeholder="RESCUE ID">
+
+
+<button id="startBtn" disabled>
 
 START
+
 </button>
+
+
 <button id="myLocationBtn">
 
 📍 MY LOCATION
 
 </button>
+
 
 <button id="shareBtn">
 
@@ -156,11 +286,13 @@ START
 
 </button>
 
+
 <button id="sosBtn">
 
 🚨 SOS
 
 </button>
+
 
 <button id="stopBtn">
 
@@ -168,90 +300,162 @@ START
 
 </button>
 
+
 <button id="historyBtn">
 
 📦 전체 기록
 
 </button>
 
+
 </div>
+
+
 <div id="map"></div>
+
+
 </div>
+
+
 
 <script>
 
+
 // ================= API =================
+
+
 const API_URL =
-"https://script.google.com/macros/s/AKfycbyem5fAs2XGxNy6wrHO3s68CmJyHy7GI31IBKdiz49KtN3sfikYdfmpP07-3dWqna2R/exec";
+
+"YOUR_RESCUE_API_URL";
+
+
 
 const EMS_API =
-"https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
+
+"YOUR_EMS_API_URL";
+
+
+
+
 
 // ================= DEVICE =================
 
-let DEVICE_ID =localStorage.getItem("DEVICE_ID");
+
+let DEVICE_ID =
+
+localStorage.getItem(
+"DEVICE_ID"
+);
+
+
+
 if(!DEVICE_ID){
-DEVICE_ID=crypto.randomUUID();
+
+
+DEVICE_ID =
+crypto.randomUUID();
+
+
 localStorage.setItem(
 "DEVICE_ID",
 DEVICE_ID
 );
 
+
 }
 
+
+
 // ================= MAP =================
-const map =L.map("map")
+
+
+const map =
+
+L.map("map")
+
 .setView(
+
 [35.1239,126.9883],
+
 13
+
 );
+
+
+
 
 // ================= TILE =================
 
 
+
 const osm =
+
 L.tileLayer(
+
 "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+
 {
+
 maxZoom:19
+
 }
+
 );
 
 
 
 const topo =
+
 L.tileLayer(
+
 "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+
 {
+
 maxZoom:17
+
 }
+
 );
 
 
 
 const satellite =
+
 L.tileLayer(
-"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+
+"https://server.arcgis.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+
 {
+
 maxZoom:19
+
 }
+
 );
 
 
 
-// 등산로 지도
+// 등산로 표시용
 
 const hiking =
+
 L.tileLayer(
+
 "https://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png",
+
 {
+
 maxZoom:17
+
 }
+
 );
 
 
 
 osm.addTo(map);
+
 
 
 
@@ -276,56 +480,77 @@ L.control.layers(
 
 
 
+
 // ================= ICON =================
 
 
 
 function getHikerIcon(){
 
+
 return L.divIcon({
 
+
 className:"",
+
 
 html:
 
 `
+
 <div style="
 font-size:32px;
 filter:drop-shadow(0 0 8px lime)
 ">
+
 🥾
+
 </div>
+
 `,
 
 iconSize:[35,35]
 
+
 });
+
 
 }
 
 
 
 
+
 function getSOSIcon(){
+
 
 return L.divIcon({
 
+
 className:"",
+
 
 html:
 
 `
+
 <div style="
 font-size:35px;
 filter:drop-shadow(0 0 10px red)
 ">
+
 🚨
+
 </div>
+
 `,
+
 
 iconSize:[40,40]
 
+
 });
+
 
 }
 
@@ -334,34 +559,47 @@ iconSize:[40,40]
 
 function getEMSIcon(){
 
+
 return L.divIcon({
 
+
 className:"",
+
 
 html:
 
 `
+
 <div style="
 font-size:32px;
 filter:drop-shadow(0 0 10px red)
 ">
+
 🚑
+
 </div>
+
 `,
 
-iconSize:[35,35]
+
+iconSize:[40,40]
+
 
 });
 
+
 }
+
+
+
 
 
 
 // ================= DRAW =================
 
 
-
 const drawnItems =
+
 new L.FeatureGroup();
 
 
@@ -372,9 +610,11 @@ drawnItems
 
 
 const drawControl =
+
 new L.Control.Draw({
 
 position:"topright",
+
 
 draw:{
 
@@ -386,11 +626,10 @@ circle:true,
 
 polyline:true,
 
-marker:true,
-
-circlemarker:false
+marker:true
 
 },
+
 
 edit:{
 
@@ -398,11 +637,13 @@ featureGroup:drawnItems
 
 }
 
+
 });
 
 
-
-map.addControl(drawControl);
+map.addControl(
+drawControl
+);
 
 
 
@@ -412,13 +653,15 @@ L.Draw.Event.CREATED,
 
 function(e){
 
+
 drawnItems.addLayer(
 e.layer
 );
 
-}
 
-);
+});
+
+
 
 
 
@@ -426,38 +669,42 @@ e.layer
 // ================= LAYERS =================
 
 
+
 const rescueLayer =
+
 L.layerGroup()
+
 .addTo(map);
 
 
 
 const emsLayer =
+
 L.layerGroup()
+
 .addTo(map);
 
 
 
-const sosLayer =
+const routeLayer =
+
 L.layerGroup()
-.addTo(map);
 
-
-
-const rescueRouteLayer =
-L.layerGroup()
 .addTo(map);
 
 
 
 const historyLayer =
+
 L.layerGroup()
+
 .addTo(map);
 
 
 
 
 // ================= STATE =================
+
 
 
 let lastPos=null;
@@ -478,54 +725,795 @@ let emsTimer=null;
 
 
 
+
 // ================= MARKERS =================
+
 
 
 const markers={};
 
 const emsMarkers={};
 
-const rescueColors={};
+const rescueRoutes={};
 
-
-const colors=[
-
-"#00ff9d",
-"#00aaff",
-"#ffcc00",
-"#ff00ff",
-"#ff6600"
-
-];
-
-
-
-function getColor(name){
-
-if(!rescueColors[name]){
-
-rescueColors[name]=
-colors[
-Object.keys(rescueColors).length %
-colors.length
-];
-
-}
-
-
-return rescueColors[name];
-
-}
 
 
 
 
 console.log(
-"SEARCH RESCUE MAP READY"
+"RESCUE MAP PART1 READY"
 );
 
 
+
 </script>
+
+ // ================= EMS LOAD =================
+
+
+function loadEMS(){
+
+
+fetch(
+
+EMS_API+
+"?t="+Date.now()
+
+)
+
+
+.then(r=>r.json())
+
+.then(renderEMS)
+
+.catch(console.log);
+
+
+}
+
+
+
+
+// ================= EMS RENDER =================
+
+
+function renderEMS(data){
+
+
+if(!Array.isArray(data))
+return;
+
+
+
+const active={};
+
+
+
+data.forEach(item=>{
+
+
+const lat =
+Number(item.lat);
+
+
+const lng =
+Number(item.lng);
+
+
+
+if(
+
+!Number.isFinite(lat) ||
+!Number.isFinite(lng)
+
+)
+return;
+
+
+
+const id =
+item.id;
+
+
+
+active[id]=true;
+
+
+
+const pos=[lat,lng];
+
+
+
+
+// EMS MARKER
+
+
+if(!emsMarkers[id]){
+
+
+emsMarkers[id]=
+
+L.marker(
+
+pos,
+
+{
+
+icon:getEMSIcon()
+
+}
+
+)
+
+
+.bindPopup(
+
+`
+
+<b>🚑 119 신고</b>
+
+<br><br>
+
+📌 유형 :
+${item.type || ""}
+
+<br><br>
+
+📍 위치 :
+${item.address || "-"}
+
+<br><br>
+
+📡 상태 :
+${item.status || ""}
+
+<br><br>
+
+⏰ 시간 :
+${item.time || ""}
+
+`
+
+)
+
+
+.addTo(emsLayer);
+
+
+}
+
+else{
+
+
+emsMarkers[id]
+.setLatLng(pos);
+
+
+}
+
+
+
+// 경로 생성
+
+drawEmergencyRoute({
+
+id:id,
+
+lat:lat,
+
+lng:lng
+
+});
+
+
+});
+
+
+
+}
+
+
+
+
+
+
+
+// ================= DISTANCE =================
+
+
+
+function distanceMeter(
+
+lat1,
+
+lng1,
+
+lat2,
+
+lng2
+
+){
+
+
+const R=6371000;
+
+
+const dLat=
+
+(lat2-lat1)
+*Math.PI/180;
+
+
+const dLng=
+
+(lng2-lng1)
+*Math.PI/180;
+
+
+
+const a=
+
+Math.sin(dLat/2)**2
+
++
+
+Math.cos(lat1*Math.PI/180)
+
+*
+
+Math.cos(lat2*Math.PI/180)
+
+*
+
+Math.sin(dLng/2)**2;
+
+
+
+return R*
+
+2*
+
+Math.atan2(
+
+Math.sqrt(a),
+
+Math.sqrt(1-a)
+
+);
+
+
+}
+
+
+
+
+
+
+
+
+// ================= FIND NEAREST RESCUE =================
+
+
+
+function findNearestRescue(
+
+ems
+
+){
+
+
+
+let result=null;
+
+
+let min=999999999;
+
+
+
+Object.keys(markers)
+
+.forEach(name=>{
+
+
+const p=
+
+markers[name]
+
+.getLatLng();
+
+
+
+const d=
+
+distanceMeter(
+
+ems.lat,
+
+ems.lng,
+
+p.lat,
+
+p.lng
+
+);
+
+
+
+if(d<min){
+
+
+min=d;
+
+
+result={
+
+
+name:name,
+
+lat:p.lat,
+
+lng:p.lng,
+
+distance:d
+
+
+};
+
+
+}
+
+
+
+});
+
+
+
+return result;
+
+
+}
+
+
+
+
+
+
+
+
+// ================= ROAD ROUTE =================
+
+
+
+function getRoadRoute(
+
+startLat,
+
+startLng,
+
+endLat,
+
+endLng
+
+){
+
+
+
+const url=
+
+"https://router.project-osrm.org/route/v1/driving/"
+
++
+
+`${startLng},${startLat};${endLng},${endLat}`
+
++
+
+"?overview=full&geometries=geojson";
+
+
+
+
+return fetch(url)
+
+
+.then(r=>r.json())
+
+
+.then(data=>{
+
+
+if(
+!data.routes ||
+!data.routes.length
+)
+
+return null;
+
+
+
+const r=
+
+data.routes[0];
+
+
+
+return {
+
+
+distance:r.distance,
+
+duration:r.duration,
+
+geometry:r.geometry.coordinates
+
+
+};
+
+
+
+})
+
+
+.catch(()=>null);
+
+
+
+}
+
+
+
+
+
+
+
+
+// ================= DRAW 119 + WALK =================
+
+
+
+function drawEmergencyRoute(
+
+ems
+
+){
+
+
+
+routeLayer.clearLayers();
+
+
+
+const rescue =
+
+findNearestRescue(ems);
+
+
+
+if(!rescue)
+
+return;
+
+
+
+
+
+// ================= 차량 =================
+
+
+
+getRoadRoute(
+
+ems.lat,
+
+ems.lng,
+
+rescue.lat,
+
+rescue.lng
+
+)
+
+
+.then(route=>{
+
+
+if(!route)
+
+return;
+
+
+
+const coords=[];
+
+
+route.geometry.forEach(p=>{
+
+
+coords.push([
+
+p[1],
+
+p[0]
+
+]);
+
+
+});
+
+
+
+
+L.polyline(
+
+coords,
+
+{
+
+color:"red",
+
+weight:6
+
+}
+
+)
+
+.addTo(routeLayer);
+
+
+
+
+const km=
+
+(route.distance/1000)
+
+.toFixed(2);
+
+
+
+const min=
+
+Math.ceil(
+
+route.duration/60
+
+);
+
+
+
+showRouteInfo(
+
+ems,
+
+rescue,
+
+"🚒 119 차량",
+
+km,
+
+min,
+
+"red"
+
+);
+
+
+});
+
+
+
+
+
+
+// ================= 도보 예상 =================
+
+
+
+const walkDistance =
+
+distanceMeter(
+
+rescue.lat,
+
+rescue.lng,
+
+ems.lat,
+
+ems.lng
+
+);
+
+
+
+const walkMin =
+
+Math.ceil(
+
+walkDistance /
+
+80
+
+);
+
+
+
+L.polyline(
+
+[
+
+[rescue.lat,rescue.lng],
+
+[ems.lat,ems.lng]
+
+],
+
+{
+
+color:"#00ffff",
+
+weight:5,
+
+dashArray:"10,10"
+
+}
+
+)
+
+.addTo(routeLayer);
+
+
+
+
+
+showRouteInfo(
+
+ems,
+
+rescue,
+
+"🥾 구조대 도보",
+
+(
+
+walkDistance/1000
+
+).toFixed(2),
+
+walkMin,
+
+"#00ffff"
+
+);
+
+
+
+}
+
+
+
+
+
+
+
+
+// ================= ROUTE INFO =================
+
+
+
+function showRouteInfo(
+
+ems,
+
+rescue,
+
+title,
+
+distance,
+
+time,
+
+color
+
+){
+
+
+
+L.marker(
+
+[
+
+(
+
+ems.lat+rescue.lat
+
+)/2,
+
+
+(
+
+ems.lng+rescue.lng
+
+)/2
+
+],
+
+{
+
+
+icon:
+
+L.divIcon({
+
+className:"",
+
+html:
+
+
+`
+
+<div style="
+
+background:#050b18;
+
+border:2px solid ${color};
+
+color:${color};
+
+padding:8px;
+
+border-radius:8px;
+
+font-size:12px">
+
+${title}
+
+<br>
+
+📏 ${distance} km
+
+<br>
+
+⏱ ${time}분
+
+</div>
+
+`
+
+})
+
+
+}
+
+)
+
+.addTo(routeLayer);
+
+
+
+}
+
+
+
+
+
+
+
+
+// ================= START EMS =================
+
+
+
+loadEMS();
+
+
+emsTimer =
+
+setInterval(
+
+loadEMS,
+
+10000
+
+);
 
 // ================= INPUT =================
 
@@ -538,16 +1526,22 @@ const startBtn =
 document.getElementById("startBtn");
 
 
+
 nameInput.addEventListener(
+
 "input",
+
 ()=>{
+
 
 startBtn.disabled =
 nameInput.value.trim()==="";
 
+
 }
 
 );
+
 
 
 
@@ -556,35 +1550,56 @@ nameInput.value.trim()==="";
 
 function getNowTime(){
 
+
 const d=new Date();
+
 
 return (
 
-d.getFullYear()
+d.getFullYear()+"-"
+
 +
-"-"
-+
+
 String(d.getMonth()+1).padStart(2,"0")
+
 +
+
 "-"
+
 +
+
 String(d.getDate()).padStart(2,"0")
+
 +
+
 " "
+
 +
+
 String(d.getHours()).padStart(2,"0")
+
 +
+
 ":"
+
 +
+
 String(d.getMinutes()).padStart(2,"0")
+
 +
+
 ":"
+
 +
+
 String(d.getSeconds()).padStart(2,"0")
 
 );
 
+
 }
+
+
 
 
 
@@ -595,11 +1610,14 @@ String(d.getSeconds()).padStart(2,"0")
 startBtn.onclick=start;
 
 
+
 function start(){
 
 
 myName=
+
 nameInput.value.trim();
+
 
 
 if(!myName){
@@ -615,7 +1633,9 @@ return;
 
 
 startTime=
+
 getNowTime();
+
 
 
 nameInput.disabled=true;
@@ -624,7 +1644,10 @@ startBtn.disabled=true;
 
 
 
-watchId =
+
+
+watchId=
+
 navigator.geolocation.watchPosition(
 
 
@@ -632,6 +1655,7 @@ pos=>{
 
 
 lastPos={
+
 
 name:myName,
 
@@ -643,6 +1667,7 @@ lng:pos.coords.longitude,
 
 status:"normal"
 
+
 };
 
 
@@ -650,21 +1675,21 @@ status:"normal"
 },
 
 
+
 err=>{
 
 
 alert(
-"GPS 권한 확인 필요"
+"GPS 권한 필요"
 );
-
-
-console.log(err);
 
 
 },
 
 
+
 {
+
 
 enableHighAccuracy:true,
 
@@ -672,25 +1697,36 @@ maximumAge:1000,
 
 timeout:10000
 
+
 }
 
 
+
 );
 
 
 
-sendTimer =
+
+sendTimer=
+
 setInterval(
+
 sendData,
+
 5000
+
 );
 
 
 
-liveTimer =
+liveTimer=
+
 setInterval(
+
 loadLive,
+
 3000
+
 );
 
 
@@ -707,13 +1743,18 @@ alert(
 
 
 
+
+
 // ================= SEND =================
+
 
 
 function sendData(){
 
 
+
 if(!lastPos)
+
 return;
 
 
@@ -724,16 +1765,23 @@ API_URL,
 
 {
 
+
 method:"POST",
+
 
 headers:{
 
-"Content-Type":"text/plain"
+
+"Content-Type":
+
+"text/plain"
+
 
 },
 
 
 body:
+
 
 JSON.stringify({
 
@@ -748,6 +1796,7 @@ endTime:endTime
 
 }
 
+
 )
 
 .catch(console.log);
@@ -761,7 +1810,9 @@ endTime:endTime
 
 
 
-// ================= LIVE LOAD =================
+
+// ================= LIVE =================
+
 
 
 function loadLive(){
@@ -770,9 +1821,11 @@ function loadLive(){
 fetch(
 
 API_URL+
+
 "?live=1&t="+Date.now()
 
 )
+
 
 
 .then(r=>r.json())
@@ -789,13 +1842,13 @@ API_URL+
 
 
 
-// ================= LIVE RENDER =================
 
 
 function renderLive(data){
 
 
 if(!Array.isArray(data))
+
 return;
 
 
@@ -807,11 +1860,13 @@ rescueLayer.clearLayers();
 data.forEach(p=>{
 
 
-const lat =
+const lat=
+
 Number(p.lat);
 
 
-const lng =
+const lng=
+
 Number(p.lng);
 
 
@@ -819,7 +1874,9 @@ Number(p.lng);
 if(
 
 !Number.isFinite(lat)
+
 ||
+
 !Number.isFinite(lng)
 
 )
@@ -828,65 +1885,22 @@ return;
 
 
 
-const key=p.name;
 
+const marker=
 
-
-const pos=[
-lat,
-lng
-];
-
-
-
-
-// 기존 마커 삭제 후 안정적 재생성
-
-if(markers[key]){
-
-
-rescueLayer.removeLayer(
-markers[key]
-);
-
-
-}
-
-
-
-
-
-let icon =
-getHikerIcon();
-
-
-
-if(p.status==="SOS"){
-
-
-icon =
-getSOSIcon();
-
-
-}
-
-
-
-
-
-markers[key]=
 
 L.marker(
 
-pos,
+[lat,lng],
 
 {
 
-icon:icon
+icon:getHikerIcon()
 
 }
 
 )
+
 
 
 .bindTooltip(
@@ -895,9 +1909,8 @@ p.name,
 
 {
 
-permanent:true,
 
-direction:"top",
+permanent:true,
 
 className:"name-label"
 
@@ -906,66 +1919,13 @@ className:"name-label"
 )
 
 
+
 .addTo(rescueLayer);
 
 
 
 
-
-
-// SOS 원 표시
-
-
-if(p.status==="SOS"){
-
-
-L.circle(
-
-pos,
-
-{
-
-radius:80,
-
-color:"red",
-
-fillColor:"red",
-
-fillOpacity:0.25
-
-}
-
-)
-
-.addTo(sosLayer);
-
-
-}
-
-
-
-
-// 위치 이동
-
-if(
-p.name===myName
-){
-
-lastPos={
-
-name:p.name,
-
-device:p.device,
-
-lat:lat,
-
-lng:lng,
-
-status:p.status
-
-};
-
-}
+markers[p.name]=marker;
 
 
 
@@ -980,13 +1940,19 @@ status:p.status
 
 
 
+
+
+
 // ================= MY LOCATION =================
+
 
 
 document.getElementById(
 "myLocationBtn"
 )
+
 .onclick=function(){
+
 
 
 if(!lastPos){
@@ -1024,49 +1990,28 @@ lastPos.lng
 
 
 
+
 // ================= SOS =================
+
 
 
 document.getElementById(
 "sosBtn"
 )
-.onclick=sendSOS;
 
+.onclick=function(){
 
-
-function sendSOS(){
 
 
 if(!lastPos){
 
-
 alert(
-"현재 위치 없음"
+"위치 없음"
 );
-
 
 return;
 
-
 }
-
-
-
-
-const sosData={
-
-
-...lastPos,
-
-status:"SOS",
-
-startTime:startTime,
-
-endTime:endTime
-
-
-};
-
 
 
 
@@ -1076,20 +2021,38 @@ API_URL,
 
 {
 
+
 method:"POST",
+
 
 headers:{
 
-"Content-Type":"text/plain"
+
+"Content-Type":
+
+"text/plain"
+
 
 },
 
+
 body:
 
-JSON.stringify(sosData)
+JSON.stringify({
+
+...lastPos,
+
+status:"SOS",
+
+startTime:startTime,
+
+endTime:endTime
+
+})
 
 
 }
+
 
 );
 
@@ -1100,7 +2063,9 @@ alert(
 );
 
 
-}
+};
+
+
 
 
 
@@ -1111,14 +2076,12 @@ alert(
 // ================= SHARE =================
 
 
+
 document.getElementById(
 "shareBtn"
 )
-.onclick=shareLocation;
 
-
-
-function shareLocation(){
+.onclick=function(){
 
 
 
@@ -1140,42 +2103,12 @@ const url=
 
 
 
-fetch(
-
-API_URL,
-
-{
-
-method:"POST",
-
-headers:{
-
-"Content-Type":"text/plain"
-
-},
-
-body:
-
-JSON.stringify({
-
-...lastPos,
-
-status:"SHARE"
-
-})
-
-
-}
-
-);
-
-
-
-
 const text=
 
 `
+
 📡 구조대 위치 공유
+
 
 UNIT:
 ${lastPos.name}
@@ -1183,13 +2116,13 @@ ${lastPos.name}
 
 위치:
 ${url}
+
 `;
 
 
 
-if(
-navigator.share
-){
+if(navigator.share){
+
 
 navigator.share({
 
@@ -1199,9 +2132,7 @@ text:text,
 
 url:url
 
-})
-
-.catch(console.log);
+});
 
 
 }
@@ -1212,13 +2143,16 @@ else{
 location.href=
 
 "sms:?body="+
+
 encodeURIComponent(text);
 
 
 }
 
 
-}
+};
+
+
 
 
 
@@ -1229,24 +2163,23 @@ encodeURIComponent(text);
 // ================= STOP =================
 
 
+
 document.getElementById(
 "stopBtn"
 )
-.onclick=stopTracking;
 
-
-
-function stopTracking(){
+.onclick=function(){
 
 
 
 endTime=
+
 getNowTime();
 
 
 
-
 if(lastPos){
+
 
 
 fetch(
@@ -1255,15 +2188,23 @@ API_URL,
 
 {
 
+
 method:"POST",
+
 
 headers:{
 
-"Content-Type":"text/plain"
+
+"Content-Type":
+
+"text/plain"
+
 
 },
 
+
 body:
+
 
 JSON.stringify({
 
@@ -1280,12 +2221,12 @@ endTime:endTime
 
 }
 
+
 );
 
 
+
 }
-
-
 
 
 
@@ -1310,25 +2251,15 @@ clearInterval(liveTimer);
 
 
 
-sendTimer=null;
-
-liveTimer=null;
-
-
-
 lastPos=null;
 
 myName="";
-
-startTime="";
-
-endTime="";
-
 
 
 nameInput.disabled=false;
 
 nameInput.value="";
+
 
 startBtn.disabled=true;
 
@@ -1339,776 +2270,9 @@ alert(
 );
 
 
-}
-
-
-
-
-
-// ================= INITIAL LOAD =================
-
-
-loadLive();
-
-
-// ================= EMS =================
-
-
-const emsPulseMarkers={};
-
-const rescueRoutes={};
-
-const routeInfoMarkers={};
-
-
-
-// ================= EMS ICON =================
-
-
-function getEMSStatusIcon(status){
-
-
-let emoji="🚑";
-
-
-if(status==="완료")
-emoji="✅";
-
-
-if(status==="취소")
-emoji="⚪";
-
-
-
-return L.divIcon({
-
-className:"",
-
-html:
-
-`
-<div style="
-font-size:32px;
-filter:drop-shadow(0 0 10px red)
-">
-${emoji}
-</div>
-`,
-
-iconSize:[40,40]
-
-});
-
-
-}
-
-
-
-
-
-
-// ================= EMS LOAD =================
-
-
-function loadEMS(){
-
-
-fetch(
-
-EMS_API+
-"?t="+Date.now()
-
-)
-
-
-.then(r=>r.json())
-
-.then(renderEMS)
-
-.catch(console.log);
-
-
-}
-
-
-
-
-
-
-// ================= EMS RENDER =================
-
-
-function renderEMS(data){
-
-
-if(!Array.isArray(data))
-return;
-
-
-
-const active={};
-
-
-
-data.forEach(item=>{
-
-
-const lat =
-Number(item.lat);
-
-
-const lng =
-Number(item.lng);
-
-
-
-if(
-
-!Number.isFinite(lat)
-||
-!Number.isFinite(lng)
-
-)
-return;
-
-
-
-const id =
-item.id;
-
-
-
-active[id]=true;
-
-
-
-const pos=[
-lat,
-lng
-];
-
-
-
-
-// EMS MARKER
-
-
-if(!emsMarkers[id]){
-
-
-emsMarkers[id]=
-
-L.marker(
-
-pos,
-
-{
-
-icon:getEMSStatusIcon(item.status)
-
-}
-
-)
-
-
-.bindPopup(
-
-`
-
-<b>🚑 119 신고</b>
-<br><br>
-
-📌 유형 :
-${item.type || ""}
-
-<br><br>
-
-📍 위치 :
-${item.address || ""}
-
-<br><br>
-
-📡 상태 :
-${item.status || ""}
-
-<br><br>
-
-⏰ 시간 :
-${item.time || ""}
-
-`
-
-)
-
-.addTo(emsLayer);
-
-
-
-}
-
-else{
-
-
-emsMarkers[id]
-.setLatLng(pos);
-
-
-emsMarkers[id]
-.setIcon(
-getEMSStatusIcon(item.status)
-);
-
-
-}
-
-
-
-
-// 긴급 펄스
-
-
-if(
-
-item.status!=="완료"
-&&
-item.status!=="취소"
-
-){
-
-
-if(!emsPulseMarkers[id]){
-
-
-emsPulseMarkers[id]=
-
-
-L.marker(
-
-pos,
-
-{
-
-icon:
-
-L.divIcon({
-
-className:"",
-
-html:
-
-`
-<div class="ems-pulse"></div>
-`,
-
-iconSize:[30,30]
-
-}),
-
-interactive:false
-
-
-}
-
-)
-
-.addTo(emsLayer);
-
-
-
-}
-
-else{
-
-
-emsPulseMarkers[id]
-.setLatLng(pos);
-
-
-}
-
-
-
-}
-
-
-
-drawRescueRoute({
-
-id:id,
-
-lat:lat,
-
-lng:lng
-
-
-});
-
-
-
-});
-
-
-
-
-
-// 삭제된 EMS 제거
-
-
-Object.keys(emsMarkers)
-
-.forEach(id=>{
-
-
-if(!active[id]){
-
-
-emsLayer.removeLayer(
-emsMarkers[id]
-);
-
-
-delete emsMarkers[id];
-
-
-
-if(emsPulseMarkers[id]){
-
-
-emsLayer.removeLayer(
-emsPulseMarkers[id]
-);
-
-
-delete emsPulseMarkers[id];
-
-
-}
-
-
-}
-
-
-});
-
-
-}
-
-
-
-
-
-
-
-// ================= ROAD ROUTE =================
-
-
-// OSRM 무료 자동차 도로
-
-
-function getRoadRoute(
-
-startLat,
-
-startLng,
-
-endLat,
-
-endLng
-
-){
-
-
-
-const url=
-
-"https://router.project-osrm.org/route/v1/driving/"
-
-+
-
-`${startLng},${startLat};${endLng},${endLat}`
-
-+
-
-"?overview=full&geometries=geojson";
-
-
-
-
-
-return fetch(url)
-
-.then(r=>r.json())
-
-.then(data=>{
-
-
-if(
-!data.routes ||
-!data.routes.length
-)
-
-return null;
-
-
-
-const route =
-data.routes[0];
-
-
-
-return {
-
-
-distance:
-route.distance,
-
-
-duration:
-route.duration,
-
-
-geometry:
-route.geometry.coordinates
-
-
 };
 
 
-
-})
-
-
-.catch(()=>null);
-
-
-
-}
-
-
-
-
-
-
-
-// ================= FASTEST RESCUE =================
-
-
-function findFastestRescue(ems){
-
-
-const list=[];
-
-
-
-Object.keys(markers)
-
-.forEach(name=>{
-
-
-const pos =
-markers[name].getLatLng();
-
-
-
-list.push({
-
-name:name,
-
-lat:pos.lat,
-
-lng:pos.lng
-
-
-});
-
-
-});
-
-
-
-if(!list.length)
-
-return Promise.resolve(null);
-
-
-
-
-
-const jobs =
-
-list.map(r=>{
-
-
-return getRoadRoute(
-
-ems.lat,
-
-ems.lng,
-
-r.lat,
-
-r.lng
-
-)
-
-
-.then(route=>{
-
-
-if(!route)
-
-return null;
-
-
-
-return {
-
-
-...r,
-
-route:route
-
-
-};
-
-
-});
-
-
-});
-
-
-
-
-
-return Promise.all(jobs)
-
-.then(result=>{
-
-
-const valid =
-result.filter(Boolean);
-
-
-
-if(!valid.length)
-
-return null;
-
-
-
-valid.sort(
-
-(a,b)=>
-
-a.route.duration -
-b.route.duration
-
-);
-
-
-
-return valid[0];
-
-
-});
-
-
-}
-
-
-
-
-
-
-
-
-// ================= DRAW ROUTE =================
-
-
-function drawRescueRoute(ems){
-
-
-
-if(rescueRoutes[ems.id]){
-
-
-rescueRouteLayer.removeLayer(
-rescueRoutes[ems.id]
-);
-
-
-delete rescueRoutes[ems.id];
-
-
-}
-
-
-
-findFastestRescue(ems)
-
-.then(rescue=>{
-
-
-if(!rescue)
-
-return;
-
-
-
-const coords=[];
-
-
-
-rescue.route.geometry.coordinates
-
-.forEach(p=>{
-
-
-coords.push([
-
-p[1],
-
-p[0]
-
-]);
-
-
-});
-
-
-
-
-
-const line=
-
-L.polyline(
-
-coords,
-
-{
-
-color:"#ff6600",
-
-weight:6,
-
-dashArray:"15,10"
-
-}
-
-)
-
-.addTo(
-rescueRouteLayer
-);
-
-
-
-rescueRoutes[ems.id]=line;
-
-
-
-
-const km=
-
-(
-rescue.route.distance /
-1000
-)
-
-.toFixed(2);
-
-
-
-const min=
-
-Math.ceil(
-
-rescue.route.duration /
-60
-
-);
-
-
-
-
-
-const info=
-
-L.marker(
-
-[
-
-(
-ems.lat+
-rescue.lat
-)
-/2,
-
-(
-ems.lng+
-rescue.lng
-)
-/2
-
-],
-
-{
-
-icon:
-
-L.divIcon({
-
-className:"",
-
-html:
-
-`
-
-<div style="
-background:#050b18;
-color:#00ff9d;
-border:2px solid red;
-padding:8px;
-border-radius:8px;
-font-size:13px;
-">
-
-🚑 ${rescue.name}
-
-<br>
-
-📏 ${km} km
-
-<br>
-
-⏱ ${min}분
-
-</div>
-
-`
-
-})
-
-
-}
-
-)
-
-.addTo(
-rescueRouteLayer
-);
-
-
-
-routeInfoMarkers[ems.id]=info;
-
-
-
-});
-
-
-}
 
 
 
@@ -2119,20 +2283,19 @@ routeInfoMarkers[ems.id]=info;
 // ================= HISTORY =================
 
 
+
 document.getElementById(
 "historyBtn"
 )
-.onclick=loadAllHistory;
 
+.onclick=function(){
 
-
-
-function loadAllHistory(){
 
 
 fetch(
 
 API_URL+
+
 "?history=1&t="+Date.now()
 
 )
@@ -2140,19 +2303,7 @@ API_URL+
 
 .then(r=>r.json())
 
-.then(showHistory)
-
-.catch(console.log);
-
-
-}
-
-
-
-
-
-
-function showHistory(data){
+.then(data=>{
 
 
 historyLayer.clearLayers();
@@ -2172,17 +2323,21 @@ group[p.name]=[];
 
 
 
-group[p.name].push([
+group[p.name].push(
+
+[
 
 Number(p.lat),
 
 Number(p.lng)
 
-]);
+]
+
+);
+
 
 
 });
-
 
 
 
@@ -2192,50 +2347,20 @@ Object.keys(group)
 .forEach(name=>{
 
 
-const path=group[name];
-
-
-
 L.polyline(
 
-path,
+group[name],
 
 {
 
-color:getColor(name),
+
+color:"#00ff9d",
 
 weight:5
 
+
 }
 
-)
-
-.addTo(historyLayer);
-
-
-
-
-
-L.marker(path[0])
-
-.bindPopup(
-"START "+name
-)
-
-.addTo(historyLayer);
-
-
-
-
-
-L.marker(
-
-path[path.length-1]
-
-)
-
-.bindPopup(
-"END "+name
 )
 
 .addTo(historyLayer);
@@ -2246,7 +2371,10 @@ path[path.length-1]
 
 
 
-}
+})
+
+
+};
 
 
 
@@ -2254,23 +2382,15 @@ path[path.length-1]
 
 
 
-// ================= START EMS =================
 
-
-loadEMS();
-
-
-emsTimer=
-
-setInterval(
-
-loadEMS,
-
-10000
-
+console.log(
+"🛰 SEARCH RESCUE MAP COMPLETE"
 );
- 
+
+
+</script>
+
+
 </body>
 
-</html>
-
+</html> 
