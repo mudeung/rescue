@@ -342,54 +342,36 @@ onclick="toggleFootRoute()">
 
 <script>
 
-
 // ================= API =================
 
-
 const API_URL =
-
 "https://script.google.com/macros/s/AKfycbyem5fAs2XGxNy6wrHO3s68CmJyHy7GI31IBKdiz49KtN3sfikYdfmpP07-3dWqna2R/exec";
 
 
-
 const EMS_API =
-
 "https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
 
 
-
 const GRAPHHOPPER_KEY =
-
 "6f1dbbf6-0546-4b11-a9c8-8d8134dff43c";
-
-
-
 
 
 // ================= DEVICE =================
 
-
 let DEVICE_ID =
-
 localStorage.getItem("DEVICE_ID");
-
 
 
 if(!DEVICE_ID){
 
-
 DEVICE_ID=crypto.randomUUID();
-
 
 localStorage.setItem(
 "DEVICE_ID",
 DEVICE_ID
 );
 
-
 }
-
-
 
 
 
@@ -397,19 +379,11 @@ DEVICE_ID
 
 
 const map =
-
 L.map("map")
-
 .setView(
-
 [35.1239,126.9883],
-
 13
-
 );
-
-
-
 
 
 
@@ -417,57 +391,37 @@ L.map("map")
 
 
 const osm =
-
 L.tileLayer(
-
 "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-
 );
-
 
 
 const topo =
-
 L.tileLayer(
-
 "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
-
 );
-
 
 
 const satellite =
-
 L.tileLayer(
-
 "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-
 );
-
 
 
 osm.addTo(map);
 
 
 
-
 L.control.layers({
-
 
 "🗺 일반지도":osm,
 
-
 "⛰ 지형지도":topo,
-
 
 "🛰 위성지도":satellite
 
-
 })
-
 .addTo(map);
-
-
 
 
 
@@ -476,7 +430,6 @@ L.control.layers({
 
 
 const drawnItems =
-
 new L.FeatureGroup();
 
 
@@ -485,65 +438,40 @@ map.addLayer(drawnItems);
 
 
 const drawControl =
-
 new L.Control.Draw({
-
 
 position:"topright",
 
-
 draw:{
 
-
 polygon:true,
-
 rectangle:true,
-
 circle:true,
-
 marker:true,
-
-polyline:true,
-
-circlemarker:false
-
+polyline:true
 
 },
 
-
 edit:{
 
-
-featureGroup:drawnItems,
-
-remove:true
-
+featureGroup:drawnItems
 
 }
 
-
 });
-
 
 
 map.addControl(drawControl);
 
 
 
-
-
 map.on(
-
 L.Draw.Event.CREATED,
-
 e=>{
-
 
 drawnItems.addLayer(e.layer);
 
-
 });
-
 
 
 
@@ -552,19 +480,18 @@ drawnItems.addLayer(e.layer);
 // ================= LAYER =================
 
 
-
 const rescueLayer =
-
 L.layerGroup()
-
 .addTo(map);
 
 
+const rescueRouteLayer =
+L.layerGroup()
+.addTo(map);
+
 
 const emsLayer =
-
 L.layerGroup()
-
 .addTo(map);
 
 
@@ -574,44 +501,59 @@ L.layerGroup()
 .addTo(map);
 
 
+
 const footRouteLayer =
 L.layerGroup()
 .addTo(map);
 
 
-const infoRouteLayer =
-L.layerGroup()
-.addTo(map);
-
-const carRoutes={};
-const footRoutes={};
 
 const sosLayer =
-
 L.layerGroup()
-
 .addTo(map);
 
 
 
 const historyMarkers =
-
 L.layerGroup()
-
 .addTo(map);
 
 
 
 const historyLines =
-
 L.layerGroup()
-
 .addTo(map);
 
 
 
+// ================= ROUTE STATE =================
+
+
+let showCarRoute=true;
+
+let showFootRoute=true;
+
+
+let routeMode="car";
+
+
+
+const carRoutes={};
+
+const footRoutes={};
+
+const routeInfoMarkers={};
+
+const selectedRouteCache={};
+
+
+
+
+// ================= ROUTE BUTTON =================
+
 
 function toggleCarRoute(){
+
 
 showCarRoute=!showCarRoute;
 
@@ -625,22 +567,21 @@ showCarRoute
 
 
 
-if(showCarRoute){
+if(showCarRoute)
 
 map.addLayer(carRouteLayer);
 
-}else{
+else
 
 map.removeLayer(carRouteLayer);
 
-}
 
 }
-
 
 
 
 function toggleFootRoute(){
+
 
 showFootRoute=!showFootRoute;
 
@@ -654,44 +595,16 @@ showFootRoute
 
 
 
-if(showFootRoute){
+if(showFootRoute)
 
 map.addLayer(footRouteLayer);
 
-}else{
+else
 
 map.removeLayer(footRouteLayer);
 
-}
 
 }
-
-  
-// ================= ROUTE =================
-
-
-let showCarRoute=true;
-
-let showFootRoute=true;
-
-
-// 차량/도보 경로 저장
-const carRoutes={};
-
-const footRoutes={};
-
-
-// AI 선택 결과 저장
-let selectedRouteCache={};
-
-
-// 기존 선택 경로 저장
-const rescueRoutes={};
-
-
-// ETA 정보 표시
-const routeInfoMarkers={};
-
 
 
 
@@ -701,7 +614,6 @@ const routeInfoMarkers={};
 
 const markers={};
 
-
 const rescueColors={};
 
 
@@ -709,19 +621,13 @@ const rescueColors={};
 const colors=[
 
 "#00ff9d",
-
 "#00aaff",
-
 "#ffcc00",
-
 "#ff00ff",
-
 "#ff6600",
-
 "#ffffff"
 
 ];
-
 
 
 
@@ -734,13 +640,9 @@ if(!rescueColors[name]){
 rescueColors[name]=
 
 colors[
-
 Object.keys(rescueColors).length
-
 %
-
 colors.length
-
 ];
 
 
@@ -749,11 +651,7 @@ colors.length
 
 return rescueColors[name];
 
-
 }
-
-
-
 
 
 
@@ -761,92 +659,20 @@ return rescueColors[name];
 
 
 const nameInput =
-
 document.getElementById("name");
 
 
-
 const startBtn =
-
 document.getElementById("startBtn");
 
 
 
 nameInput.addEventListener(
-
 "input",
-
 ()=>{
 
-
 startBtn.disabled =
-
 nameInput.value.trim().length===0;
-
-
-}
-
-);
-
-
-
-
-
-document
-.getElementById("routeMode")
-.addEventListener(
-"change",
-function(){
-
-
-routeMode=this.value;
-
-
-
-// 기존 경로 삭제
-
-carRouteLayer.clearLayers();
-
-footRouteLayer.clearLayers();
-
-infoRouteLayer.clearLayers();
-
-
-Object.keys(emsMarkers).forEach(id=>{
-
-
-const marker=emsMarkers[id];
-
-const pos=marker.getLatLng();
-
-
-
-if(
-
-!selectedRouteCache[key]
-
-||
-
-selectedRouteCache[key].mode!==routeMode
-
-){
-
-drawRescueRoute({
-
-id:key,
-
-lat:lat,
-
-lng:lng
-
-});
-
-}
-
-
-});
-
-
 
 });
 
@@ -873,8 +699,6 @@ let startTime="";
 let endTime="";
 
 
-
-
 // ================= TIME =================
 
 
@@ -887,33 +711,21 @@ const now=new Date();
 return (
 
 now.getFullYear()
-
 +"-"
-
 +String(now.getMonth()+1).padStart(2,"0")
-
 +"-"
-
 +String(now.getDate()).padStart(2,"0")
-
 +" "
-
 +String(now.getHours()).padStart(2,"0")
-
 +":"
-
 +String(now.getMinutes()).padStart(2,"0")
-
 +":"
-
 +String(now.getSeconds()).padStart(2,"0")
 
 );
 
 
 }
-
-
 
 
 
@@ -925,7 +737,6 @@ function start(){
 
 
 myName=nameInput.value.trim();
-
 
 
 if(!myName){
@@ -950,7 +761,6 @@ startBtn.disabled=true;
 
 
 
-
 watchId=navigator.geolocation.watchPosition(
 
 
@@ -959,7 +769,6 @@ pos=>{
 
 
 lastPos={
-
 
 name:myName,
 
@@ -971,7 +780,6 @@ lng:pos.coords.longitude,
 
 status:"normal"
 
-
 };
 
 
@@ -982,9 +790,7 @@ status:"normal"
 
 err=>{
 
-
 alert("GPS 권한 확인 필요");
-
 
 },
 
@@ -992,13 +798,11 @@ alert("GPS 권한 확인 필요");
 
 {
 
-
 enableHighAccuracy:true,
 
 maximumAge:1000,
 
 timeout:10000
-
 
 }
 
@@ -1037,6 +841,7 @@ loadLive,
 
 
 
+
 // ================= SEND =================
 
 
@@ -1055,43 +860,33 @@ API_URL,
 
 {
 
-
 method:"POST",
 
-
 headers:{
-
 
 "Content-Type":"text/plain"
 
 },
 
-
-
 body:JSON.stringify({
-
 
 ...lastPos,
 
-
 startTime:startTime,
-
 
 endTime:endTime
 
-
 })
 
-
 }
 
+)
 
-);
+.catch(console.log);
 
 
 
 }
-
 
 
 
@@ -1108,13 +903,10 @@ function loadLive(){
 fetch(
 
 API_URL
-
 +"?live=1&t="
-
 +Date.now()
 
 )
-
 
 
 .then(r=>r.json())
@@ -1132,6 +924,7 @@ API_URL
 
 
 
+
 // ================= LIVE RENDER =================
 
 
@@ -1143,7 +936,6 @@ sosLayer.clearLayers();
 
 
 data.forEach(p=>{
-
 
 
 const lat=Number(p.lat);
@@ -1180,34 +972,25 @@ if(!markers[key]){
 
 markers[key]=
 
-
 L.circleMarker(
 
 pos,
 
 {
 
-
 radius:10,
-
 
 color:getColor(key),
 
-
 fillColor:getColor(key),
-
 
 fillOpacity:1,
 
-
 weight:3
-
 
 }
 
-
 )
-
 
 
 .bindTooltip(
@@ -1216,18 +999,15 @@ p.name,
 
 {
 
-
 permanent:true,
 
 direction:"top",
 
 className:"name-label"
 
-
 }
 
 )
-
 
 
 .addTo(rescueLayer);
@@ -1249,18 +1029,18 @@ markers[key].setLatLng(pos);
 
 
 
+
 if(p.status==="SOS"){
 
 
-markers[key].setStyle({
 
+markers[key].setStyle({
 
 radius:15,
 
 color:"red",
 
 fillColor:"red"
-
 
 });
 
@@ -1272,7 +1052,6 @@ pos,
 
 {
 
-
 radius:60,
 
 color:"red",
@@ -1280,7 +1059,6 @@ color:"red",
 fillColor:"red",
 
 fillOpacity:.25
-
 
 }
 
@@ -1292,33 +1070,35 @@ fillOpacity:.25
 
 }
 
+
+
 else if(p.status==="SHARE"){
 
 
-markers[key].setStyle({
 
+markers[key].setStyle({
 
 color:"#0088ff",
 
 fillColor:"#0088ff"
 
-
 });
 
 
+
 }
+
+
 
 else{
 
 
 markers[key].setStyle({
 
-
 color:getColor(key),
 
 fillColor:getColor(key)
 
-
 });
 
 
@@ -1331,8 +1111,6 @@ fillColor:getColor(key)
 
 
 }
-
-
 
 
 
@@ -1341,6 +1119,7 @@ fillColor:getColor(key)
 
 
 // ================= EMS =================
+
 
 
 const emsMarkers={};
@@ -1375,31 +1154,22 @@ color="gray";
 
 return L.divIcon({
 
-
 className:"",
-
 
 html:
 
 `
 
 <div style="
-
 font-size:32px;
-
 filter:drop-shadow(0 0 8px ${color});
-
 ">
-
 🚑
-
 </div>
 
 `,
 
-
 iconSize:[35,35]
-
 
 });
 
@@ -1417,15 +1187,9 @@ function loadEMS(){
 
 fetch(
 
-EMS_API
-
-+"?t="
-
-+Date.now()
+EMS_API+"?t="+Date.now()
 
 )
-
-
 
 .then(r=>r.json())
 
@@ -1442,16 +1206,12 @@ EMS_API
 
 
 
+
 function renderEMS(data){
 
 
 
-const active={};
-
-
-
 data.forEach(item=>{
-
 
 
 const lat=Number(item.lat);
@@ -1474,12 +1234,7 @@ return;
 
 
 
-
 const key=item.id;
-
-
-active[key]=true;
-
 
 
 const pos=[lat,lng];
@@ -1500,53 +1255,30 @@ pos,
 
 {
 
-
 icon:getEMSIcon(item.status)
-
 
 }
 
 )
 
 
-
 .bindPopup(
 
 `
 
-<div style="font-family:monospace">
-
-
 <b>🚑 119 신고</b>
-
 <br><br>
-
-
 📌 ${item.type}
-
 <br><br>
-
-
 📍 ${item.address}
-
 <br><br>
-
-
 📡 ${item.status}
-
-
 <br><br>
-
-
 ⏰ ${item.time}
-
-
-</div>
 
 `
 
 )
-
 
 
 .addTo(emsLayer);
@@ -1561,14 +1293,8 @@ else{
 emsMarkers[key].setLatLng(pos);
 
 
-emsMarkers[key].setIcon(
-
-getEMSIcon(item.status)
-
-);
-
-
 }
+
 
 
 
@@ -1598,12 +1324,9 @@ pos,
 
 {
 
-
 icon:L.divIcon({
 
-
 className:"",
-
 
 html:
 
@@ -1615,12 +1338,9 @@ html:
 
 iconSize:[30,30]
 
-
 }),
 
-
 interactive:false
-
 
 }
 
@@ -1628,7 +1348,6 @@ interactive:false
 
 
 .addTo(emsLayer);
-
 
 
 }
@@ -1642,8 +1361,9 @@ emsPulseMarkers[key].setLatLng(pos);
 }
 
 
-
 }
+
+
 
 
 
@@ -1655,8 +1375,9 @@ lat:lat,
 
 lng:lng
 
-
 });
+
+
 
 
 
@@ -1672,9 +1393,8 @@ lng:lng
 
 
 
-
-
 // ================= GRAPHHOPPER =================
+
 
 
 function getGHRoute(
@@ -1722,8 +1442,6 @@ const url=
 
 
 
-
-
 return fetch(url)
 
 .then(r=>r.json())
@@ -1748,15 +1466,12 @@ return null;
 const path=data.paths[0];
 
 
-
 return {
 
 
 distance:path.distance,
 
-
 duration:path.time,
-
 
 geometry:path.points.coordinates
 
@@ -1780,11 +1495,16 @@ geometry:path.points.coordinates
 
 
 
+
+
+// ================= ETA =================
+
+
+
 function getRescueETA(ems,rescue){
 
 
 return Promise.all([
-
 
 
 getGHRoute(
@@ -1821,18 +1541,14 @@ rescue.lng,
 
 ])
 
-
 .then(r=>{
 
 
 return {
 
-
 car:r[0],
 
-
 walk:r[1]
-
 
 };
 
@@ -1842,6 +1558,8 @@ walk:r[1]
 
 
 }
+
+
 
 
 
@@ -1870,19 +1588,18 @@ const pos=markers[name].getLatLng();
 
 candidates.push({
 
-
 name:name,
 
 lat:pos.lat,
 
 lng:pos.lng
 
-
 });
 
 
 
 });
+
 
 
 
@@ -1890,6 +1607,7 @@ lng:pos.lng
 if(!candidates.length)
 
 return Promise.resolve(null);
+
 
 
 
@@ -1935,6 +1653,7 @@ eta.walk.duration/60000
 
 
 
+
 const score=
 
 (carMin*0.5)
@@ -1947,7 +1666,6 @@ const score=
 
 return {
 
-
 name:rescue.name,
 
 lat:rescue.lat,
@@ -1957,7 +1675,6 @@ lng:rescue.lng,
 eta:eta,
 
 score:score
-
 
 };
 
@@ -1979,7 +1696,9 @@ const valid=result.filter(x=>x);
 
 valid.sort(
 
-(a,b)=>a.score-b.score
+(a,b)=>
+
+a.score-b.score
 
 );
 
@@ -1995,10 +1714,7 @@ return valid[0] || null;
 
 }
 
-
-
-
-// ================= AI 경로 표시 =================
+// ================= AI ROUTE DRAW =================
 
 
 function drawRescueRoute(ems){
@@ -2010,7 +1726,8 @@ return;
 
 
 
-// 기존 차량 경로 제거
+// 기존 경로 삭제
+
 if(carRoutes[ems.id]){
 
 carRouteLayer.removeLayer(
@@ -2022,7 +1739,7 @@ delete carRoutes[ems.id];
 }
 
 
-// 기존 도보 경로 제거
+
 if(footRoutes[ems.id]){
 
 footRouteLayer.removeLayer(
@@ -2034,32 +1751,17 @@ delete footRoutes[ems.id];
 }
 
 
-// 정보 제거
-if(routeInfoMarkers[ems.id]){
-
-infoRouteLayer.removeLayer(
-routeInfoMarkers[ems.id]
-);
-
-delete routeInfoMarkers[ems.id];
-
-}
-
-
 
 if(routeInfoMarkers[ems.id]){
-
 
 rescueRouteLayer.removeLayer(
-
 routeInfoMarkers[ems.id]
-
 );
-
 
 delete routeInfoMarkers[ems.id];
 
 }
+
 
 
 
@@ -2075,37 +1777,30 @@ return;
 
 
 
-// 현재 선택 방식 저장
-
 selectedRouteCache[ems.id]={
-
-mode:routeMode,
 
 rescue:rescue
 
 };
 
 
-if(!rescue)
-
-return;
-
 
 
 
 // 차량 경로
 
+
 if(showCarRoute && rescue.eta.car){
 
 
-const carCoords=[];
+const coords=[];
 
 
 
 rescue.eta.car.geometry.forEach(p=>{
 
 
-carCoords.push([
+coords.push([
 
 p[1],
 
@@ -2118,21 +1813,34 @@ p[0]
 
 
 
-const carLine=L.polyline(
-carCoords,
+
+const line=L.polyline(
+
+coords,
+
 {
+
 color:"red",
+
 weight:6,
+
 dashArray:"15,10"
+
 }
+
 )
+
+
 .addTo(carRouteLayer);
 
 
-carRoutes[ems.id]=carLine;
+
+carRoutes[ems.id]=line;
+
 
 
 }
+
 
 
 
@@ -2141,51 +1849,9 @@ carRoutes[ems.id]=carLine;
 
 // 도보 경로
 
+
+
 if(showFootRoute && rescue.eta.walk){
-
-
-
-const footCoords=[];
-
-
-
-rescue.eta.walk.geometry.forEach(p=>{
-
-
-footCoords.push([
-
-p[1],
-
-p[0]
-
-]);
-
-
-});
-
-
-
-
-const footLine=L.polyline(
-footCoords,
-{
-color:"#00aaff",
-weight:5,
-dashArray:"5,10"
-}
-)
-.addTo(footRouteLayer);
-
-
-footRoutes[ems.id]=footLine;
-
-
-
-}
-
-
-
-
 
 
 
@@ -2193,7 +1859,7 @@ const coords=[];
 
 
 
-selectedRoute.geometry.forEach(p=>{
+rescue.eta.walk.geometry.forEach(p=>{
 
 
 coords.push([
@@ -2211,67 +1877,79 @@ p[0]
 
 
 
-
 const line=L.polyline(
 
 coords,
 
 {
 
+color:"#00aaff",
 
-color:
+weight:5,
 
-routeMode==="car"
+dashArray:"5,10"
 
-?
+}
 
-"red"
+)
 
-:
-
-"#00aaff",
-
-
-weight:6,
+.addTo(footRouteLayer);
 
 
-opacity:.9,
 
+footRoutes[ems.id]=line;
 
-dashArray:"15,10"
 
 
 }
 
+
+
+
+
+
+// 정보 표시
+
+
+const selected =
+
+routeMode==="foot"
+
+?
+
+rescue.eta.walk
+
+:
+
+rescue.eta.car;
+
+
+
+if(!selected)
+
+return;
+
+
+
+const min=
+
+Math.ceil(
+
+selected.duration/60000
+
 );
 
 
 
-line.addTo(rescueRouteLayer);
+const km=
 
+(
 
+selected.distance/1000
 
-rescueRoutes[ems.id]=line;
+)
 
-
-
-
-
-
-const selectedMin=Math.ceil(
-
-selectedRoute.duration/60000
-
-);
-
-
-
-const km=(
-
-selectedRoute.distance/1000
-
-).toFixed(2);
-
+.toFixed(2);
 
 
 
@@ -2292,9 +1970,7 @@ const info=L.marker(
 
 icon:L.divIcon({
 
-
 className:"",
-
 
 html:
 
@@ -2306,7 +1982,7 @@ background:#050b18;
 
 color:#00ff9d;
 
-border:2px solid ${routeMode==="car"?"red":"#00aaff"};
+border:2px solid red;
 
 padding:10px;
 
@@ -2314,7 +1990,7 @@ border-radius:10px;
 
 font-size:13px;
 
-box-shadow:0 0 12px ${routeMode==="car"?"red":"#00aaff"};
+box-shadow:0 0 12px red;
 
 white-space:nowrap;
 
@@ -2323,43 +1999,25 @@ white-space:nowrap;
 
 🤖 AI 출동팀
 
-
 <br><br>
-
 
 🚑 ${rescue.name}
 
+<br>
+
+🚗 ${routeMode==="car"?"차량":"도보"}
 
 <br>
 
-
-📡 방식 :
-
-${routeMode==="car"?"🚗 차량":"🚶 도보"}
-
+📏 ${km} km
 
 <br>
 
-
-📏 거리 :
-
-${km} km
-
+⏱ ${min}분
 
 <br>
 
-
-⏱ ETA :
-
-${selectedMin}분
-
-
-<br>
-
-
-🧠 점수 :
-
-${rescue.score.toFixed(1)}
+🧠 점수 ${rescue.score.toFixed(1)}
 
 
 </div>
@@ -2368,12 +2026,10 @@ ${rescue.score.toFixed(1)}
 
 })
 
+
 }
 
-
-
 );
-
 
 
 info.addTo(rescueRouteLayer);
@@ -2386,7 +2042,6 @@ routeInfoMarkers[ems.id]=info;
 });
 
 
-
 }
 
 
@@ -2395,14 +2050,17 @@ routeInfoMarkers[ems.id]=info;
 
 
 
-// ================= 위치 공유 =================
+
+
+// ================= LOCATION SHARE =================
+
 
 
 function shareLocation(){
 
 
-
 if(!lastPos){
+
 
 alert("현재 위치가 없습니다.");
 
@@ -2418,6 +2076,34 @@ const url=
 
 
 
+fetch(
+
+API_URL,
+
+{
+
+method:"POST",
+
+headers:{
+
+"Content-Type":"text/plain"
+
+},
+
+body:JSON.stringify({
+
+...lastPos,
+
+status:"SHARE"
+
+})
+
+}
+
+);
+
+
+
 const text=
 
 `
@@ -2430,7 +2116,6 @@ UNIT :
 ${lastPos.name}
 
 
-
 위치:
 
 ${url}
@@ -2441,48 +2126,10 @@ ${url}
 
 
 
-fetch(
-
-API_URL,
-
-{
-
-
-method:"POST",
-
-headers:{
-
-
-"Content-Type":"text/plain"
-
-},
-
-
-body:JSON.stringify({
-
-
-...lastPos,
-
-
-status:"SHARE"
-
-
-})
-
-
-}
-
-);
-
-
-
-
-
 if(navigator.share){
 
 
 navigator.share({
-
 
 title:"구조대 위치",
 
@@ -2490,11 +2137,9 @@ text:text,
 
 url:url
 
-
 })
 
 .catch(console.log);
-
 
 
 }
@@ -2528,8 +2173,8 @@ encodeURIComponent(text);
 // ================= SOS =================
 
 
-function sendSOS(){
 
+function sendSOS(){
 
 
 if(!lastPos){
@@ -2538,7 +2183,6 @@ if(!lastPos){
 alert("현재 위치가 없습니다.");
 
 return;
-
 
 }
 
@@ -2550,38 +2194,27 @@ API_URL,
 
 {
 
-
 method:"POST",
 
-
 headers:{
-
 
 "Content-Type":"text/plain"
 
 },
 
-
 body:JSON.stringify({
-
 
 ...lastPos,
 
-
 startTime:startTime,
-
 
 endTime:endTime,
 
-
 status:"SOS"
-
 
 })
 
-
 }
-
 
 );
 
@@ -2608,18 +2241,15 @@ alert(
 // ================= STOP =================
 
 
-function stopTracking(){
 
+function stopTracking(){
 
 
 endTime=getNowTime();
 
 
 
-
-
 if(lastPos){
-
 
 
 fetch(
@@ -2628,43 +2258,32 @@ API_URL,
 
 {
 
-
 method:"POST",
 
 headers:{
-
 
 "Content-Type":"text/plain"
 
 },
 
-
 body:JSON.stringify({
-
 
 ...lastPos,
 
-
 startTime:startTime,
-
 
 endTime:endTime,
 
-
 status:"STOP"
-
 
 })
 
-
 }
-
 
 );
 
 
 }
-
 
 
 
@@ -2686,8 +2305,6 @@ watchId=null;
 
 
 
-
-
 clearInterval(intervalSend);
 
 clearInterval(intervalLoad);
@@ -2704,22 +2321,18 @@ intervalEMS=null;
 
 
 
-
 lastPos=null;
-
 
 myName="";
 
 
 startTime="";
 
-
 endTime="";
 
 
 
 nameInput.disabled=false;
-
 
 nameInput.value="";
 
@@ -2745,11 +2358,12 @@ alert(
 
 
 
+
 // ================= MY LOCATION =================
 
 
-function goMyLocation(){
 
+function goMyLocation(){
 
 
 if(!lastPos)
@@ -2787,8 +2401,8 @@ lastPos.lng
 // ================= HISTORY =================
 
 
-function loadAllHistory(){
 
+function loadAllHistory(){
 
 
 fetch(
@@ -2806,14 +2420,16 @@ Date.now()
 )
 
 
-
 .then(r=>r.json())
 
-.then(showHistoryMap);
+.then(showHistoryMap)
+
+.catch(console.log);
 
 
 
 }
+
 
 
 
@@ -2825,7 +2441,6 @@ function showHistoryMap(data){
 
 
 historyMarkers.clearLayers();
-
 
 historyLines.clearLayers();
 
@@ -2839,9 +2454,14 @@ data.sort(
 
 (a,b)=>
 
-new Date(a.time)-new Date(b.time)
+new Date(a.time)
+
+-
+
+new Date(b.time)
 
 );
+
 
 
 
@@ -2857,15 +2477,11 @@ grouped[d.name]=[];
 
 grouped[d.name].push([
 
-
 Number(d.lat),
-
 
 Number(d.lng)
 
-
 ]);
-
 
 
 });
@@ -2874,8 +2490,7 @@ Number(d.lng)
 
 
 
-const allPoints=[];
-
+const all=[];
 
 
 
@@ -2886,14 +2501,14 @@ for(const name in grouped){
 const path=grouped[name];
 
 
+
 if(!path.length)
 
 continue;
 
 
 
-allPoints.push(...path);
-
+all.push(...path);
 
 
 
@@ -2904,15 +2519,9 @@ path,
 
 {
 
-
 color:getColor(name),
 
-
-weight:5,
-
-
-opacity:.8
-
+weight:5
 
 }
 
@@ -2925,21 +2534,15 @@ opacity:.8
 
 
 
-
 L.marker(path[0])
 
 .bindPopup(
 
-"🟢 START : "
-
-+
-
-name
+"🟢 START : "+name
 
 )
 
 .addTo(historyMarkers);
-
 
 
 
@@ -2949,11 +2552,7 @@ L.marker(path[path.length-1])
 
 .bindPopup(
 
-"🔴 END : "
-
-+
-
-name
+"🔴 END : "+name
 
 )
 
@@ -2967,18 +2566,64 @@ name
 
 
 
-if(allPoints.length){
 
+if(all.length){
 
 
 map.fitBounds(
 
-allPoints,
+all,
 
 {
 
-
 padding:[50,50]
+
+}
+
+);
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+
+
+// ================= ROUTE MODE =================
+
+
+
+if(document.getElementById("routeMode")){
+
+
+document
+
+.getElementById("routeMode")
+
+.addEventListener(
+
+"change",
+
+e=>{
+
+
+routeMode=e.target.value;
+
+
+rescueRouteLayer.clearLayers();
+
+carRouteLayer.clearLayers();
+
+footRouteLayer.clearLayers();
+
 
 
 }
@@ -2986,12 +2631,8 @@ padding:[50,50]
 );
 
 
-
 }
 
-
-
-}
 
 
 
@@ -3020,7 +2661,9 @@ loadEMS,
 );
 
 
+
 </script>
+
 
 
 </body>
