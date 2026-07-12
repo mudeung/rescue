@@ -1497,6 +1497,20 @@ endLng,
 vehicle
 ){
 
+const cacheKey=
+
+`${startLat},${startLng}-${endLat},${endLng}-${vehicle}`;
+
+
+
+if(routeCache[cacheKey]){
+
+return Promise.resolve(
+routeCache[cacheKey]
+);
+
+}
+  
 const url =
 "https://graphhopper.com/api/1/route?"
 +
@@ -1518,24 +1532,30 @@ console.log("GRAPH ROUTE:",url);
 
 return fetch(url)
 
-.then(r=>r.json())
-
-.then(data=>{
+.then(r=>{
 
 
-if(!data.paths || !data.paths.length){
+if(r.status===429){
 
-console.log("경로 없음",data);
+console.log(
+"GraphHopper 제한 초과 - 잠시 대기"
+);
 
 return null;
 
 }
 
 
+return r.json();
+
+
+})
+
+
 const path=data.paths[0];
 
 
-return {
+const result={
 
 distance:path.distance,
 
@@ -1544,6 +1564,12 @@ duration:path.time,
 geometry:path.points.coordinates
 
 };
+
+
+routeCache[cacheKey]=result;
+
+
+return result;
 
 
 })
@@ -1778,7 +1804,22 @@ return valid[0]||null;
 
 function drawRescueRoute(ems){
 
+if(
 
+routeUpdateTime[ems.id]
+
+&&
+
+Date.now()-routeUpdateTime[ems.id] < 30000
+
+){
+
+return;
+
+}
+
+
+routeUpdateTime[ems.id]=Date.now();
 
 findFastestRescue(ems)
 
@@ -2538,13 +2579,9 @@ loadEMS();
 
 
 intervalEMS=setInterval(
-
 loadEMS,
-
-3000
-
+10000
 );
-
 
 
 </script>
