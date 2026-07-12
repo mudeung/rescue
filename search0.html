@@ -2010,17 +2010,38 @@ return;
 
 
 
-if(rescueRoutes[ems.id]){
+// 기존 차량 경로 제거
+if(carRoutes[ems.id]){
 
-
-rescueRouteLayer.removeLayer(
-
-rescueRoutes[ems.id]
-
+carRouteLayer.removeLayer(
+carRoutes[ems.id]
 );
 
+delete carRoutes[ems.id];
 
-delete rescueRoutes[ems.id];
+}
+
+
+// 기존 도보 경로 제거
+if(footRoutes[ems.id]){
+
+footRouteLayer.removeLayer(
+footRoutes[ems.id]
+);
+
+delete footRoutes[ems.id];
+
+}
+
+
+// 정보 제거
+if(routeInfoMarkers[ems.id]){
+
+infoRouteLayer.removeLayer(
+routeInfoMarkers[ems.id]
+);
+
+delete routeInfoMarkers[ems.id];
 
 }
 
@@ -2097,24 +2118,18 @@ p[0]
 
 
 
-L.polyline(
-
+const carLine=L.polyline(
 carCoords,
-
 {
-
 color:"red",
-
 weight:6,
-
 dashArray:"15,10"
-
 }
-
 )
-
 .addTo(carRouteLayer);
 
+
+carRoutes[ems.id]=carLine;
 
 
 }
@@ -2151,45 +2166,24 @@ p[0]
 
 
 
-L.polyline(
-
+const footLine=L.polyline(
 footCoords,
-
 {
-
-
 color:"#00aaff",
-
 weight:5,
-
-
 dashArray:"5,10"
-
-
 }
-
 )
-
 .addTo(footRouteLayer);
 
 
+footRoutes[ems.id]=footLine;
+
+
 
 }
 
 
-
-
-if(
-
-!selectedRoute
-
-||
-
-!selectedRoute.geometry
-
-)
-
-return;
 
 
 
