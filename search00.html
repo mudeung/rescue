@@ -1962,50 +1962,37 @@ API_URL+
 
 function renderLive(data){
 
-
 if(!Array.isArray(data))
-
 return;
-
 
 
 rescueLayer.clearLayers();
 
 
-
 data.forEach(p=>{
 
 
-const lat=
-
-Number(p.lat);
-
-
-const lng=
-
-Number(p.lng);
-
-
-
-if(
-
-!Number.isFinite(lat)
-
-||
-
-!Number.isFinite(lng)
-
-)
-
+// START 한 내 ID만 표시
+if(myName && p.name !== myName)
 return;
 
 
 
+const lat = Number(p.lat);
 
-const marker=
+const lng = Number(p.lng);
 
 
-L.marker(
+
+if(
+!Number.isFinite(lat) ||
+!Number.isFinite(lng)
+)
+return;
+
+
+
+const marker = L.marker(
 
 [lat,lng],
 
@@ -2025,7 +2012,6 @@ p.name,
 
 {
 
-
 permanent:true,
 
 className:"name-label"
@@ -2040,17 +2026,13 @@ className:"name-label"
 
 
 
-
 markers[p.name]=marker;
-
 
 
 });
 
 
-
 }
-
 
 
 
