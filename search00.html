@@ -1163,7 +1163,56 @@ geometry:r.geometry.coordinates
 
 }
 
+// ================= WALK ROUTE =================
 
+function getWalkRoute(
+startLat,
+startLng,
+endLat,
+endLng
+){
+
+const url=
+
+"https://router.project-osrm.org/route/v1/walking/"
+
++
+
+`${startLng},${startLat};${endLng},${endLat}`
+
++
+
+"?overview=full&geometries=geojson";
+
+
+return fetch(url)
+
+.then(r=>r.json())
+
+.then(data=>{
+
+if(!data.routes || !data.routes.length)
+return null;
+
+
+const r=data.routes[0];
+
+
+return {
+
+distance:r.distance,
+
+duration:r.duration,
+
+geometry:r.geometry.coordinates
+
+};
+
+})
+
+.catch(()=>null);
+
+}
 
 
 
@@ -1302,52 +1351,44 @@ min,
 
 });
 
+// ================= 실제 도보 경로 =================
 
-
-
-
-
-// ================= 도보 예상 =================
-
-
-
-const walkDistance =
-
-distanceMeter(
+getWalkRoute(
 
 rescue.lat,
-
 rescue.lng,
-
 ems.lat,
-
 ems.lng
 
-);
+)
+
+.then(route=>{
 
 
+if(!route)
+return;
 
-const walkMin =
 
-Math.ceil(
+const coords=[];
 
-walkDistance /
 
-80
+route.geometry.forEach(p=>{
 
-);
+coords.push([
+
+p[1],
+
+p[0]
+
+]);
+
+});
 
 
 
 L.polyline(
 
-[
-
-[rescue.lat,rescue.lng],
-
-[ems.lat,ems.lng]
-
-],
+coords,
 
 {
 
@@ -1365,30 +1406,25 @@ dashArray:"10,10"
 
 
 
-
-
 showRouteInfo(
 
 ems,
 
 rescue,
 
-"🥾 구조대 도보",
+"🥾 실제 도보 구조",
 
-(
+(route.distance/1000).toFixed(2),
 
-walkDistance/1000
-
-).toFixed(2),
-
-walkMin,
+Math.ceil(route.duration/60),
 
 "#00ffff"
 
 );
 
 
-
+});
+ 
 }
 
 
