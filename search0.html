@@ -1490,48 +1490,30 @@ lng:lng
 
 
 function getGHRoute(
-
 startLat,
-
 startLng,
-
 endLat,
-
 endLng,
-
 vehicle
-
 ){
 
-
-const url=
-
+const url =
 "https://graphhopper.com/api/1/route?"
-
 +
-
 `point=${startLat},${startLng}`
-
 +
-
-`point=${endLat},${endLng}`
-
+`&point=${endLat},${endLng}`
 +
-
 `&vehicle=${vehicle}`
-
 +
-
 "&points_encoded=false"
-
 +
-
 "&instructions=false"
-
 +
-
 `&key=${GRAPHHOPPER_KEY}`;
 
+
+console.log("GRAPH ROUTE:",url);
 
 
 return fetch(url)
@@ -1541,18 +1523,19 @@ return fetch(url)
 .then(data=>{
 
 
-if(!data.paths || !data.paths.length)
+if(!data.paths || !data.paths.length){
+
+console.log("경로 없음",data);
 
 return null;
 
+}
 
 
 const path=data.paths[0];
 
 
-
 return {
-
 
 distance:path.distance,
 
@@ -1560,23 +1543,22 @@ duration:path.time,
 
 geometry:path.points.coordinates
 
-
 };
 
 
 })
 
 
-.catch(()=>null);
+.catch(err=>{
+
+console.log("Graphhopper 오류",err);
+
+return null;
+
+});
 
 
 }
-
-
-
-
-
-
 
 
 // ================= ETA =================
