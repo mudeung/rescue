@@ -2297,124 +2297,176 @@ const OSRM_URL=
 "https://router.project-osrm.org/route/v1/driving/";
 
 
-
-
-
-
-
-
-
 function getRoadRoute(
-
-
-
-startLat,
-
-startLng,
-
-endLat,
-
-endLng
-
-
-
+...
 ){
 
+}
 
 
-return fetch(
+// ================= GRAPH HOPPER ETA 추가 =================
+
+
+function getRescueETA(ems,rescue){
+
+
+return Promise.all([
+
+
+getGHRoute(
+ems.lat,
+ems.lng,
+rescue.lat,
+rescue.lng,
+"car"
+),
 
 
 
-OSRM_URL
-
-+
-
-`${startLng},${startLat};${endLng},${endLat}`
-
-+
-
-"?overview=full&geometries=geojson"
-
-
-
+getGHRoute(
+ems.lat,
+ems.lng,
+rescue.lat,
+rescue.lng,
+"foot"
 )
 
 
 
-.then(r=>r.json())
+])
 
-
-
-.then(data=>{
-
-
-
-if(
-
-!data.routes
-
-||
-
-!data.routes.length
-
-)
-
-return null;
-
-
-
-
-
-const route=
-
-data.routes[0];
-
-
-
-
+.then(result=>{
 
 
 return {
 
+car:result[0],
 
-distance:route.distance,
-
-
-duration:route.duration,
-
-
-geometry:route.geometry.coordinates
-
-
+walk:result[1]
 
 };
-
-
-
-})
-
-
-
-.catch(e=>{
-
-
-console.log(e);
-
-
-return null;
 
 
 });
 
 
+}
 
+
+// ================= TERRAIN CHECK 추가 =================  
+function checkTerrain(lat,lng){
+
+return fetch(
+`https://api.open-elevation.com/api/v1/lookup?locations=${lat},${lng}`
+)
+
+.then(r=>r.json())
+
+.then(data=>{
+
+
+const elevation =
+data.results[0].elevation;
+
+
+if(elevation > 300){
+
+return "MOUNTAIN";
+
+}
+
+return "NORMAL";
+
+
+});
+
+
+}
+
+
+// ================= OSRM =================
+
+const OSRM_URL =
+"https://router.project-osrm.org/route/v1/driving/";
+  
+// ================= 최단 ETA 구조대 검색 =================
+
+
+function findFastestRescue(ems){
+
+...
 }
 
 
 
 
 
+
+// ================= GRAPH HOPPER ROUTE =================
+
+function getGHRoute(
+startLat,
+startLng,
+endLat,
+endLng,
+vehicle
+){
+
+const url =
+"https://graphhopper.com/api/1/route?"
++
+`point=${startLat},${startLng}`
++
+`&point=${endLat},${endLng}`
++
+`&vehicle=${vehicle}`
++
+"&points_encoded=false"
++
+"&instructions=false"
++
+`&key=${GRAPHHOPPER_KEY}`;
+
+
+return fetch(url)
+
+.then(r=>r.json())
+
+.then(data=>{
+
+
+if(!data.paths || !data.paths.length)
+return null;
+
+
+const path=data.paths[0];
+
+
+return {
+
+distance:path.distance,
+
+duration:path.time,
+
+geometry:
+path.points.coordinates
+
+
+};
+
+
+})
+
+.catch(e=>{
+
+console.log(e);
+
+return null;
+
+});
+
+
+}
 
 
 
@@ -2613,11 +2665,44 @@ return valid[0];
 
 function drawRescueRoute(ems){
 
-
-
 if(!ems.id)
-
 return;
+
+
+checkTerrain(
+ems.lat,
+ems.lng
+)
+
+.then(terrain=>{
+
+
+console.log(
+"지역:",
+terrain
+);
+
+
+
+findFastestRescue(ems)
+
+.then(rescue=>{
+
+
+if(!rescue)
+return;
+
+
+// 기존 경로 표시 코드
+
+
+});
+
+
+});
+
+
+}
 
 
 
@@ -2676,11 +2761,21 @@ delete routeInfoMarkers[ems.id];
 
 
 findFastestRescue(ems)
-
-
-
 .then(rescue=>{
 
+return getRescueETA(ems,rescue);
+
+})
+.then(eta=>{
+
+console.log(
+"차량:",
+eta.car,
+"도보:",
+eta.walk
+);
+
+});
 
 
 if(!rescue)
