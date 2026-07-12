@@ -1471,8 +1471,9 @@ vehicle
 
 
 const cacheKey=
-
-`${startLat},${startLng}-${endLat},${endLng}-${vehicle}`;
+`${startLat.toFixed(4)},${startLng.toFixed(4)}-
+${endLat.toFixed(4)},${endLng.toFixed(4)}-
+${vehicle}`;
 
 
 
@@ -1636,23 +1637,17 @@ return Promise.all([
 
 
 
-getGHRoute(
-
+safeGHRoute(
 ems.lat,
-
 ems.lng,
-
 rescue.lat,
-
 rescue.lng,
-
 "car"
-
-),
-
+)
 
 
-getGHRoute(
+
+safeGHRoute(
 
 ems.lat,
 
@@ -1701,6 +1696,7 @@ const candidates=[];
 
 
 Object.keys(markers)
+.slice(0,5)
 .forEach(name=>{
 
 
@@ -1845,11 +1841,13 @@ return valid[0] || null;
 
 function drawRescueRoute(ems){
 
-
-
-if(!ems.id)
-
+if(
+Date.now()-lastRouteCalculate < 30000
+){
 return;
+}
+
+lastRouteCalculate=Date.now();
 
 
 
