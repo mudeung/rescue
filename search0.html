@@ -1,24 +1,23 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 
 <head>
 
 <meta charset="utf-8">
-
-<meta name="viewport"
-content="width=device-width,initial-scale=1.0">
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>
-🛰 SEARCH AND RESCUE AI MAP
+🛰 SEARCH AND RESCUE AI SYSTEM
 </title>
 
 
 <link rel="stylesheet"
 href="https://unpkg.com/leaflet/dist/leaflet.css">
 
+
 <link rel="stylesheet"
 href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css">
+
 
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -26,7 +25,15 @@ href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css">
 <script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
 
 
+
 <style>
+
+
+*{
+box-sizing:border-box;
+}
+
+
 
 body{
 
@@ -43,19 +50,25 @@ overflow:hidden;
 }
 
 
+
 header{
+
+height:50px;
 
 background:#071a2f;
 
-padding:10px;
+display:flex;
 
-text-align:center;
+align-items:center;
 
-font-size:18px;
+justify-content:center;
 
 font-weight:bold;
 
+font-size:18px;
+
 }
+
 
 
 #container{
@@ -67,24 +80,62 @@ height:calc(100vh - 50px);
 }
 
 
+
+/* 왼쪽 패널 */
+
 #panel{
 
-width:300px;
+width:330px;
 
 background:#07101f;
 
 padding:10px;
 
-display:flex;
-
-flex-direction:column;
-
-gap:8px;
-
 overflow-y:auto;
 
 }
 
+
+
+input,button{
+
+width:100%;
+
+padding:10px;
+
+margin-bottom:6px;
+
+border:
+
+1px solid #00ff9d;
+
+background:#001a14;
+
+color:#00ff9d;
+
+cursor:pointer;
+
+}
+
+
+
+button:hover{
+
+background:#003322;
+
+}
+
+
+
+button:disabled{
+
+opacity:.4;
+
+}
+
+
+
+/* 지도 */
 
 #map{
 
@@ -93,31 +144,122 @@ flex:1;
 }
 
 
-input,
-button,
-select{
 
-padding:10px;
+/* 신고 목록 */
 
-border:1px solid #00ff9d;
+.section-title{
 
-background:#001a14;
+margin-top:15px;
 
-color:#00ff9d;
+padding:8px;
 
-font-family:monospace;
+background:#10253b;
+
+font-weight:bold;
 
 }
 
 
-button:disabled{
+
+.case-card{
+
+background:#1e1e1e;
+
+padding:10px;
+
+margin-top:8px;
+
+border-radius:6px;
+
+color:white;
+
+font-family:Arial;
+
+font-size:14px;
+
+}
+
+
+
+.case-card.done{
 
 opacity:.5;
 
 }
 
 
+
+.case-card.blink{
+
+animation:blink 1s infinite;
+
+}
+
+
+
+@keyframes blink{
+
+
+0%{
+
+box-shadow:
+0 0 5px red;
+
+}
+
+
+50%{
+
+box-shadow:
+0 0 20px red;
+
+}
+
+
+100%{
+
+box-shadow:
+0 0 5px red;
+
+}
+
+
+}
+
+
+
+.time{
+
+color:#ffcc00;
+
+}
+
+
+
+.coord{
+
+font-size:12px;
+
+color:#aaa;
+
+}
+
+
+
+.complete-btn{
+
+background:#2e7d32;
+
+color:white;
+
+border:none;
+
+}
+
+
+
 .name-label{
+
 
 background:#001a14;
 
@@ -133,52 +275,36 @@ font-size:12px;
 
 font-weight:bold;
 
-box-shadow:0 0 8px #00ff9d;
+box-shadow:
+0 0 8px #00ff9d;
+
 
 }
 
 
-.ems-pulse{
 
-width:24px;
+.sos-label{
 
-height:24px;
-
-border-radius:50%;
 
 background:red;
 
-border:3px solid white;
+color:white;
 
-box-shadow:0 0 15px red;
+border-radius:5px;
 
-animation:pulse 1.5s infinite;
+padding:3px 8px;
+
+font-weight:bold;
+
 
 }
 
 
-@keyframes pulse{
 
-0%{
-transform:scale(.6);
-opacity:1;
-}
-
-70%{
-transform:scale(1.6);
-opacity:.2;
-}
-
-100%{
-transform:scale(.6);
-opacity:1;
-}
-
-}
-
-
+/* 모바일 */
 
 @media(max-width:768px){
+
 
 #container{
 
@@ -187,79 +313,69 @@ flex-direction:column;
 }
 
 
+
 #panel{
 
 width:100%;
 
-max-height:35vh;
+height:40vh;
 
 }
+
 
 
 #map{
 
-height:65vh;
+height:60vh;
 
 }
 
+
+
 }
+
+
 
 
 </style>
 
-</head>
 
+</head>
 
 
 <body>
 
 
+
 <header>
 
-🛰 SEARCH AND RESCUE AI MAP
+🛰 SEARCH AND RESCUE AI SYSTEM
 
 </header>
+
 
 
 
 <div id="container">
 
 
+
 <div id="panel">
 
 
-<input id="name"
-placeholder="RESCUE ID">
+
+<input
+id="name"
+placeholder="RESCUE UNIT ID">
 
 
 
-<select id="routeMode">
-
-
-<option value="car">
-
-🚗 차량 AI
-
-</option>
-
-
-<option value="foot">
-
-🚶 도보 AI
-
-</option>
-
-
-</select>
-
-
-
-
-<button id="startBtn"
+<button
+id="startBtn"
 onclick="start()"
 disabled>
 
-START
+START GPS
 
 </button>
 
@@ -297,118 +413,115 @@ START
 
 
 
-<button onclick="loadAllHistory()">
+<button onclick="loadHistory()">
 
-📦 전체 기록
-
-</button>
-
-
-
-<button id="carBtn"
-onclick="toggleCarRoute()">
-
-🚑 차량 경로 ON
+📦 이동 기록
 
 </button>
 
 
 
 
-<button id="footBtn"
-onclick="toggleFootRoute()">
 
-🚶 도보 경로 ON
+<div class="section-title">
 
-</button>
+🆘 사고 신고 목록
+
+</div>
+
+
+<div id="caseList">
+
+로딩중...
+
+</div>
+
 
 
 </div>
+
+
 
 
 
 <div id="map"></div>
 
 
+
 </div>
+
+
+
+
+
+<audio id="alertSound">
+
+<source src="
+https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg
+"
+type="audio/ogg">
+
+</audio>
+
+
+
 
 
 
 <script>
 
 
-// ================= API =================
+/*
+================================
 
+MAP INIT
 
-const API_URL =
-"https://script.google.com/macros/s/AKfycbyem5fAs2XGxNy6wrHO3s68CmJyHy7GI31IBKdiz49KtN3sfikYdfmpP07-3dWqna2R/exec";
+================================
+*/
 
-
-
-const EMS_API =
-"https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
-
-
-
-const GRAPHHOPPER_KEY =
-"6f1dbbf6-0546-4b11-a9c8-8d8134dff43c";
-
-
-
-
-
-// ================= DEVICE =================
-
-
-let DEVICE_ID =
-localStorage.getItem("DEVICE_ID");
-
-
-if(!DEVICE_ID){
-
-DEVICE_ID=crypto.randomUUID();
-
-localStorage.setItem(
-"DEVICE_ID",
-DEVICE_ID
-);
-
-}
-
-
-
-
-
-// ================= MAP =================
 
 
 const map =
+
 L.map("map")
+
 .setView(
-[35.1239,126.9883],
+
+[35.1345,126.9902],
+
 13
+
 );
 
 
 
 
 const osm =
+
 L.tileLayer(
+
 "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+
 );
 
 
 
 const topo =
+
 L.tileLayer(
+
 "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+
 );
 
 
 
 const satellite =
+
 L.tileLayer(
+
 "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+
 );
 
 
@@ -419,11 +532,12 @@ osm.addTo(map);
 
 L.control.layers({
 
-"🗺 일반지도":osm,
+"🗺 일반":osm,
 
-"⛰ 지형지도":topo,
+"⛰ 지형":topo,
 
-"🛰 위성지도":satellite
+"🛰 위성":satellite
+
 
 }).addTo(map);
 
@@ -431,18 +545,28 @@ L.control.layers({
 
 
 
-// ================= DRAW =================
+
+/*
+================================
+
+DRAW
+
+================================
+*/
 
 
 const drawnItems =
 new L.FeatureGroup();
 
 
-map.addLayer(drawnItems);
+
+map.addLayer(
+drawnItems
+);
 
 
 
-map.addControl(
+const drawControl =
 
 new L.Control.Draw({
 
@@ -452,13 +576,14 @@ polygon:true,
 
 rectangle:true,
 
-circle:true,
-
 marker:true,
 
-polyline:true
+polyline:true,
+
+circle:true
 
 },
+
 
 edit:{
 
@@ -466,9 +591,14 @@ featureGroup:drawnItems
 
 }
 
-})
 
-);
+});
+
+
+
+map.addControl(drawControl);
+
+
 
 
 
@@ -478,7 +608,9 @@ L.Draw.Event.CREATED,
 
 e=>{
 
-drawnItems.addLayer(e.layer);
+drawnItems.addLayer(
+e.layer
+);
 
 }
 
@@ -489,8 +621,16 @@ drawnItems.addLayer(e.layer);
 
 
 
-// ================= LAYERS =================
+/*
+================================
 
+LAYERS
+
+================================
+*/
+
+
+// 구조대 마커
 
 const rescueLayer =
 L.layerGroup()
@@ -498,29 +638,7 @@ L.layerGroup()
 
 
 
-const emsLayer =
-L.layerGroup()
-.addTo(map);
-
-
-
-const rescueRouteLayer =
-L.layerGroup()
-.addTo(map);
-
-
-
-const carRouteLayer =
-L.layerGroup()
-.addTo(map);
-
-
-
-const footRouteLayer =
-L.layerGroup()
-.addTo(map);
-
-
+// SOS 위치
 
 const sosLayer =
 L.layerGroup()
@@ -528,13 +646,17 @@ L.layerGroup()
 
 
 
-const historyMarkers =
+// 사고 신고
+
+const accidentLayer =
 L.layerGroup()
 .addTo(map);
 
 
 
-const historyLines =
+// 이동경로
+
+const historyLayer =
 L.layerGroup()
 .addTo(map);
 
@@ -542,119 +664,33 @@ L.layerGroup()
 
 
 
-// ================= ROUTE STATE =================
 
 
-let showCarRoute=true;
+/*
+================================
 
-let showFootRoute=true;
+GLOBAL STATE
 
+================================
+*/
 
-let routeMode="car";
 
+let myName="";
 
+let lastPos=null;
 
-const carRoutes={};
+let watchId=null;
 
+let sendTimer=null;
 
-const footRoutes={};
+let liveTimer=null;
 
 
-const routeInfoMarkers={};
+let markers={};
 
 
-const selectedRouteCache={};
 
-
-const routeCache={};
-
-
-const routeUpdateTime={};
-
-
-
-
-
-// ================= ROUTE BUTTON =================
-
-
-function toggleCarRoute(){
-
-
-showCarRoute=!showCarRoute;
-
-
-document.getElementById("carBtn").innerHTML=
-
-showCarRoute
-
-?
-
-"🚑 차량 경로 ON"
-
-:
-
-"🚑 차량 경로 OFF";
-
-
-
-if(showCarRoute)
-
-map.addLayer(carRouteLayer);
-
-else
-
-map.removeLayer(carRouteLayer);
-
-
-}
-
-
-
-
-function toggleFootRoute(){
-
-
-showFootRoute=!showFootRoute;
-
-
-document.getElementById("footBtn").innerHTML=
-
-showFootRoute
-
-?
-
-"🚶 도보 경로 ON"
-
-:
-
-"🚶 도보 경로 OFF";
-
-
-
-if(showFootRoute)
-
-map.addLayer(footRouteLayer);
-
-else
-
-map.removeLayer(footRouteLayer);
-
-
-}
-
-
-
-
-
-
-// ================= MARKERS =================
-
-
-const markers={};
-
-
-const rescueColors={};
+let rescueColors={};
 
 
 
@@ -668,9 +704,7 @@ const colors=[
 
 "#ff00ff",
 
-"#ff6600",
-
-"#ffffff"
+"#ff6600"
 
 ];
 
@@ -695,25 +729,37 @@ colors.length
 
 ];
 
+
 }
 
 
 return rescueColors[name];
 
+
 }
 
 
 
 
 
-// ================= INPUT =================
+
+/*
+================================
+
+INPUT
+
+================================
+*/
 
 
-const nameInput =
+const nameInput=
+
 document.getElementById("name");
 
 
-const startBtn =
+
+const startBtn=
+
 document.getElementById("startBtn");
 
 
@@ -724,9 +770,11 @@ nameInput.addEventListener(
 
 ()=>{
 
+
 startBtn.disabled=
 
 nameInput.value.trim()==="";
+
 
 }
 
@@ -735,20 +783,67 @@ nameInput.value.trim()==="";
 
 
 
-// ================= STATE =================
 
 
-let myName="";
+/*
+================================
 
-let lastPos=null;
+사고 목록 준비
 
-let watchId=null;
+================================
+*/
 
-let intervalSend=null;
 
-let intervalLoad=null;
+const caseList=
 
-let intervalEMS=null;
+document.getElementById("caseList");
+
+
+
+let knownIds=new Set();
+
+let firstLoad=true;
+
+/*
+================================
+
+GPS API
+
+================================
+*/
+
+
+const GPS_API_URL =
+
+"https://script.google.com/macros/s/AKfycbyem5fAs2XGxNy6wrHO3s68CmJyHy7GI31IBKdiz49KtN3sfikYdfmpP07-3dWqna2R/exec";
+
+
+
+
+let DEVICE_ID =
+
+localStorage.getItem("DEVICE_ID");
+
+
+
+if(!DEVICE_ID){
+
+DEVICE_ID =
+crypto.randomUUID();
+
+
+localStorage.setItem(
+
+"DEVICE_ID",
+
+DEVICE_ID
+
+);
+
+}
+
+
+
 
 
 let startTime="";
@@ -759,28 +854,61 @@ let endTime="";
 
 
 
-// ================= TIME =================
+
+/*
+================================
+
+TIME
+
+================================
+*/
 
 
 function getNowTime(){
 
 
-const now=new Date();
+const d=new Date();
 
 
 return (
 
-now.getFullYear()
-+"-"
-+String(now.getMonth()+1).padStart(2,"0")
-+"-"
-+String(now.getDate()).padStart(2,"0")
-+" "
-+String(now.getHours()).padStart(2,"0")
-+":"
-+String(now.getMinutes()).padStart(2,"0")
-+":"
-+String(now.getSeconds()).padStart(2,"0")
+d.getFullYear()+"-"
+
++
+
+String(d.getMonth()+1).padStart(2,"0")
+
++
+
+"-"
+
++
+
+String(d.getDate()).padStart(2,"0")
+
++
+
+" "
+
++
+
+String(d.getHours()).padStart(2,"0")
+
++
+
+":"
+
++
+
+String(d.getMinutes()).padStart(2,"0")
+
++
+
+":"
+
++
+
+String(d.getSeconds()).padStart(2,"0")
 
 );
 
@@ -791,72 +919,29 @@ now.getFullYear()
 
 
 
-// ================= ROUTE MODE =================
+/*
+================================
 
+START GPS
 
-document
-.getElementById("routeMode")
-.addEventListener(
-
-"change",
-
-e=>{
-
-
-routeMode=e.target.value;
-
-
-carRouteLayer.clearLayers();
-
-footRouteLayer.clearLayers();
-
-rescueRouteLayer.clearLayers();
-
-
-
-Object.keys(emsMarkers)
-.forEach(id=>{
-
-
-const p=emsMarkers[id].getLatLng();
-
-
-drawRescueRoute({
-
-id:id,
-
-lat:p.lat,
-
-lng:p.lng
-
-});
-
-
-});
-
-
-}
-
-);
-
-
-
-
-
-
-// ================= START GPS =================
+================================
+*/
 
 
 function start(){
 
 
-myName=nameInput.value.trim();
+myName=
+
+nameInput.value.trim();
 
 
 
 if(!myName){
 
-alert("UNIT ID required");
+alert(
+"RESCUE UNIT ID 입력"
+);
 
 return;
 
@@ -866,12 +951,12 @@ return;
 
 startTime=getNowTime();
 
-endTime="";
 
 
 nameInput.disabled=true;
 
 startBtn.disabled=true;
+
 
 
 
@@ -889,16 +974,22 @@ lastPos={
 
 name:myName,
 
+
 device:DEVICE_ID,
+
 
 lat:pos.coords.latitude,
 
+
 lng:pos.coords.longitude,
+
 
 status:"normal"
 
 
+
 };
+
 
 
 },
@@ -908,7 +999,11 @@ status:"normal"
 err=>{
 
 
-alert("GPS 권한 확인 필요");
+alert(
+
+"GPS 권한을 확인하세요"
+
+);
 
 
 },
@@ -929,15 +1024,19 @@ timeout:10000
 
 
 
+
 );
 
 
 
 
 
-intervalSend=setInterval(
 
-sendData,
+sendTimer=
+
+setInterval(
+
+sendGPS,
 
 5000
 
@@ -945,7 +1044,10 @@ sendData,
 
 
 
-intervalLoad=setInterval(
+
+liveTimer=
+
+setInterval(
 
 loadLive,
 
@@ -955,6 +1057,13 @@ loadLive,
 
 
 
+alert(
+
+"🛰 GPS 시작"
+
+);
+
+
 }
 
 
@@ -962,43 +1071,60 @@ loadLive,
 
 
 
-// ================= SEND =================
+
+/*
+================================
+
+SEND GPS
+
+================================
+*/
 
 
-function sendData(){
+function sendGPS(){
 
 
 if(!lastPos)
-
 return;
+
 
 
 
 fetch(
 
-API_URL,
+GPS_API_URL,
 
 {
 
 
 method:"POST",
 
+
 headers:{
 
 
-"Content-Type":"text/plain"
+"Content-Type":
+
+"text/plain"
+
 
 },
 
 
-body:JSON.stringify({
+
+body:
+
+JSON.stringify({
 
 
 ...lastPos,
 
+
 startTime:startTime,
 
+
 endTime:endTime
+
 
 
 })
@@ -1006,9 +1132,9 @@ endTime:endTime
 
 }
 
-)
 
-.catch(console.log);
+
+);
 
 
 
@@ -1019,19 +1145,32 @@ endTime:endTime
 
 
 
-// ================= LIVE LOAD =================
+
+
+/*
+================================
+
+LOAD LIVE
+
+================================
+*/
 
 
 function loadLive(){
 
 
+
 fetch(
 
-API_URL
+GPS_API_URL
 
-+"?live=1&t="
++
 
-+Date.now()
+"?live=1&t="
+
++
+
+Date.now()
 
 )
 
@@ -1050,32 +1189,59 @@ API_URL
 
 
 
-// ================= LIVE RENDER =================
+
+
+
+/*
+================================
+
+LIVE DISPLAY
+
+================================
+*/
 
 
 function renderLive(data){
 
 
+
+rescueLayer.clearLayers();
+
 sosLayer.clearLayers();
+
 
 
 
 data.forEach(p=>{
 
 
-const lat=Number(p.lat);
 
-const lng=Number(p.lng);
+const lat=
+
+Number(p.lat);
 
 
 
-if(!Number.isFinite(lat)||!Number.isFinite(lng))
+const lng=
+
+Number(p.lng);
+
+
+
+
+if(
+
+!Number.isFinite(lat)
+
+||
+
+!Number.isFinite(lng)
+
+)
 
 return;
 
 
-
-const key=p.name;
 
 
 const pos=[lat,lng];
@@ -1083,12 +1249,17 @@ const pos=[lat,lng];
 
 
 
+let marker=
 
-if(!markers[key]){
+markers[p.name];
 
 
-markers[key]=
 
+
+if(!marker){
+
+
+marker=
 
 L.circleMarker(
 
@@ -1099,31 +1270,35 @@ pos,
 
 radius:10,
 
-color:getColor(key),
 
-fillColor:getColor(key),
+color:getColor(p.name),
+
+
+fillColor:getColor(p.name),
+
 
 fillOpacity:1,
+
 
 weight:3
 
 
 }
 
-
 )
-
 
 .bindTooltip(
 
-key,
+p.name,
 
 {
 
 
 permanent:true,
 
+
 direction:"top",
+
 
 className:"name-label"
 
@@ -1131,38 +1306,48 @@ className:"name-label"
 }
 
 
-)
-
-
-.addTo(rescueLayer);
+);
 
 
 
-}
-
-else{
-
-
-markers[key].setLatLng(pos);
+markers[p.name]=marker;
 
 
 }
 
 
 
+
+marker.setLatLng(pos);
+
+
+
+marker.addTo(rescueLayer);
+
+
+
+
+
+/*
+SOS 상태
+*/
 
 
 if(p.status==="SOS"){
 
 
 
-markers[key].setStyle({
+marker.setStyle({
+
 
 radius:15,
 
+
 color:"red",
 
+
 fillColor:"red"
+
 
 });
 
@@ -1174,15 +1359,18 @@ pos,
 
 {
 
-radius:60,
+
+radius:70,
+
 
 color:"red",
 
-fillColor:"red",
 
-fillOpacity:.25
+fillOpacity:.3
+
 
 }
+
 
 )
 
@@ -1190,249 +1378,8 @@ fillOpacity:.25
 
 
 
-}
-
-
-else if(p.status==="SHARE"){
-
-
-markers[key].setStyle({
-
-color:"#0088ff",
-
-fillColor:"#0088ff"
-
-});
-
 
 }
-
-
-else{
-
-
-markers[key].setStyle({
-
-color:getColor(key),
-
-fillColor:getColor(key)
-
-});
-
-
-}
-
-
-});
-
-
-}
-
-
-
-
-
-
-
-
-// ================= EMS =================
-
-
-const emsMarkers={};
-
-const emsPulseMarkers={};
-
-
-
-
-
-function getEMSIcon(status){
-
-
-let color="red";
-
-
-if(status==="출동")
-
-color="orange";
-
-
-if(status==="완료")
-
-color="green";
-
-
-if(status==="취소")
-
-color="gray";
-
-
-
-return L.divIcon({
-
-className:"",
-
-html:
-
-`
-
-<div style="
-font-size:32px;
-filter:drop-shadow(0 0 8px ${color});
-">
-
-🚑
-
-</div>
-
-`,
-
-iconSize:[35,35]
-
-});
-
-
-}
-
-
-
-
-
-
-function loadEMS(){
-
-
-fetch(
-
-EMS_API
-
-+"?t="
-
-+Date.now()
-
-)
-
-
-.then(r=>r.json())
-
-.then(renderEMS)
-
-.catch(console.log);
-
-
-}
-
-
-
-
-
-
-
-function renderEMS(data){
-
-
-
-data.forEach(item=>{
-
-
-const lat=Number(item.lat);
-
-const lng=Number(item.lng);
-
-
-
-if(!Number.isFinite(lat)||!Number.isFinite(lng))
-
-return;
-
-
-
-const key=item.id;
-
-
-const pos=[lat,lng];
-
-
-
-
-
-if(!emsMarkers[key]){
-
-
-emsMarkers[key]=
-
-
-L.marker(
-
-pos,
-
-{
-
-icon:getEMSIcon(item.status)
-
-}
-
-)
-
-
-.bindPopup(
-
-`
-
-<b>🚑 119 신고</b>
-<br><br>
-
-📌 ${item.type}
-
-<br>
-
-📍 ${item.address}
-
-<br>
-
-📡 ${item.status}
-
-<br>
-
-⏰ ${item.time}
-
-`
-
-)
-
-
-.addTo(emsLayer);
-
-
-
-}
-
-else{
-
-
-emsMarkers[key].setLatLng(pos);
-
-emsMarkers[key].setIcon(
-
-getEMSIcon(item.status)
-
-);
-
-
-}
-
-
-
-
-drawRescueRoute({
-
-id:key,
-
-lat:lat,
-
-lng:lng
-
-});
 
 
 
@@ -1449,796 +1396,26 @@ lng:lng
 
 
 
+/*
+================================
 
-// ================= GRAPHHOPPER =================
+MY LOCATION
 
+================================
+*/
 
 
-function getGHRoute(
-
-startLat,
-
-startLng,
-
-endLat,
-
-endLng,
-
-vehicle
-
-){
-
-
-
-const cacheKey=
-`${startLat.toFixed(4)},${startLng.toFixed(4)}-
-${endLat.toFixed(4)},${endLng.toFixed(4)}-
-${vehicle}`;
-
-
-
-if(routeCache[cacheKey]){
-
-return Promise.resolve(
-
-routeCache[cacheKey]
-
-);
-
-}
-
-
-
-
-const url=
-
-"https://graphhopper.com/api/1/route?"
-
-+
-
-`point=${startLat},${startLng}`
-
-+
-
-`&point=${endLat},${endLng}`
-
-+
-
-`&vehicle=${vehicle}`
-
-+
-
-"&points_encoded=false"
-
-+
-
-"&instructions=false"
-
-+
-
-`&key=${GRAPHHOPPER_KEY}`;
-
-
-
-
-return fetch(url)
-
-
-.then(r=>{
-
-
-if(r.status===429){
-
-console.log(
-
-"GraphHopper API 제한"
-
-);
-
-return null;
-
-}
-
-
-
-return r.json();
-
-
-})
-
-
-.then(data=>{
-
-
-if(!data || !data.paths || !data.paths.length){
-
-console.log(
-
-"경로 없음",
-
-data
-
-);
-
-return null;
-
-}
-
-
-
-
-const path=data.paths[0];
-
-
-
-const result={
-
-
-distance:path.distance,
-
-
-duration:path.time,
-
-
-geometry:path.points.coordinates
-
-
-};
-
-
-
-
-
-routeCache[cacheKey]=result;
-
-
-
-return result;
-
-
-
-})
-
-
-.catch(err=>{
-
-
-console.log(
-
-"GraphHopper 오류",
-
-err
-
-);
-
-
-return null;
-
-
-});
-
-
-}
-
-
-
-
-
-
-
-// ================= ETA =================
-
-
-
-function getRescueETA(ems,rescue){
-
-
-return Promise.all([
-
-
-
-safeGHRoute(
-ems.lat,
-ems.lng,
-rescue.lat,
-rescue.lng,
-"car"
-)
-
-
-
-safeGHRoute(
-
-ems.lat,
-
-ems.lng,
-
-rescue.lat,
-
-rescue.lng,
-
-"foot"
-
-)
-
-
-
-])
-
-.then(r=>{
-
-
-return {
-
-
-car:r[0],
-
-walk:r[1]
-
-
-};
-
-
-});
-
-
-}
-
-
-// ================= AI 구조대 선택 =================
-
-
-function findFastestRescue(ems){
-
-
-const candidates=[];
-
-
-
-Object.keys(markers)
-.slice(0,5)
-.forEach(name=>{
-
-
-const pos=markers[name].getLatLng();
-
-
-candidates.push({
-
-name:name,
-
-lat:pos.lat,
-
-lng:pos.lng
-
-});
-
-
-});
-
-
-
-if(!candidates.length)
-
-return Promise.resolve(null);
-
-
-
-
-const jobs=candidates.map(async rescue=>{
-
-
-const eta=
-
-await getRescueETA(
-
-ems,
-
-rescue
-
-);
-
-
-
-if(!eta.car && !eta.walk)
-
-return null;
-
-
-
-
-const carTime=
-
-eta.car ?
-
-eta.car.duration/60000 :
-
-999;
-
-
-
-const walkTime=
-
-eta.walk ?
-
-eta.walk.duration/60000 :
-
-999;
-
-
-
-const score=
-
-(carTime*0.5)
-
-+
-
-(walkTime*0.2);
-
-
-
-return {
-
-
-name:rescue.name,
-
-lat:rescue.lat,
-
-lng:rescue.lng,
-
-eta:eta,
-
-score:score
-
-
-};
-
-
-});
-
-
-
-
-
-return Promise.all(jobs)
-
-.then(result=>{
-
-
-const valid=
-
-result.filter(x=>x);
-
-
-
-valid.sort(
-
-(a,b)=>a.score-b.score
-
-);
-
-
-
-return valid[0] || null;
-
-
-
-});
-
-
-
-}
-
-
-
-
-
-
-
-// ================= AI ROUTE DRAW =================
-
-
-
-function drawRescueRoute(ems){
-
-if(
-Date.now()-lastRouteCalculate < 30000
-){
-return;
-}
-
-lastRouteCalculate=Date.now();
-
-
-
-
-// 30초 이내 재계산 방지
-
-
-if(
-
-routeUpdateTime[ems.id]
-
-&&
-
-Date.now()-routeUpdateTime[ems.id]<30000
-
-){
-
-return;
-
-}
-
-
-
-routeUpdateTime[ems.id]=Date.now();
-
-
-
-
-
-findFastestRescue(ems)
-
-.then(rescue=>{
-
-
-
-if(!rescue)
-
-return;
-
-
-
-
-
-// 기존 삭제
-
-
-if(carRoutes[ems.id]){
-
-
-carRouteLayer.removeLayer(
-
-carRoutes[ems.id]
-
-);
-
-
-delete carRoutes[ems.id];
-
-
-}
-
-
-
-if(footRoutes[ems.id]){
-
-
-footRouteLayer.removeLayer(
-
-footRoutes[ems.id]
-
-);
-
-
-delete footRoutes[ems.id];
-
-
-}
-
-
-
-
-
-
-
-// ================= 차량 경로 =================
-
-
-if(showCarRoute && rescue.eta.car){
-
-
-
-const coords=[];
-
-
-
-rescue.eta.car.geometry.forEach(p=>{
-
-
-coords.push([
-
-p[1],
-
-p[0]
-
-]);
-
-
-});
-
-
-
-
-const line=
-
-L.polyline(
-
-coords,
-
-{
-
-color:"red",
-
-weight:6,
-
-dashArray:"15,10"
-
-}
-
-)
-
-.addTo(carRouteLayer);
-
-
-
-carRoutes[ems.id]=line;
-
-
-
-}
-
-
-
-
-
-
-
-// ================= 도보 경로 =================
-
-
-if(showFootRoute && rescue.eta.walk){
-
-
-
-const coords=[];
-
-
-
-rescue.eta.walk.geometry.forEach(p=>{
-
-
-coords.push([
-
-p[1],
-
-p[0]
-
-]);
-
-
-});
-
-
-
-
-const line=
-
-L.polyline(
-
-coords,
-
-{
-
-color:"#00aaff",
-
-weight:5,
-
-dashArray:"5,10"
-
-}
-
-)
-
-.addTo(footRouteLayer);
-
-
-
-footRoutes[ems.id]=line;
-
-
-
-}
-
-
-
-
-
-
-
-// ================= ETA 정보 =================
-
-
-
-const selected=
-
-routeMode==="foot"
-
-?
-
-rescue.eta.walk
-
-:
-
-rescue.eta.car;
-
-
-
-if(!selected)
-
-return;
-
-
-
-const min=
-
-Math.ceil(
-
-selected.duration/60000
-
-);
-
-
-
-const km=
-
-(
-
-selected.distance/1000
-
-)
-
-.toFixed(2);
-
-
-
-
-
-if(routeInfoMarkers[ems.id]){
-
-
-rescueRouteLayer.removeLayer(
-
-routeInfoMarkers[ems.id]
-
-);
-
-
-}
-
-
-
-
-
-const info=
-
-L.marker(
-
-[
-
-(ems.lat+rescue.lat)/2,
-
-(ems.lng+rescue.lng)/2
-
-],
-
-{
-
-
-icon:L.divIcon({
-
-className:"",
-
-html:
-
-
-`
-
-<div style="
-
-background:#050b18;
-
-color:#00ff9d;
-
-border:2px solid ${routeMode==="car"?"red":"#00aaff"};
-
-padding:10px;
-
-border-radius:10px;
-
-font-size:13px;
-
-box-shadow:0 0 10px;
-
-white-space:nowrap;
-
-">
-
-
-🤖 AI 출동팀
-
-<br><br>
-
-
-🚑 ${rescue.name}
-
-<br>
-
-
-📡 ${routeMode==="car"?"🚗 차량":"🚶 도보"}
-
-<br>
-
-
-📏 ${km} km
-
-<br>
-
-
-⏱ ETA ${min}분
-
-<br>
-
-
-🧠 점수 ${rescue.score.toFixed(1)}
-
-
-</div>
-
-`
-
-})
-
-}
-
-
-);
-
-
-
-info.addTo(rescueRouteLayer);
-
-
-routeInfoMarkers[ems.id]=info;
-
-
-
-});
-
-
-
-}
-
-
-
-
-
-
-
-
-
-// ================= 위치 공유 =================
-
-
-
-function shareLocation(){
-
+function goMyLocation(){
 
 
 if(!lastPos){
 
+alert(
 
-alert("현재 위치가 없습니다.");
+"현재 GPS 없음"
+
+);
+
 
 return;
 
@@ -2246,74 +1423,21 @@ return;
 
 
 
-const url=
+map.setView(
 
-`https://www.google.com/maps?q=${lastPos.lat},${lastPos.lng}`;
+[
 
+lastPos.lat,
 
+lastPos.lng
 
+],
 
-fetch(
-
-API_URL,
-
-{
-
-
-method:"POST",
-
-headers:{
-
-"Content-Type":"text/plain"
-
-},
-
-
-body:JSON.stringify({
-
-...lastPos,
-
-status:"SHARE"
-
-})
-
-
-}
+17
 
 );
 
 
-
-
-
-if(navigator.share){
-
-
-navigator.share({
-
-title:"구조대 위치",
-
-text:url,
-
-url:url
-
-})
-
-.catch(console.log);
-
-
-
-}
-
-else{
-
-
-alert(url);
-
-
-}
-
-
 }
 
 
@@ -2323,57 +1447,81 @@ alert(url);
 
 
 
+/*
+================================
 
-// ================= SOS =================
+SOS
 
+================================
+*/
 
 
 function sendSOS(){
 
 
+
 if(!lastPos){
 
 
-alert("현재 위치가 없습니다.");
+alert(
+
+"위치 없음"
+
+);
+
 
 return;
+
 
 }
 
 
 
+
 fetch(
 
-API_URL,
+GPS_API_URL,
 
 {
 
 
 method:"POST",
 
+
 headers:{
 
-"Content-Type":"text/plain"
+
+"Content-Type":
+
+"text/plain"
+
 
 },
 
 
-body:JSON.stringify({
+
+body:
+
+JSON.stringify({
+
 
 ...lastPos,
 
+
 status:"SOS",
 
-startTime:startTime,
 
-endTime:endTime
+startTime:startTime
+
 
 })
 
 
 }
 
+
 );
+
 
 
 
@@ -2394,16 +1542,174 @@ alert(
 
 
 
+/*
+================================
 
-// ================= STOP =================
+SHARE LOCATION
 
+================================
+*/
+
+
+function shareLocation(){
+
+
+
+if(!lastPos){
+
+
+alert(
+
+"현재 위치 없음"
+
+);
+
+
+return;
+
+
+}
+
+
+
+
+const url=
+
+`https://www.google.com/maps?q=${lastPos.lat},${lastPos.lng}`;
+
+
+
+const text=
+
+`
+
+📡 구조대 위치 공유
+
+
+UNIT : ${lastPos.name}
+
+
+위치:
+
+${url}
+
+`;
+
+
+
+
+
+
+fetch(
+
+GPS_API_URL,
+
+{
+
+
+method:"POST",
+
+
+headers:{
+
+"Content-Type":
+
+"text/plain"
+
+},
+
+
+body:
+
+JSON.stringify({
+
+
+...lastPos,
+
+
+status:"SHARE"
+
+
+})
+
+
+}
+
+
+
+);
+
+
+
+
+
+
+if(navigator.share){
+
+
+
+navigator.share({
+
+
+title:"구조대 위치",
+
+
+text:text,
+
+
+url:url
+
+
+
+});
+
+
+
+}
+
+else{
+
+
+location.href=
+
+"sms:?body="
+
++
+
+encodeURIComponent(text);
+
+
+
+}
+
+
+
+
+}
+
+
+
+
+
+
+
+
+/*
+================================
+
+STOP
+
+================================
+*/
 
 
 function stopTracking(){
 
 
 
-endTime=getNowTime();
+endTime=
+
+getNowTime();
 
 
 
@@ -2412,31 +1718,44 @@ endTime=getNowTime();
 if(lastPos){
 
 
+
 fetch(
 
-API_URL,
+GPS_API_URL,
 
 {
 
 
 method:"POST",
 
+
 headers:{
 
-"Content-Type":"text/plain"
+
+"Content-Type":
+
+"text/plain"
+
 
 },
 
 
-body:JSON.stringify({
+body:
+
+JSON.stringify({
+
 
 ...lastPos,
 
+
 status:"STOP",
+
 
 startTime:startTime,
 
+
 endTime:endTime
+
 
 })
 
@@ -2446,8 +1765,8 @@ endTime:endTime
 );
 
 
-}
 
+}
 
 
 
@@ -2472,33 +1791,27 @@ watchId=null;
 
 
 
+clearInterval(sendTimer);
+
+clearInterval(liveTimer);
 
 
-clearInterval(intervalSend);
 
-clearInterval(intervalLoad);
+sendTimer=null;
 
-clearInterval(intervalEMS);
-
-
+liveTimer=null;
 
 
 
 lastPos=null;
 
 
+
 myName="";
-
-
-startTime="";
-
-
-endTime="";
 
 
 
 nameInput.disabled=false;
-
 
 nameInput.value="";
 
@@ -2509,9 +1822,172 @@ startBtn.disabled=true;
 
 alert(
 
-"⛔ STOP 완료"
+"⛔ GPS 종료"
 
 );
+
+
+
+}
+
+
+
+
+
+/*
+페이지 시작 시 실시간 표시
+*/
+
+
+loadLive();
+
+ /*
+================================
+
+ACCIDENT API
+
+================================
+*/
+
+
+const ACCIDENT_API_URL =
+
+"https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
+
+
+
+let alertedOverdueIds =
+new Set();
+
+
+
+
+
+
+
+/*
+================================
+
+TIME CALC
+
+================================
+*/
+
+
+function getElapsedTime(startTime,endTime=null){
+
+
+
+const start=
+
+new Date(startTime);
+
+
+
+const end=
+
+endTime
+
+?
+
+new Date(endTime)
+
+:
+
+new Date();
+
+
+
+const diff=
+
+Math.floor(
+
+(end-start)/1000
+
+);
+
+
+
+const m=
+
+Math.floor(diff/60);
+
+
+
+const s=
+
+diff%60;
+
+
+
+return `${m}분 ${s}초 경과`;
+
+
+
+}
+
+
+
+
+
+
+
+
+/*
+================================
+
+ACCIDENT LOAD
+
+================================
+*/
+
+
+async function loadAccidents(){
+
+
+
+try{
+
+
+const res=
+
+await fetch(
+
+ACCIDENT_API_URL
+
++
+
+"?action=list"
+
+);
+
+
+
+const data=
+
+await res.json();
+
+
+
+
+renderAccidents(data);
+
+
+
+}
+
+catch(e){
+
+
+console.log(e);
+
+
+caseList.innerHTML=
+
+"신고 서버 연결 실패";
+
+
+}
 
 
 
@@ -2525,67 +2001,325 @@ alert(
 
 
 
-// ================= MY LOCATION =================
+/*
+================================
+
+ACCIDENT RENDER
+
+================================
+*/
+
+
+function renderAccidents(data){
 
 
 
-function goMyLocation(){
+caseList.innerHTML="";
 
 
-if(!lastPos)
+
+accidentLayer.clearLayers();
+
+
+
+
+
+if(!data.length){
+
+
+
+caseList.innerHTML=
+
+"현재 접수된 사고 없음";
+
 
 return;
 
 
+}
 
-map.setView(
 
-[
 
-lastPos.lat,
 
-lastPos.lng
 
-],
+data.sort(
 
-16
+(a,b)=>
+
+new Date(b.time)
+
+-
+
+new Date(a.time)
 
 );
 
 
-}
+
+
+
+
+data.forEach(item=>{
 
 
 
 
 
+const div=
+
+document.createElement("div");
 
 
 
 
 
-// ================= HISTORY =================
+div.className=
+
+"case-card";
 
 
 
-function loadAllHistory(){
 
 
+if(
 
-fetch(
-
-API_URL
-
-+"?history=1&t="+Date.now()
+item.status==="사고처리완료"
 
 )
 
+div.classList.add("done");
 
-.then(r=>r.json())
 
-.then(showHistoryMap)
 
-.catch(console.log);
+
+
+
+div.innerHTML=
+
+`
+
+<div class="time">
+
+🕒 접수 :
+
+${new Date(item.time).toLocaleString()}
+
+</div>
+
+
+
+<div class="time elapsed">
+
+⏱ ${getElapsedTime(
+
+item.time,
+
+item.finishTime
+
+)}
+
+</div>
+
+
+
+🚨 종류 :
+
+${item.type||"응급환자"}
+
+<br>
+
+
+🏠 위치 :
+
+${item.address||"주소없음"}
+
+<br>
+
+
+
+📞 전화 :
+
+${item.phone||"없음"}
+
+<br>
+
+
+
+📝 내용 :
+
+${item.symptom||"내용없음"}
+
+<br>
+
+
+
+<div class="coord">
+
+위도:${item.lat}
+
+경도:${item.lng}
+
+</div>
+
+
+
+<a
+
+class="maplink"
+
+target="_blank"
+
+href="https://map.kakao.com/link/map/사고위치,${item.lat},${item.lng}"
+
+>
+
+📍 지도보기
+
+</a>
+
+
+
+<br>
+
+
+
+${
+item.status==="사고처리완료"
+
+?
+
+""
+
+:
+
+item.status==="현장도착"
+
+?
+
+`
+
+<button
+
+class="complete-btn"
+
+onclick="finishCase('${item.id}')"
+
+>
+
+✅ 사고처리 완료
+
+</button>
+
+`
+
+:
+
+`
+
+<button
+
+class="complete-btn"
+
+onclick="arriveCase('${item.id}')"
+
+>
+
+🚑 현장도착
+
+</button>
+
+`
+
+}
+
+
+
+`;
+
+
+
+
+
+caseList.appendChild(div);
+
+
+
+
+
+checkOverdue(
+
+item,
+
+div
+
+);
+
+
+
+
+
+
+
+
+// 사고 위치 마커
+
+
+
+if(
+
+item.lat && item.lng
+
+){
+
+
+
+const marker=
+
+L.marker(
+
+[
+
+Number(item.lat),
+
+Number(item.lng)
+
+]
+
+)
+
+.bindPopup(
+
+`
+
+<b>🚨 사고 신고</b><br>
+
+${item.symptom||""}
+
+<br>
+
+${item.address||""}
+
+`
+
+);
+
+
+
+marker.addTo(
+
+accidentLayer
+
+);
+
+
+
+}
+
+
+
+
+
+});
 
 
 
@@ -2596,37 +2330,73 @@ API_URL
 
 
 
-function showHistoryMap(data){
 
 
 
-historyMarkers.clearLayers();
+/*
+================================
 
-historyLines.clearLayers();
+NEW ALERT
 
-
-
-
-const group={};
-
+================================
+*/
 
 
-data.forEach(d=>{
-
-
-if(!group[d.name])
-
-group[d.name]=[];
+function checkNewAccident(data){
 
 
 
-group[d.name].push([
+data.forEach(item=>{
 
-Number(d.lat),
 
-Number(d.lng)
 
-]);
+if(
+
+!knownIds.has(item.id)
+
+){
+
+
+
+knownIds.add(item.id);
+
+
+
+if(!firstLoad){
+
+
+
+alert(
+
+"🚨 새로운 사고 신고!"
+
+);
+
+
+
+const sound=
+
+document.getElementById(
+
+"alertSound"
+
+);
+
+
+
+sound.currentTime=0;
+
+
+sound.play();
+
+
+
+}
+
+
+
+}
+
 
 
 });
@@ -2634,109 +2404,418 @@ Number(d.lng)
 
 
 
-
-let all=[];
-
-
-
-for(let name in group){
-
-
-const path=group[name];
-
-
-all.push(...path);
+firstLoad=false;
 
 
 
-L.polyline(
+}
 
-path,
+
+
+
+
+
+
+
+
+/*
+================================
+
+3 MIN ALERT
+
+================================
+*/
+
+
+function checkOverdue(item,div){
+
+
+
+if(
+
+item.type!=="응급환자"
+
+)
+
+return;
+
+
+
+
+if(
+
+item.status==="사고처리완료"
+
+)
+
+return;
+
+
+
+
+
+const diff=
+
+(
+
+new Date()
+
+-
+
+new Date(item.time)
+
+)
+
+/1000;
+
+
+
+
+
+if(diff>=180){
+
+
+
+div.classList.add(
+
+"blink"
+
+);
+
+
+
+
+
+
+if(
+
+!alertedOverdueIds.has(item.id)
+
+){
+
+
+
+alertedOverdueIds.add(item.id);
+
+
+
+
+const sound=
+
+document.getElementById(
+
+"alertSound"
+
+);
+
+
+
+sound.currentTime=0;
+
+sound.play();
+
+
+
+
+
+}
+
+
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+================================
+
+ARRIVE
+
+================================
+*/
+
+
+async function arriveCase(id){
+
+
+
+if(
+
+!confirm(
+
+"현장 도착 처리?"
+
+)
+
+)
+
+return;
+
+
+
+
+await fetch(
+
+ACCIDENT_API_URL,
 
 {
 
-color:getColor(name),
 
-weight:5
-
-}
-
-)
-
-.addTo(historyLines);
+method:"POST",
 
 
+headers:{
 
 
-L.marker(path[0])
+"Content-Type":
 
-.bindPopup(
-
-"🟢 START "+name
-
-)
-
-.addTo(historyMarkers);
+"text/plain;charset=utf-8"
 
 
+},
 
 
-L.marker(path[path.length-1])
+body:
 
-.bindPopup(
+JSON.stringify({
 
-"🔴 END "+name
 
-)
+action:"complete",
 
-.addTo(historyMarkers);
 
+id:id,
+
+
+completeTime:
+
+new Date().toISOString()
+
+
+})
 
 
 }
 
 
-
-if(all.length){
-
-
-map.fitBounds(all);
-
-
-}
-
-
-
-}
-
-
-
-
-
-
-
-
-
-// ================= PAGE START =================
-
-
-
-loadLive();
-
-
-loadEMS();
-
-
-
-intervalEMS=
-
-setInterval(
-
-loadEMS,
-
-10000
 
 );
+
+
+
+loadAccidents();
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+================================
+
+FINISH
+
+================================
+*/
+
+
+async function finishCase(id){
+
+
+
+if(
+
+!confirm(
+
+"사고 처리 완료?"
+
+)
+
+)
+
+return;
+
+
+
+
+await fetch(
+
+ACCIDENT_API_URL,
+
+{
+
+
+method:"POST",
+
+
+headers:{
+
+
+"Content-Type":
+
+"text/plain;charset=utf-8"
+
+
+},
+
+
+body:
+
+JSON.stringify({
+
+
+action:"finish",
+
+
+id:id,
+
+
+finishTime:
+
+new Date().toISOString()
+
+
+})
+
+
+}
+
+
+
+);
+
+
+
+loadAccidents();
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+================================
+
+AUTO UPDATE
+
+================================
+*/
+
+
+
+setInterval(()=>{
+
+
+
+loadAccidents();
+
+
+
+},10000);
+
+
+
+
+
+setInterval(()=>{
+
+
+document
+
+.querySelectorAll(
+
+".case-card"
+
+)
+
+.forEach(card=>{
+
+
+
+const time=
+
+card.querySelector(
+
+".elapsed"
+
+);
+
+
+
+if(!time)
+
+return;
+
+
+
+
+const t=
+
+card.dataset.time;
+
+
+
+if(t){
+
+
+
+time.innerHTML=
+
+"⏱ "
+
++
+
+getElapsedTime(t);
+
+
+
+}
+
+
+
+});
+
+
+
+},1000);
+
+
+
+
+/*
+================================
+
+START
+
+================================
+*/
+
+
+loadAccidents();
+ 
 </script>
 
 
