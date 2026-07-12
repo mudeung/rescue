@@ -54,12 +54,11 @@ padding:10px;
 
 text-align:center;
 
-font-weight:bold;
-
 font-size:18px;
 
-}
+font-weight:bold;
 
+}
 
 
 
@@ -70,8 +69,6 @@ display:flex;
 height:calc(100vh - 50px);
 
 }
-
-
 
 
 
@@ -95,7 +92,6 @@ overflow-y:auto;
 
 
 
-
 #map{
 
 flex:1;
@@ -104,10 +100,7 @@ flex:1;
 
 
 
-
-
 input,button{
-
 
 padding:10px;
 
@@ -118,7 +111,6 @@ background:#001a14;
 color:#00ff9d;
 
 font-family:monospace;
-
 
 }
 
@@ -133,41 +125,8 @@ opacity:0.5;
 
 
 
-@media(max-width:768px){
-
-
-#container{
-
-flex-direction:column;
-
-}
-
-
-
-#panel{
-
-width:100%;
-
-max-height:35vh;
-
-}
-
-
-
-#map{
-
-height:65vh;
-
-}
-
-
-}
-
-
-
 
 .name-label{
-
 
 background:#001a14;
 
@@ -185,16 +144,12 @@ font-weight:bold;
 
 box-shadow:0 0 8px #00ff9d;
 
-
 }
 
 
 
 
-
-/* =========================
-   EMS 신고 펄스
-========================= */
+/* EMS 펄스 */
 
 
 .ems-pulse{
@@ -212,14 +167,14 @@ border:3px solid white;
 
 box-shadow:0 0 15px red;
 
-animation:emsPulse 1.5s infinite;
+animation:pulse 1.5s infinite;
 
 
 }
 
 
 
-@keyframes emsPulse{
+@keyframes pulse{
 
 
 0%{
@@ -231,15 +186,12 @@ opacity:1;
 }
 
 
+
 70%{
 
-transform:scale(1.5);
+transform:scale(1.6);
 
-opacity:.3;
-
-box-shadow:
-0 0 0 30px rgba(255,0,0,0);
-
+opacity:.2;
 
 }
 
@@ -259,8 +211,37 @@ opacity:1;
 
 
 
-</style>
+@media(max-width:768px){
 
+
+#container{
+
+flex-direction:column;
+
+}
+
+
+#panel{
+
+width:100%;
+
+max-height:35vh;
+
+}
+
+
+#map{
+
+height:65vh;
+
+}
+
+
+}
+
+
+
+</style>
 
 </head>
 
@@ -278,8 +259,8 @@ opacity:1;
 
 
 
-<div id="container">
 
+<div id="container">
 
 
 <div id="panel">
@@ -368,9 +349,6 @@ const API_URL =
 
 
 
-// EMS API
-
-
 const EMS_API =
 
 "https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
@@ -380,10 +358,13 @@ const EMS_API =
 
 
 
+
 // ================= DEVICE =================
 
 
+
 let DEVICE_ID =
+
 localStorage.getItem("DEVICE_ID");
 
 
@@ -391,13 +372,18 @@ localStorage.getItem("DEVICE_ID");
 if(!DEVICE_ID){
 
 
-DEVICE_ID =
+DEVICE_ID=
+
 crypto.randomUUID();
 
 
+
 localStorage.setItem(
+
 "DEVICE_ID",
+
 DEVICE_ID
+
 );
 
 
@@ -408,11 +394,14 @@ DEVICE_ID
 
 
 
+
+
+
 // ================= MAP =================
 
 
 
-const map =
+const map=
 
 L.map("map")
 
@@ -428,11 +417,13 @@ L.map("map")
 
 
 
+
+
 // ================= TILE =================
 
 
 
-const osm =
+const osm=
 
 L.tileLayer(
 
@@ -442,7 +433,7 @@ L.tileLayer(
 
 
 
-const topo =
+const topo=
 
 L.tileLayer(
 
@@ -452,7 +443,7 @@ L.tileLayer(
 
 
 
-const satellite =
+const satellite=
 
 L.tileLayer(
 
@@ -464,7 +455,9 @@ L.tileLayer(
 
 
 
+
 osm.addTo(map);
+
 
 
 
@@ -472,14 +465,21 @@ osm.addTo(map);
 
 L.control.layers({
 
+
 "🗺 일반지도":osm,
 
+
 "⛰ 지형지도":topo,
+
 
 "🛰 위성지도":satellite
 
 
-}).addTo(map);
+})
+
+.addTo(map);
+
+
 
 
 
@@ -491,20 +491,23 @@ L.control.layers({
 
 
 
-const drawnItems =
+const drawnItems=
 
 new L.FeatureGroup();
 
 
 
 map.addLayer(
+
 drawnItems
+
 );
 
 
 
 
-const drawControl =
+
+const drawControl=
 
 new L.Control.Draw({
 
@@ -512,18 +515,24 @@ new L.Control.Draw({
 position:"topright",
 
 
+
 draw:{
 
 
 polygon:true,
 
+
 rectangle:true,
+
 
 circle:true,
 
+
 marker:true,
 
+
 polyline:true,
+
 
 circlemarker:false
 
@@ -531,10 +540,12 @@ circlemarker:false
 },
 
 
+
 edit:{
 
 
 featureGroup:drawnItems,
+
 
 remove:true
 
@@ -553,15 +564,18 @@ map.addControl(drawControl);
 
 
 
+
 map.on(
 
 L.Draw.Event.CREATED,
 
-function(e){
+e=>{
 
 
 drawnItems.addLayer(
+
 e.layer
+
 );
 
 
@@ -574,66 +588,93 @@ e.layer
 
 
 
-// ================= LAYERS =================
+
+// ================= LAYER =================
 
 
 
-// 구조대 위치
+const rescueLayer=
 
-const rescueLayer =
+L.layerGroup()
 
-L.layerGroup().addTo(map);
-
-
-
-// EMS 신고
-
-const emsLayer =
-
-L.layerGroup().addTo(map);
+.addTo(map);
 
 
 
-// 최단 구조 경로
 
-const rescueRouteLayer =
+const emsLayer=
 
-L.layerGroup().addTo(map);
+L.layerGroup()
 
-
-
-// SOS
-
-const sosLayer =
-
-L.layerGroup().addTo(map);
+.addTo(map);
 
 
 
-// 기록
 
-const historyMarkers =
+const rescueRouteLayer=
 
-L.layerGroup().addTo(map);
+L.layerGroup()
+
+.addTo(map);
 
 
-const historyLines =
 
-L.layerGroup().addTo(map);
+
+const sosLayer=
+
+L.layerGroup()
+
+.addTo(map);
+
+
+
+
+const historyMarkers=
+
+L.layerGroup()
+
+.addTo(map);
+
+
+
+const historyLines=
+
+L.layerGroup()
+
+.addTo(map);
+
+
+
+
+// 신고별 경로 저장
+
+const rescueRoutes={};
+
+
+
+
+// 신고별 정보
+
+const routeInfoMarkers={};
+
 
 // ================= STATE =================
 
 
 let myName="";
 
+
 let lastPos=null;
+
 
 let watchId=null;
 
 
 let intervalSend=null;
 
+
 let intervalLoad=null;
+
 
 let intervalEMS=null;
 
@@ -641,45 +682,46 @@ let intervalEMS=null;
 
 let startTime="";
 
+
 let endTime="";
 
 
 
 
 
-// 구조대 마커
+
+// ================= MARKER =================
+
+
 
 const markers={};
 
 
 
-// EMS 마커
-
-const emsMarkers={};
-
-const emsPulseMarkers={};
-
-
-
-
-// 구조대 색상
-
 const rescueColors={};
+
 
 
 const colors=[
 
+
 "#00ff9d",
+
 
 "#00aaff",
 
+
 "#ffcc00",
+
 
 "#ff00ff",
 
+
 "#ff6600",
 
+
 "#ffffff"
+
 
 ];
 
@@ -687,7 +729,9 @@ const colors=[
 
 
 
+
 function getColor(name){
+
 
 
 if(!rescueColors[name]){
@@ -709,10 +753,15 @@ colors.length
 }
 
 
+
 return rescueColors[name];
 
 
+
 }
+
+
+
 
 
 
@@ -723,15 +772,16 @@ return rescueColors[name];
 
 
 
-const nameInput =
+const nameInput=
 
 document.getElementById("name");
 
 
 
-const startBtn =
+const startBtn=
 
 document.getElementById("startBtn");
+
 
 
 
@@ -743,14 +793,16 @@ nameInput.addEventListener(
 ()=>{
 
 
-startBtn.disabled =
+startBtn.disabled=
 
 nameInput.value.trim().length===0;
+
 
 
 }
 
 );
+
 
 
 
@@ -770,53 +822,57 @@ const now=new Date();
 
 
 
-const y=now.getFullYear();
+return (
 
+now.getFullYear()
 
-const m=
++
 
-String(now.getMonth()+1)
+"-"
 
-.padStart(2,"0");
++
 
+String(now.getMonth()+1).padStart(2,"0")
 
++
 
-const d=
+"-"
 
-String(now.getDate())
++
 
-.padStart(2,"0");
+String(now.getDate()).padStart(2,"0")
 
++
 
+" "
 
-const h=
++
 
-String(now.getHours())
+String(now.getHours()).padStart(2,"0")
 
-.padStart(2,"0");
++
 
+":"
 
++
 
-const min=
+String(now.getMinutes()).padStart(2,"0")
 
-String(now.getMinutes())
++
 
-.padStart(2,"0");
+":"
 
++
 
+String(now.getSeconds()).padStart(2,"0")
 
-const s=
-
-String(now.getSeconds())
-
-.padStart(2,"0");
-
-
-
-return `${y}-${m}-${d} ${h}:${min}:${s}`;
+);
 
 
 }
+
+
+
 
 
 
@@ -839,6 +895,8 @@ nameInput.value.trim();
 
 
 
+
+
 if(!myName){
 
 
@@ -853,13 +911,19 @@ return;
 
 
 
-startTime=getNowTime();
+
+startTime=
+
+getNowTime();
+
+
 
 endTime="";
 
 
 
 nameInput.disabled=true;
+
 
 startBtn.disabled=true;
 
@@ -868,14 +932,13 @@ startBtn.disabled=true;
 
 
 
-watchId =
+watchId=
 
 navigator.geolocation.watchPosition(
 
 
 
-(pos)=>{
-
+pos=>{
 
 
 lastPos={
@@ -905,19 +968,23 @@ status:"normal"
 
 
 
-(err)=>{
+
+err=>{
 
 
 console.log(err);
 
 
 alert(
-"GPS 오류 / 권한 확인"
+
+"GPS 권한 확인 필요"
+
 );
 
 
 
 },
+
 
 
 
@@ -945,7 +1012,6 @@ timeout:10000
 
 
 
-
 intervalSend=
 
 setInterval(
@@ -955,6 +1021,8 @@ sendData,
 5000
 
 );
+
+
 
 
 
@@ -971,13 +1039,20 @@ loadLive,
 
 
 
+
 }
 
 
 
 
 
-// ================= SEND LIVE =================
+
+
+
+
+
+
+// ================= SEND =================
 
 
 
@@ -988,6 +1063,7 @@ function sendData(){
 if(!lastPos)
 
 return;
+
 
 
 
@@ -1033,11 +1109,15 @@ endTime:endTime
 
 }
 
+
+
 );
 
 
 
 }
+
+
 
 
 
@@ -1065,24 +1145,15 @@ API_URL
 
 Date.now()
 
-
 )
 
 
 
-.then(
+.then(r=>r.json())
 
-r=>r.json()
+.then(renderLive)
 
-)
-
-
-
-.then(
-
-renderLive
-
-);
+.catch(console.log);
 
 
 
@@ -1109,6 +1180,7 @@ sosLayer.clearLayers();
 
 
 
+
 data.forEach(p=>{
 
 
@@ -1122,6 +1194,7 @@ Number(p.lat);
 const lng=
 
 Number(p.lng);
+
 
 
 
@@ -1143,7 +1216,10 @@ return;
 
 
 
-const key=p.name;
+
+const key=
+
+p.name;
 
 
 
@@ -1155,7 +1231,8 @@ const pos=[lat,lng];
 
 
 
-// 처음 생성
+
+// 구조대 마커 생성
 
 
 
@@ -1188,7 +1265,9 @@ fillOpacity:1,
 weight:3
 
 
+
 }
+
 
 
 )
@@ -1213,6 +1292,8 @@ className:"name-label"
 
 }
 
+
+
 )
 
 
@@ -1221,13 +1302,7 @@ className:"name-label"
 
 
 
-
-
 }
-
-
-
-
 
 else{
 
@@ -1246,7 +1321,9 @@ markers[key]
 
 
 
-// 상태 표시
+
+
+// SOS 표시
 
 
 
@@ -1259,16 +1336,21 @@ markers[key]
 .setStyle({
 
 
+
+radius:15,
+
+
 color:"red",
 
 
-fillColor:"red",
+fillColor:"red"
 
-
-radius:14
 
 
 });
+
+
+
 
 
 
@@ -1279,7 +1361,7 @@ pos,
 {
 
 
-radius:50,
+radius:60,
 
 
 color:"red",
@@ -1288,28 +1370,59 @@ color:"red",
 fillColor:"red",
 
 
-fillOpacity:.3
+fillOpacity:0.25
+
 
 
 }
 
-)
 
+
+)
 
 .addTo(sosLayer);
 
 
 
+
+
 }
+
+
+
+else if(p.status==="SHARE"){
+
+
+
+markers[key]
+
+.setStyle({
+
+
+color:"#0088ff",
+
+
+fillColor:"#0088ff"
+
+
+
+});
+
+
+
+}
+
 
 
 
 else{
 
 
+
 markers[key]
 
 .setStyle({
+
 
 
 color:getColor(key),
@@ -1318,19 +1431,22 @@ color:getColor(key),
 fillColor:getColor(key)
 
 
-});
-
-
-}
-
-
-
 
 });
 
 
 
 }
+
+
+
+});
+
+
+
+}
+
+
 
 
 
@@ -1352,8 +1468,9 @@ return;
 
 
 
-map.setView(
 
+
+map.setView(
 
 [
 
@@ -1363,15 +1480,16 @@ lastPos.lng
 
 ],
 
-
 16
-
 
 );
 
 
 
 }
+
+
+
 
 
 
@@ -1389,15 +1507,21 @@ function sendSOS(){
 if(!lastPos){
 
 
+
 alert(
+
 "현재 위치가 없습니다."
+
 );
+
 
 
 return;
 
 
+
 }
+
 
 
 
@@ -1443,43 +1567,73 @@ status:"SOS"
 })
 
 
+
 }
 
 
 
 );
+
+
 
 
 
 
 
 alert(
+
 "🚨 SOS 전송 완료"
+
 );
 
 
 
 }
 
+// ================= EMS =================
+
+
+
+const emsMarkers={};
+
+
+const emsPulseMarkers={};
+
+
+
+
+
+
+
 // ================= EMS ICON =================
+
 
 
 function getEMSIcon(status){
 
 
+
 let color="red";
 
 
+
 if(status==="출동")
+
 color="orange";
 
 
+
 if(status==="완료")
+
 color="green";
 
 
+
 if(status==="취소")
+
 color="gray";
+
+
 
 
 
@@ -1487,11 +1641,13 @@ color="gray";
 return L.divIcon({
 
 
+
 className:"",
 
 
 
 html:
+
 
 `
 
@@ -1510,7 +1666,9 @@ filter:drop-shadow(0 0 8px ${color});
 `,
 
 
+
 iconSize:[35,35]
+
 
 
 });
@@ -1518,6 +1676,10 @@ iconSize:[35,35]
 
 
 }
+
+
+
+
 
 
 
@@ -1549,23 +1711,18 @@ Date.now()
 
 
 
-.then(
+.then(r=>r.json())
 
-r=>r.json()
+.then(renderEMS)
 
-)
-
-
-
-.then(
-
-renderEMS
-
-);
+.catch(console.log);
 
 
 
 }
+
+
+
 
 
 
@@ -1583,6 +1740,8 @@ function renderEMS(data){
 
 
 const active={};
+
+
 
 
 
@@ -1605,6 +1764,7 @@ Number(item.lng);
 
 
 
+
 if(
 
 !Number.isFinite(lat)
@@ -1621,11 +1781,14 @@ return;
 
 
 
+
 const key=item.id;
 
 
 
 active[key]=true;
+
+
 
 
 
@@ -1638,8 +1801,8 @@ const pos=[lat,lng];
 
 
 
-// ================= 🚑 신고 아이콘 =================
 
+// 🚑 신고 마커
 
 
 
@@ -1648,6 +1811,7 @@ if(!emsMarkers[key]){
 
 
 emsMarkers[key]=
+
 
 
 L.marker(
@@ -1659,64 +1823,80 @@ pos,
 
 icon:getEMSIcon(item.status)
 
-
 }
+
 
 )
 
 
 
-
 .bindPopup(
+
+
 
 `
 
-<b>🚑 119 신고</b><br><br>
+<div style="font-family:monospace">
+
+
+<b>🚑 119 신고</b>
+
+<br><br>
+
 
 📌 사고유형 :
 
 ${item.type}
 
-<br>
 
-<br>
+<br><br>
+
 
 📍 주소 :
 
 ${item.address}
 
+
 <br><br>
+
 
 📡 상태 :
 
 ${item.status}
 
+
 <br><br>
+
 
 ⏰ 접수 :
 
 ${item.time}
 
+
 <br><br>
+
 
 <a href="${item.mapURL}"
 
 target="_blank">
 
-카카오 지도 열기
+지도 열기
 
 </a>
 
 
+
+</div>
+
 `
+
+
 
 )
 
 
 
 .addTo(emsLayer);
-
-
 
 
 
@@ -1751,15 +1931,20 @@ getEMSIcon(item.status)
 
 
 
-// ================= 🔴 펄스 =================
+
+// 🔴 신고 펄스
 
 
 
+if(
 
+item.status!=="완료"
 
-if(item.status!=="완료"){
+&&
 
+item.status!=="취소"
 
+){
 
 
 
@@ -1768,6 +1953,7 @@ if(!emsPulseMarkers[key]){
 
 
 emsPulseMarkers[key]=
+
 
 
 L.marker(
@@ -1783,13 +1969,16 @@ icon:L.divIcon({
 className:"",
 
 
+
 html:
+
 
 `
 
 <div class="ems-pulse"></div>
 
 `,
+
 
 
 iconSize:[30,30]
@@ -1806,12 +1995,13 @@ interactive:false
 
 }
 
+
+
 )
 
 
 
 .addTo(emsLayer);
-
 
 
 
@@ -1831,17 +2021,14 @@ emsPulseMarkers[key]
 
 
 
-
-
 }
-
-
 
 else{
 
 
 
 if(emsPulseMarkers[key]){
+
 
 
 emsLayer.removeLayer(
@@ -1868,6 +2055,29 @@ delete emsPulseMarkers[key];
 
 
 
+// 🚨 신고별 도로 경로 계산
+
+
+
+drawRescueRoute({
+
+
+id:key,
+
+
+lat:lat,
+
+
+lng:lng
+
+
+
+});
+
+
+
+
+
 });
 
 
@@ -1887,7 +2097,9 @@ Object.keys(emsMarkers)
 .forEach(key=>{
 
 
+
 if(!active[key]){
+
 
 
 emsLayer.removeLayer(
@@ -1902,6 +2114,26 @@ delete emsMarkers[key];
 
 
 
+
+if(emsPulseMarkers[key]){
+
+
+emsLayer.removeLayer(
+
+emsPulseMarkers[key]
+
+);
+
+
+
+delete emsPulseMarkers[key];
+
+
+
+}
+
+
+
 }
 
 
@@ -1913,6 +2145,9 @@ delete emsMarkers[key];
 
 
 }
+
+
+
 
 
 
@@ -1939,10 +2174,11 @@ loadEMS,
 
 );
 
-// ================= 거리 계산 =================
+// ================= GEO DISTANCE =================
 
 
-function getDistance(
+
+function geoDistance(
 
 lat1,
 
@@ -1955,7 +2191,9 @@ lng2
 ){
 
 
+
 const R=6371000;
+
 
 
 const dLat=
@@ -1964,7 +2202,12 @@ const dLat=
 
 *
 
-Math.PI/180;
+Math.PI
+
+/
+
+180;
+
 
 
 const dLng=
@@ -1973,25 +2216,50 @@ const dLng=
 
 *
 
-Math.PI/180;
+Math.PI
+
+/
+
+180;
+
+
 
 
 
 const a=
 
-Math.sin(dLat/2)**2
+Math.sin(dLat/2)
+
+*
+
+Math.sin(dLat/2)
 
 +
 
-Math.cos(lat1*Math.PI/180)
+Math.cos(
+
+lat1*Math.PI/180
+
+)
 
 *
 
-Math.cos(lat2*Math.PI/180)
+Math.cos(
+
+lat2*Math.PI/180
+
+)
 
 *
 
-Math.sin(dLng/2)**2;
+Math.sin(dLng/2)
+
+*
+
+Math.sin(dLng/2);
+
+
+
 
 
 
@@ -2017,18 +2285,152 @@ Math.sqrt(1-a)
 
 
 
-// ================= 가까운 구조대 검색 =================
+
+
+// ================= OSRM =================
 
 
 
-function findNearestRescue(ems){
+const OSRM_URL=
+
+"https://router.project-osrm.org/route/v1/driving/";
 
 
 
-let nearest=null;
 
 
-let min=Infinity;
+
+
+
+
+function getRoadRoute(
+
+
+
+startLat,
+
+startLng,
+
+endLat,
+
+endLng
+
+
+
+){
+
+
+
+return fetch(
+
+
+
+OSRM_URL
+
++
+
+`${startLng},${startLat};${endLng},${endLat}`
+
++
+
+"?overview=full&geometries=geojson"
+
+
+
+)
+
+
+
+.then(r=>r.json())
+
+
+
+.then(data=>{
+
+
+
+if(
+
+!data.routes
+
+||
+
+!data.routes.length
+
+)
+
+return null;
+
+
+
+
+
+const route=
+
+data.routes[0];
+
+
+
+
+
+
+return {
+
+
+distance:route.distance,
+
+
+duration:route.duration,
+
+
+geometry:route.geometry.coordinates
+
+
+
+};
+
+
+
+})
+
+
+
+.catch(e=>{
+
+
+console.log(e);
+
+
+return null;
+
+
+});
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+// ================= 최단 ETA 구조대 검색 =================
+
+
+
+function findFastestRescue(ems){
+
+
+
+const list=[];
+
+
 
 
 
@@ -2045,32 +2447,9 @@ markers[name].getLatLng();
 
 
 
-const distance=
-
-getDistance(
-
-ems.lat,
-
-ems.lng,
-
-pos.lat,
-
-pos.lng
-
-);
 
 
-
-
-
-if(distance<min){
-
-
-min=distance;
-
-
-
-nearest={
+list.push({
 
 
 name:name,
@@ -2079,17 +2458,11 @@ name:name,
 lat:pos.lat,
 
 
-lng:pos.lng,
-
-
-distance:distance
-
-
-};
+lng:pos.lng
 
 
 
-}
+});
 
 
 
@@ -2098,54 +2471,129 @@ distance:distance
 
 
 
-return nearest;
 
 
+if(!list.length)
 
-}
-
-
-
-
+return Promise.resolve(null);
 
 
 
 
-// ================= ETA 계산 =================
 
 
 
-function calcETA(distance){
+
+const routes=
+
+list.map(rescue=>{
 
 
 
-// 평균 이동속도 40km/h
+return getRoadRoute(
 
 
-const speed=40;
+ems.lat,
 
 
-
-const km=
-
-distance/1000;
+ems.lng,
 
 
+rescue.lat,
 
-return Math.max(
 
-1,
+rescue.lng
 
-Math.ceil(
-
-(km/speed)*60
 
 )
+
+
+
+.then(route=>{
+
+
+
+if(!route)
+
+return null;
+
+
+
+
+
+return {
+
+
+...rescue,
+
+
+route:route
+
+
+
+};
+
+
+
+});
+
+
+
+});
+
+
+
+
+
+
+
+
+return Promise.all(routes)
+
+
+
+.then(results=>{
+
+
+
+const valid=
+
+results.filter(r=>r);
+
+
+
+if(!valid.length)
+
+return null;
+
+
+
+
+
+
+
+valid.sort(
+
+(a,b)=>
+
+a.route.duration
+
+-
+
+b.route.duration
 
 );
 
 
 
+return valid[0];
+
+
+
+});
+
+
+
 }
 
 
@@ -2155,7 +2603,10 @@ Math.ceil(
 
 
 
-// ================= 구조대 연결선 =================
+
+
+
+// ================= 신고별 경로 표시 =================
 
 
 
@@ -2163,13 +2614,71 @@ function drawRescueRoute(ems){
 
 
 
-rescueRouteLayer.clearLayers();
+if(!ems.id)
+
+return;
 
 
 
-const rescue=
 
-findNearestRescue(ems);
+
+
+
+// 기존 해당 신고 경로 삭제
+
+
+
+if(rescueRoutes[ems.id]){
+
+
+rescueRouteLayer.removeLayer(
+
+rescueRoutes[ems.id]
+
+);
+
+
+
+delete rescueRoutes[ems.id];
+
+
+
+}
+
+
+
+
+
+if(routeInfoMarkers[ems.id]){
+
+
+rescueRouteLayer.removeLayer(
+
+routeInfoMarkers[ems.id]
+
+);
+
+
+
+delete routeInfoMarkers[ems.id];
+
+
+
+}
+
+
+
+
+
+
+
+
+
+findFastestRescue(ems)
+
+
+
+.then(rescue=>{
 
 
 
@@ -2183,34 +2692,50 @@ return;
 
 
 
+
+const coords=[];
+
+
+
+
+
+rescue.route.geometry.forEach(p=>{
+
+
+
+coords.push([
+
+
+p[1],
+
+
+p[0]
+
+
+]);
+
+
+
+});
+
+
+
+
+
+
+
+
+// 🔴 실제 도로 경로
+
+
+
+const line=
+
 L.polyline(
 
 
 
-[
-
-
-[
-
-ems.lat,
-
-ems.lng
-
-],
-
-
-[
-
-rescue.lat,
-
-rescue.lng
-
-]
-
-
-],
-
-
+coords,
 
 {
 
@@ -2218,10 +2743,13 @@ rescue.lng
 color:"red",
 
 
-weight:5,
+weight:6,
 
 
-dashArray:"10,10"
+opacity:0.9,
+
+
+dashArray:"15,10"
 
 
 
@@ -2229,21 +2757,56 @@ dashArray:"10,10"
 
 
 
+);
+
+
+
+line.addTo(
+
+rescueRouteLayer
+
+);
+
+
+
+
+rescueRoutes[ems.id]=line;
+
+
+
+
+
+
+
+
+const km=
+
+(
+
+rescue.route.distance
+
+/
+
+1000
+
 )
 
-.addTo(rescueRouteLayer);
+.toFixed(2);
 
 
 
 
 
 
+const min=
 
-const eta=
+Math.ceil(
 
-calcETA(
+rescue.route.duration
 
-rescue.distance
+/
+
+60
 
 );
 
@@ -2253,6 +2816,15 @@ rescue.distance
 
 
 
+
+
+
+// 거리 / 시간 표시
+
+
+
+const info=
+
 L.marker(
 
 
@@ -2260,10 +2832,37 @@ L.marker(
 [
 
 
-(ems.lat+rescue.lat)/2,
+
+(
+
+ems.lat
+
++
+
+rescue.lat
+
+)
+
+/
+
+2,
 
 
-(ems.lng+rescue.lng)/2
+
+(
+
+ems.lng
+
++
+
+rescue.lng
+
+)
+
+/
+
+2
+
 
 
 ],
@@ -2276,38 +2875,48 @@ L.marker(
 icon:L.divIcon({
 
 
-
 className:"",
 
 
 html:
 
 
+
 `
 
 <div style="
 
-background:#000;
+background:#050b18;
 
-color:#fff;
+color:#00ff9d;
 
-border:1px solid red;
+border:2px solid red;
 
-padding:6px;
+padding:8px;
 
-border-radius:5px;
+border-radius:8px;
 
-font-size:12px;
+font-size:13px;
+
+box-shadow:0 0 10px red;
 
 white-space:nowrap;
 
 ">
 
-🚑 ${rescue.name}<br>
 
-📏 ${(rescue.distance/1000).toFixed(2)} km<br>
+🚑 ${rescue.name}
 
-⏱ 약 ${eta}분
+<br>
+
+
+📏 ${km} km
+
+<br>
+
+
+⏱ ${min}분 예상
+
 
 </div>
 
@@ -2323,59 +2932,23 @@ white-space:nowrap;
 
 
 
-)
-
-.addTo(rescueRouteLayer);
+);
 
 
 
+info.addTo(
 
-}
+rescueRouteLayer
 
-
-
-
-
-
-
-// ================= EMS 연결 추가 =================
-
-
-// 기존 renderEMS 아래에 실행
-
-const oldRenderEMS = renderEMS;
+);
 
 
 
-renderEMS=function(data){
+routeInfoMarkers[ems.id]=info;
 
 
 
-oldRenderEMS(data);
 
-
-
-data.forEach(item=>{
-
-
-if(item.status!=="완료"){
-
-
-
-drawRescueRoute({
-
-
-lat:Number(item.lat),
-
-
-lng:Number(item.lng)
-
-
-});
-
-
-
-}
 
 
 
@@ -2384,14 +2957,6 @@ lng:Number(item.lng)
 
 
 }
-
-
-
-
-
-
-
-
 
 // ================= 위치 공유 =================
 
@@ -2405,7 +2970,9 @@ if(!lastPos){
 
 
 alert(
+
 "현재 위치가 없습니다."
+
 );
 
 
@@ -2413,6 +2980,8 @@ return;
 
 
 }
+
+
 
 
 
@@ -2426,6 +2995,7 @@ const url=
 
 
 
+
 const text=
 
 `
@@ -2433,9 +3003,7 @@ const text=
 📡 구조대 위치공유
 
 
-UNIT :
-
-${lastPos.name}
+UNIT : ${lastPos.name}
 
 
 
@@ -2444,6 +3012,9 @@ ${lastPos.name}
 ${url}
 
 `;
+
+
+
 
 
 
@@ -2480,13 +3051,19 @@ body:JSON.stringify({
 status:"SHARE"
 
 
+
 })
 
 
 
 }
 
+
+
 );
+
+
+
 
 
 
@@ -2510,13 +3087,16 @@ url:url
 
 
 
-});
+})
+
+.catch(console.log);
 
 
 
 }
 
 else{
+
 
 
 location.href=
@@ -2533,8 +3113,9 @@ encodeURIComponent(text);
 
 
 
-
 }
+
+
 
 
 
@@ -2555,6 +3136,8 @@ function stopTracking(){
 endTime=
 
 getNowTime();
+
+
 
 
 
@@ -2601,17 +3184,23 @@ endTime:endTime,
 status:"STOP"
 
 
+
 })
 
 
 
 }
 
+
+
 );
 
 
 
 }
+
+
+
 
 
 
@@ -2633,22 +3222,39 @@ watchId
 watchId=null;
 
 
+
 }
 
 
 
 
 
-clearInterval(intervalSend);
 
 
-clearInterval(intervalLoad);
+clearInterval(
+
+intervalSend
+
+);
+
+
+
+clearInterval(
+
+intervalLoad
+
+);
+
 
 
 
 intervalSend=null;
 
+
 intervalLoad=null;
+
+
+
 
 
 
@@ -2658,10 +3264,12 @@ lastPos=null;
 myName="";
 
 
-
 startTime="";
 
+
 endTime="";
+
+
 
 
 
@@ -2677,13 +3285,21 @@ startBtn.disabled=true;
 
 
 
+
+
+
 alert(
+
 "⛔ STOP 완료"
+
 );
 
 
 
 }
+
+
+
 
 
 
@@ -2731,6 +3347,14 @@ Date.now()
 
 
 
+
+
+
+
+// ================= HISTORY MAP =================
+
+
+
 function showHistoryMap(data){
 
 
@@ -2743,7 +3367,11 @@ historyLines.clearLayers();
 
 
 
+
+
 const grouped={};
+
+
 
 
 
@@ -2764,6 +3392,9 @@ new Date(b.time)
 
 
 
+
+
+
 data.forEach(d=>{
 
 
@@ -2774,6 +3405,8 @@ grouped[d.name]=[];
 
 
 
+
+
 grouped[d.name].push([
 
 
@@ -2781,6 +3414,7 @@ Number(d.lat),
 
 
 Number(d.lng)
+
 
 
 ]);
@@ -2794,7 +3428,12 @@ Number(d.lng)
 
 
 
-const all=[];
+
+
+
+const allPoints=[];
+
+
 
 
 
@@ -2810,9 +3449,27 @@ grouped[name];
 
 
 
-all.push(...path);
 
 
+
+if(!path.length)
+
+continue;
+
+
+
+
+
+
+allPoints.push(...path);
+
+
+
+
+
+
+
+// 이동 경로
 
 
 
@@ -2826,10 +3483,16 @@ path,
 color:getColor(name),
 
 
-weight:5
+weight:5,
+
+
+opacity:0.8
+
 
 
 }
+
+
 
 )
 
@@ -2838,18 +3501,86 @@ weight:5
 
 
 
+
+
+
+
+// 시작 위치
+
+
+
+L.marker(
+
+path[0]
+
+)
+
+.bindPopup(
+
+"🟢 START : "
+
++
+
+name
+
+)
+
+.addTo(historyMarkers);
+
+
+
+
+
+
+
+
+
+// 종료 위치
+
+
+
+L.marker(
+
+path[path.length-1]
+
+)
+
+.bindPopup(
+
+"🔴 END : "
+
++
+
+name
+
+)
+
+.addTo(historyMarkers);
+
+
+
+
+
+
 }
 
 
 
 
-if(all.length){
+
+
+
+
+
+if(allPoints.length){
 
 
 
 map.fitBounds(
 
-all,
+
+
+allPoints,
 
 {
 
@@ -2857,7 +3588,10 @@ all,
 padding:[50,50]
 
 
+
 }
+
+
 
 );
 
@@ -2867,7 +3601,6 @@ padding:[50,50]
 
 
 
-
 }
 
 
@@ -2876,14 +3609,23 @@ padding:[50,50]
 
 
 
-// ================= 초기 실행 =================
+
+
+
+
+// ================= 페이지 시작 =================
 
 
 
 loadLive();
 
+
 loadEMS();
 
+
+
+</script>
+</html>
 
 
 
