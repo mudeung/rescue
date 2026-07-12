@@ -2384,10 +2384,6 @@ return "NORMAL";
 }
 
 
-// ================= OSRM =================
-
-const OSRM_URL =
-"https://router.project-osrm.org/route/v1/driving/";
   
 // ================= 최단 ETA 구조대 검색 =================
 
@@ -2661,12 +2657,41 @@ return valid[0];
 
 // ================= 신고별 경로 표시 =================
 
-
+// ================= 신고별 경로 표시 =================
 
 function drawRescueRoute(ems){
 
+
 if(!ems.id)
 return;
+
+
+
+// 기존 경로 삭제
+
+if(rescueRoutes[ems.id]){
+
+rescueRouteLayer.removeLayer(
+rescueRoutes[ems.id]
+);
+
+delete rescueRoutes[ems.id];
+
+}
+
+
+
+if(routeInfoMarkers[ems.id]){
+
+rescueRouteLayer.removeLayer(
+routeInfoMarkers[ems.id]
+);
+
+delete routeInfoMarkers[ems.id];
+
+}
+
+
 
 
 checkTerrain(
@@ -2678,113 +2703,43 @@ ems.lng
 
 
 console.log(
-"지역:",
+"접근 지역:",
 terrain
 );
 
 
 
-findFastestRescue(ems)
+return findFastestRescue(ems);
 
-.then(rescue=>{
-
-
-if(!rescue)
-return;
-
-
-// 기존 경로 표시 코드
-
-
-});
-
-
-});
-
-
-}
-
-
-
-
-
-
-
-// 기존 해당 신고 경로 삭제
-
-
-
-if(rescueRoutes[ems.id]){
-
-
-rescueRouteLayer.removeLayer(
-
-rescueRoutes[ems.id]
-
-);
-
-
-
-delete rescueRoutes[ems.id];
-
-
-
-}
-
-
-
-
-
-if(routeInfoMarkers[ems.id]){
-
-
-rescueRouteLayer.removeLayer(
-
-routeInfoMarkers[ems.id]
-
-);
-
-
-
-delete routeInfoMarkers[ems.id];
-
-
-
-}
-
-
-
-
-
-
-
-
-
-findFastestRescue(ems)
-.then(rescue=>{
-
-return getRescueETA(ems,rescue);
 
 })
-.then(eta=>{
 
-console.log(
-"차량:",
-eta.car,
-"도보:",
-eta.walk
-);
-
-});
+.then(rescue=>{
 
 
 if(!rescue)
-
 return;
 
 
 
+return getRescueETA(
+ems,
+rescue
+)
 
+.then(eta=>{
+
+
+console.log(
+"🚑 차량 ETA",
+eta.car
+);
+
+
+console.log(
+"🚶 도보 ETA",
+eta.walk
+);
 
 
 
@@ -2792,24 +2747,13 @@ return;
 const coords=[];
 
 
-
-
-
 rescue.route.geometry.forEach(p=>{
 
 
-
 coords.push([
-
-
 p[1],
-
-
 p[0]
-
-
 ]);
-
 
 
 });
@@ -2817,53 +2761,28 @@ p[0]
 
 
 
+// 차량 경로 표시
 
-
-
-
-// 🔴 실제 도로 경로
-
-
-
-const line=
-
-L.polyline(
-
-
+const line=L.polyline(
 
 coords,
 
 {
 
-
 color:"red",
-
 
 weight:6,
 
-
-opacity:0.9,
-
-
 dashArray:"15,10"
-
-
 
 }
 
-
-
 );
-
 
 
 line.addTo(
-
 rescueRouteLayer
-
 );
-
-
 
 
 rescueRoutes[ems.id]=line;
@@ -2872,188 +2791,89 @@ rescueRoutes[ems.id]=line;
 
 
 
+const carMin=Math.ceil(
+eta.car.duration/60000
+);
 
 
-
-const km=
-
-(
-
-rescue.route.distance
-
-/
-
-1000
-
-)
-
-.toFixed(2);
-
-
-
-
-
-
-const min=
-
-Math.ceil(
-
-rescue.route.duration
-
-/
-
-60
-
+const walkMin=Math.ceil(
+eta.walk.duration/60000
 );
 
 
 
-
-
-
-
-
-
-
-// 거리 / 시간 표시
-
-
-
-const info=
-
-L.marker(
-
-
+const info=L.marker(
 
 [
 
+(ems.lat+rescue.lat)/2,
 
-
-(
-
-ems.lat
-
-+
-
-rescue.lat
-
-)
-
-/
-
-2,
-
-
-
-(
-
-ems.lng
-
-+
-
-rescue.lng
-
-)
-
-/
-
-2
-
-
+(ems.lng+rescue.lng)/2
 
 ],
 
-
-
 {
-
 
 icon:L.divIcon({
 
-
 className:"",
 
-
-html:
-
-
-
-`
+html:`
 
 <div style="
-
 background:#050b18;
-
 color:#00ff9d;
-
 border:2px solid red;
-
 padding:8px;
-
 border-radius:8px;
-
 font-size:13px;
-
-box-shadow:0 0 10px red;
-
-white-space:nowrap;
-
 ">
-
 
 🚑 ${rescue.name}
 
 <br>
 
-
-📏 ${km} km
+🚗 차량 :
+${carMin}분
 
 <br>
 
+🚶 도보 :
+${walkMin}분
 
-⏱ ${min}분 예상
+<br>
 
+⛰ 지역 :
+${terrain}
 
 </div>
 
 `
 
-
-
 })
 
-
-
 }
-
-
 
 );
 
 
 
 info.addTo(
-
 rescueRouteLayer
-
 );
-
 
 
 routeInfoMarkers[ems.id]=info;
 
 
 
-
-
+});
 
 
 });
 
 
-
 }
-
 // ================= 위치 공유 =================
 
 
