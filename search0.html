@@ -583,7 +583,8 @@ const infoRouteLayer =
 L.layerGroup()
 .addTo(map);
 
-
+const carRoutes={};
+const footRoutes={};
 
 const sosLayer =
 
@@ -612,85 +613,60 @@ L.layerGroup()
 
 function toggleCarRoute(){
 
-
 showCarRoute=!showCarRoute;
 
 
-
-document.getElementById("carBtn").innerHTML=
-
+document.getElementById("carBtn").innerHTML =
 showCarRoute
-
 ?
-
 "🚑 차량 경로 ON"
-
 :
-
 "🚑 차량 경로 OFF";
 
 
 
-if(!showCarRoute){
+if(showCarRoute){
 
-carRouteLayer.clearLayers();
+map.addLayer(carRouteLayer);
 
-}
+}else{
 
-
-else{
-
-
-loadEMS();
-
+map.removeLayer(carRouteLayer);
 
 }
 
-
 }
-
 
 
 
 
 function toggleFootRoute(){
 
-
 showFootRoute=!showFootRoute;
 
 
-
-document.getElementById("footBtn").innerHTML=
-
+document.getElementById("footBtn").innerHTML =
 showFootRoute
-
 ?
-
 "🚶 도보 경로 ON"
-
 :
-
 "🚶 도보 경로 OFF";
 
 
 
-if(!showFootRoute){
+if(showFootRoute){
 
-footRouteLayer.clearLayers();
+map.addLayer(footRouteLayer);
 
-}
+}else{
 
-
-else{
-
-
-loadEMS();
-
+map.removeLayer(footRouteLayer);
 
 }
 
-
 }
+
+  
 // ================= ROUTE =================
 
 
@@ -698,11 +674,22 @@ let showCarRoute=true;
 
 let showFootRoute=true;
 
+
+// 차량/도보 경로 저장
+const carRoutes={};
+
+const footRoutes={};
+
+
+// AI 선택 결과 저장
 let selectedRouteCache={};
 
+
+// 기존 선택 경로 저장
 const rescueRoutes={};
 
 
+// ETA 정보 표시
 const routeInfoMarkers={};
 
 
