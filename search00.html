@@ -1,45 +1,35 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-
 <meta charset="utf-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>
 🛰 SEARCH AND RESCUE AI MAP
 </title>
 
-
 <link rel="stylesheet"
 href="https://unpkg.com/leaflet/dist/leaflet.css">
 
-
 <link rel="stylesheet"
 href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css">
-
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
 
-
 <style>
 
 body{
-
 margin:0;
 background:#050b18;
 color:#00ff9d;
 font-family:monospace;
 overflow:hidden;
-
 }
 
 
 header{
-
 height:50px;
 background:#071a2f;
 display:flex;
@@ -47,22 +37,16 @@ align-items:center;
 justify-content:center;
 font-size:18px;
 font-weight:bold;
-
 }
 
 
 
 #container{
-
 display:flex;
 height:calc(100vh - 50px);
-
 }
 
-
-
 #panel{
-
 width:300px;
 background:#07101f;
 padding:10px;
@@ -70,42 +54,24 @@ display:flex;
 flex-direction:column;
 gap:8px;
 overflow-y:auto;
-
 }
-
-
 
 #map{
-
 flex:1;
-
 }
-
-
-
 input,button{
-
 padding:10px;
 border:1px solid #00ff9d;
 background:#001a14;
 color:#00ff9d;
 font-family:monospace;
-
 }
-
-
 
 button:disabled{
-
 opacity:0.4;
-
 }
 
-
-
-
 .name-label{
-
 background:#001a14;
 color:#00ff9d;
 border:1px solid #00ff9d;
@@ -114,15 +80,9 @@ padding:3px 8px;
 font-size:12px;
 font-weight:bold;
 box-shadow:0 0 8px #00ff9d;
-
 }
 
-
-
-
-
 .ems-pulse{
-
 width:24px;
 height:24px;
 border-radius:50%;
@@ -130,115 +90,65 @@ background:red;
 border:3px solid white;
 box-shadow:0 0 15px red;
 animation:pulse 1.5s infinite;
-
 }
-
-
 
 @keyframes pulse{
-
-
 0%{
-
 transform:scale(.5);
 opacity:1;
-
 }
-
 
 70%{
-
 transform:scale(1.5);
 opacity:.2;
-
 }
-
 
 100%{
-
 transform:scale(.5);
 opacity:1;
-
 }
 
-
 }
-
-
-
 
 @media(max-width:768px){
-
-
 #container{
-
 flex-direction:column;
-
 }
-
 
 #panel{
-
 width:auto;
 height:35vh;
-
 }
-
-
 
 #map{
-
 height:65vh;
-
 }
 
-
 }
-
-
 
 </style>
-
-
 </head>
-
 
 <body>
 
-
-<header>
+ <header>
 
 🛰 SEARCH AND RESCUE AI MAP
 
 </header>
-
-
-
 <div id="container">
-
-
 <div id="panel">
-
-
-<input id="name"
-placeholder="RESCUE ID">
-
-
+<input id="name"placeholder="RESCUE ID">
 <button id="startBtn"
 disabled>
 
 START
-
 </button>
-
-
 <button id="myLocationBtn">
 
 📍 MY LOCATION
 
 </button>
-
-
 
 <button id="shareBtn">
 
@@ -246,15 +156,11 @@ START
 
 </button>
 
-
-
 <button id="sosBtn">
 
 🚨 SOS
 
 </button>
-
-
 
 <button id="stopBtn">
 
@@ -262,52 +168,30 @@ START
 
 </button>
 
-
-
 <button id="historyBtn">
 
 📦 전체 기록
 
 </button>
 
-
-
 </div>
-
-
 <div id="map"></div>
-
-
 </div>
-
-
 
 <script>
 
-
 // ================= API =================
-
-
 const API_URL =
 "https://script.google.com/macros/s/AKfycbyem5fAs2XGxNy6wrHO3s68CmJyHy7GI31IBKdiz49KtN3sfikYdfmpP07-3dWqna2R/exec";
-
 
 const EMS_API =
 "https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
 
-
-
 // ================= DEVICE =================
 
-
-let DEVICE_ID =
-localStorage.getItem("DEVICE_ID");
-
-
+let DEVICE_ID =localStorage.getItem("DEVICE_ID");
 if(!DEVICE_ID){
-
 DEVICE_ID=crypto.randomUUID();
-
 localStorage.setItem(
 "DEVICE_ID",
 DEVICE_ID
@@ -315,19 +199,12 @@ DEVICE_ID
 
 }
 
-
-
 // ================= MAP =================
-
-
-const map =
-L.map("map")
+const map =L.map("map")
 .setView(
 [35.1239,126.9883],
 13
 );
-
-
 
 // ================= TILE =================
 
