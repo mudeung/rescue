@@ -311,7 +311,12 @@ START
 
 <select id="routeMode">
 
+<option value="foot">
 
+🚶 도보 경로
+
+</option>
+  
 <option value="car">
 
 🚑 차량 경로
@@ -319,11 +324,6 @@ START
 </option>
 
 
-<option value="foot">
-
-🚶 도보 경로
-
-</option>
 
 
 </select>
@@ -612,6 +612,7 @@ L.layerGroup()
 
 let routeMode="car";
 
+let selectedRouteCache={};
 
 const rescueRoutes={};
 
@@ -719,28 +720,58 @@ nameInput.value.trim().length===0;
 
 
 document
-
 .getElementById("routeMode")
-
 .addEventListener(
-
 "change",
-
 function(){
 
 
 routeMode=this.value;
 
 
+
+// 기존 경로 삭제
+
 rescueRouteLayer.clearLayers();
 
 
-loadEMS();
+Object.keys(emsMarkers).forEach(id=>{
 
+
+const marker=emsMarkers[id];
+
+const pos=marker.getLatLng();
+
+
+
+if(
+
+!selectedRouteCache[key]
+
+||
+
+selectedRouteCache[key].mode!==routeMode
+
+){
+
+drawRescueRoute({
+
+id:key,
+
+lat:lat,
+
+lng:lng
+
+});
 
 }
 
-);
+
+});
+
+
+
+});
 
 
 
@@ -1902,8 +1933,6 @@ return;
 
 
 
-// 기존 삭제
-
 if(rescueRoutes[ems.id]){
 
 
@@ -1940,6 +1969,23 @@ delete routeInfoMarkers[ems.id];
 findFastestRescue(ems)
 
 .then(rescue=>{
+
+
+if(!rescue)
+
+return;
+
+
+
+// 현재 선택 방식 저장
+
+selectedRouteCache[ems.id]={
+
+mode:routeMode,
+
+rescue:rescue
+
+};
 
 
 if(!rescue)
