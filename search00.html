@@ -21,7 +21,9 @@ href="https://unpkg.com/leaflet/dist/leaflet.css">
 href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css">
 
 
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script 
+src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
 
 
 <script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
@@ -97,9 +99,9 @@ overflow-y:auto;
 
 
 #map{
-
 flex:1;
-
+height:100%;
+min-height:400px;
 }
 
 
@@ -211,9 +213,8 @@ opacity:1;
 
 
 #container{
-
-flex-direction:column;
-
+display:flex;
+height:calc(100vh - 50px);
 }
 
 
@@ -455,7 +456,9 @@ maxZoom:17
 
 
 osm.addTo(map);
-
+map.on("tileerror",function(e){
+console.log("타일 오류",e);
+});
 
 
 
@@ -746,7 +749,7 @@ console.log(
 
 
 
-</script>
+
 
  // ================= EMS LOAD =================
 
