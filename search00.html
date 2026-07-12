@@ -1263,37 +1263,22 @@ if(!markers[key]){
 
 
 
-markers[key]=
-
+markers[key] =
 L.marker(
 pos,
 {
-icon:getHikerIcon()
+ icon:getHikerIcon()
 }
 )
-
-
-radius:10,
-
-
-color:getColor(key),
-
-
-fillColor:getColor(key),
-
-
-fillOpacity:1,
-
-
-weight:3
-
-
-
+.bindTooltip(
+p.name,
+{
+ permanent:true,
+ direction:"top",
+ className:"name-label"
 }
-
-
-
 )
+.addTo(rescueLayer);
 
 
 
@@ -2224,12 +2209,7 @@ loadEMS();
 
 intervalEMS=
 
-setInterval(
-
-loadEMS,
-
-3000
-
+setInterval(loadEMS,10000)
 );
 
 // ================= GEO DISTANCE =================
@@ -2462,14 +2442,6 @@ return null;
 
 
 
-
-getHikingRoute(
-ems.lat,
-ems.lng,
-rescue.lat,
-rescue.lng
-)
-{
 
 
 
