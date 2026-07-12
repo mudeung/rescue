@@ -309,6 +309,11 @@ START
 </button>
 
 
+<select id="routeMode">
+<option value="car">🚑 차량 이동</option>
+<option value="foot">🚶 도보 이동</option>
+</select>
+  
 
 </div>
 
@@ -633,7 +638,7 @@ let startTime="";
 
 let endTime="";
 
-
+let routeMode="car";
 
 
 // ================= MARKER =================
@@ -732,7 +737,17 @@ nameInput.value.trim().length===0;
 
 );
 
+document
+.getElementById("routeMode")
+.addEventListener("change",e=>{
 
+routeMode=e.target.value;
+
+
+// 기존 경로 다시 표시
+loadEMS();
+
+});
 
 
 
@@ -2366,12 +2381,8 @@ return;
 
 
 if(
-
 !rescue.eta.car.geometry
-
 )
-
-return;
 
 
 
@@ -2382,7 +2393,7 @@ const coords=[];
 
 
 
-rescue.eta.car.geometry.forEach(p=>{
+selectedRoute.geometry.forEach(p=>{
 
 
 
@@ -2459,14 +2470,10 @@ rescueRoutes[ems.id]=line;
 // ================= ETA 정보 =================
 
 
-const carMin =
-
+const selectedMin =
 Math.ceil(
-
-rescue.eta.car.duration / 60000
-
+selectedRoute.duration / 60000
 );
-
 
 
 
@@ -2635,10 +2642,8 @@ ${km} km
 <br>
 
 
-🚗 차량 :
-
-${carMin}분
-
+${routeMode==="car"?"🚗 차량":"🚶 도보"} :
+${selectedMin}분
 
 <br>
 
