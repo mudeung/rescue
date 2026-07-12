@@ -336,7 +336,8 @@ const EMS_API =
 "https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
 
 
-
+const GRAPHHOPPER_KEY =
+"6f1dbbf6-0546-4b11-a9c8-8d8134dff43c";
 
 
 // ================= DEVICE =================
@@ -1163,58 +1164,106 @@ geometry:r.geometry.coordinates
 
 }
 
-// ================= WALK ROUTE =================
 
-function getWalkRoute(
+// ================= HIKING ROUTE =================
+
+function getHikingRoute(
 startLat,
 startLng,
 endLat,
 endLng
 ){
 
-const url=
 
-"https://router.project-osrm.org/route/v1/walking/"
+const url =
 
-+
-
-`${startLng},${startLat};${endLng},${endLat}`
+"https://graphhopper.com/api/1/route"
 
 +
 
-"?overview=full&geometries=geojson";
+"?point="
++
+`${startLat},${startLng}`
+
++
+
+"&point="
++
+`${endLat},${endLng}`
+
++
+
+"&profile=foot"
+
++
+
+"&locale=ko"
+
++
+
+"&points_encoded=false"
+
++
+
+"&key="
++
+GRAPHHOPPER_KEY;
+
 
 
 return fetch(url)
 
+
 .then(r=>r.json())
+
 
 .then(data=>{
 
-if(!data.routes || !data.routes.length)
+
+if(
+!data.paths ||
+!data.paths.length
+)
+
 return null;
 
 
-const r=data.routes[0];
+
+const path=data.paths[0];
+
 
 
 return {
 
-distance:r.distance,
 
-duration:r.duration,
+distance:path.distance,
 
-geometry:r.geometry.coordinates
+duration:path.time,
+
+geometry:
+
+path.points.coordinates
+
 
 };
 
+
 })
 
-.catch(()=>null);
+
+.catch(err=>{
+
+console.log(
+"등산로 경로 오류",
+err
+);
+
+return null;
+
+});
+
 
 }
-
-
 
 
 
@@ -1353,7 +1402,7 @@ min,
 
 // ================= 실제 도보 경로 =================
 
-getWalkRoute(
+getHikingRoute(
 
 rescue.lat,
 rescue.lng,
@@ -1392,7 +1441,7 @@ coords,
 
 {
 
-color:"#00ffff",
+color:"#00ff00",
 
 weight:5,
 
