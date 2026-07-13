@@ -335,7 +335,16 @@ height:60vh;
 }
 
 
-
+.mouse-coords{
+    background:rgba(0,0,0,.8);
+    color:#00ff9d;
+    padding:6px 10px;
+    border:1px solid #00ff9d;
+    border-radius:4px;
+    font-size:12px;
+    font-family:monospace;
+    box-shadow:0 0 8px #00ff9d;
+}
 
 </style>
 
@@ -547,6 +556,29 @@ L.control.layers({
 
 
 /*
+================================
+MOUSE COORDINATES
+================================
+*/
+
+const coordControl = L.control({ position: "bottomleft" });
+
+coordControl.onAdd = function () {
+    this._div = L.DomUtil.create("div", "mouse-coords");
+    this._div.innerHTML = "Lat: -- , Lng: --";
+    return this._div;
+};
+
+coordControl.addTo(map);
+
+map.on("mousemove", function (e) {
+    coordControl._div.innerHTML =
+        `Lat : ${e.latlng.lat.toFixed(6)}<br>Lng : ${e.latlng.lng.toFixed(6)}`;
+});
+
+map.on("mouseout", function () {
+    coordControl._div.innerHTML = "Lat: -- , Lng: --";
+});
 ================================
 
 DRAW
