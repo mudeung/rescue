@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>국립공원 비상근무 개인훈련 대시보드 v6</title>
+  <style>
+    :root{
+      --bg:#07111f; --panel:#0f1f33; --panel2:#132940; --line:#294766;
+      --text:#eef6ff; --muted:#9fb4c9; --blue:#2563eb; --orange:#f97316;
+      --red:#dc2626; --green:#22c55e; --yellow:#facc15; --cyan:#0ea5e9;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:"Malgun Gothic","Apple SD Gothic Neo",Arial,sans-serif;background:radial-gradient(circle at top left,#15385f 0,#07111f 43%,#030712 100%);color:var(--text)}
+    header{padding:22px 26px;border-bottom:1px solid rgba(255,255,255,.12);background:rgba(3,7,18,.78);position:sticky;top:0;z-index:10;backdrop-filter:blur(12px)}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+    h1{margin:0;font-size:clamp(22px,3vw,36px);letter-spacing:-.04em}
+    .subtitle{margin-top:7px;color:var(--muted);font-size:15px}
+    .badge{padding:10px 14px;border:1px solid rgba(255,255,255,.15);border-radius:999px;background:rgba(255,255,255,.08);font-weight:800;white-space:nowrap}
+    main{padding:22px;max-width:1580px;margin:0 auto}
+    .card{background:linear-gradient(180deg,rgba(19,41,64,.96),rgba(10,22,38,.96));border:1px solid rgba(255,255,255,.11);border-radius:22px;box-shadow:0 18px 50px rgba(0,0,0,.28);padding:20px;margin-bottom:18px}
+    .urgent{border:1px solid rgba(250,204,21,.45);background:linear-gradient(135deg,rgba(250,204,21,.18),rgba(249,115,22,.12),rgba(15,31,51,.95))}
+    .urgent h2{margin:0 0 10px;font-size:clamp(22px,3vw,34px)}
+    .urgent p{margin:0;color:#fff3c4;font-size:18px;line-height:1.55;font-weight:800}
+    .section-title{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+    .section-title h2{margin:0;font-size:clamp(20px,2.4vw,30px)}
+    .num{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--yellow);color:#111;font-weight:900;flex:0 0 auto}
+    .scenario,.controls{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    .controls{grid-template-columns:repeat(3,1fr)}
+    button{border:0;border-radius:16px;padding:15px 10px;color:white;font-size:16px;font-weight:900;cursor:pointer;transition:.18s transform,.18s filter,.18s opacity;box-shadow:0 12px 26px rgba(0,0,0,.25)}
+    button:hover{transform:translateY(-2px);filter:brightness(1.08)}
+    .scenario button{background:#10263f;border:1px solid rgba(255,255,255,.13);box-shadow:none}
+    .scenario button.selected{background:var(--cyan);outline:3px solid rgba(14,165,233,.22)}
+    .b1{background:var(--blue)} .b2{background:var(--orange)} .b3{background:var(--red)}
+    button.inactive{opacity:.55;box-shadow:none}
+    .select-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    label{display:block;color:#cfe2f5;font-weight:900;margin:0 0 7px}
+    select,textarea{width:100%;border-radius:14px;border:1px solid rgba(255,255,255,.16);background:#0b1b2e;color:var(--text);padding:13px;font-family:inherit;font-size:16px;outline:none}
+    textarea{min-height:160px;resize:vertical;line-height:1.6}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    .status{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+    .metric{padding:18px;border-radius:18px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.10)}
+    .metric .label{color:var(--muted);font-size:14px;margin-bottom:8px}
+    .metric .value{font-size:25px;font-weight:900;line-height:1.2}
+    .metric .note{font-size:13px;color:#c9d7e6;margin-top:6px;line-height:1.45}
+    .box{margin-top:14px;padding:16px;border-radius:18px;background:rgba(14,165,233,.13);border:1px solid rgba(125,211,252,.28);font-size:17px;font-weight:800;line-height:1.55;color:#e0f2fe}
+    .my-duty{background:linear-gradient(135deg,rgba(250,204,21,.16),rgba(34,197,94,.10));border-color:rgba(250,204,21,.32);color:#fff7d6}
+    .ok{background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.35);color:#dcfce7}
+    .warn{background:rgba(220,38,38,.16);border-color:rgba(248,113,113,.35);color:#ffe2e2}
+    .phase-title{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .phase-dot{width:16px;height:16px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 8px rgba(249,115,22,.18)}
+    h2,h3{letter-spacing:-.03em} h2{margin:0 0 14px} h3{margin:0 0 11px}
+    .tag{display:inline-flex;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.1);color:#d6e6f7;font-size:13px;font-weight:800;margin:2px}
+    .flow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px}
+    .step{padding:10px 12px;border-radius:13px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);font-weight:800}
+    .arrow{color:var(--yellow);font-weight:900}
+    .dept-list{display:grid;gap:10px}
+    .dept{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);border-radius:17px;padding:14px}
+    .dept-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px}
+    .dept-name{font-weight:900;font-size:18px}.dept-rate{font-weight:900;color:#d9ffea;text-align:right}
+    .small{color:var(--muted);font-size:13px;line-height:1.5}
+    .check{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px}
+    .check div{padding:12px;border-radius:13px;background:rgba(34,197,94,.11);border:1px solid rgba(34,197,94,.25);font-weight:800;line-height:1.45}
+    ul{margin:9px 0 0 20px;padding:0;line-height:1.7;color:#dbeafe}
+    .memo-actions,.decision-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .memo-actions button,.decision-actions button{box-shadow:none;background:#1d4ed8;padding:11px 14px;font-size:14px}
+    .memo-actions button.secondary,.decision-actions button.secondary{background:#334155}
+    .decision-actions button.red{background:#b91c1c}.decision-actions button.orange{background:#c2410c}.decision-actions button.green{background:#15803d}
+    .memo-preview,.decision-log{white-space:pre-wrap;margin-top:12px;padding:12px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#dbeafe;line-height:1.55;min-height:54px}
+    .hidden{display:none}
+    @media(max-width:1050px){.grid{grid-template-columns:1fr}.status{grid-template-columns:repeat(2,1fr)}.scenario{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:620px){main{padding:14px}header{padding:18px}.controls,.status,.check,.scenario,.select-row{grid-template-columns:1fr}.card{padding:16px;border-radius:18px}.metric .value{font-size:22px}}
+    @media print{body{background:white;color:#111}.card{box-shadow:none;border:1px solid #ddd;background:white;color:#111}button{display:none}.subtitle,.small,.metric .label,.metric .note{color:#555}select,textarea{border:1px solid #aaa;background:white;color:#111}}
+  </style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <div>
+      <h1>국립공원 비상근무 개인훈련 대시보드 v6</h1>
+      <div class="subtitle">① 재난유형 선택 → ② 내 과·업무 선택 → ③ 대응단계 선택 → 내 업무내용 확인</div>
+    </div>
+    <div class="badge" id="nowTime">훈련모드</div>
+  </div>
+</header>
+
+<main>
+  <section class="card urgent">
+    <h2>핵심 훈련 메시지</h2>
+    <p>
+      재난 대응은 “내가 소집 대상인지”를 아는 것에서 시작합니다.
+      모든 직원은 내 담당업무가 재난대응 임무로 어떻게 전환되는지 확인해야 합니다.
+    </p>
+  </section>
+
+  <section class="card">
+    <div class="section-title"><span class="num">1</span><h2>재난유형 선택</h2></div>
+    <div class="scenario">
+      <button onclick="setDisaster('산불')" class="selected" id="d-산불">산불</button>
+      <button onclick="setDisaster('집중호우')" id="d-집중호우">집중호우</button>
+      <button onclick="setDisaster('산사태')" id="d-산사태">산사태</button>
+      <button onclick="setDisaster('고립·조난')" id="d-고립·조난">고립·조난</button>
+    </div>
+    <div class="box" id="disasterMsg"></div>
+  </section>
+
+  <section class="card">
+    <div class="section-title"><span class="num">2</span><h2>내 과·업무 선택</h2></div>
+    <div class="select-row">
+      <div>
+        <label for="deptSelect">소속</label>
+        <select id="deptSelect" onchange="onDeptChange()"></select>
+      </div>
+      <div>
+        <label for="roleSelect">내 담당 업무</label>
+        <select id="roleSelect" onchange="render()"></select>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="section-title"><span class="num">3</span><h2>대응단계 선택</h2></div>
+    <div class="controls">
+      <button class="b1 inactive" onclick="setPhase(1)" id="btn1">1단계 초기대응</button>
+      <button class="b2" onclick="setPhase(2)" id="btn2">2단계 확대대응</button>
+      <button class="b3 inactive" onclick="setPhase(3)" id="btn3">3단계 총력대응</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="section-title"><span class="num">4</span><h2>내 업무내용 확인</h2></div>
+    <div class="status">
+      <div class="metric"><div class="label">재난유형</div><div class="value" id="metricDisaster">산불</div><div class="note">선택한 재난 상황</div></div>
+      <div class="metric"><div class="label">내 소속·업무</div><div class="value" id="metricRole">-</div><div class="note">개인별 임무 기준</div></div>
+      <div class="metric"><div class="label">핵심 목표시간</div><div class="value" id="metricGoal">60분</div><div class="note" id="metricGoalNote">소집 후 재난안전과 보고</div></div>
+      <div class="metric"><div class="label">소집 여부</div><div class="value" id="metricCall">확인필요</div><div class="note" id="metricCallNote">단계·업무별 판단</div></div>
+    </div>
+    <div class="box my-duty" id="personalJudge"></div>
+    <div class="box my-duty" id="myResponse"></div>
+  </section>
+
+  
+
+  <section class="grid">
+    <div class="card">
+      <div class="phase-title">
+        <span class="phase-dot" id="phaseDot"></span>
+        <h2 id="phaseTitle">2단계 확대대응</h2>
+      </div>
+      <div id="phaseTags"></div>
+      <div class="flow" id="flow"></div>
+      <div class="box" id="lesson"></div>
+    </div>
+
+    <div class="card">
+      <h2>내 임무 메모</h2>
+      <p class="small">훈련 중 본인이 해야 할 일을 직접 적어보세요. 메모는 이 브라우저에 저장됩니다.</p>
+      <textarea id="memo" placeholder="예: 2단계 산불 상황 / 행정과 홍보담당 / 출근 후 재난안전과 보고 → 보도자료 초안 작성 → 언론 문의 창구 단일화..."></textarea>
+      <div class="memo-actions">
+        <button onclick="saveMemo()">메모 저장</button>
+        <button class="secondary" onclick="loadMemo()">저장 메모 불러오기</button>
+        <button class="secondary" onclick="clearMemo()">메모 지우기</button>
+        <button class="secondary" onclick="window.print()">출력</button>
+      </div>
+      <div class="memo-preview" id="memoPreview">저장된 메모가 여기에 표시됩니다.</div>
+    </div>
+  </section>
+
+  <section class="grid">
+    <div class="card">
+      <h2>단계별 소집대상</h2>
+      <div class="dept-list" id="deptList"></div>
+    </div>
+    <div class="card">
+      <h2>필수 확인 체크리스트</h2>
+      <div class="check" id="checklist"></div>
+      <div class="box warn" id="missingWarning"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>훈련 진행 질문</h2>
+    <ul id="questions"></ul>
+  </section>
+</main>
+
+<script>
+let currentPhase = 2;
+let currentDisaster = "산불";
+
+const deptRoles = {
+  "무등산사무소":["소장"],
+  "재난안전과":["과장","재난담당","안전산불담당","산업안전담당","구조대"],
+  "행정과":["과장","예산","홍보","지원","유관기관 업무협의"],
+  "탐방시설과":["과장","해설","탐방","시설","영선"],
+  "자원보전과":["과장","불법","지역사회","자원봉사","청소","자연자원"],
+  "분소":["분소장","직원"]
+};
+
+const disasterMessages = {
+  "산불":"산불: 초동진화 지원, 탐방객 통제, 주민·사찰 연락, 보도자료 대응, 물자·차량 지원이 동시에 필요합니다.",
+  "집중호우":"집중호우: 계곡·탐방로 통제, 고립자 확인, 대피소 운영, 시설피해 점검, 긴급복구 준비가 필요합니다.",
+  "산사태":"산사태: 접근로 차단, 2차 붕괴 위험 확인, 구조대 안전확보, 주민·사찰 대피유도, 시설복구 판단이 필요합니다.",
+  "고립·조난":"고립·조난: 수색구역 설정, 구조대 투입, 탐방객 정보확인, 가족·언론대응, 장기수색 교대편성이 필요합니다."
+};
+
+const responseByDisaster = {
+  "산불":"재난유형별 대응: 신고 위치, 확산방향, 탐방객 위치, 현장진입 가능 여부를 확인하고 내 담당 업무에 맞춰 현장통제·홍보·물자·주민연락을 지원한다.",
+  "집중호우":"재난유형별 대응: 위험 탐방로와 계곡부를 우선 확인하고, 고립 가능 지점·대피소·시설피해·장비지원 필요사항을 정리한다.",
+  "산사태":"재난유형별 대응: 2차 붕괴 위험구역 접근을 통제하고, 구조대 안전확보·주민대피·우회로 안내·시설피해 정보를 재난안전과에 전달한다.",
+  "고립·조난":"재난유형별 대응: 조난자 정보, 마지막 위치, 동행자, 기상, 통신 가능 여부를 정리하고 수색·구조·가족대응 체계를 지원한다."
+};
+
+const roleMissions = {
+  "무등산사무소|소장":"재난안전대책본부 총괄, 단계 발령 승인, 3단계 총력대응 지휘, 유관기관 협력 총괄, 대외 브리핑 승인, 복구단계 전환 결정을 수행한다.",
+  "재난안전과|과장":"상황실 총괄, 재난단계 판단, 비상소집 결정, 현장대응 총괄, 소장 보고를 수행한다.",
+  "재난안전과|재난담당":"상황접수, 단계판단 지원, 상황판 작성, 소집현황 관리, 유관기관 상황공유를 수행한다.",
+  "재난안전과|안전산불담당":"산불·안전위험 판단, 탐방객 통제 필요성 검토, 현장 위험요인과 대응 우선순위를 정리한다.",
+  "재난안전과|산업안전담당":"직원 안전, 현장 투입자 보호구, 2차 사고 위험, 피로도와 교대 필요성을 확인한다.",
+  "재난안전과|구조대":"초동출동, 인명구조, 수색, 응급처치, 현장통제를 수행한다.",
+  "행정과|과장":"비상물자 총괄, 차량 지원, 예산 집행, 언론 대응 지원, 직원 급식·복무 지원을 총괄한다.",
+  "행정과|예산":"긴급 구매, 예산 집행, 비상물자 조달 가능성을 확인한다.",
+  "행정과|홍보":"언론대응, 보도자료, 국민 안내문, 대외 메시지 창구를 정리한다.",
+  "행정과|지원":"급식, 차량, 장비, 직원 지원, 물자 보급을 담당한다.",
+  "행정과|유관기관 업무협의":"소방·지자체·경찰·산림청 등 협조 요청 및 연락체계를 지원한다.",
+  "탐방시설과|과장":"탐방로 통제, 시설복구 총괄, 대피소 운영, 통제구역 지정, 시설피해 판단을 총괄한다.",
+  "탐방시설과|해설":"탐방객 안내, 대피 안내문, 현장 안내 지원, 취약 탐방객 설명을 담당한다.",
+  "탐방시설과|탐방":"탐방로 통제, 우회 안내, 탐방객 현황 파악, 대피소 운영을 지원한다.",
+  "탐방시설과|시설":"시설물 피해 확인, 위험시설 통제, 응급복구 판단을 수행한다.",
+  "탐방시설과|영선":"현장 응급복구, 안전시설 설치, 통제선·차단시설 설치를 지원한다.",
+  "자원보전과|과장":"사찰·마을 협력, 주민대피 지원, 현장 순찰, 불법출입 통제, 지역사회 협력체계를 총괄한다.",
+  "자원보전과|불법":"위험지역 무단출입 통제, 불법행위 단속, 현장 순찰을 지원한다.",
+  "자원보전과|지역사회":"사찰·마을·주민 연락, 대피 유도, 지역사회 협조체계를 담당한다.",
+  "자원보전과|자원봉사":"자원봉사자 활용 가능성, 지원인력 배치, 안전교육 필요성을 확인한다.",
+  "자원보전과|청소":"대피소·현장 주변 위생관리, 폐기물 처리, 복구단계 청소 지원을 담당한다.",
+  "자원보전과|자연자원":"피해지역 자연자원 영향, 보호구역 접근통제, 복구단계 조사 지원을 담당한다.",
+  "분소|분소장":"분소 현장상황을 총괄하고 본소 재난안전과에 보고하며 전방통제 거점 역할을 수행한다.",
+  "분소|직원":"분소 현장확인, 탐방객 통제, 지역 연락, 구조대 현장지원 역할을 수행한다."
+};
+
+const data = {
+  1:{
+    title:"1단계 초기대응", color:"#2563eb", metric:"재난안전과·구조대", goal:"30분", goalNote:"상황판단·초동출동 목표",
+    tags:["핵심 목표 30분","상황실 가동","초동대응","인명구조","현장확인"],
+    lesson:"1단계 초기대응의 핵심 목표시간은 30분입니다. 재난안전과와 구조대가 즉시 움직이고, 소장·과장은 보고와 단계전환 판단을 준비합니다.",
+    flow:["재난유형 확인","신고접수","30분 내 초동대응","재난안전과·구조대 출동","소장 보고","2단계 필요성 판단"],
+    depts:[
+      ["무등산사무소","소장 보고 대상","상황보고 접수, 단계전환 승인 준비"],
+      ["재난안전과","과장·재난담당·안전산불담당·산업안전담당·구조대","상황실, 초동대응 판단, 직원 안전, 구조대 출동"],
+      ["분소","분소장 또는 직원 현장확인","현장 정보 확인, 탐방객 통제, 재난안전과 보고"],
+      ["행정·자원·탐방시설","과장 및 직원 비상대기","2단계 전환 시 즉시 출근할 수 있도록 준비"]
+    ],
+    checks:["재난유형 확인","30분 내 초동대응 개시","소장 1차 보고","재난안전과 핵심담당 연락","구조대 출동 확인","분소 현장정보 확보","2단계 확대 필요성 판단"],
+    questions:["나는 1단계에서 출근 대상인가, 비상대기 대상인가?","30분 안에 내가 해야 할 첫 행동은 무엇인가?","과장 또는 소장에게 보고할 핵심 정보는 무엇인가?","2단계 전환이 필요하다고 판단하는 기준은 무엇인가?"]
+  },
+  2:{
+    title:"2단계 확대대응", color:"#f97316", metric:"직원 50%", goal:"60분", goalNote:"소집 후 재난안전과 보고",
+    tags:["직원 50% 소집","소집 후 재난안전과 보고","1차 대응 인원 지원","필수 기능인력","현장지원"],
+    lesson:"2단계는 1차 대응 인원을 지원하는 단계입니다. 소집된 인원은 출근 여부와 수행 가능한 임무를 재난안전과에 보고하고, 과장은 부서별 지원임무를 조정해야 합니다.",
+    flow:["확대 필요 판단","2단계 발령","직원 50% 소집","소집 후 재난안전과 보고","1차 대응 인원 지원","3단계 필요성 판단"],
+    depts:[
+      ["무등산사무소","소장 보고 유지","재난 확산 여부 확인, 3단계 전환 가능성 판단"],
+      ["재난안전과","과장 포함 전원 유지","재난담당, 안전산불담당, 산업안전담당, 구조대 중심 상황총괄"],
+      ["행정과","과장 + 홍보 필수 + 지원·예산·유관기관 협의 중 지원인력","홍보담당 정·부 중 1명 필수. 홍보가 이미 출근 중이면 보급 가능한 지원인력 1명 추가"],
+      ["탐방시설과","과장 + 탐방·시설·영선 필수","탐방업무 1명, 시설업무 1명, 영선 1명"],
+      ["자원보전과","과장 + 불법·지역사회 필수","불법담당 정·부 중 1명, 지역사회협력 정·부 중 1명"],
+      ["분소","분소장 또는 직원 1명 이상","분소장 또는 직원 1명 이상 출근하여 재난안전과 보고"],
+      ["과장급","출근가능자 50%","각 과장은 출근 가능자 기준 50% 이상 출근하여 부서 임무 조정"]
+    ],
+    checks:["직원 50% 소집 여부","출근자 재난안전과 보고 완료","각 과장 출근 또는 연락체계 확인","행정과 홍보 또는 지원인력 확인","자원보전과 불법담당 확인","자원보전과 지역사회 담당 확인","탐방시설과 탐방·시설·영선 확인","분소 직원 1명 이상 확인","1차 대응 인원 지원 임무 배정"],
+    questions:["소집 후 나는 재난안전과에 무엇을 보고해야 하는가?","내가 지원할 1차 대응 인원은 누구인가?","과장이라면 부서 인력을 어떻게 나눌 것인가?","3단계 전환 판단을 위해 어떤 정보를 소장에게 보고할 것인가?"]
+  },
+  3:{
+    title:"3단계 총력대응", color:"#dc2626", metric:"전 직원", goal:"즉시", goalNote:"소장 통합지휘 체계 전환",
+    tags:["전 직원 소집","소장 통합지휘","재난안전대책본부","총력대응","장기교대"],
+    lesson:"3단계는 소장 통합지휘 아래 전 직원이 총력대응하는 단계입니다. 과장들은 부서 인력을 재배치하고, 직원들은 기존 업무보다 재난대응 임무를 우선해야 합니다.",
+    flow:["대형재난 판단","3단계 발령","전 직원 소집","소장 통합지휘","재난안전대책본부 운영","교대·복구체계 전환"],
+    depts:[
+      ["무등산사무소","소장 통합지휘","재난안전대책본부 총괄 및 최종 의사결정"],
+      ["재난안전과","과장 중심 상황총괄","소장 지휘 보좌, 상황실, 보고, 단계관리"],
+      ["행정과","과장 중심 물자보급·홍보·대외협력","급식, 차량, 장비, 예산, 언론대응, 유관기관 협의"],
+      ["탐방시설과","과장 중심 탐방통제·시설복구","탐방로 폐쇄, 대피소 운영, 시설물 응급복구"],
+      ["자원보전과","과장 중심 주민·지역협력·현장순찰","사찰·마을 연락, 대피유도, 불법출입 통제"],
+      ["분소","전방통제거점","분소 현장통제, 탐방객 안내, 재난안전과 보고"],
+      ["전 직원","직무 재조정","원 소속과 관계없이 재난대응 임무로 재배치"]
+    ],
+    checks:["전 직원 소집명령 전파","소장 통합지휘 체계 전환","재난안전대책본부 설치","각 과장별 부서 인력 재배치","2교대 또는 3교대 편성","언론대응 창구 단일화","대피소·물자·차량 운영 확인","복구 및 피로도 관리계획 수립"],
+    questions:["소장 통합지휘 아래 나는 어느 임무를 맡는가?","과장이라면 전 직원 소집 후 누구를 어디에 배치할 것인가?","장기 대응 시 교대 기준은 무엇인가?","복구단계 전환은 어떤 조건에서 판단할 것인가?"]
+  }
+};
+
+function initSelects(){
+  const dept = document.getElementById("deptSelect");
+  dept.innerHTML = Object.keys(deptRoles).map(d=>`<option value="${d}">${d}</option>`).join("");
+  dept.value = "무등산사무소";
+  onDeptChange(false);
+  document.getElementById("roleSelect").value = "소장";
+}
+
+function onDeptChange(doRender=true){
+  const dept = document.getElementById("deptSelect").value;
+  const role = document.getElementById("roleSelect");
+  role.innerHTML = deptRoles[dept].map(r=>`<option value="${r}">${r}</option>`).join("");
+  if(doRender) render();
+}
+
+function isChief(dept, role){
+  return (dept==="무등산사무소" && role==="소장") || role==="과장" || role==="분소장";
+}
+
+function isCalled(phase, dept, role){
+  if(dept==="무등산사무소" && role==="소장"){
+    if(phase===1) return {status:"보고·판단 대상", cls:"ok", detail:"1단계부터 상황보고를 받고 2단계 전환 가능성을 판단합니다."};
+    if(phase===2) return {status:"보고 유지", cls:"ok", detail:"2단계에서는 소집현황과 확산 가능성을 보고받고 3단계 전환 여부를 판단합니다."};
+    return {status:"통합지휘", cls:"ok", detail:"3단계에서는 소장 통합지휘로 재난안전대책본부를 총괄합니다."};
+  }
+  if(role==="과장"){
+    if(phase===1) return {status:"보고·비상대기", cls:"warn", detail:"1단계에서는 부서 상황을 확인하고 2단계 전환 시 즉시 부서 인력을 소집할 준비를 합니다."};
+    if(phase===2) return {status:"소집 대상", cls:"ok", detail:"2단계에서는 과장급 출근가능자 50% 기준에 따라 출근해 부서 지원임무를 조정합니다."};
+    return {status:"소집 대상", cls:"ok", detail:"3단계에서는 과장 중심으로 부서 인력을 재배치하고 소장 통합지휘를 보좌합니다."};
+  }
+  if(phase===3) return {status:"소집 대상", cls:"ok", detail:"3단계는 전 직원 소집입니다. 소장 통합지휘 아래 재난대응 임무로 전환됩니다."};
+  if(phase===1){
+    if(dept==="재난안전과") return {status:"소집 대상", cls:"ok", detail:"1단계 핵심 대응인력입니다. 30분 내 상황판단·초동대응 체계에 참여해야 합니다."};
+    if(dept==="분소") return {status:"현장확인 대상", cls:"ok", detail:"분소는 현장 최일선입니다. 근무자 중심으로 현장확인과 재난안전과 보고가 필요합니다."};
+    return {status:"비상대기", cls:"warn", detail:"1단계 직접 소집 대상은 아닐 수 있으나, 2단계 전환에 대비해 연락·이동·장비 준비가 필요합니다."};
+  }
+  if(phase===2){
+    if(dept==="재난안전과") return {status:"소집 대상", cls:"ok", detail:"재난안전과는 전원 유지입니다. 소집현황을 접수하고 1차 대응 인원 지원을 조정합니다."};
+    if(dept==="행정과"){
+      if(role==="홍보") return {status:"소집 대상", cls:"ok", detail:"행정과 홍보는 2단계 필수기능입니다. 출근 후 재난안전과에 보고하고 언론·대외 메시지를 담당합니다."};
+      if(role==="지원") return {status:"소집 가능/중요", cls:"ok", detail:"홍보담당이 이미 출근 중이면 보급 가능한 지원 인력이 필요합니다. 차량·급식·물자 지원을 준비합니다."};
+      return {status:"50% 소집 가능", cls:"warn", detail:"행정과 출근가능자 50% 소집 대상이 될 수 있습니다. 출근 시 재난안전과에 보고하고 행정지원 임무를 수행합니다."};
+    }
+    if(dept==="탐방시설과" && ["탐방","시설","영선"].includes(role)) return {status:"소집 대상", cls:"ok", detail:"탐방·시설·영선은 2단계 필수기능입니다. 출근 후 재난안전과에 보고하고 1차 대응 인원을 지원합니다."};
+    if(dept==="탐방시설과" && role==="해설") return {status:"50% 소집 가능", cls:"warn", detail:"해설 업무는 탐방객 안내와 대피 설명 지원이 필요할 수 있습니다. 소집 여부 확인 후 출근 시 재난안전과에 보고합니다."};
+    if(dept==="자원보전과" && ["불법","지역사회"].includes(role)) return {status:"소집 대상", cls:"ok", detail:"불법·지역사회 담당은 2단계 필수기능입니다. 무단출입 통제, 사찰·마을 연락, 대피지원이 필요합니다."};
+    if(dept==="자원보전과") return {status:"50% 소집 가능", cls:"warn", detail:"자원보전과 출근가능자 50% 소집 대상이 될 수 있습니다. 현장순찰·대피지원·복구지원 임무를 준비합니다."};
+    if(dept==="분소") return {status:"소집 대상", cls:"ok", detail:"분소는 구조대 필수 및 직원 1명 이상 출근 대상입니다. 출근 후 재난안전과에 보고해야 합니다."};
+  }
+  return {status:"확인필요", cls:"warn", detail:"소집 기준 확인이 필요합니다. 비상연락망과 과장 지시에 따라 대기 또는 출근 준비를 합니다."};
+}
+
+function setDisaster(name){
+  currentDisaster = name;
+  document.querySelectorAll(".scenario button").forEach(b=>b.classList.remove("selected"));
+  document.getElementById("d-"+name).classList.add("selected");
+  render();
+}
+
+function setPhase(n){ currentPhase = n; render(); }
+
+function render(){
+  const d = data[currentPhase];
+  const dept = document.getElementById("deptSelect").value;
+  const role = document.getElementById("roleSelect").value;
+  const judge = isCalled(currentPhase, dept, role);
+  const mission = roleMissions[`${dept}|${role}`] || "선택한 업무의 재난대응 전환 임무를 확인합니다.";
+
+  document.getElementById("disasterMsg").innerText = disasterMessages[currentDisaster];
+  document.getElementById("metricDisaster").innerText = currentDisaster;
+  document.getElementById("metricRole").innerText = dept + " / " + role;
+  document.getElementById("metricGoal").innerText = d.goal;
+  document.getElementById("metricGoalNote").innerText = d.goalNote;
+  document.getElementById("metricCall").innerText = judge.status;
+  document.getElementById("metricCallNote").innerText = judge.detail;
+
+  const pj = document.getElementById("personalJudge");
+  pj.className = "box my-duty " + judge.cls;
+  pj.innerHTML = `<b>내 소속·업무:</b> ${dept} / ${role}<br><b>소집 판단:</b> ${judge.status}<br>${judge.detail}<br><br><b>내 업무내용:</b> ${mission}`;
+
+  document.getElementById("myResponse").innerHTML = `<b>재난유형별 내 대응:</b><br>${responseByDisaster[currentDisaster]}<br><br><b>대응단계별 내 행동:</b><br>${currentPhase}단계에서는 위 소집 판단에 따라 출근·대기·보고·지원 여부를 결정하고, 출근 시 재난안전과에 내 도착 여부와 수행 가능 임무를 보고한다.`;
+
+  document.getElementById("phaseTitle").innerText = d.title;
+  document.getElementById("phaseDot").style.background = d.color;
+  document.getElementById("phaseDot").style.boxShadow = `0 0 0 8px ${d.color}30`;
+  document.getElementById("phaseTags").innerHTML = d.tags.map(t=>`<span class="tag">${t}</span>`).join("");
+  document.getElementById("flow").innerHTML = d.flow.map((s,i)=>`<span class="step">${s}</span>${i<d.flow.length-1?'<span class="arrow">→</span>':''}`).join("");
+  document.getElementById("lesson").innerText = d.lesson;
+
+  document.getElementById("deptList").innerHTML = d.depts.map(x=>`
+    <div class="dept">
+      <div class="dept-head"><div class="dept-name">${x[0]}</div><div class="dept-rate">${x[1]}</div></div>
+      <div class="small">${x[2]}</div>
+    </div>`).join("");
+
+  document.getElementById("checklist").innerHTML = d.checks.map(c=>`<div>□ ${c}</div>`).join("");
+  document.getElementById("questions").innerHTML = d.questions.concat([
+    `나는 ${dept} ${role}로서 소집 대상일 때 무엇을 먼저 보고할 것인가?`,
+    "내 업무내용은 1차 대응 인원을 어떻게 지원하는가?"
+  ]).map(q=>`<li>${q}</li>`).join("");
+
+  document.getElementById("missingWarning").innerText =
+    currentPhase === 1 ? "1단계는 30분이 핵심입니다. 초기대응 지연은 곧 2단계 확대와 피해 확산으로 이어집니다." :
+    currentPhase === 2 ? "2단계 소집자는 출근 자체가 끝이 아닙니다. 반드시 재난안전과에 보고하고 1차 대응 인원을 지원해야 합니다." :
+    "3단계는 소장 통합지휘 체계입니다. 전 직원은 자신의 기존 업무보다 재난대응 임무를 우선해야 합니다.";
+
+  ["btn1","btn2","btn3"].forEach(id=>document.getElementById(id).classList.add("inactive"));
+  document.getElementById("btn"+currentPhase).classList.remove("inactive");
+
+}
+
+function memoKey(){
+  const dept = document.getElementById("deptSelect").value;
+  const role = document.getElementById("roleSelect").value;
+  return `knps_memo_v6_${currentDisaster}_${currentPhase}_${dept}_${role}`;
+}
+function saveMemo(){
+  const text = document.getElementById("memo").value.trim();
+  localStorage.setItem(memoKey(), text);
+  document.getElementById("memoPreview").innerText = text || "빈 메모가 저장되었습니다.";
+}
+function loadMemo(){
+  const text = localStorage.getItem(memoKey()) || "";
+  document.getElementById("memo").value = text;
+  document.getElementById("memoPreview").innerText = text || "저장된 메모가 없습니다.";
+}
+function clearMemo(){
+  document.getElementById("memo").value = "";
+  localStorage.removeItem(memoKey());
+  document.getElementById("memoPreview").innerText = "메모가 삭제되었습니다.";
+}
+function tick(){
+  const now = new Date();
+  document.getElementById("nowTime").innerText = "훈련시각 " + now.toLocaleString("ko-KR");
+}
+
+initSelects();
+setDisaster("산불");
+setPhase(2);
+tick();
+setInterval(tick, 1000);
+</script>
+</body>
+</html>
