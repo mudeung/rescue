@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSV → Google Earth KML / KMZ 변환기</title>
+
+<!-- KMZ 압축용 JSZip -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        padding: 30px 15px;
+        font-family: Arial, "Malgun Gothic", sans-serif;
+        background: #f3f6f9;
+        color: #222;
+    }
+
+    .container {
+        max-width: 900px;
+        margin: auto;
+        background: white;
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 5px 25px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+        margin-top: 0;
+        color: #1a73e8;
+    }
+
+    .description {
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 25px;
+    }
+
+    .drop-area {
+        border: 2px dashed #1a73e8;
+        border-radius: 12px;
+        padding: 40px 20px;
+        text-align: center;
+        background: #f8fbff;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .drop-area:hover {
+        background: #eef6ff;
+    }
+
+    .drop-area.dragover {
+        background: #e3f0ff;
+        border-color: #0b57d0;
+    }
+
+    input[type="file"] {
+        display: none;
+    }
+
+    .file-name {
+        margin-top: 15px;
+        color: #333;
+        font-weight: bold;
+    }
+
+    .options {
+        margin-top: 25px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 15px;
+    }
+
+    label {
+        font-weight: bold;
+        display: block;
+        margin-bottom: 6px;
+    }
+
+    select,
+    input[type="text"] {
+        width: 100%;
+        padding: 11px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 14px;
+        background: white;
+    }
+
+    .buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 25px;
+    }
+
+    button {
+        border: 0;
+        border-radius: 8px;
+        padding: 13px 20px;
+        font-size: 15px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .btn-kml {
+        background: #1a73e8;
+        color: white;
+    }
+
+    .btn-kmz {
+        background: #188038;
+        color: white;
+    }
+
+    button:disabled {
+        background: #aaa;
+        cursor: not-allowed;
+    }
+
+    .status {
+        margin-top: 20px;
+        padding: 15px;
+        background: #f5f5f5;
+        border-radius: 8px;
+        white-space: pre-line;
+        line-height: 1.5;
+    }
+
+    .preview {
+        margin-top: 25px;
+        overflow-x: auto;
+        max-height: 300px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+    }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 13px;
+    }
+
+    th,
+    td {
+        padding: 8px;
+        border-bottom: 1px solid #ddd;
+        white-space: nowrap;
+        text-align: left;
+    }
+
+    th {
+        background: #f1f3f4;
+        position: sticky;
+        top: 0;
+    }
+
+    .help {
+        margin-top: 25px;
+        padding: 15px;
+        background: #fff8e1;
+        border-left: 4px solid #fbbc04;
+        line-height: 1.7;
+    }
+
+    code {
+        background: #eee;
+        padding: 2px 5px;
+        border-radius: 4px;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>🌎 CSV → Google Earth KML / KMZ</h1>
+
+    <div class="description">
+        CSV 파일의 위도·경도 정보를 읽어서
+        Google Earth에서 사용할 수 있는 KML 또는 KMZ 파일로 변환합니다.
+    </div>
+
+    <!-- 파일 선택 -->
+    <div class="drop-area" id="dropArea">
+        <div style="font-size:42px;">📁</div>
+        <strong>CSV 파일을 선택하거나 여기에 끌어놓으세요</strong>
+        <br>
+        <small>UTF-8 / EUC-KR CSV 지원</small>
+
+        <input type="file" id="fileInput" accept=".csv,text/csv">
+
+        <div class="file-name" id="fileName"></div>
+    </div>
+
+    <!-- 옵션 -->
+    <div class="options">
+
+        <div>
+            <label>위도 컬럼</label>
+            <select id="latColumn">
+                <option value="">자동 선택</option>
+            </select>
+        </div>
+
+        <div>
+            <label>경도 컬럼</label>
+            <select id="lngColumn">
+                <option value="">자동 선택</option>
+            </select>
+        </div>
+
+        <div>
+            <label>이름 컬럼</label>
+            <select id="nameColumn">
+                <option value="">자동 선택</option>
+            </select>
+        </div>
+
+        <div>
+            <label>KML 문서 이름</label>
+            <input type="text" id="documentName" value="CSV 변환 데이터">
+        </div>
+
+    </div>
+
+    <!-- 버튼 -->
+    <div class="buttons">
+        <button class="btn-kml" id="kmlButton" disabled>
+            📍 KML 다운로드
+        </button>
+
+        <button class="btn-kmz" id="kmzButton" disabled>
+            🌎 KMZ 다운로드
+        </button>
+    </div>
+
+    <!-- 상태 -->
+    <div class="status" id="status">
+        CSV 파일을 선택해주세요.
+    </div>
+
+    <!-- 미리보기 -->
+    <div class="preview" id="preview"></div>
+
+    <div class="help">
+        <strong>CSV 예시</strong><br><br>
+
+        <code>이름,위도,경도,설명</code><br>
+        서울시청,37.5665,126.9780,서울시청 위치<br>
+        부산시청,35.1796,129.0756,부산시청 위치<br>
+        광주시청,35.1595,126.8526,광주시청 위치
+        <br><br>
+
+        위도/경도 컬럼은
+        <code>위도</code>, <code>latitude</code>, <code>lat</code> 및
+        <code>경도</code>, <code>longitude</code>, <code>lng</code>, <code>lon</code>
+        등을 자동으로 인식합니다.
+    </div>
+
+</div>
+
+<script>
+
+let csvData = [];
+let headers = [];
+let currentFileName = "converted";
+
+const dropArea = document.getElementById("dropArea");
+const fileInput = document.getElementById("fileInput");
+const fileName = document.getElementById("fileName");
+const statusBox = document.getElementById("status");
+const preview = document.getElementById("preview");
+
+const latColumn = document.getElementById("latColumn");
+const lngColumn = document.getElementById("lngColumn");
+const nameColumn = document.getElementById("nameColumn");
+
+const kmlButton = document.getElementById("kmlButton");
+const kmzButton = document.getElementById("kmzButton");
+
+
+// ----------------------------------------
+// 파일 선택
+// ----------------------------------------
+
+dropArea.addEventListener("click", () => {
+    fileInput.click();
+});
+
+fileInput.addEventListener("change", e => {
+    if (e.target.files.length > 0) {
+        readCSV(e.target.files[0]);
+    }
+});
+
+
+// ----------------------------------------
+// 드래그 앤 드롭
+// ----------------------------------------
+
+dropArea.addEventListener("dragover", e => {
+    e.preventDefault();
+    dropArea.classList.add("dragover");
+});
+
+dropArea.addEventListener("dragleave", () => {
+    dropArea.classList.remove("dragover");
+});
+
+dropArea.addEventListener("drop", e => {
+    e.preventDefault();
+
+    dropArea.classList.remove("dragover");
+
+    const file = e.dataTransfer.files[0];
+
+    if (file) {
+        readCSV(file);
+    }
+});
+
+
+// ----------------------------------------
+// CSV 읽기
+// ----------------------------------------
+
+function readCSV(file) {
+
+    currentFileName = file.name.replace(/\.[^/.]+$/, "");
+
+    fileName.textContent = "선택된 파일: " + file.name;
+
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+
+        let buffer = e.target.result;
+
+        let text;
+
+        try {
+            // UTF-8
+            text = new TextDecoder("utf-8", {
+                fatal: true
+            }).decode(buffer);
+        }
+        catch (error) {
+            // EUC-KR
+            text = new TextDecoder("euc-kr").decode(buffer);
+        }
+
+        text = text.replace(/^\uFEFF/, "");
+
+        parseCSV(text);
+    };
+
+    reader.readAsArrayBuffer(file);
+}
+
+
+// ----------------------------------------
+// CSV Parser
+// ----------------------------------------
+
+function parseCSV(text) {
+
+    const rows = [];
+    let row = [];
+    let cell = "";
+    let insideQuotes = false;
+
+    for (let i = 0; i < text.length; i++) {
+
+        const char = text[i];
+        const next = text[i + 1];
+
+        if (char === '"' && insideQuotes && next === '"') {
+            cell += '"';
+            i++;
+            continue;
+        }
+
+        if (char === '"') {
+            insideQuotes = !insideQuotes;
+            continue;
+        }
+
+        if (char === "," && !insideQuotes) {
+            row.push(cell);
+            cell = "";
+            continue;
+        }
+
+        if ((char === "\n" || char === "\r") && !insideQuotes) {
+
+            if (char === "\r" && next === "\n") {
+                i++;
+            }
+
+            row.push(cell);
+            cell = "";
+
+            if (row.some(v => v.trim() !== "")) {
+                rows.push(row);
+            }
+
+            row = [];
+            continue;
+        }
+
+        cell += char;
+    }
+
+    if (cell !== "" || row.length > 0) {
+        row.push(cell);
+
+        if (row.some(v => v.trim() !== "")) {
+            rows.push(row);
+        }
+    }
+
+    if (rows.length < 2) {
+        showStatus("CSV 데이터를 찾을 수 없습니다.");
+        return;
+    }
+
+    headers = rows[0].map(v => v.trim());
+
+    csvData = rows.slice(1).map(values => {
+
+        const obj = {};
+
+        headers.forEach((header, index) => {
+            obj[header] = (values[index] || "").trim();
+        });
+
+        return obj;
+    });
+
+    setupColumns();
+    showPreview();
+
+    kmlButton.disabled = false;
+    kmzButton.disabled = false;
+
+    showStatus(
+        `CSV 읽기 완료\n` +
+        `컬럼: ${headers.length}개\n` +
+        `데이터: ${csvData.length.toLocaleString()}개`
+    );
+}
+
+
+// ----------------------------------------
+// 컬럼 설정
+// ----------------------------------------
+
+function setupColumns() {
+
+    [latColumn, lngColumn, nameColumn].forEach(select => {
+
+        select.innerHTML =
+            '<option value="">자동 선택</option>';
+
+        headers.forEach(header => {
+
+            const option = document.createElement("option");
+
+            option.value = header;
+            option.textContent = header;
+
+            select.appendChild(option);
+        });
+    });
+
+    const lat = findColumn([
+        "위도",
+        "latitude",
+        "lat",
+        "y",
+        "Y"
+    ]);
+
+    const lng = findColumn([
+        "경도",
+        "longitude",
+        "lon",
+        "lng",
+        "x",
+        "X"
+    ]);
+
+    const name = findColumn([
+        "이름",
+        "명칭",
+        "name",
+        "title",
+        "시설명",
+        "지점명",
+        "업체명"
+    ]);
+
+    if (lat) latColumn.value = lat;
+    if (lng) lngColumn.value = lng;
+    if (name) nameColumn.value = name;
+}
+
+
+function findColumn(names) {
+
+    for (const name of names) {
+
+        const found = headers.find(h =>
+            h.trim().toLowerCase() === name.toLowerCase()
+        );
+
+        if (found) {
+            return found;
+        }
+    }
+
+    return "";
+}
+
+
+// ----------------------------------------
+// 미리보기
+// ----------------------------------------
+
+function showPreview() {
+
+    const displayRows = csvData.slice(0, 100);
+
+    let html = "<table>";
+
+    html += "<thead><tr>";
+
+    headers.forEach(header => {
+        html += `<th>${escapeHTML(header)}</th>`;
+    });
+
+    html += "</tr></thead>";
+
+    html += "<tbody>";
+
+    displayRows.forEach(row => {
+
+        html += "<tr>";
+
+        headers.forEach(header => {
+
+            html +=
+                `<td>${escapeHTML(row[header] || "")}</td>`;
+        });
+
+        html += "</tr>";
+    });
+
+    html += "</tbody></table>";
+
+    preview.innerHTML = html;
+}
+
+
+// ----------------------------------------
+// KML 생성
+// ----------------------------------------
+
+function createKML() {
+
+    const latCol =
+        latColumn.value ||
+        findColumn(["위도", "latitude", "lat", "y"]);
+
+    const lngCol =
+        lngColumn.value ||
+        findColumn(["경도", "longitude", "lon", "lng", "x"]);
+
+    const nameCol =
+        nameColumn.value ||
+        findColumn(["이름", "명칭", "name", "title"]);
+
+    if (!latCol || !lngCol) {
+
+        alert(
+            "위도와 경도 컬럼을 찾을 수 없습니다.\n" +
+            "위도/경도 컬럼을 직접 선택해주세요."
+        );
+
+        return null;
+    }
+
+    const documentName =
+        document.getElementById("documentName").value ||
+        "CSV 변환 데이터";
+
+    let placemarks = "";
+
+    let validCount = 0;
+    let invalidCount = 0;
+
+    csvData.forEach((row, index) => {
+
+        const lat = parseCoordinate(row[latCol]);
+        const lng = parseCoordinate(row[lngCol]);
+
+        if (
+            lat === null ||
+            lng === null ||
+            lat < -90 ||
+            lat > 90 ||
+            lng < -180 ||
+            lng > 180
+        ) {
+            invalidCount++;
+            return;
+        }
+
+        let name;
+
+        if (nameCol && row[nameCol]) {
+            name = row[nameCol];
+        }
+        else {
+            name = `위치 ${index + 1}`;
+        }
+
+        let description = "";
+
+        headers.forEach(header => {
+
+            if (
+                header !== latCol &&
+                header !== lngCol &&
+                row[header] !== ""
+            ) {
+
+                description +=
+                    `<b>${escapeHTML(header)}</b>: ` +
+                    `${escapeHTML(row[header])}<br>`;
+            }
+        });
+
+        placemarks += `
+<Placemark>
+    <name>${escapeXML(name)}</name>
+    <description><![CDATA[
+        ${description}
+    ]]></description>
+    <Point>
+        <coordinates>${lng},${lat},0</coordinates>
+    </Point>
+</Placemark>
+`;
+
+        validCount++;
+    });
+
+    const kml = `<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document>
+    <name>${escapeXML(documentName)}</name>
+    ${placemarks}
+</Document>
+</kml>`;
+
+    return {
+        kml,
+        validCount,
+        invalidCount
+    };
+}
+
+
+// ----------------------------------------
+// 좌표 처리
+// ----------------------------------------
+
+function parseCoordinate(value) {
+
+    if (value === undefined || value === null) {
+        return null;
+    }
+
+    let str = String(value).trim();
+
+    if (!str) {
+        return null;
+    }
+
+    // 쉼표 제거
+    str = str.replace(/,/g, "");
+
+    // N / S / E / W 처리
+    const directionMatch =
+        str.match(/[NSEW]$/i);
+
+    let direction = "";
+
+    if (directionMatch) {
+        direction =
+            directionMatch[0].toUpperCase();
+
+        str = str
+            .replace(/[NSEW]$/i, "")
+            .trim();
+    }
+
+    // 도/분/초 형식
+    const dms = str.match(
+        /(-?\d+(?:\.\d+)?)\s*[°도]\s*(\d+(?:\.\d+)?)?\s*[′'분]?\s*(\d+(?:\.\d+)?)?\s*[″"초]?/
+    );
+
+    let number;
+
+    if (dms) {
+
+        const degrees =
+            parseFloat(dms[1]);
+
+        const minutes =
+            dms[2] ? parseFloat(dms[2]) : 0;
+
+        const seconds =
+            dms[3] ? parseFloat(dms[3]) : 0;
+
+        number =
+            Math.abs(degrees) +
+            minutes / 60 +
+            seconds / 3600;
+
+        if (degrees < 0) {
+            number = -number;
+        }
+    }
+    else {
+
+        number = parseFloat(str);
+
+        if (!Number.isFinite(number)) {
+            return null;
+        }
+    }
+
+    if (direction === "S" || direction === "W") {
+        number = -Math.abs(number);
+    }
+
+    return number;
+}
+
+
+// ----------------------------------------
+// XML escape
+// ----------------------------------------
+
+function escapeXML(value) {
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&apos;");
+}
+
+
+function escapeHTML(value) {
+
+    return escapeXML(value);
+}
+
+
+// ----------------------------------------
+// KML 다운로드
+// ----------------------------------------
+
+kmlButton.addEventListener("click", () => {
+
+    const result = createKML();
+
+    if (!result) return;
+
+    const blob = new Blob(
+        [result.kml],
+        {
+            type: "application/vnd.google-earth.kml+xml"
+        }
+    );
+
+    downloadBlob(
+        blob,
+        currentFileName + ".kml"
+    );
+
+    showStatus(
+        `KML 변환 완료\n\n` +
+        `정상 좌표: ${result.validCount.toLocaleString()}개\n` +
+        `잘못된 좌표: ${result.invalidCount.toLocaleString()}개`
+    );
+});
+
+
+// ----------------------------------------
+// KMZ 다운로드
+// ----------------------------------------
+
+kmzButton.addEventListener("click", async () => {
+
+    const result = createKML();
+
+    if (!result) return;
+
+    if (typeof JSZip === "undefined") {
+
+        alert(
+            "KMZ 라이브러리를 불러오지 못했습니다.\n" +
+            "인터넷 연결을 확인해주세요."
+        );
+
+        return;
+    }
+
+    try {
+
+        const zip = new JSZip();
+
+        zip.file(
+            "doc.kml",
+            result.kml
+        );
+
+        const blob =
+            await zip.generateAsync({
+                type: "blob",
+                compression: "DEFLATE",
+                compressionOptions: {
+                    level: 6
+                }
+            });
+
+        downloadBlob(
+            blob,
+            currentFileName + ".kmz"
+        );
+
+        showStatus(
+            `KMZ 변환 완료\n\n` +
+            `정상 좌표: ${result.validCount.toLocaleString()}개\n` +
+            `잘못된 좌표: ${result.invalidCount.toLocaleString()}개`
+        );
+
+    }
+    catch (error) {
+
+        console.error(error);
+
+        alert(
+            "KMZ 생성 중 오류가 발생했습니다."
+        );
+    }
+});
+
+
+// ----------------------------------------
+// 파일 다운로드
+// ----------------------------------------
+
+function downloadBlob(blob, filename) {
+
+    const url =
+        URL.createObjectURL(blob);
+
+    const a =
+        document.createElement("a");
+
+    a.href = url;
+    a.download = filename;
+
+    document.body.appendChild(a);
+
+    a.click();
+
+    a.remove();
+
+    setTimeout(() => {
+        URL.revokeObjectURL(url);
+    }, 1000);
+}
+
+
+// ----------------------------------------
+// 상태 메시지
+// ----------------------------------------
+
+function showStatus(message) {
+
+    statusBox.textContent = message;
+}
+
+</script>
+
+</body>
+</html>
