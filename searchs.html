@@ -3,8 +3,12 @@
 <head>
 
 <meta charset="utf-8">
+
 <meta name="viewport"
-content="width=device-width, initial-scale=1.0">
+content="width=device-width,
+initial-scale=1.0,
+maximum-scale=1.0,
+user-scalable=no">
 
 <title>
 🛰 SEARCH AND RESCUE AI MAP
@@ -16,147 +20,687 @@ content="width=device-width, initial-scale=1.0">
 
 <style>
 
-body{
+/* =========================================================
+   MOBILE FIRST UI
+   ========================================================= */
 
-margin:0;
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
 
-background:#050b18;
+html,
+body {
 
-color:#00ff9d;
+    width: 100%;
+    height: 100%;
 
-font-family:monospace;
+    margin: 0;
+    padding: 0;
 
-overflow:hidden;
+    overflow: hidden;
+
+}
+
+body {
+
+    background: #020812;
+
+    color: #00ff9d;
+
+    font-family: monospace;
+
+    overscroll-behavior: none;
 
 }
 
 
+/* =========================================================
+   HEADER
+   ========================================================= */
 
-header{
+header {
 
-background:#071a2f;
+    position: fixed;
 
-padding:10px;
+    top: 0;
+    left: 0;
+    right: 0;
 
-text-align:center;
+    height: 52px;
 
-font-weight:bold;
+    z-index: 1000;
 
-}
+    display: flex;
 
+    align-items: center;
+    justify-content: center;
 
+    background:
+        linear-gradient(
+            180deg,
+            rgba(5,20,36,.98),
+            rgba(3,12,25,.94)
+        );
 
-#container{
+    border-bottom:
+        1px solid
+        rgba(0,255,157,.35);
 
-display:flex;
+    color: #00ff9d;
 
-height:calc(100vh - 50px);
+    font-size: 14px;
 
-}
+    font-weight: bold;
 
+    letter-spacing: 1px;
 
-
-#panel{
-
-width:300px;
-
-background:#07101f;
-
-padding:10px;
-
-display:flex;
-
-flex-direction:column;
-
-gap:6px;
-
-overflow-y:auto;
-
-}
-
-
-
-#map{
-
-flex:1;
+    padding-top:
+        env(safe-area-inset-top);
 
 }
 
 
+header::after {
 
-input,button{
+    content: "● ONLINE";
 
-padding:10px;
+    position: absolute;
 
-border:
+    right: 12px;
 
-1px solid #00ff9d;
+    bottom: 8px;
 
-background:#001a14;
+    font-size: 9px;
 
-color:#00ff9d;
+    color: #00ff9d;
 
-}
-
-
-
-button:disabled{
-
-opacity:.5;
+    opacity: .75;
 
 }
 
 
+/* =========================================================
+   CONTAINER
+   ========================================================= */
 
-@media(max-width:768px){
+#container {
 
-#container{
+    position: fixed;
 
-flex-direction:column;
+    top: 52px;
 
-}
+    left: 0;
+    right: 0;
+    bottom: 0;
 
+    width: 100%;
 
-#panel{
-
-width:100%;
-
-max-height:35vh;
-
-}
-
-
-#map{
-
-height:65vh;
-
-}
+    height:
+        calc(100dvh - 52px);
 
 }
 
 
+/* =========================================================
+   MAP
+   ========================================================= */
 
-.name-label{
+#map {
 
-background:#001a14;
+    position: absolute;
 
-color:#00ff9d;
+    inset: 0;
 
-border:
+    width: 100%;
+    height: 100%;
 
-1px solid #00ff9d;
-
-padding:4px 8px;
-
-border-radius:6px;
-
-font-size:12px;
-
-font-weight:bold;
+    background: #06101d;
 
 }
 
 
+/* =========================================================
+   CONTROL PANEL
+   ========================================================= */
+
+#panel {
+
+    position: fixed;
+
+    left: 10px;
+    right: 10px;
+
+    bottom:
+        calc(
+            10px +
+            env(safe-area-inset-bottom)
+        );
+
+    z-index: 900;
+
+    width: auto;
+
+    padding: 10px;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 7px;
+
+    background:
+        rgba(4,14,27,.94);
+
+    border:
+        1px solid
+        rgba(0,255,157,.45);
+
+    border-radius: 18px;
+
+    box-shadow:
+
+        0 10px 35px
+        rgba(0,0,0,.55),
+
+        0 0 25px
+        rgba(0,255,157,.08);
+
+    backdrop-filter:
+        blur(14px);
+
+    -webkit-backdrop-filter:
+        blur(14px);
+
+}
+
+
+/* =========================================================
+   RESCUE ID
+   ========================================================= */
+
+#name {
+
+    grid-column:
+        1 / -1;
+
+    width: 100%;
+
+    height: 46px;
+
+    padding: 0 14px;
+
+    border:
+        1px solid
+        rgba(0,255,157,.55);
+
+    border-radius: 11px;
+
+    outline: none;
+
+    background:
+        rgba(0,25,20,.85);
+
+    color: #00ff9d;
+
+    font-family: monospace;
+
+    font-size: 15px;
+
+    font-weight: bold;
+
+    text-align: center;
+
+}
+
+
+#name::placeholder {
+
+    color:
+        rgba(0,255,157,.45);
+
+}
+
+
+#name:focus {
+
+    border-color:
+        #00ff9d;
+
+    box-shadow:
+        0 0 12px
+        rgba(0,255,157,.25);
+
+}
+
+
+/* =========================================================
+   BUTTON BASE
+   ========================================================= */
+
+button {
+
+    min-height: 48px;
+
+    border:
+        1px solid
+        rgba(0,255,157,.5);
+
+    border-radius: 11px;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(0,45,35,.95),
+            rgba(0,25,20,.95)
+        );
+
+    color: #00ff9d;
+
+    font-family: monospace;
+
+    font-size: 12px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition:
+        transform .12s,
+        background .12s,
+        box-shadow .12s;
+
+}
+
+
+button:active {
+
+    transform:
+        scale(.94);
+
+    background:
+        rgba(0,255,157,.18);
+
+    box-shadow:
+        0 0 15px
+        rgba(0,255,157,.2);
+
+}
+
+
+button:disabled {
+
+    opacity: .35;
+
+    cursor: not-allowed;
+
+}
+
+
+/* =========================================================
+   START
+   ========================================================= */
+
+#startBtn {
+
+    grid-column:
+        span 2;
+
+    height: 48px;
+
+    color: #00150d;
+
+    background:
+        linear-gradient(
+            135deg,
+            #00ff9d,
+            #00d986
+        );
+
+    border-color:
+        #00ff9d;
+
+    font-size: 14px;
+
+    box-shadow:
+        0 0 15px
+        rgba(0,255,157,.15);
+
+}
+
+
+#startBtn:disabled {
+
+    color: #7b9a8d;
+
+    background:
+        rgba(0,255,157,.12);
+
+    border-color:
+        rgba(0,255,157,.25);
+
+    box-shadow: none;
+
+}
+
+
+/* =========================================================
+   MY LOCATION
+   ========================================================= */
+
+button[onclick="goMyLocation()"] {
+
+    grid-column:
+        span 2;
+
+}
+
+
+/* =========================================================
+   SHARE
+   ========================================================= */
+
+button[onclick="shareLocation()"] {
+
+    grid-column:
+        span 2;
+
+    color: #55c8ff;
+
+    border-color:
+        rgba(60,190,255,.55);
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(0,45,70,.95),
+            rgba(0,25,45,.95)
+        );
+
+}
+
+
+/* =========================================================
+   SOS
+   ========================================================= */
+
+button[onclick="sendSOS()"] {
+
+    grid-column:
+        span 2;
+
+    color: #ff5757;
+
+    border-color:
+        rgba(255,70,70,.75);
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(90,15,20,.95),
+            rgba(45,5,10,.95)
+        );
+
+    box-shadow:
+        0 0 10px
+        rgba(255,0,0,.08);
+
+}
+
+
+button[onclick="sendSOS"]:active {
+
+    background:
+        rgba(255,40,40,.25);
+
+    box-shadow:
+        0 0 25px
+        rgba(255,0,0,.35);
+
+}
+
+
+/* =========================================================
+   STOP
+   ========================================================= */
+
+button[onclick="stopTracking()"] {
+
+    grid-column:
+        span 2;
+
+    color: #ffb347;
+
+    border-color:
+        rgba(255,179,71,.45);
+
+}
+
+
+/* =========================================================
+   HISTORY
+   ========================================================= */
+
+button[onclick="loadAllHistory()"] {
+
+    grid-column:
+        span 2;
+
+    color: #d0a7ff;
+
+    border-color:
+        rgba(180,120,255,.5);
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(45,25,70,.95),
+            rgba(25,15,40,.95)
+        );
+
+}
+
+
+/* =========================================================
+   MAP LABEL
+   ========================================================= */
+
+.name-label {
+
+    background:
+        rgba(0,20,16,.94);
+
+    color:
+        #00ff9d;
+
+    border:
+        1px solid
+        rgba(0,255,157,.7);
+
+    padding:
+        5px 9px;
+
+    border-radius:
+        8px;
+
+    font-size:
+        11px;
+
+    font-weight:
+        bold;
+
+    white-space:
+        nowrap;
+
+    box-shadow:
+        0 3px 12px
+        rgba(0,0,0,.35);
+
+    backdrop-filter:
+        blur(6px);
+
+}
+
+
+/* =========================================================
+   SMALL PHONE
+   ========================================================= */
+
+@media (max-width:380px) {
+
+    header {
+
+        font-size: 12px;
+
+    }
+
+
+    #panel {
+
+        left: 7px;
+        right: 7px;
+
+        bottom:
+            calc(
+                7px +
+                env(safe-area-inset-bottom)
+            );
+
+        padding: 8px;
+
+        gap: 5px;
+
+        border-radius: 15px;
+
+    }
+
+
+    #name {
+
+        height: 43px;
+
+        font-size: 13px;
+
+    }
+
+
+    button {
+
+        min-height: 44px;
+
+        font-size: 10px;
+
+    }
+
+
+    #startBtn {
+
+        font-size: 12px;
+
+    }
+
+}
+
+
+/* =========================================================
+   LANDSCAPE PHONE
+   ========================================================= */
+
+@media
+(orientation: landscape)
+and
+(max-height:600px) {
+
+    header {
+
+        height: 42px;
+
+    }
+
+
+    #container {
+
+        top: 42px;
+
+        height:
+            calc(100dvh - 42px);
+
+    }
+
+
+    #panel {
+
+        left: auto;
+
+        right: 10px;
+
+        bottom: 10px;
+
+        width: 310px;
+
+        grid-template-columns:
+            repeat(2,1fr);
+
+        padding: 8px;
+
+    }
+
+
+    #name {
+
+        height: 40px;
+
+    }
+
+
+    button {
+
+        min-height: 42px;
+
+    }
+
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (min-width:768px) {
+
+    #panel {
+
+        left: 15px;
+
+        right: auto;
+
+        bottom: 15px;
+
+        width: 330px;
+
+    }
+
+}
+
+
+/* =========================================================
+   SAFE AREA
+   ========================================================= */
+
+@supports (padding:max(0px)) {
+
+    #panel {
+
+        bottom:
+            max(
+                10px,
+                env(safe-area-inset-bottom)
+            );
+
+    }
+
+}
 
 </style>
 
@@ -167,9 +711,10 @@ font-weight:bold;
 
 
 <header>
-🛰 SEARCH AND RESCUE AI MAP
-</header>
 
+🛰 SEARCH AND RESCUE AI MAP
+
+</header>
 
 
 <div id="container">
@@ -178,53 +723,62 @@ font-weight:bold;
 <div id="panel">
 
 
-<input id="name"
-placeholder="RESCUE ID">
+<input
+    id="name"
+    placeholder="RESCUE ID"
+>
 
 
-<button id="startBtn"
-onclick="start()"
-disabled>
+<button
+    id="startBtn"
+    onclick="start()"
+    disabled
+>
 
 START
 
 </button>
 
 
-
-<button onclick="goMyLocation()">
+<button
+    onclick="goMyLocation()"
+>
 
 📍 MY LOCATION
 
 </button>
 
 
-
-<button onclick="shareLocation()">
+<button
+    onclick="shareLocation()"
+>
 
 📡 위치 공유
 
 </button>
 
 
-
-<button onclick="sendSOS()">
+<button
+    onclick="sendSOS()"
+>
 
 🚨 SOS
 
 </button>
 
 
-
-<button onclick="stopTracking()">
+<button
+    onclick="stopTracking()"
+>
 
 ⛔ STOP
 
 </button>
 
 
-
-<button onclick="loadAllHistory()">
+<button
+    onclick="loadAllHistory()"
+>
 
 📦 전체 기록
 
@@ -234,19 +788,18 @@ START
 </div>
 
 
-
 <div id="map"></div>
 
 
 </div>
 
 
-
 <script>
 
 
-// ================= API =================
-
+// =========================================================
+// API
+// =========================================================
 
 const API_URL =
 
@@ -254,263 +807,234 @@ const API_URL =
 
 
 
-
-// ================= DEVICE =================
-
+// =========================================================
+// DEVICE
+// =========================================================
 
 let DEVICE_ID =
 
 localStorage.getItem(
-"DEVICE_ID"
+    "DEVICE_ID"
 );
-
 
 
 if(!DEVICE_ID){
 
+    DEVICE_ID =
+        crypto.randomUUID();
 
-DEVICE_ID =
-crypto.randomUUID();
-
-
-localStorage.setItem(
-"DEVICE_ID",
-DEVICE_ID
-);
-
+    localStorage.setItem(
+        "DEVICE_ID",
+        DEVICE_ID
+    );
 
 }
 
 
 
-
-// ================= MAP =================
-
+// =========================================================
+// MAP
+// =========================================================
 
 const map =
 
 new kakao.maps.Map(
 
-document.getElementById("map"),
+    document.getElementById("map"),
 
-{
+    {
 
-center:
+        center:
 
-new kakao.maps.LatLng(
+            new kakao.maps.LatLng(
+                35.1239,
+                126.9883
+            ),
 
-35.1239,
+        level:5
 
-126.9883
-
-),
-
-level:5
-
-
-}
+    }
 
 );
 
 
 
-
-
-
-// ================= NATIONAL PARK =================
-
+// =========================================================
+// NATIONAL PARK
+// =========================================================
 
 function loadNationalParks(){
 
+    fetch(
+        "national_parks.geojson"
+    )
 
-fetch(
-"national_parks.geojson"
-)
+    .then(
+        r => r.json()
+    )
 
-.then(r=>r.json())
+    .then(
+        data => {
 
-.then(data=>{
+            data.features.forEach(
+                feature => {
 
-
-data.features.forEach(feature=>{
-
-
-const geometry =
-feature.geometry;
+                    const geometry =
+                        feature.geometry;
 
 
+                    if(
+                        geometry.type ===
+                        "Polygon"
+                    ){
 
-if(
-geometry.type==="Polygon"
+                        drawPark(
+                            geometry.coordinates[0],
+                            feature
+                        );
+
+                    }
+
+
+                    if(
+                        geometry.type ===
+                        "MultiPolygon"
+                    ){
+
+                        geometry.coordinates
+                        .forEach(
+                            poly => {
+
+                                drawPark(
+                                    poly[0],
+                                    feature
+                                );
+
+                            }
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+    )
+
+    .catch(
+        e => {
+
+            console.log(
+                "국립공원 로딩 오류",
+                e
+            );
+
+        }
+    );
+
+}
+
+
+
+function drawPark(
+    coords,
+    feature
 ){
 
+    const path =
 
-drawPark(
-geometry.coordinates[0],
-feature
-);
+        coords.map(
+            c =>
 
+                new kakao.maps.LatLng(
+                    c[1],
+                    c[0]
+                )
+        );
 
-}
 
+    const polygon =
 
+        new kakao.maps.Polygon({
 
-if(
-geometry.type==="MultiPolygon"
-){
+            map: map,
 
+            path: path,
 
-geometry.coordinates.forEach(poly=>{
+            strokeWeight: 2,
 
+            strokeColor: "#00ffff",
 
-drawPark(
-poly[0],
-feature
-);
+            strokeOpacity: .8,
 
+            fillColor: "#00ffff",
 
-});
+            fillOpacity: .08
 
+        });
 
-}
 
+    kakao.maps.event.addListener(
 
+        polygon,
 
-});
+        "click",
 
+        function(e){
 
-})
+            const name =
 
-.catch(e=>{
+                feature.properties.name ||
 
-console.log(
-"국립공원 로딩 오류",
-e
-);
+                "국립공원";
 
-});
 
+            const info =
 
-}
+                `
 
+                <div style="
+                    background:#07101f;
+                    color:#00ff9d;
+                    padding:10px;
+                    border:1px solid #00ff9d;
+                    font-family:monospace">
 
+                    🏔 ${name}<br><br>
 
+                    📍
+                    ${e.latLng.getLat().toFixed(6)}
 
-function drawPark(coords,feature){
+                    ,
 
+                    ${e.latLng.getLng().toFixed(6)}
 
+                </div>
 
-const path =
+                `;
 
-coords.map(c=>
 
-new kakao.maps.LatLng(
-c[1],
-c[0]
-)
+            const iw =
 
-);
+                new kakao.maps.InfoWindow({
 
+                    content: info
 
+                });
 
-const polygon =
 
-new kakao.maps.Polygon({
+            iw.setPosition(
+                e.latLng
+            );
 
-map:map,
 
-path:path,
+            iw.open(
+                map
+            );
 
+        }
 
-strokeWeight:2,
-
-strokeColor:"#00ffff",
-
-strokeOpacity:.8,
-
-
-fillColor:"#00ffff",
-
-fillOpacity:.08
-
-
-});
-
-
-
-
-kakao.maps.event.addListener(
-
-polygon,
-
-"click",
-
-function(e){
-
-
-const name =
-
-feature.properties.name ||
-
-"국립공원";
-
-
-
-const info =
-
-`
-
-<div style="
-
-background:#07101f;
-
-color:#00ff9d;
-
-padding:10px;
-
-border:1px solid #00ff9d;
-
-font-family:monospace">
-
-🏔 ${name}<br><br>
-
-📍 ${e.latLng.getLat().toFixed(6)}
-
-,
-
-${e.latLng.getLng().toFixed(6)}
-
-</div>
-
-`;
-
-
-
-const iw =
-
-new kakao.maps.InfoWindow({
-
-content:info
-
-});
-
-
-iw.setPosition(
-e.latLng
-);
-
-
-iw.open(
-map
-);
-
-
-
-}
-
-);
-
-
+    );
 
 }
 
@@ -520,848 +1044,696 @@ loadNationalParks();
 
 
 
+// =========================================================
+// STATE
+// =========================================================
+
+let myName = "";
+
+let lastPos = null;
+
+let watchId = null;
+
+let intervalSend = null;
+
+let intervalLoad = null;
+
+let startTime = "";
+
+let endTime = "";
+
+let previousPos = null;
+
+let directionMarker = null;
+
+let centerInterval = null;
 
 
-// ================= STATE =================
+const markers = {};
 
+const labels = {};
 
+const historyMarkers = [];
 
-let myName="";
-
-let lastPos=null;
-
-let watchId=null;
-
-
-let intervalSend=null;
-
-let intervalLoad=null;
-
-
-let startTime="";
-
-let endTime="";
-
-
-
-let previousPos=null;
-
-
-
-let directionMarker=null;
-
-
-
-
-const markers={};
-
-
-const labels={};
-
-
-
-const historyMarkers=[];
-
-const historyLines=[];
-
+const historyLines = [];
 
 
 const nameInput =
 
-document.getElementById(
-"name"
-);
-
+    document.getElementById(
+        "name"
+    );
 
 
 const startBtn =
 
-document.getElementById(
-"startBtn"
-);
-
-
-
-
-nameInput.addEventListener(
-
-"input",
-
-()=>{
-
-
-startBtn.disabled =
-
-nameInput.value.trim()==="";
-
-
-}
-
-);
-
-
-
-
-
-// ================= TIME =================
-
-
-function getNowTime(){
-
-
-const d=new Date();
-
-
-return (
-
-d.getFullYear()+"-"
-
-+
-
-String(
-d.getMonth()+1
-)
-.padStart(2,"0")
-
-+
-
-"-"
-
-+
-
-String(
-d.getDate()
-)
-.padStart(2,"0")
-
-+
-
-" "
-
-+
-
-String(
-d.getHours()
-)
-.padStart(2,"0")
-
-+
-
-":"
-
-+
-
-String(
-d.getMinutes()
-)
-.padStart(2,"0")
-
-+
-
-":"
-
-+
-
-String(
-d.getSeconds()
-)
-.padStart(2,"0")
-
-);
-
-
-}
-
-
-
-
-
-// ================= START =================
-
-
-function start(){
-
-
-myName =
-
-nameInput.value.trim();
-
-
-
-if(!myName){
-
-alert(
-"RESCUE ID 입력"
-);
-
-return;
-
-}
-
-
-
-startTime =
-getNowTime();
-
-
-
-nameInput.disabled=true;
-
-startBtn.disabled=true;
-
-
-
-watchId =
-
-navigator.geolocation.watchPosition(
-
-
-pos=>{
-
-
-lastPos={
-
-
-name:myName,
-
-
-device:DEVICE_ID,
-
-
-lat:pos.coords.latitude,
-
-
-lng:pos.coords.longitude,
-
-
-accuracy:pos.coords.accuracy,
-
-
-speed:pos.coords.speed,
-
-
-status:"normal"
-
-
-};
-
-
-
-},
-
-
-err=>{
-
-
-console.log(err);
-
-
-alert(
-"GPS 오류"
-);
-
-
-},
-
-
-{
-
-
-enableHighAccuracy:true,
-
-
-maximumAge:1000,
-
-
-timeout:10000
-
-
-}
-
-
-);
-
-
-
-intervalSend =
-
-setInterval(
-
-sendData,
-
-5000
-
-);
-
-
-
-intervalLoad =
-
-setInterval(
-
-loadLive,
-
-3000
-
-);
-
-
-
-}
-
-
-// ================= SEND LIVE DATA =================
-
-function sendData(){
-
-    if(!lastPos) return;
-
-
-    fetch(API_URL,{
-        method:"POST",
-
-        headers:{
-            "Content-Type":"text/plain"
-        },
-
-        body:JSON.stringify({
-
-            ...lastPos,
-
-            startTime:startTime,
-
-            endTime:endTime
-
-        })
-
-    })
-
-    .catch(err=>{
-
-        console.log(
-            "SEND ERROR",
-            err
-        );
-
-    });
-
-}
-
-
-
-// ================= LOAD LIVE =================
-
-
-function loadLive(){
-
-
-    fetch(
-
-        API_URL +
-
-        "?live=1&t="
-
-        +
-
-        Date.now()
-
-    )
-
-
-    .then(r=>r.json())
-
-
-    .then(data=>{
-
-
-        renderLive(data);
-
-
-    })
-
-
-    .catch(err=>{
-
-
-        console.log(
-            "LIVE ERROR",
-            err
-        );
-
-
-    });
-
-
-}
-
-
-
-
-// ================= LIVE RENDER =================
-
-
-function renderLive(data){
-
-
-    const latest={};
-
-
-
-    // 같은 구조대는 마지막 데이터만 사용
-
-    data.forEach(p=>{
-
-
-        latest[p.name]=p;
-
-
-    });
-
-
-
-
-    Object.values(latest)
-
-    .forEach(p=>{
-
-
-
-        const lat =
-        Number(p.lat);
-
-
-
-        const lng =
-        Number(p.lng);
-
-
-
-        if(
-
-            !Number.isFinite(lat)
-
-            ||
-
-            !Number.isFinite(lng)
-
-        )
-
-        return;
-
-
-
-        const key =
-        p.name;
-
-
-
-        const position =
-
-        new kakao.maps.LatLng(
-
-            lat,
-
-            lng
-
-        );
-
-
-
-
-        // ================= NEW MARKER =================
-
-
-        if(!markers[key]){
-
-
-
-            markers[key] =
-
-            new kakao.maps.Marker({
-
-
-                map:map,
-
-
-                position:position
-
-
-            });
-
-
-
-            labels[key] =
-
-            new kakao.maps.CustomOverlay({
-
-
-                map:map,
-
-
-                position:position,
-
-
-                content:
-
-
-                `
-
-                <div class="name-label">
-
-                🛰 ${p.name}
-
-                </div>
-
-
-                `,
-
-
-                yAnchor:1.5
-
-
-            });
-
-
-
-        }
-
-
-
-        else{
-
-
-            markers[key]
-
-            .setPosition(position);
-
-
-
-            labels[key]
-
-            .setPosition(position);
-
-
-
-        }
-
-
-
-
-
-        // ================= STATUS =================
-
-
-
-        if(p.status==="SOS"){
-
-
-
-            markers[key]
-
-            .setImage(
-
-
-                new kakao.maps.MarkerImage(
-
-
-                "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png",
-
-
-                new kakao.maps.Size(
-                    32,
-                    45
-                )
-
-
-                )
-
-
-            );
-
-
-
-
-        }
-
-
-
-        else if(p.status==="SHARE"){
-
-
-
-            markers[key]
-
-            .setImage(
-
-
-                new kakao.maps.MarkerImage(
-
-
-                "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
-
-
-                new kakao.maps.Size(
-                    32,
-                    45
-                )
-
-
-                )
-
-
-            );
-
-
-
-        }
-
-
-
-    });
-
-
-
-}
-
-
-
-
-
-
-
-
-// ================= MY LOCATION =================
-
-
-
-function goMyLocation(){
-
-
-    if(!lastPos)
-
-    return;
-
-
-
-    map.setCenter(
-
-
-        new kakao.maps.LatLng(
-
-
-            lastPos.lat,
-
-
-            lastPos.lng
-
-
-        )
-
-
+    document.getElementById(
+        "startBtn"
     );
 
 
+
+// =========================================================
+// NAME INPUT
+// =========================================================
+
+nameInput.addEventListener(
+
+    "input",
+
+    () => {
+
+        startBtn.disabled =
+
+            nameInput.value.trim() === "";
+
+    }
+
+);
+
+
+
+// =========================================================
+// TIME
+// =========================================================
+
+function getNowTime(){
+
+    const d = new Date();
+
+    return (
+
+        d.getFullYear()
+
+        + "-"
+
+        +
+
+        String(
+            d.getMonth() + 1
+        ).padStart(2,"0")
+
+        + "-"
+
+        +
+
+        String(
+            d.getDate()
+        ).padStart(2,"0")
+
+        + " "
+
+        +
+
+        String(
+            d.getHours()
+        ).padStart(2,"0")
+
+        + ":"
+
+        +
+
+        String(
+            d.getMinutes()
+        ).padStart(2,"0")
+
+        + ":"
+
+        +
+
+        String(
+            d.getSeconds()
+        ).padStart(2,"0")
+
+    );
+
 }
 
 
 
+// =========================================================
+// START
+// =========================================================
+
+function start(){
+
+    myName =
+        nameInput.value.trim();
 
 
-
-// ================= SOS =================
-
-
-function sendSOS(){
-
-
-    if(!lastPos){
-
+    if(!myName){
 
         alert(
-            "현재 위치 없음"
+            "RESCUE ID 입력"
         );
-
 
         return;
 
     }
 
 
+    startTime =
+        getNowTime();
+
+
+    nameInput.disabled = true;
+
+    startBtn.disabled = true;
+
+
+    watchId =
+
+        navigator.geolocation.watchPosition(
+
+            pos => {
+
+                lastPos = {
+
+                    name: myName,
+
+                    device: DEVICE_ID,
+
+                    lat:
+                        pos.coords.latitude,
+
+                    lng:
+                        pos.coords.longitude,
+
+                    accuracy:
+                        pos.coords.accuracy,
+
+                    speed:
+                        pos.coords.speed,
+
+                    status:
+                        "normal"
+
+                };
+
+            },
+
+
+            err => {
+
+                console.log(err);
+
+                alert(
+                    "GPS 오류"
+                );
+
+            },
+
+
+            {
+
+                enableHighAccuracy:
+                    true,
+
+                maximumAge:
+                    1000,
+
+                timeout:
+                    10000
+
+            }
+
+        );
+
+
+    intervalSend =
+
+        setInterval(
+            sendData,
+            5000
+        );
+
+
+    intervalLoad =
+
+        setInterval(
+            loadLive,
+            3000
+        );
+
+
+    // =====================================================
+    // 📱 모바일 자동 지도 추적
+    // =====================================================
+
+    startMobileCenter();
+
+}
 
 
 
-    const data={
+// =========================================================
+// SEND LIVE DATA
+// =========================================================
 
+function sendData(){
+
+    if(!lastPos)
+        return;
+
+
+    fetch(
+
+        API_URL,
+
+        {
+
+            method:
+                "POST",
+
+            headers: {
+
+                "Content-Type":
+                    "text/plain"
+
+            },
+
+            body:
+
+                JSON.stringify({
+
+                    ...lastPos,
+
+                    startTime:
+                        startTime,
+
+                    endTime:
+                        endTime
+
+                })
+
+        }
+
+    )
+
+    .catch(
+
+        err => {
+
+            console.log(
+                "SEND ERROR",
+                err
+            );
+
+        }
+
+    );
+
+}
+
+
+
+// =========================================================
+// LOAD LIVE
+// =========================================================
+
+function loadLive(){
+
+    fetch(
+
+        API_URL +
+
+        "?live=1&t=" +
+
+        Date.now()
+
+    )
+
+    .then(
+        r => r.json()
+    )
+
+    .then(
+        data => {
+
+            renderLive(data);
+
+        }
+    )
+
+    .catch(
+
+        err => {
+
+            console.log(
+                "LIVE ERROR",
+                err
+            );
+
+        }
+
+    );
+
+}
+
+
+
+// =========================================================
+// LIVE RENDER
+// =========================================================
+
+function renderLive(data){
+
+    const latest = {};
+
+
+    data.forEach(
+
+        p => {
+
+            latest[p.name] = p;
+
+        }
+
+    );
+
+
+    Object.values(latest)
+    .forEach(
+
+        p => {
+
+            const lat =
+                Number(p.lat);
+
+            const lng =
+                Number(p.lng);
+
+
+            if(
+
+                !Number.isFinite(lat)
+
+                ||
+
+                !Number.isFinite(lng)
+
+            )
+                return;
+
+
+            const key =
+                p.name;
+
+
+            const position =
+
+                new kakao.maps.LatLng(
+                    lat,
+                    lng
+                );
+
+
+            if(!markers[key]){
+
+                markers[key] =
+
+                    new kakao.maps.Marker({
+
+                        map:
+                            map,
+
+                        position:
+                            position
+
+                    });
+
+
+                labels[key] =
+
+                    new kakao.maps.CustomOverlay({
+
+                        map:
+                            map,
+
+                        position:
+                            position,
+
+                        content:
+
+                            `
+
+                            <div class="name-label">
+
+                            🛰 ${p.name}
+
+                            </div>
+
+                            `,
+
+                        yAnchor:
+                            1.5
+
+                    });
+
+            }
+
+            else{
+
+                markers[key]
+                    .setPosition(
+                        position
+                    );
+
+
+                labels[key]
+                    .setPosition(
+                        position
+                    );
+
+            }
+
+
+            if(
+                p.status === "SOS"
+            ){
+
+                markers[key]
+                .setImage(
+
+                    new kakao.maps.MarkerImage(
+
+                        "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png",
+
+                        new kakao.maps.Size(
+                            32,
+                            45
+                        )
+
+                    )
+
+                );
+
+            }
+
+
+            else if(
+                p.status === "SHARE"
+            ){
+
+                markers[key]
+                .setImage(
+
+                    new kakao.maps.MarkerImage(
+
+                        "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
+
+                        new kakao.maps.Size(
+                            32,
+                            45
+                        )
+
+                    )
+
+                );
+
+            }
+
+        }
+
+    );
+
+}
+
+
+
+// =========================================================
+// MY LOCATION
+// =========================================================
+
+function goMyLocation(){
+
+    if(!lastPos)
+        return;
+
+
+    map.setCenter(
+
+        new kakao.maps.LatLng(
+
+            lastPos.lat,
+
+            lastPos.lng
+
+        )
+
+    );
+
+}
+
+
+
+// =========================================================
+// SOS
+// =========================================================
+
+function sendSOS(){
+
+    if(!lastPos){
+
+        alert(
+            "현재 위치 없음"
+        );
+
+        return;
+
+    }
+
+
+    const data = {
 
         ...lastPos,
 
+        status:
+            "SOS",
 
-        status:"SOS",
+        startTime:
+            startTime,
 
-
-        startTime:startTime,
-
-
-        endTime:endTime
-
+        endTime:
+            endTime
 
     };
 
 
+    fetch(
 
+        API_URL,
 
-    fetch(API_URL,{
+        {
 
-        method:"POST",
+            method:
+                "POST",
 
+            headers: {
 
-        headers:{
+                "Content-Type":
+                    "text/plain"
 
+            },
 
-            "Content-Type":
+            body:
+                JSON.stringify(data)
 
-            "text/plain"
+        }
 
-
-        },
-
-
-        body:
-
-        JSON.stringify(data)
-
-
-    });
-
+    );
 
 
     alert(
         "🚨 SOS 전송 완료"
     );
 
-
 }
 
 
 
-
-
-
-
-// ================= SHARE =================
-
+// =========================================================
+// SHARE
+// =========================================================
 
 function shareLocation(){
 
-
-
     if(!lastPos){
-
 
         alert(
             "현재 위치 없음"
         );
-
 
         return;
 
     }
 
 
-
-
     const mapURL =
 
-
-    `https://map.kakao.com/link/map/${lastPos.lat},${lastPos.lng}`;
-
-
-
+        `https://map.kakao.com/link/map/${lastPos.lat},${lastPos.lng}`;
 
 
     const message =
 
-
 `📡 구조대 위치 공유
 
-
 UNIT :
-
 ${lastPos.name}
 
-
 LAT :
-
 ${lastPos.lat}
 
-
 LNG :
-
 ${lastPos.lng}
 
-
 지도 :
-
 ${mapURL}`;
 
 
+    fetch(
 
+        API_URL,
 
-    fetch(API_URL,{
+        {
 
-        method:"POST",
+            method:
+                "POST",
 
+            headers: {
 
-        headers:{
+                "Content-Type":
+                    "text/plain"
 
+            },
 
-            "Content-Type":
+            body:
 
-            "text/plain"
+                JSON.stringify({
 
+                    ...lastPos,
 
-        },
+                    status:
+                        "SHARE"
 
+                })
 
-        body:
+        }
 
-        JSON.stringify({
-
-
-            ...lastPos,
-
-
-            status:"SHARE"
-
-
-        })
-
-
-    });
-
-
-
-
-
+    );
 
 
     if(
         navigator.share
     ){
 
-
-
         navigator.share({
 
-
             title:
-            "구조대 위치",
-
+                "구조대 위치",
 
             text:
-            message
-
-
+                message
 
         })
 
@@ -1369,716 +1741,528 @@ ${mapURL}`;
             console.log
         );
 
-
-
     }
-
 
     else{
 
-
         prompt(
-
             "복사하세요",
-
             message
-
         );
 
-
     }
-
 
 }
 
 
 
-
-
-
-// ================= AUTO CENTER MOBILE =================
-
-
-
-let centerInterval=null;
-
-
+// =========================================================
+// MOBILE AUTO CENTER
+// =========================================================
 
 function startMobileCenter(){
 
-
     if(centerInterval)
-
-    return;
-
+        return;
 
 
     centerInterval =
 
-    setInterval(()=>{
+        setInterval(
 
+            () => {
 
-        if(lastPos){
+                if(lastPos){
 
+                    map.setCenter(
 
-            map.setCenter(
+                        new kakao.maps.LatLng(
 
-                new kakao.maps.LatLng(
+                            lastPos.lat,
 
-                    lastPos.lat,
+                            lastPos.lng
 
-                    lastPos.lng
+                        )
 
-                )
+                    );
 
-            );
-
-
-        }
-
-
-    },5000);
-
-
-}
-
-// ================= STOP =================
-
-
-function stopTracking(){
-
-
-    endTime =
-    getNowTime();
-
-
-
-    // 종료 기록 저장
-
-    if(lastPos){
-
-
-        fetch(API_URL,{
-
-            method:"POST",
-
-            headers:{
-
-                "Content-Type":
-                "text/plain"
+                }
 
             },
 
+            5000
 
-            body:JSON.stringify({
+        );
 
-
-                ...lastPos,
-
-
-                status:"STOP",
+}
 
 
-                startTime:startTime,
+
+// =========================================================
+// STOP
+// =========================================================
+
+function stopTracking(){
+
+    endTime =
+        getNowTime();
 
 
-                endTime:endTime
+    if(lastPos){
 
+        fetch(
 
-            })
+            API_URL,
 
+            {
 
-        });
+                method:
+                    "POST",
 
+                headers: {
+
+                    "Content-Type":
+                        "text/plain"
+
+                },
+
+                body:
+
+                    JSON.stringify({
+
+                        ...lastPos,
+
+                        status:
+                            "STOP",
+
+                        startTime:
+                            startTime,
+
+                        endTime:
+                            endTime
+
+                    })
+
+            }
+
+        );
 
     }
-
-
-
-
-
-    // GPS 종료
 
 
     if(watchId){
 
-
         navigator.geolocation
-        .clearWatch(watchId);
+            .clearWatch(
+                watchId
+            );
 
-
-        watchId=null;
-
+        watchId = null;
 
     }
 
 
+    clearInterval(
+        intervalSend
+    );
+
+    clearInterval(
+        intervalLoad
+    );
+
+    clearInterval(
+        centerInterval
+    );
 
 
-    clearInterval(intervalSend);
+    intervalSend = null;
 
-    clearInterval(intervalLoad);
+    intervalLoad = null;
 
-    clearInterval(centerInterval);
-
-
-
-    intervalSend=null;
-
-    intervalLoad=null;
-
-    centerInterval=null;
+    centerInterval = null;
 
 
+    lastPos = null;
 
+    previousPos = null;
 
-    lastPos=null;
+    myName = "";
 
-    previousPos=null;
+    startTime = "";
 
-
-    myName="";
-
-
-    startTime="";
-
-    endTime="";
-
-
-
-
-
-    // 실시간 마커 제거
+    endTime = "";
 
 
     Object.values(markers)
+    .forEach(
 
-    .forEach(marker=>{
+        marker => {
 
+            marker.setMap(null);
 
-        marker.setMap(null);
-
-
-    });
-
-
-
-    Object.keys(markers)
-
-    .forEach(k=>{
-
-
-        delete markers[k];
-
-
-    });
-
-
-
-
-
-    Object.values(labels)
-
-    .forEach(label=>{
-
-
-        label.setMap(null);
-
-
-    });
-
-
-
-    Object.keys(labels)
-
-    .forEach(k=>{
-
-
-        delete labels[k];
-
-
-    });
-
-
-
-
-
-
-    nameInput.disabled=false;
-
-    nameInput.value="";
-
-
-    startBtn.disabled=true;
-
-
-
-    alert(
-
-        "⛔ STOP 완료"
+        }
 
     );
 
 
+    Object.keys(markers)
+    .forEach(
+
+        k => {
+
+            delete markers[k];
+
+        }
+
+    );
+
+
+    Object.values(labels)
+    .forEach(
+
+        label => {
+
+            label.setMap(null);
+
+        }
+
+    );
+
+
+    Object.keys(labels)
+    .forEach(
+
+        k => {
+
+            delete labels[k];
+
+        }
+
+    );
+
+
+    nameInput.disabled = false;
+
+    nameInput.value = "";
+
+    startBtn.disabled = true;
+
+
+    alert(
+        "⛔ STOP 완료"
+    );
 
 }
 
 
 
-
-
-
-
-// ================= HISTORY LOAD =================
-
-
+// =========================================================
+// HISTORY LOAD
+// =========================================================
 
 function loadAllHistory(){
-
-
 
     clearHistory();
 
 
-
     fetch(
 
-        API_URL
+        API_URL +
 
-        +
-
-        "?history=all&t="
-
-        +
+        "?history=all&t=" +
 
         Date.now()
 
     )
 
+    .then(
+        r => r.json()
+    )
 
-    .then(r=>r.json())
+    .then(
+        data => {
 
+            showHistory(data);
 
-    .then(data=>{
+        }
+    )
 
+    .catch(
 
-        showHistory(data);
+        err => {
 
-
-    })
-
-
-    .catch(err=>{
-
-
-        console.log(
-
-            "HISTORY ERROR",
-
-            err
-
-        );
-
-
-    });
-
-
-
-}
-
-
-
-
-
-
-
-
-// ================= HISTORY CLEAR =================
-
-
-
-function clearHistory(){
-
-
-
-    historyMarkers
-
-    .forEach(m=>{
-
-
-        m.setMap(null);
-
-
-    });
-
-
-
-    historyMarkers.length=0;
-
-
-
-
-
-    historyLines
-
-    .forEach(line=>{
-
-
-        line.setMap(null);
-
-
-    });
-
-
-
-    historyLines.length=0;
-
-
-
-}
-
-
-
-
-
-
-
-
-// ================= HISTORY VIEW =================
-
-
-
-function showHistory(data){
-
-
-
-    const grouped={};
-
-
-
-
-    // 시간순 정렬
-
-
-    data.sort((a,b)=>{
-
-
-        return new Date(a.time)
-
-        -
-
-        new Date(b.time);
-
-
-    });
-
-
-
-
-
-    data.forEach(d=>{
-
-
-
-        if(!grouped[d.name]){
-
-
-            grouped[d.name]=[];
-
+            console.log(
+                "HISTORY ERROR",
+                err
+            );
 
         }
 
+    );
+
+}
 
 
 
-        grouped[d.name].push(
+// =========================================================
+// HISTORY CLEAR
+// =========================================================
+
+function clearHistory(){
+
+    historyMarkers
+    .forEach(
+
+        m => {
+
+            m.setMap(null);
+
+        }
+
+    );
 
 
-            new kakao.maps.LatLng(
-
-                Number(d.lat),
-
-                Number(d.lng)
-
-            )
+    historyMarkers.length = 0;
 
 
-        );
+    historyLines
+    .forEach(
+
+        line => {
+
+            line.setMap(null);
+
+        }
+
+    );
+
+
+    historyLines.length = 0;
+
+}
 
 
 
-    });
+// =========================================================
+// HISTORY VIEW
+// =========================================================
+
+function showHistory(data){
+
+    const grouped = {};
 
 
+    data.sort(
+
+        (a,b) => {
+
+            return new Date(a.time)
+                -
+                new Date(b.time);
+
+        }
+
+    );
 
 
+    data.forEach(
 
+        d => {
+
+            if(!grouped[d.name]){
+
+                grouped[d.name] = [];
+
+            }
+
+
+            grouped[d.name].push(
+
+                new kakao.maps.LatLng(
+
+                    Number(d.lat),
+
+                    Number(d.lng)
+
+                )
+
+            );
+
+        }
+
+    );
 
 
     let bounds =
 
-    new kakao.maps.LatLngBounds();
+        new kakao.maps.LatLngBounds();
 
 
-
-
-
-
-    for(const name in grouped){
-
-
+    for(
+        const name in grouped
+    ){
 
         const path =
-
-        grouped[name];
-
+            grouped[name];
 
 
+        path.forEach(
 
+            p => {
 
-        path.forEach(p=>{
+                bounds.extend(p);
 
+            }
 
-            bounds.extend(p);
-
-
-        });
-
-
-
-
-
-
-
-        // 이동 경로
+        );
 
 
         const line =
 
-        new kakao.maps.Polyline({
+            new kakao.maps.Polyline({
+
+                map:
+                    map,
+
+                path:
+                    path,
+
+                strokeWeight:
+                    4,
+
+                strokeColor:
+                    "#ffcc00",
+
+                strokeOpacity:
+                    .8
+
+            });
 
 
-            map:map,
-
-
-            path:path,
-
-
-            strokeWeight:4,
-
-
-            strokeColor:"#ffcc00",
-
-
-            strokeOpacity:0.8
-
-
-        });
-
-
-
-        historyLines.push(line);
-
-
-
-
-
-
-        // 시작 위치
+        historyLines.push(
+            line
+        );
 
 
         const startMarker =
 
-        new kakao.maps.Marker({
+            new kakao.maps.Marker({
 
+                map:
+                    map,
 
-            map:map,
+                position:
+                    path[0]
 
-
-            position:path[0]
-
-
-        });
-
+            });
 
 
         historyMarkers.push(
-
             startMarker
-
         );
-
-
-
-
-
-
-        // 종료 위치
 
 
         const endMarker =
 
-        new kakao.maps.Marker({
+            new kakao.maps.Marker({
 
+                map:
+                    map,
 
-            map:map,
+                position:
+                    path[path.length - 1]
 
-
-            position:
-
-            path[path.length-1]
-
-
-        });
-
+            });
 
 
         historyMarkers.push(
-
             endMarker
-
         );
 
 
-
-
-
-
-
-
-        // 시작 라벨
-
-
-        const startLabel =
-
         new kakao.maps.CustomOverlay({
 
-
-
-            map:map,
-
-
-            position:path[0],
-
-
-            content:
-
-
-            `
-
-            <div class="name-label">
-
-            🟢 START ${name}
-
-            </div>
-
-            `,
-
-
-            yAnchor:1.5
-
-
-        });
-
-
-
-
-
-
-
-
-        // 종료 라벨
-
-
-        const endLabel =
-
-        new kakao.maps.CustomOverlay({
-
-
-
-            map:map,
-
+            map:
+                map,
 
             position:
-
-            path[path.length-1],
-
+                path[0],
 
             content:
 
+                `
 
-            `
+                <div class="name-label">
 
-            <div class="name-label">
+                🟢 START ${name}
 
-            🔴 END ${name}
+                </div>
 
-            </div>
+                `,
 
-            `,
-
-
-            yAnchor:1.5
-
+            yAnchor:
+                1.5
 
         });
 
 
+        new kakao.maps.CustomOverlay({
 
+            map:
+                map,
 
+            position:
+                path[path.length - 1],
+
+            content:
+
+                `
+
+                <div class="name-label">
+
+                🔴 END ${name}
+
+                </div>
+
+                `,
+
+            yAnchor:
+                1.5
+
+        });
 
     }
-
-
-
-
 
 
     if(
-
-        data.length>0
-
+        data.length > 0
     ){
 
-
         map.setBounds(
-
             bounds
-
         );
 
-
     }
-
-
 
 }
 
 
 
-
-
-
-
-
-// ================= INIT =================
-
-
-// 최초 LIVE 확인
-
+// =========================================================
+// INITIAL LIVE LOAD
+// =========================================================
 
 loadLive();
 
 
-// 모바일 자동 추적 준비
+// =========================================================
+// MOBILE CENTER READY
+// =========================================================
 
 startMobileCenter();
 
 
 </script>
 
-
 </body>
-
 </html>
-    
