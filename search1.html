@@ -34,7 +34,7 @@ body{
     color:#fff;
 }
 
-/* HEADER */
+/* ================= HEADER ================= */
 
 header{
     position:fixed;
@@ -49,7 +49,6 @@ header{
     justify-content:center;
 
     background:#1e3a8a;
-
     padding:8px 50px 8px 10px;
 
     text-align:center;
@@ -59,7 +58,7 @@ header{
     box-shadow:0 3px 10px rgba(0,0,0,.4);
 }
 
-/* MAP */
+/* ================= MAP ================= */
 
 #map{
     position:absolute;
@@ -72,7 +71,7 @@ header{
     height:calc(100vh - 55px);
 }
 
-/* CONTROLS */
+/* ================= CONTROL ================= */
 
 #controls{
     position:fixed;
@@ -98,10 +97,13 @@ header{
     backdrop-filter:blur(8px);
 }
 
+/* ================= BUTTON ================= */
+
 #controls button{
     display:block;
 
     width:100%;
+
     margin-bottom:6px;
 
     padding:10px 8px;
@@ -126,7 +128,26 @@ header{
     margin-bottom:0;
 }
 
-/* RECORD PANEL */
+/* ================= ZONE OFF BUTTON ================= */
+
+#controls button.zone-off{
+    background:#475569;
+    color:#cbd5e1;
+}
+
+#controls button.zone-high-on{
+    background:#0000cc;
+}
+
+#controls button.zone-middle-on{
+    background:#ca8a04;
+}
+
+#controls button.zone-low-on{
+    background:#15803d;
+}
+
+/* ================= RECORD PANEL ================= */
 
 #recordPanel{
     position:fixed;
@@ -144,10 +165,44 @@ header{
     background:rgba(2,6,23,.95);
 
     border:1px solid #38bdf8;
+
     border-radius:12px;
 
     box-shadow:0 5px 25px rgba(0,0,0,.5);
 }
+
+/* ================= RECORD TITLE ================= */
+
+#recordTitle{
+    font-size:12px;
+    font-weight:bold;
+
+    color:#38bdf8;
+
+    margin-bottom:6px;
+}
+
+/* ================= LOCATION INFO ================= */
+
+#selectedLocation{
+    display:none;
+
+    margin-bottom:6px;
+
+    padding:7px;
+
+    background:#111827;
+
+    border-left:3px solid #facc15;
+
+    border-radius:5px;
+
+    font-size:11px;
+
+    line-height:1.5;
+}
+
+/* ================= INPUT ================= */
 
 #recordText{
     width:100%;
@@ -156,9 +211,11 @@ header{
     resize:none;
 
     border:1px solid #475569;
+
     border-radius:7px;
 
     background:#020617;
+
     color:#fff;
 
     padding:9px;
@@ -172,12 +229,14 @@ header{
     border-color:#38bdf8;
 
     box-shadow:
-        0 0 8px
-        rgba(56,189,248,.3);
+        0 0 8px rgba(56,189,248,.3);
 }
+
+/* ================= RECORD BUTTON ================= */
 
 #saveRecordBtn{
     width:100%;
+
     margin-top:6px;
 
     padding:11px;
@@ -186,36 +245,43 @@ header{
     border-radius:7px;
 
     background:#059669;
+
     color:#fff;
 
     font-size:13px;
     font-weight:bold;
 }
 
-/* RECORD LIST */
+/* ================= RECORD LIST ================= */
 
 #recordList{
     max-height:180px;
+
     overflow-y:auto;
+
     margin-top:7px;
 }
 
 .recordItem{
     padding:8px;
+
     margin-bottom:5px;
 
     background:#111827;
 
     border-left:3px solid #38bdf8;
+
     border-radius:5px;
 
     font-size:11px;
+
     line-height:1.5;
 }
 
 .recordItem button{
     margin-top:5px;
-    margin-right:3px;
+
+    margin-right:4px;
 
     padding:4px 7px;
 
@@ -223,54 +289,21 @@ header{
     border-radius:4px;
 
     background:#dc2626;
+
     color:#fff;
 
     font-size:10px;
 }
 
-.recordItem .moveBtn{
+.recordItem button.moveBtn{
     background:#2563eb;
 }
 
-/* STATUS */
-
-#status{
-    position:fixed;
-
-    right:8px;
-    top:65px;
-
-    z-index:1600;
-
-    padding:7px 10px;
-
-    background:rgba(2,6,23,.9);
-
-    border:1px solid #475569;
-    border-radius:8px;
-
-    font-size:11px;
+.recordItem button.editBtn{
+    background:#059669;
 }
 
-/* LOCATION LABEL */
-
-.location-label{
-    background:#020617;
-    color:#38bdf8;
-
-    border:1px solid #38bdf8;
-
-    padding:5px 8px;
-
-    border-radius:6px;
-
-    font-size:11px;
-    font-weight:bold;
-
-    white-space:nowrap;
-}
-
-/* MOBILE */
+/* ================= MOBILE ================= */
 
 @media(max-width:600px){
 
@@ -304,12 +337,26 @@ header{
     #recordText{
         height:48px;
     }
+}
 
-    #status{
-        top:56px;
-        right:6px;
-        font-size:10px;
-    }
+/* ================= LOCATION LABEL ================= */
+
+.location-label{
+    background:#020617;
+
+    color:#38bdf8;
+
+    border:1px solid #38bdf8;
+
+    padding:5px 8px;
+
+    border-radius:6px;
+
+    font-size:11px;
+
+    font-weight:bold;
+
+    white-space:nowrap;
 }
 
 </style>
@@ -323,23 +370,29 @@ header{
 </header>
 
 
-<div id="status">
-    서버 연결 준비 중...
-</div>
-
+<!-- ================= CONTROL ================= -->
 
 <div id="controls">
 
-    <button onclick="toggleZone('high')">
-        🔵 고지대 ON/OFF
+    <button
+        id="highBtn"
+        class="zone-off"
+        onclick="toggleZone('high')">
+        🔵 고지대 OFF
     </button>
 
-    <button onclick="toggleZone('middle')">
-        🟡 중지대 ON/OFF
+    <button
+        id="middleBtn"
+        class="zone-off"
+        onclick="toggleZone('middle')">
+        🟡 중지대 OFF
     </button>
 
-    <button onclick="toggleZone('low')">
-        🟢 저지대 ON/OFF
+    <button
+        id="lowBtn"
+        class="zone-off"
+        onclick="toggleZone('low')">
+        🟢 저지대 OFF
     </button>
 
     <button onclick="getCurrentLocation()">
@@ -374,18 +427,22 @@ header{
         📋 저장 기록 보기
     </button>
 
-    <button onclick="loadServerRecords()">
-        ☁️ 서버 기록 새로고침
-    </button>
-
     <button onclick="clearAllRecords()">
-        🗑 기기 기록 삭제
+        🗑 전체 기록 삭제
     </button>
 
 </div>
 
 
+<!-- ================= RECORD PANEL ================= -->
+
 <div id="recordPanel">
+
+    <div id="recordTitle">
+        📝 기록자 / 현장기록
+    </div>
+
+    <div id="selectedLocation"></div>
 
     <textarea
         id="recordText"
@@ -403,8 +460,12 @@ header{
 </div>
 
 
+<!-- ================= MAP ================= -->
+
 <div id="map"></div>
 
+
+<!-- ================= KAKAO MAP ================= -->
 
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424"></script>
 
@@ -425,19 +486,16 @@ const GOOGLE_SCRIPT_URL =
 
 var map =
 new kakao.maps.Map(
-
     document.getElementById("map"),
-
     {
         center:
             new kakao.maps.LatLng(
                 35.124019,
-                126.998190
+                126.008190
             ),
 
         level:4
     }
-
 );
 
 map.setZoomable(true);
@@ -503,6 +561,7 @@ var circleData = [
         name:"고지대 원효: 용추삼거리",
         zone:"high"
     },
+
 
     {
         lat:35.136860,
@@ -594,6 +653,7 @@ var circleData = [
         zone:"middle"
     },
 
+
     {
         lat:35.121645,
         lng:126.967070,
@@ -656,6 +716,7 @@ var circleData = [
         name:"중지대 증심: 새인봉갈림길",
         zone:"middle"
     },
+
 
     {
         lat:35.125583,
@@ -751,7 +812,7 @@ var circleData = [
 
 
 /* =========================================================
-   ZONE
+   ZONE VARIABLES
    ========================================================= */
 
 var bounds =
@@ -766,12 +827,24 @@ var selectedCircle = null;
 
 var circles = [];
 
+
+/*
+ * 중요:
+ * 처음에는 전부 OFF
+ */
+
 var zoneVisibility = {
-    high:true,
-    middle:true,
-    low:true
+
+    high:false,
+    middle:false,
+    low:false
+
 };
 
+
+/* =========================================================
+   ZONE DRAW
+   ========================================================= */
 
 circleData.forEach(function(data){
 
@@ -781,35 +854,60 @@ circleData.forEach(function(data){
             data.lng
         );
 
+
     var circle =
         new kakao.maps.Circle({
 
             center:position,
+
             radius:data.radius,
 
             strokeWeight:2,
+
             strokeColor:data.color,
+
             strokeOpacity:.9,
 
             fillColor:data.color,
+
             fillOpacity:.4,
 
             clickable:true,
+
             zIndex:1
+
         });
 
-    circle.setMap(map);
+
+    /*
+     * 처음에는 지도에 표시하지 않음
+     */
+
+    circle.setMap(null);
+
 
     var marker =
         new kakao.maps.Marker({
 
             position:position,
-            map:map,
+
             title:data.name
+
         });
 
 
+    /*
+     * 처음에는 지도에 표시하지 않음
+     */
+
+    marker.setMap(null);
+
+
     function selectLocation(){
+
+        /*
+         * 이전 선택 복원
+         */
 
         if(selectedCircle){
 
@@ -822,34 +920,63 @@ circleData.forEach(function(data){
                     selectedCircle.originalColor,
 
                 fillOpacity:.4,
+
                 strokeOpacity:.9,
+
                 zIndex:1
+
             });
+
         }
 
+
+        /*
+         * 현재 선택 노란색
+         */
 
         circle.setOptions({
 
             strokeColor:"#FFD700",
+
             fillColor:"#FFD700",
 
             fillOpacity:.6,
+
             strokeOpacity:1,
 
             zIndex:10
+
         });
 
 
-        selectedCircle = {
+        selectedCircle={
 
             circle:circle,
+
             originalColor:data.color
+
         };
 
 
+        /*
+         * 지도 이동
+         */
+
         map.setLevel(3);
+
         map.panTo(position);
 
+
+        /*
+         * 기록창에 위치 정보 표시
+         */
+
+        showSelectedLocation(data);
+
+
+        /*
+         * 지도 InfoWindow
+         */
 
         var content = `
 
@@ -862,17 +989,22 @@ circleData.forEach(function(data){
 
                 <strong>${escapeHTML(data.name)}</strong><br>
 
-                위도 : ${data.lat}<br>
+                위도 :
+                ${data.lat}<br>
 
-                경도 : ${data.lng}<br>
+                경도 :
+                ${data.lng}<br>
 
-                반경 : ${data.radius}m
+                반경 :
+                ${data.radius}m
 
             </div>
+
         `;
 
 
         infowindow.setContent(content);
+
         infowindow.open(map,marker);
 
     }
@@ -894,8 +1026,12 @@ circleData.forEach(function(data){
     circles.push({
 
         circle:circle,
+
         marker:marker,
-        zone:data.zone
+
+        zone:data.zone,
+
+        data:data
 
     });
 
@@ -905,7 +1041,18 @@ circleData.forEach(function(data){
 });
 
 
-map.setBounds(bounds);
+/*
+ * 처음에는 모든 구역을 OFF 상태로 유지
+ */
+
+map.setCenter(
+    new kakao.maps.LatLng(
+        35.124019,
+        126.982
+    )
+);
+
+map.setLevel(5);
 
 
 /* =========================================================
@@ -923,26 +1070,190 @@ function toggleZone(zone){
         if(item.zone === zone){
 
             item.circle.setMap(
+
                 zoneVisibility[zone]
                 ? map
                 : null
+
             );
 
             item.marker.setMap(
+
                 zoneVisibility[zone]
                 ? map
                 : null
+
             );
 
         }
 
     });
 
+
+    updateZoneButton(zone);
+
 }
 
 
 /* =========================================================
-   GPS
+   ZONE BUTTON UPDATE
+   ========================================================= */
+
+function updateZoneButton(zone){
+
+    var button;
+
+    var text;
+
+    if(zone === "high"){
+
+        button =
+            document.getElementById("highBtn");
+
+        text =
+            zoneVisibility.high
+            ? "🔵 고지대 ON"
+            : "🔵 고지대 OFF";
+
+    }
+
+    else if(zone === "middle"){
+
+        button =
+            document.getElementById("middleBtn");
+
+        text =
+            zoneVisibility.middle
+            ? "🟡 중지대 ON"
+            : "🟡 중지대 OFF";
+
+    }
+
+    else{
+
+        button =
+            document.getElementById("lowBtn");
+
+        text =
+            zoneVisibility.low
+            ? "🟢 저지대 ON"
+            : "🟢 저지대 OFF";
+
+    }
+
+
+    button.textContent = text;
+
+
+    button.classList.remove(
+        "zone-off",
+        "zone-high-on",
+        "zone-middle-on",
+        "zone-low-on"
+    );
+
+
+    if(!zoneVisibility[zone]){
+
+        button.classList.add(
+            "zone-off"
+        );
+
+    }
+    else{
+
+        if(zone === "high"){
+
+            button.classList.add(
+                "zone-high-on"
+            );
+
+        }
+
+        if(zone === "middle"){
+
+            button.classList.add(
+                "zone-middle-on"
+            );
+
+        }
+
+        if(zone === "low"){
+
+            button.classList.add(
+                "zone-low-on"
+            );
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   SELECTED LOCATION -> RECORD PANEL
+   ========================================================= */
+
+var selectedZoneData = null;
+
+
+/*
+ * 구역을 클릭하면
+ * 기록자 / 현장기록 영역에 위치가 표시됨
+ */
+
+function showSelectedLocation(data){
+
+    selectedZoneData = data;
+
+
+    var box =
+        document.getElementById(
+            "selectedLocation"
+        );
+
+
+    box.style.display = "block";
+
+
+    box.innerHTML = `
+
+        📍 <strong>
+        ${escapeHTML(data.name)}
+        </strong>
+
+        <br>
+
+        위도 :
+        ${data.lat}
+
+        <br>
+
+        경도 :
+        ${data.lng}
+
+        <br>
+
+        반경 :
+        ${data.radius}m
+
+    `;
+
+
+    /*
+     * 기록내용 입력창에 포커스
+     */
+
+    document
+        .getElementById("recordText")
+        .focus();
+
+}
+
+
+/* =========================================================
+   CURRENT LOCATION
    ========================================================= */
 
 var userMarker = null;
@@ -956,7 +1267,7 @@ var lastLongitude = null;
 var currentAccuracy = 0;
 
 
-function getCurrentLocation(callback){
+function getCurrentLocation(){
 
     if(!navigator.geolocation){
 
@@ -965,39 +1276,31 @@ function getCurrentLocation(callback){
         );
 
         return;
+
     }
-
-
-    setStatus("📡 GPS 위치 확인 중...");
 
 
     navigator.geolocation.getCurrentPosition(
 
         function(position){
 
+            currentAccuracy =
+                position.coords.accuracy || 0;
+
+
             saveAndDisplay(
 
                 position.coords.latitude,
+
                 position.coords.longitude,
+
                 position.coords.accuracy
 
             );
 
-
-            setStatus(
-                "📍 GPS 확인 완료"
-            );
-
-
-            if(callback){
-                callback();
-            }
-
         },
 
         function(error){
-
-            setStatus("❌ GPS 오류");
 
             alert(
                 "GPS 오류 : " +
@@ -1036,7 +1339,7 @@ function saveAndDisplay(
     lastLongitude = lng;
 
     currentAccuracy =
-        Number(accuracy) || 0;
+        accuracy || 0;
 
 
     var locPosition =
@@ -1059,6 +1362,7 @@ function saveAndDisplay(
             new kakao.maps.Marker({
 
                 map:map,
+
                 position:locPosition
 
             });
@@ -1073,7 +1377,7 @@ function saveAndDisplay(
         );
 
         userAccuracyCircle.setRadius(
-            currentAccuracy || 20
+            accuracy || 20
         );
 
     }
@@ -1086,8 +1390,7 @@ function saveAndDisplay(
 
                 center:locPosition,
 
-                radius:
-                    currentAccuracy || 20,
+                radius:accuracy || 20,
 
                 strokeWeight:1,
 
@@ -1106,6 +1409,41 @@ function saveAndDisplay(
 
     map.panTo(locPosition);
 
+
+    /*
+     * 기록창에 현재 위치 표시
+     */
+
+    var box =
+        document.getElementById(
+            "selectedLocation"
+        );
+
+
+    box.style.display = "block";
+
+
+    box.innerHTML = `
+
+        📍 <strong>현재 GPS 위치</strong>
+
+        <br>
+
+        위도 :
+        ${lat.toFixed(6)}
+
+        <br>
+
+        경도 :
+        ${lng.toFixed(6)}
+
+        <br>
+
+        GPS 정확도 :
+        ${Math.round(accuracy || 0)}m
+
+    `;
+
 }
 
 
@@ -1115,19 +1453,21 @@ function saveAndDisplay(
 
 function prepareRecord(){
 
-    getCurrentLocation(function(){
+    getCurrentLocation();
+
+    setTimeout(function(){
 
         document
             .getElementById("recordText")
             .focus();
 
-    });
+    },1000);
 
 }
 
 
 /* =========================================================
-   LOCAL STORAGE
+   RECORD STORAGE
    ========================================================= */
 
 var STORAGE_KEY =
@@ -1170,7 +1510,7 @@ function saveRecords(records){
 
 
 /* =========================================================
-   SAVE RECORD
+   SAVE CURRENT RECORD
    ========================================================= */
 
 function saveCurrentRecord(){
@@ -1219,10 +1559,13 @@ function saveCurrentRecord(){
 
     var record = {
 
-        id:Date.now(),
+        id:
+            Date.now(),
 
         time:
-            now.toLocaleString("ko-KR"),
+            now.toLocaleString(
+                "ko-KR"
+            ),
 
         timestamp:
             now.getTime(),
@@ -1234,13 +1577,15 @@ function saveCurrentRecord(){
             lastLongitude,
 
         accuracy:
-            currentAccuracy,
+            currentAccuracy || 0,
 
         text:
             text,
 
-        name:
-            "무등산구조대"
+        locationName:
+            selectedZoneData
+            ? selectedZoneData.name
+            : "현재 GPS 위치"
 
     };
 
@@ -1258,9 +1603,6 @@ function saveCurrentRecord(){
     addRecordMarker(record);
 
 
-    renderRecordList();
-
-
     sendRecordToServer(record);
 
 
@@ -1269,103 +1611,12 @@ function saveCurrentRecord(){
         .value = "";
 
 
-    setStatus(
-        "☁️ 현장기록 저장 전송 완료"
-    );
+    renderRecordList();
 
 
     alert(
-        "💾 현장기록이 저장되었습니다."
+        "💾 현위치 기록이 저장되었습니다."
     );
-
-}
-
-
-/* =========================================================
-   SEND TO GOOGLE APPS SCRIPT
-   ========================================================= */
-
-function sendRecordToServer(record){
-
-    if(!GOOGLE_SCRIPT_URL){
-
-        console.log(
-            "Google Apps Script URL 미설정"
-        );
-
-        return;
-
-    }
-
-
-    fetch(
-
-        GOOGLE_SCRIPT_URL,
-
-        {
-
-            method:"POST",
-
-            mode:"no-cors",
-
-            headers:{
-                "Content-Type":
-                    "text/plain;charset=utf-8"
-            },
-
-            body:
-                JSON.stringify({
-
-                    type:
-                        "FIELD_RECORD",
-
-                    time:
-                        record.time,
-
-                    timestamp:
-                        record.timestamp,
-
-                    lat:
-                        record.lat,
-
-                    lng:
-                        record.lng,
-
-                    accuracy:
-                        record.accuracy,
-
-                    text:
-                        record.text,
-
-                    name:
-                        record.name
-
-                })
-
-        }
-
-    )
-
-    .then(function(){
-
-        console.log(
-            "Google Sheets 전송 요청 완료"
-        );
-
-    })
-
-    .catch(function(error){
-
-        console.error(
-            "Google Sheets 전송 실패",
-            error
-        );
-
-        setStatus(
-            "⚠️ 서버 전송 실패"
-        );
-
-    });
 
 }
 
@@ -1381,8 +1632,8 @@ function addRecordMarker(record){
 
     var position =
         new kakao.maps.LatLng(
-            Number(record.lat),
-            Number(record.lng)
+            record.lat,
+            record.lng
         );
 
 
@@ -1393,8 +1644,7 @@ function addRecordMarker(record){
 
             position:position,
 
-            title:
-                "현장기록"
+            title:"현장기록"
 
         });
 
@@ -1410,6 +1660,8 @@ function addRecordMarker(record){
 
         function(){
 
+            showRecordInPanel(record);
+
             var content = `
 
                 <div style="
@@ -1420,34 +1672,47 @@ function addRecordMarker(record){
                     min-width:190px;
                 ">
 
-                    <strong>📝 현장기록</strong><br>
+                    <strong>📝 현장기록</strong>
+
+                    <br>
 
                     ${escapeHTML(
-                        String(record.time || "")
-                    )}<br>
+                        record.locationName || ""
+                    )}
+
+                    <br>
+
+                    ${escapeHTML(record.time)}
+
+                    <br>
 
                     위도 :
-                    ${Number(record.lat).toFixed(6)}<br>
+                    ${Number(record.lat).toFixed(6)}
+
+                    <br>
 
                     경도 :
-                    ${Number(record.lng).toFixed(6)}<br>
+                    ${Number(record.lng).toFixed(6)}
+
+                    <br>
 
                     정확도 :
                     ${Math.round(
-                        Number(record.accuracy || 0)
+                        record.accuracy || 0
                     )}m
 
                     <hr>
 
-                    ${escapeHTML(
-                        String(record.text || "")
-                    )}
+                    ${escapeHTML(record.text)}
 
                 </div>
+
             `;
 
 
-            infowindow.setContent(content);
+            infowindow.setContent(
+                content
+            );
 
             infowindow.open(
                 map,
@@ -1462,17 +1727,91 @@ function addRecordMarker(record){
 
 
 /* =========================================================
+   RECORD -> PANEL
+   ========================================================= */
+
+function showRecordInPanel(record){
+
+    lastLatitude =
+        Number(record.lat);
+
+    lastLongitude =
+        Number(record.lng);
+
+    currentAccuracy =
+        Number(record.accuracy || 0);
+
+
+    var box =
+        document.getElementById(
+            "selectedLocation"
+        );
+
+
+    box.style.display = "block";
+
+
+    box.innerHTML = `
+
+        📝 <strong>저장된 현장기록</strong>
+
+        <br>
+
+        📍 ${escapeHTML(
+            record.locationName || ""
+        )}
+
+        <br>
+
+        위도 :
+        ${Number(record.lat).toFixed(6)}
+
+        <br>
+
+        경도 :
+        ${Number(record.lng).toFixed(6)}
+
+        <br>
+
+        시간 :
+        ${escapeHTML(record.time)}
+
+    `;
+
+
+    /*
+     * 클릭한 기록내용을 기록창에 표시
+     */
+
+    document
+        .getElementById("recordText")
+        .value =
+            record.text || "";
+
+
+    document
+        .getElementById("recordText")
+        .focus();
+
+}
+
+
+/* =========================================================
    ESCAPE HTML
    ========================================================= */
 
 function escapeHTML(text){
 
-    return String(text)
+    return String(text || "")
 
         .replace(/&/g,"&amp;")
+
         .replace(/</g,"&lt;")
+
         .replace(/>/g,"&gt;")
+
         .replace(/"/g,"&quot;")
+
         .replace(/'/g,"&#039;");
 
 }
@@ -1512,9 +1851,7 @@ function renderRecordList(){
                 <div class="recordItem">
 
                     🕒
-                    ${escapeHTML(
-                        String(record.time || "")
-                    )}
+                    ${escapeHTML(record.time)}
 
                     <br>
 
@@ -1524,24 +1861,24 @@ function renderRecordList(){
 
                     <br>
 
-                    🎯
-                    정확도
-                    ${Math.round(
-                        Number(record.accuracy || 0)
-                    )}m
-
-                    <br>
-
-                    📝
+                    📌
                     ${escapeHTML(
-                        String(record.text || "")
+                        record.locationName || ""
                     )}
 
                     <br>
 
+                    📝
+                    ${escapeHTML(record.text)}
+
+                    <br>
+
                     <button
-                        onclick="deleteRecord(${record.id})">
-                        삭제
+                        class="editBtn"
+                        onclick="showRecordInPanelById(${record.id})">
+
+                        기록내용 표시
+
                     </button>
 
                     <button
@@ -1550,7 +1887,16 @@ function renderRecordList(){
                             ${record.lat},
                             ${record.lng}
                         )">
+
                         지도 이동
+
+                    </button>
+
+                    <button
+                        onclick="deleteRecord(${record.id})">
+
+                        삭제
+
                     </button>
 
                 </div>
@@ -1563,6 +1909,31 @@ function renderRecordList(){
 
 
 /* =========================================================
+   SHOW RECORD BY ID
+   ========================================================= */
+
+function showRecordInPanelById(id){
+
+    var records =
+        getRecords();
+
+
+    var record =
+        records.find(
+            r => r.id === id
+        );
+
+
+    if(!record)
+        return;
+
+
+    showRecordInPanel(record);
+
+}
+
+
+/* =========================================================
    MOVE TO RECORD
    ========================================================= */
 
@@ -1570,8 +1941,8 @@ function moveToRecord(lat,lng){
 
     var position =
         new kakao.maps.LatLng(
-            Number(lat),
-            Number(lng)
+            lat,
+            lng
         );
 
 
@@ -1583,14 +1954,14 @@ function moveToRecord(lat,lng){
 
 
 /* =========================================================
-   DELETE LOCAL RECORD
+   DELETE RECORD
    ========================================================= */
 
 function deleteRecord(id){
 
     if(
         !confirm(
-            "이 기기의 저장 기록을 삭제하시겠습니까?\n\nGoogle Sheets의 서버 기록은 삭제되지 않습니다."
+            "이 기록을 삭제하시겠습니까?"
         )
     ){
 
@@ -1617,14 +1988,13 @@ function deleteRecord(id){
 
 
 /* =========================================================
-   REDRAW LOCAL MARKERS
+   REDRAW RECORD MARKERS
    ========================================================= */
 
 function redrawRecordMarkers(){
 
     recordMarkers.forEach(
-        marker =>
-            marker.setMap(null)
+        marker => marker.setMap(null)
     );
 
 
@@ -1641,7 +2011,7 @@ function redrawRecordMarkers(){
 
 
 /* =========================================================
-   SHOW ALL LOCAL RECORDS
+   SHOW ALL RECORDS
    ========================================================= */
 
 function showAllRecords(){
@@ -1656,7 +2026,7 @@ function showAllRecords(){
     if(records.length === 0){
 
         alert(
-            "이 기기에 저장된 현장 기록이 없습니다."
+            "저장된 현장 기록이 없습니다."
         );
 
         return;
@@ -1673,8 +2043,8 @@ function showAllRecords(){
         bounds.extend(
 
             new kakao.maps.LatLng(
-                Number(record.lat),
-                Number(record.lng)
+                record.lat,
+                record.lng
             )
 
         );
@@ -1688,14 +2058,14 @@ function showAllRecords(){
 
 
 /* =========================================================
-   CLEAR LOCAL RECORDS
+   CLEAR ALL RECORDS
    ========================================================= */
 
 function clearAllRecords(){
 
     if(
         !confirm(
-            "이 기기에 저장된 모든 현장기록을 삭제하시겠습니까?\n\nGoogle Sheets의 서버 기록은 삭제되지 않습니다."
+            "저장된 모든 현장기록을 삭제하시겠습니까?"
         )
     ){
 
@@ -1710,8 +2080,7 @@ function clearAllRecords(){
 
 
     recordMarkers.forEach(
-        marker =>
-            marker.setMap(null)
+        marker => marker.setMap(null)
     );
 
 
@@ -1720,24 +2089,115 @@ function clearAllRecords(){
 
     renderRecordList();
 
+
+    document
+        .getElementById("recordText")
+        .value = "";
+
+
+    document
+        .getElementById("selectedLocation")
+        .style.display = "none";
+
 }
 
 
 /* =========================================================
-   SERVER RECORDS
+   SEND RECORD TO GOOGLE APPS SCRIPT
    ========================================================= */
 
-var serverRecords = [];
+function sendRecordToServer(record){
 
-var serverRecordMarkers = [];
+    if(
+        !GOOGLE_SCRIPT_URL
+    ){
+
+        return;
+
+    }
 
 
-function loadServerRecords(){
+    fetch(
 
-    if(!GOOGLE_SCRIPT_URL){
+        GOOGLE_SCRIPT_URL,
+
+        {
+
+            method:"POST",
+
+            mode:"no-cors",
+
+            headers:{
+                "Content-Type":
+                    "text/plain;charset=utf-8"
+            },
+
+            body:
+                JSON.stringify({
+
+                    type:
+                        "FIELD_RECORD",
+
+                    time:
+                        record.time,
+
+                    lat:
+                        record.lat,
+
+                    lng:
+                        record.lng,
+
+                    accuracy:
+                        record.accuracy,
+
+                    memo:
+                        record.text,
+
+                    locationName:
+                        record.locationName,
+
+                    name:
+                        "무등산구조대"
+
+                })
+
+        }
+
+    )
+
+    .then(function(){
+
+        console.log(
+            "서버 기록 전송 완료"
+        );
+
+    })
+
+    .catch(function(error){
+
+        console.log(
+            "서버 기록 전송 실패",
+            error
+        );
+
+    });
+
+}
+
+
+/* =========================================================
+   REALTIME TRACKING
+   ========================================================= */
+
+var trackingId = null;
+
+
+function startTracking(){
+
+    if(trackingId !== null){
 
         alert(
-            "Google Apps Script URL이 설정되지 않았습니다."
+            "이미 실시간 추적 중입니다."
         );
 
         return;
@@ -1745,205 +2205,177 @@ function loadServerRecords(){
     }
 
 
-    setStatus(
-        "☁️ 서버 기록 불러오는 중..."
-    );
-
-
-    fetch(
-        GOOGLE_SCRIPT_URL + "?action=getRecords"
-    )
-
-    .then(function(response){
-
-        return response.json();
-
-    })
-
-    .then(function(data){
-
-        if(!Array.isArray(data)){
-
-            throw new Error(
-                "서버 응답 형식 오류"
-            );
-
-        }
-
-
-        serverRecords = data;
-
-
-        drawServerRecordMarkers();
-
-
-        setStatus(
-            "☁️ 서버 기록 " +
-            data.length +
-            "건 확인"
-        );
-
-
-    })
-
-    .catch(function(error){
-
-        console.error(error);
-
-        setStatus(
-            "⚠️ 서버 기록 불러오기 실패"
-        );
+    if(!navigator.geolocation){
 
         alert(
-            "서버 기록을 불러오지 못했습니다."
+            "GPS를 사용할 수 없습니다."
         );
 
-    });
+        return;
 
-}
-
-
-/* =========================================================
-   SERVER MARKERS
-   ========================================================= */
-
-function drawServerRecordMarkers(){
-
-    serverRecordMarkers.forEach(
-        marker =>
-            marker.setMap(null)
-    );
+    }
 
 
-    serverRecordMarkers = [];
+    requestWakeLock();
 
 
-    serverRecords.forEach(function(record){
+    trackingId =
+        navigator.geolocation.watchPosition(
 
-        if(
-            record.lat === "" ||
-            record.lng === "" ||
-            record.lat == null ||
-            record.lng == null
-        ){
+            function(position){
 
-            return;
-
-        }
+                currentAccuracy =
+                    position.coords.accuracy;
 
 
-        var position =
-            new kakao.maps.LatLng(
-                Number(record.lat),
-                Number(record.lng)
-            );
+                saveAndDisplay(
 
+                    position.coords.latitude,
 
-        var marker =
-            new kakao.maps.Marker({
+                    position.coords.longitude,
 
-                map:map,
+                    position.coords.accuracy
 
-                position:position,
-
-                title:"☁️ 서버 현장기록"
-
-            });
-
-
-        serverRecordMarkers.push(marker);
-
-
-        kakao.maps.event.addListener(
-
-            marker,
-
-            "click",
-
-            function(){
-
-                var content = `
-
-                    <div style="
-                        padding:10px;
-                        color:#000;
-                        font-size:12px;
-                        line-height:1.6;
-                        min-width:200px;
-                    ">
-
-                        <strong>
-                            ☁️ 서버 현장기록
-                        </strong>
-
-                        <br>
-
-                        ${escapeHTML(
-                            String(record.time || "")
-                        )}
-
-                        <br>
-
-                        위도 :
-                        ${Number(
-                            record.lat
-                        ).toFixed(6)}
-
-                        <br>
-
-                        경도 :
-                        ${Number(
-                            record.lng
-                        ).toFixed(6)}
-
-                        <br>
-
-                        정확도 :
-                        ${Math.round(
-                            Number(
-                                record.accuracy || 0
-                            )
-                        )}m
-
-                        <hr>
-
-                        ${escapeHTML(
-                            String(
-                                record.text || ""
-                            )
-                        )}
-
-                        <br>
-
-                        기록자 :
-                        ${escapeHTML(
-                            String(
-                                record.name || ""
-                            )
-                        )}
-
-                    </div>
-
-                `;
-
-
-                infowindow.setContent(
-                    content
                 );
 
+            },
 
-                infowindow.open(
-                    map,
-                    marker
+            function(error){
+
+                console.log(
+                    "GPS ERROR",
+                    error
                 );
+
+            },
+
+            {
+
+                enableHighAccuracy:true,
+
+                maximumAge:1000,
+
+                timeout:15000
 
             }
 
         );
 
-    });
+
+    alert(
+        "🟢 실시간 추적 시작"
+    );
 
 }
+
+
+/* =========================================================
+   STOP TRACKING
+   ========================================================= */
+
+function stopTracking(){
+
+    if(trackingId !== null){
+
+        navigator.geolocation
+            .clearWatch(
+                trackingId
+            );
+
+        trackingId = null;
+
+    }
+
+
+    releaseWakeLock();
+
+
+    alert(
+        "🔴 실시간 추적 종료"
+    );
+
+}
+
+
+/* =========================================================
+   WAKE LOCK
+   ========================================================= */
+
+var wakeLock = null;
+
+
+async function requestWakeLock(){
+
+    try{
+
+        if(
+            "wakeLock" in navigator
+        ){
+
+            wakeLock =
+                await navigator.wakeLock
+                .request("screen");
+
+            console.log(
+                "화면 꺼짐 방지 ON"
+            );
+
+        }
+
+    }
+    catch(error){
+
+        console.log(
+            "WakeLock 오류",
+            error
+        );
+
+    }
+
+}
+
+
+async function releaseWakeLock(){
+
+    try{
+
+        if(wakeLock){
+
+            await wakeLock.release();
+
+            wakeLock = null;
+
+        }
+
+    }
+    catch(error){
+
+        console.log(error);
+
+    }
+
+}
+
+
+document.addEventListener(
+
+    "visibilitychange",
+
+    function(){
+
+        if(
+            document.visibilityState ===
+            "visible" &&
+            trackingId !== null
+        ){
+
+            requestWakeLock();
+
+        }
+
+    }
+
+);
 
 
 /* =========================================================
@@ -1953,6 +2385,8 @@ function drawServerRecordMarkers(){
 var drawingFlag = false;
 
 var clickLine = null;
+
+var moveLine = null;
 
 var dots = [];
 
@@ -1972,6 +2406,15 @@ function stopMeasure(){
 
     drawingFlag = false;
 
+
+    if(moveLine){
+
+        moveLine.setMap(null);
+
+        moveLine = null;
+
+    }
+
 }
 
 
@@ -1985,6 +2428,15 @@ function resetMeasure(){
         clickLine.setMap(null);
 
         clickLine = null;
+
+    }
+
+
+    if(moveLine){
+
+        moveLine.setMap(null);
+
+        moveLine = null;
 
     }
 
@@ -2004,7 +2456,7 @@ function resetMeasure(){
 
 
 /* =========================================================
-   MAP CLICK FOR MEASURE
+   MAP CLICK - DISTANCE
    ========================================================= */
 
 kakao.maps.event.addListener(
@@ -2139,221 +2591,24 @@ function addDot(
 
 
 /* =========================================================
-   STATUS
+   INITIAL LOAD
    ========================================================= */
-
-function setStatus(text){
-
-    document
-        .getElementById("status")
-        .textContent = text;
-
-}
-
-
-/* =========================================================
-   REALTIME TRACKING
-   ========================================================= */
-
-var trackingId = null;
-
-var wakeLock = null;
-
-
-function startTracking(){
-
-    if(trackingId !== null){
-
-        alert(
-            "이미 실시간 추적 중입니다."
-        );
-
-        return;
-
-    }
-
-
-    if(!navigator.geolocation){
-
-        alert(
-            "GPS를 사용할 수 없습니다."
-        );
-
-        return;
-
-    }
-
-
-    requestWakeLock();
-
-
-    trackingId =
-        navigator.geolocation.watchPosition(
-
-            function(position){
-
-                saveAndDisplay(
-
-                    position.coords.latitude,
-
-                    position.coords.longitude,
-
-                    position.coords.accuracy
-
-                );
-
-
-                setStatus(
-                    "🟢 실시간 추적 중"
-                );
-
-            },
-
-            function(error){
-
-                console.log(
-                    "GPS ERROR",
-                    error
-                );
-
-                setStatus(
-                    "⚠️ GPS 오류"
-                );
-
-            },
-
-            {
-
-                enableHighAccuracy:true,
-
-                maximumAge:1000,
-
-                timeout:15000
-
-            }
-
-        );
-
-
-    alert(
-        "🟢 실시간 추적 시작"
-    );
-
-}
-
-
-function stopTracking(){
-
-    if(trackingId !== null){
-
-        navigator.geolocation
-            .clearWatch(
-                trackingId
-            );
-
-        trackingId = null;
-
-    }
-
-
-    releaseWakeLock();
-
-
-    setStatus(
-        "🔴 실시간 추적 종료"
-    );
-
-
-    alert(
-        "🔴 실시간 추적 종료"
-    );
-
-}
-
-
-/* =========================================================
-   WAKE LOCK
-   ========================================================= */
-
-async function requestWakeLock(){
-
-    try{
-
-        if("wakeLock" in navigator){
-
-            wakeLock =
-                await navigator.wakeLock
-                    .request("screen");
-
-        }
-
-    }
-    catch(error){
-
-        console.log(
-            "WakeLock 오류",
-            error
-        );
-
-    }
-
-}
-
-
-async function releaseWakeLock(){
-
-    try{
-
-        if(wakeLock){
-
-            await wakeLock.release();
-
-            wakeLock = null;
-
-        }
-
-    }
-    catch(error){
-
-        console.log(error);
-
-    }
-
-}
-
-
-document.addEventListener(
-
-    "visibilitychange",
-
-    function(){
-
-        if(
-            document.visibilityState ===
-            "visible" &&
-            trackingId !== null
-        ){
-
-            requestWakeLock();
-
-        }
-
-    }
-
-);
-
-
-/* =========================================================
-   INITIALIZE
-   ========================================================= */
-
-window.currentAccuracy = 0;
 
 redrawRecordMarkers();
 
 renderRecordList();
 
-loadServerRecords();
+
+/*
+ * 처음부터 모든 구역 OFF
+ */
+
+updateZoneButton("high");
+
+updateZoneButton("middle");
+
+updateZoneButton("low");
+
 
 </script>
 
