@@ -10,7 +10,9 @@ initial-scale=1.0,
 maximum-scale=1.0,
 user-scalable=no">
 
-<title>🛰 SEARCH AND RESCUE AI MAP</title>
+<title>
+🛰 SEARCH AND RESCUE AI MAP
+</title>
 
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
 
@@ -42,7 +44,9 @@ header {
     top: 0;
     left: 0;
     right: 0;
+
     height: 52px;
+
     z-index: 1000;
 
     display: flex;
@@ -61,6 +65,7 @@ header {
         rgba(0,255,157,.35);
 
     color: #00ff9d;
+
     font-size: 14px;
     font-weight: bold;
     letter-spacing: 1px;
@@ -73,10 +78,12 @@ header::after {
     content: "● ONLINE";
 
     position: absolute;
+
     right: 12px;
     bottom: 8px;
 
     font-size: 9px;
+
     color: #00ff9d;
     opacity: .75;
 }
@@ -95,6 +102,7 @@ header::after {
 
 #map {
     position: absolute;
+
     inset: 0;
 
     width: 100%;
@@ -342,6 +350,11 @@ button[onclick="loadAllHistory()"] {
         );
 }
 
+
+/* =========================================================
+   NAME LABEL
+========================================================= */
+
 .name-label {
     background:
         rgba(0,20,16,.94);
@@ -371,13 +384,19 @@ button[onclick="loadAllHistory()"] {
 
 /* =========================================================
    CLICK COORDINATE WINDOW
-   ========================================================= */
+========================================================= */
 
 .coordinate-window {
 
+    position: relative;
+
     min-width: 205px;
 
-    padding: 12px;
+    padding:
+        38px
+        12px
+        12px
+        12px;
 
     background:
         rgba(4,14,27,.97);
@@ -400,26 +419,73 @@ button[onclick="loadAllHistory()"] {
         0 5px 25px
         rgba(0,0,0,.6);
 
-    position: relative;
+    backdrop-filter:
+        blur(8px);
+
+    -webkit-backdrop-filter:
+        blur(8px);
 
 }
 
 
 /* =========================================================
-   COORDINATE HEADER
-   ========================================================= */
+   COORDINATE CLOSE BUTTON
+========================================================= */
 
-.coordinate-header {
+.coordinate-close {
 
-    display: flex;
+    position: absolute;
 
-    align-items: center;
+    top: 6px;
+    right: 7px;
 
-    justify-content: space-between;
+    width: 30px;
+    height: 30px;
 
-    margin-bottom: 5px;
+    min-height: 30px;
+
+    padding: 0;
+
+    border:
+        1px solid
+        rgba(255,80,80,.7);
+
+    border-radius: 7px;
+
+    background:
+        rgba(80,10,15,.95);
+
+    color: #ff6666;
+
+    font-family: monospace;
+
+    font-size: 17px;
+
+    font-weight: bold;
+
+    line-height: 28px;
+
+    text-align: center;
+
+    cursor: pointer;
+
+    z-index: 999999;
 
 }
+
+.coordinate-close:active {
+
+    transform: scale(.9);
+
+    background:
+        rgba(255,50,50,.3);
+
+}
+
+
+/* =========================================================
+   COORDINATE TITLE
+========================================================= */
 
 .coordinate-title {
 
@@ -429,71 +495,14 @@ button[onclick="loadAllHistory()"] {
 
     font-weight: bold;
 
+    margin-bottom: 5px;
+
 }
 
 
 /* =========================================================
-   ✕ CLOSE BUTTON
-   ========================================================= */
-
-.coordinate-close {
-
-    width: 30px !important;
-
-    min-width: 30px !important;
-
-    height: 30px !important;
-
-    min-height: 30px !important;
-
-    padding: 0 !important;
-
-    margin: 0 !important;
-
-    border:
-        1px solid
-        rgba(255,90,90,.75) !important;
-
-    border-radius: 7px !important;
-
-    background:
-        rgba(80,10,15,.95) !important;
-
-    color: #ff6666 !important;
-
-    font-family: monospace !important;
-
-    font-size: 17px !important;
-
-    font-weight: bold !important;
-
-    line-height: 28px !important;
-
-    text-align: center;
-
-    cursor: pointer;
-
-    box-shadow:
-        0 0 8px
-        rgba(255,0,0,.12);
-
-}
-
-.coordinate-close:active {
-
-    transform: scale(.88);
-
-    background:
-        rgba(255,50,50,.3) !important;
-
-    color: #ffffff !important;
-
-    box-shadow:
-        0 0 15px
-        rgba(255,0,0,.4);
-
-}
-
+   COORDINATE VALUE
+========================================================= */
 
 .coordinate-value {
 
@@ -502,6 +511,11 @@ button[onclick="loadAllHistory()"] {
     word-break: break-all;
 
 }
+
+
+/* =========================================================
+   COPY BUTTON
+========================================================= */
 
 .coordinate-copy {
 
@@ -528,12 +542,21 @@ button[onclick="loadAllHistory()"] {
 
     font-size: 11px;
 
+    cursor: pointer;
+
+}
+
+.coordinate-copy:active {
+
+    background:
+        rgba(0,255,157,.2);
+
 }
 
 
 /* =========================================================
    CLICK MARKER
-   ========================================================= */
+========================================================= */
 
 .coordinate-marker {
 
@@ -551,18 +574,21 @@ button[onclick="loadAllHistory()"] {
         #ff4444;
 
     box-shadow:
+
         0 0 0 5px
         rgba(255,40,40,.15),
 
         0 0 20px
         rgba(255,0,0,.8);
 
+    cursor: pointer;
+
 }
 
 
 /* =========================================================
    MOBILE
-   ========================================================= */
+========================================================= */
 
 @media (max-width:380px) {
 
@@ -667,64 +693,93 @@ and
 
 </head>
 
+
 <body>
 
+
 <header>
+
 🛰 SEARCH AND RESCUE AI MAP
+
 </header>
+
 
 <div id="container">
 
+
 <div id="panel">
+
 
 <input
     id="name"
     placeholder="RESCUE ID"
 >
 
+
 <button
     id="startBtn"
     onclick="start()"
     disabled
 >
+
 START
+
 </button>
+
 
 <button
     onclick="goMyLocation()"
 >
+
 📍 MY LOCATION
+
 </button>
+
 
 <button
     onclick="shareLocation()"
 >
+
 📡 위치 공유
+
 </button>
+
 
 <button
     onclick="sendSOS()"
 >
+
 🚨 SOS
+
 </button>
+
 
 <button
     onclick="stopTracking()"
 >
+
 ⛔ STOP
+
 </button>
+
 
 <button
     onclick="loadAllHistory()"
 >
+
 📦 전체 기록
+
 </button>
 
+
 </div>
+
 
 <div id="map"></div>
 
+
 </div>
+
 
 <script>
 
@@ -734,7 +789,9 @@ START
 // =========================================================
 
 const API_URL =
+
 "https://script.google.com/macros/s/AKfycbyem5fAs2XGxNy6wrHO3s68CmJyHy7GI31IBKdiz49KtN3sfikYdfmpP07-3dWqna2R/exec";
+
 
 
 // =========================================================
@@ -742,7 +799,11 @@ const API_URL =
 // =========================================================
 
 let DEVICE_ID =
-localStorage.getItem("DEVICE_ID");
+
+localStorage.getItem(
+    "DEVICE_ID"
+);
+
 
 if(!DEVICE_ID){
 
@@ -755,6 +816,7 @@ if(!DEVICE_ID){
     );
 
 }
+
 
 
 // =========================================================
@@ -813,10 +875,18 @@ let clickOverlay = null;
 // =========================================================
 
 const nameInput =
-document.getElementById("name");
+
+    document.getElementById(
+        "name"
+    );
+
 
 const startBtn =
-document.getElementById("startBtn");
+
+    document.getElementById(
+        "startBtn"
+    );
+
 
 
 // =========================================================
@@ -824,14 +894,19 @@ document.getElementById("startBtn");
 // =========================================================
 
 nameInput.addEventListener(
+
     "input",
+
     () => {
 
         startBtn.disabled =
+
             nameInput.value.trim() === "";
 
     }
+
 );
+
 
 
 // =========================================================
@@ -845,28 +920,43 @@ function getNowTime(){
     return (
 
         d.getFullYear()
+
         + "-"
+
         +
+
         String(
             d.getMonth() + 1
         ).padStart(2,"0")
+
         + "-"
+
         +
+
         String(
             d.getDate()
         ).padStart(2,"0")
+
         + " "
+
         +
+
         String(
             d.getHours()
         ).padStart(2,"0")
+
         + ":"
+
         +
+
         String(
             d.getMinutes()
         ).padStart(2,"0")
+
         + ":"
+
         +
+
         String(
             d.getSeconds()
         ).padStart(2,"0")
@@ -876,11 +966,13 @@ function getNowTime(){
 }
 
 
+
 // =========================================================
 // MAP
 // =========================================================
 
 const map =
+
 new kakao.maps.Map(
 
     document.getElementById("map"),
@@ -888,6 +980,7 @@ new kakao.maps.Map(
     {
 
         center:
+
             new kakao.maps.LatLng(
                 35.1239,
                 126.9883
@@ -901,12 +994,12 @@ new kakao.maps.Map(
 
 
 // =========================================================
-// CLOSE CLICK COORDINATE
+// CLOSE CLICK LOCATION
+// 정보창 + 빨간 마커 동시 제거
 // =========================================================
 
-function closeCoordinateWindow(){
+function closeClickLocation(){
 
-    // 좌표 정보창 제거
     if(clickOverlay){
 
         clickOverlay.setMap(null);
@@ -915,7 +1008,7 @@ function closeCoordinateWindow(){
 
     }
 
-    // 좌표 마커 제거
+
     if(clickMarker){
 
         clickMarker.setMap(null);
@@ -942,31 +1035,42 @@ kakao.maps.event.addListener(
         const lat =
             mouseEvent.latLng.getLat();
 
+
         const lng =
             mouseEvent.latLng.getLng();
 
+
         const latText =
             lat.toFixed(6);
+
 
         const lngText =
             lng.toFixed(6);
 
 
-        // -------------------------------------------------
-        // 기존 좌표창 전체 제거
-        // -------------------------------------------------
+        // 기존 좌표창 + 마커 제거
 
-        closeCoordinateWindow();
+        closeClickLocation();
 
 
         // -------------------------------------------------
-        // 좌표 마커
+        // 빨간 좌표 마커
         // -------------------------------------------------
 
         const markerContent =
-            `<div class="coordinate-marker"></div>`;
+
+            `<div
+                class="coordinate-marker"
+                onclick="
+                    event.preventDefault();
+                    event.stopPropagation();
+                    return false;
+                "
+            ></div>`;
+
 
         clickMarker =
+
             new kakao.maps.CustomOverlay({
 
                 map:
@@ -994,26 +1098,44 @@ kakao.maps.event.addListener(
         // 좌표 정보
         // -------------------------------------------------
 
+        const coordinateText =
+            `${latText}, ${lngText}`;
+
+
+        // -------------------------------------------------
+        // 정보창
+        // -------------------------------------------------
+
         const infoContent =
 
-            `<div class="coordinate-window">
+            `<div
+                class="coordinate-window"
+                onclick="
+                    event.preventDefault();
+                    event.stopPropagation();
+                "
+            >
 
-                <div class="coordinate-header">
+                <button
+                    type="button"
+                    class="coordinate-close"
+                    onclick="
+                        event.preventDefault();
+                        event.stopPropagation();
+                        closeClickLocation();
+                        return false;
+                    "
+                >
+                    ✕
+                </button>
 
-                    <div class="coordinate-title">
-                        📍 SELECTED LOCATION
-                    </div>
 
-                    <button
-                        type="button"
-                        class="coordinate-close"
-                        onclick="closeCoordinateWindow()"
-                        aria-label="닫기"
-                    >
-                        ✕
-                    </button>
+                <div class="coordinate-title">
+
+                    📍 SELECTED LOCATION
 
                 </div>
+
 
                 <div class="coordinate-value">
 
@@ -1027,23 +1149,30 @@ kakao.maps.event.addListener(
 
                 </div>
 
+
                 <button
                     type="button"
                     class="coordinate-copy"
                     onclick="
+                        event.preventDefault();
+                        event.stopPropagation();
                         copyCoordinate(
                             '${latText}',
                             '${lngText}'
-                        )
+                        );
+                        return false;
                     "
                 >
+
                     📋 클릭위치 좌표확인
+
                 </button>
 
             </div>`;
 
 
         clickOverlay =
+
             new kakao.maps.CustomOverlay({
 
                 map:
@@ -1084,12 +1213,12 @@ async function copyCoordinate(lat, lng){
 
 
     // -------------------------------------------------
-    // 1. Clipboard API
+    // Clipboard API
     // -------------------------------------------------
 
     try {
 
-        if (
+        if(
             navigator.clipboard &&
             window.isSecureContext
         ){
@@ -1103,6 +1232,7 @@ async function copyCoordinate(lat, lng){
         }
 
     }
+
     catch(error){
 
         console.log(
@@ -1114,7 +1244,7 @@ async function copyCoordinate(lat, lng){
 
 
     // -------------------------------------------------
-    // 2. 모바일 fallback
+    // 모바일 fallback
     // -------------------------------------------------
 
     if(!success){
@@ -1122,10 +1252,14 @@ async function copyCoordinate(lat, lng){
         try {
 
             const textarea =
-                document.createElement("textarea");
+                document.createElement(
+                    "textarea"
+                );
+
 
             textarea.value =
                 text;
+
 
             textarea.style.position =
                 "fixed";
@@ -1136,32 +1270,41 @@ async function copyCoordinate(lat, lng){
             textarea.style.top =
                 "0";
 
+
             textarea.setAttribute(
                 "readonly",
                 ""
             );
 
+
             document.body.appendChild(
                 textarea
             );
 
+
             textarea.focus();
 
             textarea.select();
+
 
             textarea.setSelectionRange(
                 0,
                 textarea.value.length
             );
 
+
             success =
-                document.execCommand("copy");
+                document.execCommand(
+                    "copy"
+                );
+
 
             document.body.removeChild(
                 textarea
             );
 
         }
+
         catch(error){
 
             console.log(
@@ -1175,7 +1318,7 @@ async function copyCoordinate(lat, lng){
 
 
     // -------------------------------------------------
-    // 성공
+    // 복사 성공
     // -------------------------------------------------
 
     if(success){
@@ -1186,11 +1329,11 @@ async function copyCoordinate(lat, lng){
         );
 
 
-        // 복사 후 좌표창 전체 닫기
-        closeCoordinateWindow();
+        closeClickLocation();
 
 
         showCopyMessage();
+
 
         return;
 
@@ -1198,16 +1341,21 @@ async function copyCoordinate(lat, lng){
 
 
     // -------------------------------------------------
-    // 실패
+    // 복사 실패
     // -------------------------------------------------
 
     alert(
+
         "좌표 복사에 실패했습니다.\n\n" +
+
         "좌표:\n" +
+
         text
+
     );
 
 }
+
 
 
 // =========================================================
@@ -1217,52 +1365,70 @@ async function copyCoordinate(lat, lng){
 function showCopyMessage(){
 
     const message =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
+
 
     message.textContent =
         "📋 좌표 복사 완료";
 
+
     message.style.position =
         "fixed";
+
 
     message.style.left =
         "50%";
 
+
     message.style.bottom =
         "120px";
+
 
     message.style.transform =
         "translateX(-50%)";
 
+
     message.style.zIndex =
         "99999";
+
 
     message.style.padding =
         "10px 18px";
 
+
     message.style.border =
         "1px solid #00ff9d";
+
 
     message.style.borderRadius =
         "10px";
 
+
     message.style.background =
         "rgba(4,14,27,.95)";
+
 
     message.style.color =
         "#00ff9d";
 
+
     message.style.fontFamily =
         "monospace";
+
 
     message.style.fontSize =
         "13px";
 
+
     message.style.fontWeight =
         "bold";
 
+
     message.style.boxShadow =
         "0 0 20px rgba(0,255,157,.25)";
+
 
     document.body.appendChild(
         message
@@ -1270,13 +1436,19 @@ function showCopyMessage(){
 
 
     setTimeout(
+
         () => {
+
             message.remove();
+
         },
+
         1200
+
     );
 
 }
+
 
 
 // =========================================================
@@ -1299,21 +1471,30 @@ async function requestWakeLock(){
 
         }
 
+
         if(wakeLock){
+
             return;
+
         }
 
+
         wakeLock =
+
             await navigator.wakeLock.request(
                 "screen"
             );
+
 
         console.log(
             "🔒 화면 꺼짐 방지 ON"
         );
 
+
         wakeLock.addEventListener(
+
             "release",
+
             () => {
 
                 console.log(
@@ -1323,9 +1504,11 @@ async function requestWakeLock(){
                 wakeLock = null;
 
             }
+
         );
 
     }
+
     catch(error){
 
         console.log(
@@ -1336,6 +1519,7 @@ async function requestWakeLock(){
     }
 
 }
+
 
 
 // =========================================================
@@ -1359,6 +1543,7 @@ async function releaseWakeLock(){
         }
 
     }
+
     catch(error){
 
         console.log(
@@ -1369,6 +1554,7 @@ async function releaseWakeLock(){
     }
 
 }
+
 
 
 // =========================================================
@@ -1390,6 +1576,7 @@ document.addEventListener(
 
                 await requestWakeLock();
 
+
                 if(lastPos){
 
                     map.setCenter(
@@ -1397,6 +1584,7 @@ document.addEventListener(
                         new kakao.maps.LatLng(
 
                             lastPos.lat,
+
                             lastPos.lng
 
                         )
@@ -1412,6 +1600,7 @@ document.addEventListener(
     }
 
 );
+
 
 
 // =========================================================
@@ -1432,10 +1621,12 @@ function loadNationalParks(){
         data => {
 
             data.features.forEach(
+
                 feature => {
 
                     const geometry =
                         feature.geometry;
+
 
                     if(
                         geometry.type ===
@@ -1449,12 +1640,15 @@ function loadNationalParks(){
 
                     }
 
+
                     if(
                         geometry.type ===
                         "MultiPolygon"
                     ){
 
-                        geometry.coordinates.forEach(
+                        geometry.coordinates
+                        .forEach(
+
                             poly => {
 
                                 drawPark(
@@ -1463,17 +1657,21 @@ function loadNationalParks(){
                                 );
 
                             }
+
                         );
 
                     }
 
                 }
+
             );
 
         }
+
     )
 
     .catch(
+
         e => {
 
             console.log(
@@ -1482,9 +1680,11 @@ function loadNationalParks(){
             );
 
         }
+
     );
 
 }
+
 
 
 // =========================================================
@@ -1497,15 +1697,21 @@ function drawPark(
 ){
 
     const path =
+
         coords.map(
+
             c =>
+
                 new kakao.maps.LatLng(
                     c[1],
                     c[0]
                 )
+
         );
 
+
     const polygon =
+
         new kakao.maps.Polygon({
 
             map:
@@ -1541,7 +1747,9 @@ function drawPark(
         function(e){
 
             const name =
+
                 feature.properties.name ||
+
                 "국립공원";
 
 
@@ -1575,15 +1783,19 @@ function drawPark(
 
 
             const iw =
+
                 new kakao.maps.InfoWindow({
+
                     content:
                         info
+
                 });
 
 
             iw.setPosition(
                 e.latLng
             );
+
 
             iw.open(
                 map
@@ -1597,6 +1809,7 @@ function drawPark(
 
 
 loadNationalParks();
+
 
 
 // =========================================================
@@ -1640,6 +1853,7 @@ async function start(){
     nameInput.disabled =
         true;
 
+
     startBtn.disabled =
         true;
 
@@ -1648,6 +1862,7 @@ async function start(){
 
 
     watchId =
+
         navigator.geolocation.watchPosition(
 
             pos => {
@@ -1681,8 +1896,11 @@ async function start(){
                 map.setCenter(
 
                     new kakao.maps.LatLng(
+
                         lastPos.lat,
+
                         lastPos.lng
+
                     )
 
                 );
@@ -1696,6 +1914,7 @@ async function start(){
                     "GPS ERROR",
                     err
                 );
+
 
                 alert(
                     "GPS 오류: " +
@@ -1722,26 +1941,36 @@ async function start(){
 
 
     intervalSend =
+
         setInterval(
+
             sendData,
+
             5000
+
         );
 
 
     intervalLoad =
+
         setInterval(
+
             loadLive,
+
             3000
+
         );
 
 
     startMobileCenter();
+
 
     sendData();
 
     loadLive();
 
 }
+
 
 
 // =========================================================
@@ -1764,11 +1993,14 @@ function sendData(){
                 "POST",
 
             headers: {
+
                 "Content-Type":
                     "text/plain"
+
             },
 
             body:
+
                 JSON.stringify({
 
                     ...lastPos,
@@ -1786,6 +2018,7 @@ function sendData(){
     )
 
     .then(
+
         () => {
 
             console.log(
@@ -1794,9 +2027,11 @@ function sendData(){
             );
 
         }
+
     )
 
     .catch(
+
         err => {
 
             console.log(
@@ -1805,9 +2040,11 @@ function sendData(){
             );
 
         }
+
     );
 
 }
+
 
 
 // =========================================================
@@ -1819,7 +2056,9 @@ function loadLive(){
     fetch(
 
         API_URL +
+
         "?live=1&t=" +
+
         Date.now()
 
     )
@@ -1829,14 +2068,17 @@ function loadLive(){
     )
 
     .then(
+
         data => {
 
             renderLive(data);
 
         }
+
     )
 
     .catch(
+
         err => {
 
             console.log(
@@ -1845,9 +2087,11 @@ function loadLive(){
             );
 
         }
+
     );
 
 }
+
 
 
 // =========================================================
@@ -1860,21 +2104,25 @@ function renderLive(data){
 
 
     data.forEach(
+
         p => {
 
             latest[p.name] =
                 p;
 
         }
+
     );
 
 
     Object.values(latest)
     .forEach(
+
         p => {
 
             const lat =
                 Number(p.lat);
+
 
             const lng =
                 Number(p.lng);
@@ -1892,6 +2140,7 @@ function renderLive(data){
 
 
             const position =
+
                 new kakao.maps.LatLng(
                     lat,
                     lng
@@ -1901,6 +2150,7 @@ function renderLive(data){
             if(!markers[key]){
 
                 markers[key] =
+
                     new kakao.maps.Marker({
 
                         map:
@@ -1913,6 +2163,7 @@ function renderLive(data){
 
 
                 labels[key] =
+
                     new kakao.maps.CustomOverlay({
 
                         map:
@@ -1924,7 +2175,9 @@ function renderLive(data){
                         content:
 
                             `<div class="name-label">
+
                                 🛰 ${p.name}
+
                             </div>`,
 
                         yAnchor:
@@ -1940,6 +2193,7 @@ function renderLive(data){
                     .setPosition(
                         position
                     );
+
 
                 labels[key]
                     .setPosition(
@@ -1994,9 +2248,11 @@ function renderLive(data){
             }
 
         }
+
     );
 
 }
+
 
 
 // =========================================================
@@ -2019,13 +2275,17 @@ function goMyLocation(){
     map.setCenter(
 
         new kakao.maps.LatLng(
+
             lastPos.lat,
+
             lastPos.lng
+
         )
 
     );
 
 }
+
 
 
 // =========================================================
@@ -2071,8 +2331,10 @@ function sendSOS(){
                 "POST",
 
             headers: {
+
                 "Content-Type":
                     "text/plain"
+
             },
 
             body:
@@ -2081,7 +2343,9 @@ function sendSOS(){
         }
 
     )
+
     .then(
+
         () => {
 
             console.log(
@@ -2089,8 +2353,11 @@ function sendSOS(){
             );
 
         }
+
     )
+
     .catch(
+
         err => {
 
             console.log(
@@ -2099,6 +2366,7 @@ function sendSOS(){
             );
 
         }
+
     );
 
 
@@ -2107,6 +2375,7 @@ function sendSOS(){
     );
 
 }
+
 
 
 // =========================================================
@@ -2127,6 +2396,7 @@ function shareLocation(){
 
 
     const mapURL =
+
         `https://map.kakao.com/link/map/${lastPos.lat},${lastPos.lng}`;
 
 
@@ -2157,8 +2427,10 @@ ${mapURL}`;
                 "POST",
 
             headers: {
+
                 "Content-Type":
                     "text/plain"
+
             },
 
             body:
@@ -2190,6 +2462,7 @@ ${mapURL}`;
                 message
 
         })
+
         .catch(
             console.log
         );
@@ -2208,6 +2481,7 @@ ${mapURL}`;
 }
 
 
+
 // =========================================================
 // MOBILE AUTO CENTER
 // =========================================================
@@ -2219,6 +2493,7 @@ function startMobileCenter(){
 
 
     centerInterval =
+
         setInterval(
 
             () => {
@@ -2228,8 +2503,11 @@ function startMobileCenter(){
                     map.setCenter(
 
                         new kakao.maps.LatLng(
+
                             lastPos.lat,
+
                             lastPos.lng
+
                         )
 
                     );
@@ -2243,6 +2521,7 @@ function startMobileCenter(){
         );
 
 }
+
 
 
 // =========================================================
@@ -2267,8 +2546,10 @@ async function stopTracking(){
                     "POST",
 
                 headers: {
+
                     "Content-Type":
                         "text/plain"
+
                 },
 
                 body:
@@ -2345,41 +2626,64 @@ async function stopTracking(){
 
     Object.values(markers)
     .forEach(
+
         marker => {
+
             marker.setMap(null);
+
         }
+
     );
 
 
     Object.keys(markers)
     .forEach(
+
         k => {
+
             delete markers[k];
+
         }
+
     );
 
 
     Object.values(labels)
     .forEach(
+
         label => {
+
             label.setMap(null);
+
         }
+
     );
 
 
     Object.keys(labels)
     .forEach(
+
         k => {
+
             delete labels[k];
+
         }
+
     );
+
+
+    // 좌표창도 같이 정리
+
+    closeClickLocation();
 
 
     nameInput.disabled =
         false;
 
+
     nameInput.value =
         "";
+
 
     startBtn.disabled =
         true;
@@ -2390,6 +2694,7 @@ async function stopTracking(){
     );
 
 }
+
 
 
 // =========================================================
@@ -2404,7 +2709,9 @@ function loadAllHistory(){
     fetch(
 
         API_URL +
+
         "?history=all&t=" +
+
         Date.now()
 
     )
@@ -2414,14 +2721,17 @@ function loadAllHistory(){
     )
 
     .then(
+
         data => {
 
             showHistory(data);
 
         }
+
     )
 
     .catch(
+
         err => {
 
             console.log(
@@ -2430,9 +2740,11 @@ function loadAllHistory(){
             );
 
         }
+
     );
 
 }
+
 
 
 // =========================================================
@@ -2443,34 +2755,50 @@ function clearHistory(){
 
     historyMarkers
     .forEach(
+
         m => {
+
             m.setMap(null);
+
         }
+
     );
+
 
     historyMarkers.length = 0;
 
 
     historyLines
     .forEach(
+
         line => {
+
             line.setMap(null);
+
         }
+
     );
+
 
     historyLines.length = 0;
 
 
     historyLabels
     .forEach(
+
         label => {
+
             label.setMap(null);
+
         }
+
     );
+
 
     historyLabels.length = 0;
 
 }
+
 
 
 // =========================================================
@@ -2483,6 +2811,7 @@ function showHistory(data){
 
 
     data.sort(
+
         (a,b) => {
 
             return new Date(a.time)
@@ -2490,14 +2819,17 @@ function showHistory(data){
                 new Date(b.time);
 
         }
+
     );
 
 
     data.forEach(
+
         d => {
 
             const lat =
                 Number(d.lat);
+
 
             const lng =
                 Number(d.lng);
@@ -2520,17 +2852,22 @@ function showHistory(data){
             grouped[d.name].push(
 
                 new kakao.maps.LatLng(
+
                     lat,
+
                     lng
+
                 )
 
             );
 
         }
+
     );
 
 
     let bounds =
+
         new kakao.maps.LatLngBounds();
 
 
@@ -2549,13 +2886,18 @@ function showHistory(data){
 
 
         path.forEach(
+
             p => {
+
                 bounds.extend(p);
+
             }
+
         );
 
 
         const line =
+
             new kakao.maps.Polyline({
 
                 map:
@@ -2582,6 +2924,7 @@ function showHistory(data){
 
 
         const startMarker =
+
             new kakao.maps.Marker({
 
                 map:
@@ -2599,6 +2942,7 @@ function showHistory(data){
 
 
         const endMarker =
+
             new kakao.maps.Marker({
 
                 map:
@@ -2616,6 +2960,7 @@ function showHistory(data){
 
 
         const startLabel =
+
             new kakao.maps.CustomOverlay({
 
                 map:
@@ -2627,7 +2972,9 @@ function showHistory(data){
                 content:
 
                     `<div class="name-label">
+
                         🟢 START ${name}
+
                     </div>`,
 
                 yAnchor:
@@ -2642,6 +2989,7 @@ function showHistory(data){
 
 
         const endLabel =
+
             new kakao.maps.CustomOverlay({
 
                 map:
@@ -2653,7 +3001,9 @@ function showHistory(data){
                 content:
 
                     `<div class="name-label">
+
                         🔴 END ${name}
+
                     </div>`,
 
                 yAnchor:
@@ -2682,6 +3032,7 @@ function showHistory(data){
 }
 
 
+
 // =========================================================
 // INITIAL LIVE LOAD
 // =========================================================
@@ -2694,6 +3045,7 @@ loadLive();
 // =========================================================
 
 startMobileCenter();
+
 
 </script>
 
