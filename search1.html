@@ -940,6 +940,10 @@ circleData.forEach(function(data){
         map.panTo(position);
 
 
+        /* =====================================================
+           좌표 복사 버튼이 포함된 팝업
+           ===================================================== */
+
         var content = `
 
             <div style="
@@ -947,15 +951,51 @@ circleData.forEach(function(data){
                 font-size:13px;
                 color:#000;
                 line-height:1.6;
+                min-width:190px;
             ">
 
-                <strong>${escapeHTML(data.name)}</strong><br>
+                <strong>
+                    ${escapeHTML(data.name)}
+                </strong>
 
-                위도 : ${data.lat}<br>
+                <br>
 
-                경도 : ${data.lng}<br>
+                위도 :
+                ${data.lat}
 
-                반경 : ${data.radius}m
+                <br>
+
+                경도 :
+                ${data.lng}
+
+                <br>
+
+                반경 :
+                ${data.radius}m
+
+                <br><br>
+
+                <button
+                    onclick="
+                        copyCoordinates(
+                            ${data.lat},
+                            ${data.lng}
+                        )
+                    "
+                    style="
+                        width:100%;
+                        padding:9px 8px;
+                        border:0;
+                        border-radius:6px;
+                        background:#2563eb;
+                        color:#fff;
+                        font-size:12px;
+                        font-weight:bold;
+                        cursor:pointer;
+                    "
+                >
+                    📋 좌표 복사
+                </button>
 
             </div>
 
@@ -1700,6 +1740,161 @@ function escapeHTML(text){
         .replace(/"/g,"&quot;")
 
         .replace(/'/g,"&#039;");
+
+}
+
+
+/* =========================================================
+   COORDINATE COPY
+   ========================================================= */
+
+function copyCoordinates(lat, lng){
+
+    var coordinate =
+        Number(lat).toFixed(6) +
+        ", " +
+        Number(lng).toFixed(6);
+
+
+    function copySuccess(){
+
+        setStatus(
+            "📋 좌표 복사 완료"
+        );
+
+        /*
+         * 좌표 복사 완료 후
+         * 카카오맵 팝업 자동 닫기
+         */
+
+        infowindow.close();
+
+    }
+
+
+    /*
+     * 최신 브라우저
+     */
+
+    if(
+        navigator.clipboard &&
+        window.isSecureContext
+    ){
+
+        navigator.clipboard
+            .writeText(coordinate)
+
+            .then(function(){
+
+                copySuccess();
+
+            })
+
+            .catch(function(){
+
+                fallbackCopyCoordinates(
+                    coordinate
+                );
+
+            });
+
+    }
+
+    /*
+     * 모바일/구형 브라우저 대응
+     */
+
+    else{
+
+        fallbackCopyCoordinates(
+            coordinate
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   CLIPBOARD FALLBACK
+   ========================================================= */
+
+function fallbackCopyCoordinates(text){
+
+    var textarea =
+        document.createElement("textarea");
+
+
+    textarea.value = text;
+
+
+    textarea.style.position =
+        "fixed";
+
+    textarea.style.left =
+        "-9999px";
+
+
+    textarea.style.top =
+        "0";
+
+
+    document.body.appendChild(
+        textarea
+    );
+
+
+    textarea.focus();
+
+    textarea.select();
+
+
+    try{
+
+        var success =
+            document.execCommand("copy");
+
+
+        if(success){
+
+            setStatus(
+                "📋 좌표 복사 완료"
+            );
+
+
+            /*
+             * 복사 성공 후 팝업 닫기
+             */
+
+            infowindow.close();
+
+        }
+        else{
+
+            alert(
+                "좌표 복사에 실패했습니다.\n\n" +
+                text
+            );
+
+        }
+
+    }
+    catch(error){
+
+        console.error(error);
+
+
+        alert(
+            "좌표 복사에 실패했습니다.\n\n" +
+            text
+        );
+
+    }
+
+
+    document.body.removeChild(
+        textarea
+    );
 
 }
 
