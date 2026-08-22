@@ -10,9 +10,7 @@ initial-scale=1.0,
 maximum-scale=1.0,
 user-scalable=no">
 
-<title>
-🛰 SEARCH AND RESCUE AI MAP
-</title>
+<title>🛰 SEARCH AND RESCUE AI MAP</title>
 
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
 
@@ -38,6 +36,11 @@ body {
     font-family: monospace;
     overscroll-behavior: none;
 }
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
 
 header {
     position: fixed;
@@ -88,6 +91,11 @@ header::after {
     opacity: .75;
 }
 
+
+/* =========================================================
+   MAP CONTAINER
+   ========================================================= */
+
 #container {
     position: fixed;
 
@@ -110,6 +118,11 @@ header::after {
 
     background: #06101d;
 }
+
+
+/* =========================================================
+   CONTROL PANEL
+   ========================================================= */
 
 #panel {
     position: fixed;
@@ -153,6 +166,11 @@ header::after {
     -webkit-backdrop-filter: blur(14px);
 }
 
+
+/* =========================================================
+   NAME INPUT
+   ========================================================= */
+
 #name {
     grid-column: 1 / -1;
 
@@ -193,6 +211,11 @@ header::after {
         0 0 12px
         rgba(0,255,157,.25);
 }
+
+
+/* =========================================================
+   BUTTON
+   ========================================================= */
 
 button {
     min-height: 48px;
@@ -241,6 +264,11 @@ button:disabled {
     cursor: not-allowed;
 }
 
+
+/* =========================================================
+   START
+   ========================================================= */
+
 #startBtn {
     grid-column: span 2;
 
@@ -276,9 +304,19 @@ button:disabled {
     box-shadow: none;
 }
 
+
+/* =========================================================
+   MY LOCATION
+   ========================================================= */
+
 button[onclick="goMyLocation()"] {
     grid-column: span 2;
 }
+
+
+/* =========================================================
+   SHARE
+   ========================================================= */
 
 button[onclick="shareLocation()"] {
     grid-column: span 2;
@@ -295,6 +333,11 @@ button[onclick="shareLocation()"] {
             rgba(0,25,45,.95)
         );
 }
+
+
+/* =========================================================
+   SOS
+   ========================================================= */
 
 button[onclick="sendSOS()"] {
     grid-column: span 2;
@@ -325,6 +368,11 @@ button[onclick="sendSOS()"]:active {
         rgba(255,0,0,.35);
 }
 
+
+/* =========================================================
+   STOP
+   ========================================================= */
+
 button[onclick="stopTracking()"] {
     grid-column: span 2;
 
@@ -333,6 +381,11 @@ button[onclick="stopTracking()"] {
     border-color:
         rgba(255,179,71,.45);
 }
+
+
+/* =========================================================
+   HISTORY
+   ========================================================= */
 
 button[onclick="loadAllHistory()"] {
     grid-column: span 2;
@@ -349,6 +402,11 @@ button[onclick="loadAllHistory()"] {
             rgba(25,15,40,.95)
         );
 }
+
+
+/* =========================================================
+   NAME LABEL
+   ========================================================= */
 
 .name-label {
     background:
@@ -383,9 +441,11 @@ button[onclick="loadAllHistory()"] {
 
 .coordinate-window {
 
+    position: relative;
+
     min-width: 190px;
 
-    padding: 12px;
+    padding: 13px 38px 12px 12px;
 
     background:
         rgba(4,14,27,.97);
@@ -407,8 +467,81 @@ button[onclick="loadAllHistory()"] {
     box-shadow:
         0 5px 25px
         rgba(0,0,0,.6);
-
 }
+
+
+/* =========================================================
+   COORDINATE CLOSE BUTTON
+   ========================================================= */
+
+.coordinate-close {
+
+    position: absolute;
+
+    top: 5px;
+    right: 5px;
+
+    width: 28px;
+    height: 28px;
+
+    min-height: 28px;
+
+    padding: 0;
+    margin: 0;
+
+    border:
+        1px solid
+        rgba(255,80,80,.75);
+
+    border-radius: 7px;
+
+    background:
+        rgba(80,10,15,.95);
+
+    color: #ff5757;
+
+    font-family: monospace;
+
+    font-size: 16px;
+    font-weight: bold;
+
+    line-height: 25px;
+
+    text-align: center;
+
+    cursor: pointer;
+
+    z-index: 10;
+
+    box-shadow:
+        0 0 8px
+        rgba(255,0,0,.15);
+}
+
+.coordinate-close:hover {
+
+    background:
+        rgba(255,50,50,.25);
+
+    color: #ff7777;
+}
+
+.coordinate-close:active {
+
+    transform: scale(.88);
+
+    background:
+        rgba(255,50,50,.4);
+
+    box-shadow:
+        0 0 15px
+        rgba(255,0,0,.35);
+}
+
+
+/* =========================================================
+   COORDINATE TITLE
+   ========================================================= */
 
 .coordinate-title {
 
@@ -419,42 +552,18 @@ button[onclick="loadAllHistory()"] {
     font-weight: bold;
 
     margin-bottom: 5px;
-
 }
+
+
+/* =========================================================
+   COORDINATE VALUE
+   ========================================================= */
 
 .coordinate-value {
 
     color: #00ff9d;
 
     word-break: break-all;
-
-}
-
-.coordinate-copy {
-
-    width: 100%;
-
-    min-height: 36px;
-
-    margin-top: 8px;
-
-    padding: 5px;
-
-    border:
-        1px solid
-        rgba(0,255,157,.7);
-
-    border-radius: 7px;
-
-    background:
-        rgba(0,40,30,.95);
-
-    color: #00ff9d;
-
-    font-family: monospace;
-
-    font-size: 11px;
-
 }
 
 
@@ -483,7 +592,6 @@ button[onclick="loadAllHistory()"] {
 
         0 0 20px
         rgba(255,0,0,.8);
-
 }
 
 
@@ -528,7 +636,17 @@ button[onclick="loadAllHistory()"] {
         font-size: 12px;
     }
 
+    .coordinate-window {
+        min-width: 175px;
+        font-size: 11px;
+    }
+
 }
+
+
+/* =========================================================
+   LANDSCAPE
+   ========================================================= */
 
 @media
 (orientation: landscape)
@@ -567,6 +685,11 @@ and
 
 }
 
+
+/* =========================================================
+   DESKTOP
+   ========================================================= */
+
 @media (min-width:768px) {
 
     #panel {
@@ -577,6 +700,11 @@ and
     }
 
 }
+
+
+/* =========================================================
+   SAFE AREA
+   ========================================================= */
 
 @supports (padding:max(0px)) {
 
@@ -622,54 +750,42 @@ and
     onclick="start()"
     disabled
 >
-
 START
-
 </button>
 
 
 <button
     onclick="goMyLocation()"
 >
-
 📍 MY LOCATION
-
 </button>
 
 
 <button
     onclick="shareLocation()"
 >
-
 📡 위치 공유
-
 </button>
 
 
 <button
     onclick="sendSOS()"
 >
-
 🚨 SOS
-
 </button>
 
 
 <button
     onclick="stopTracking()"
 >
-
 ⛔ STOP
-
 </button>
 
 
 <button
     onclick="loadAllHistory()"
 >
-
 📦 전체 기록
-
 </button>
 
 
@@ -895,7 +1011,39 @@ new kakao.maps.Map(
 
 
 // =========================================================
+// CLEAR CLICKED LOCATION
+// 좌표창 + 빨간 좌표 마커 동시 삭제
+// =========================================================
+
+function clearClickedLocation(){
+
+    // 좌표 정보창 삭제
+
+    if(clickOverlay){
+
+        clickOverlay.setMap(null);
+
+        clickOverlay = null;
+
+    }
+
+
+    // 빨간 좌표 마커 삭제
+
+    if(clickMarker){
+
+        clickMarker.setMap(null);
+
+        clickMarker = null;
+
+    }
+
+}
+
+
+// =========================================================
 // MAP CLICK → COORDINATE
+// 지도 클릭 시 좌표창 표시
 // =========================================================
 
 kakao.maps.event.addListener(
@@ -907,57 +1055,29 @@ kakao.maps.event.addListener(
     function(mouseEvent){
 
         const lat =
-
             mouseEvent.latLng.getLat();
 
-
         const lng =
-
             mouseEvent.latLng.getLng();
 
 
         const latText =
             lat.toFixed(6);
 
-
         const lngText =
             lng.toFixed(6);
 
 
         // -------------------------------------------------
-        // 기존 좌표 마커 제거
+        // 기존 좌표창 / 좌표마커 제거
         // -------------------------------------------------
 
-        if(clickMarker){
-
-            clickMarker.setMap(null);
-
-            clickMarker = null;
-
-        }
+        clearClickedLocation();
 
 
         // -------------------------------------------------
-        // 기존 좌표창 제거
+        // 빨간 좌표 마커
         // -------------------------------------------------
-
-        if(clickOverlay){
-
-            clickOverlay.setMap(null);
-
-            clickOverlay = null;
-
-        }
-
-
-        // -------------------------------------------------
-        // 좌표 마커
-        // -------------------------------------------------
-
-        const markerContent =
-
-            `<div class="coordinate-marker"></div>`;
-
 
         clickMarker =
 
@@ -970,7 +1090,7 @@ kakao.maps.event.addListener(
                     mouseEvent.latLng,
 
                 content:
-                    markerContent,
+                    '<div class="coordinate-marker"></div>',
 
                 yAnchor:
                     0.5,
@@ -985,52 +1105,86 @@ kakao.maps.event.addListener(
 
 
         // -------------------------------------------------
-        // 좌표 정보
+        // 좌표 정보창 DOM 생성
         // -------------------------------------------------
-
-        const coordinateText =
-
-            `${latText}, ${lngText}`;
-
 
         const infoContent =
 
-            `<div class="coordinate-window">
+            document.createElement("div");
 
-                <div class="coordinate-title">
 
-                    📍 SELECTED LOCATION
+        infoContent.className =
+            "coordinate-window";
 
-                </div>
 
-                <div class="coordinate-value">
+        infoContent.innerHTML = `
 
-                    LAT :
-                    ${latText}
+            <button
+                type="button"
+                class="coordinate-close"
+                aria-label="좌표창 닫기"
+            >✕</button>
 
-                    <br>
+            <div class="coordinate-title">
 
-                    LNG :
-                    ${lngText}
+                📍 SELECTED LOCATION
 
-                </div>
+            </div>
 
-                <button
-                    class="coordinate-copy"
-                    onclick="
-                        copyCoordinate(
-                            '${latText}',
-                            '${lngText}'
-                        )
-                    "
-                >
+            <div class="coordinate-value">
 
-                    📋 클릭위치 좌표확인
+                LAT :
+                ${latText}
 
-                </button>
+                <br>
 
-            </div>`;
+                LNG :
+                ${lngText}
 
+            </div>
+
+        `;
+
+
+        // -------------------------------------------------
+        // ✕ 버튼
+        // -------------------------------------------------
+
+        const closeButton =
+
+            infoContent.querySelector(
+                ".coordinate-close"
+            );
+
+
+        closeButton.addEventListener(
+
+            "click",
+
+            function(event){
+
+                /*
+                 * 버튼 클릭이 지도 클릭으로 전달되는 것을
+                 * 최대한 방지
+                 */
+
+                event.preventDefault();
+
+                event.stopPropagation();
+
+
+                // 좌표창 + 빨간 마커 삭제
+
+                clearClickedLocation();
+
+            }
+
+        );
+
+
+        // -------------------------------------------------
+        // 좌표 정보창 생성
+        // -------------------------------------------------
 
         clickOverlay =
 
@@ -1061,226 +1215,39 @@ kakao.maps.event.addListener(
 );
 
 
-// =========================================================
-// COPY COORDINATE
-// =========================================================
-
-async function copyCoordinate(lat, lng){
-
-    const text = `${lat}, ${lng}`;
-
-    let success = false;
-
-    // -------------------------------------------------
-    // 1. Clipboard API 시도
-    // -------------------------------------------------
-
-    try {
-
-        if (
-            navigator.clipboard &&
-            window.isSecureContext
-        ) {
-
-            await navigator.clipboard.writeText(text);
-
-            success = true;
-
-        }
-
-    }
-    catch(error){
-
-        console.log(
-            "Clipboard API 실패:",
-            error
-        );
-
-    }
-
-
-    // -------------------------------------------------
-    // 2. 구형 모바일 브라우저 fallback
-    // -------------------------------------------------
-
-    if(!success){
-
-        try {
-
-            const textarea =
-                document.createElement("textarea");
-
-            textarea.value = text;
-
-            textarea.style.position = "fixed";
-            textarea.style.left = "-9999px";
-            textarea.style.top = "0";
-
-            textarea.setAttribute(
-                "readonly",
-                ""
-            );
-
-            document.body.appendChild(
-                textarea
-            );
-
-            textarea.focus();
-            textarea.select();
-
-            textarea.setSelectionRange(
-                0,
-                textarea.value.length
-            );
-
-            success =
-                document.execCommand("copy");
-
-            document.body.removeChild(
-                textarea
-            );
-
-        }
-        catch(error){
-
-            console.log(
-                "Fallback 복사 실패:",
-                error
-            );
-
-        }
-
-    }
-
-
-    // -------------------------------------------------
-    // 3. 복사 성공
-    // -------------------------------------------------
-
-    if(success){
-
-        console.log(
-            "📋 좌표 복사 완료:",
-            text
-        );
-
-
-        // 좌표 팝업 닫기
-        if(clickOverlay){
-
-            clickOverlay.setMap(null);
-
-            clickOverlay = null;
-
-        }
-
-
-        // 좌표 마커 제거
-        if(clickMarker){
-
-            clickMarker.setMap(null);
-
-            clickMarker = null;
-
-        }
-
-
-        // 성공 메시지는 alert 대신
-        // 잠깐만 표시
-        showCopyMessage();
-
-        return;
-
-    }
-
-
-    // -------------------------------------------------
-    // 4. 모든 복사 방법 실패
-    // -------------------------------------------------
-
-    alert(
-        "좌표 복사에 실패했습니다.\n\n" +
-        "좌표:\n" +
-        text
-    );
-
-}
-
-
 
 // =========================================================
-// COPY SUCCESS MESSAGE
+// COORDINATE OVERLAY TOUCH EVENT
+// 모바일에서 ✕ 버튼 터치 안정화
 // =========================================================
 
-function showCopyMessage(){
+document.addEventListener(
 
-    const message =
-        document.createElement("div");
+    "touchstart",
 
-    message.textContent =
-        "📋 좌표 복사 완료";
+    function(event){
 
-    message.style.position =
-        "fixed";
-
-    message.style.left =
-        "50%";
-
-    message.style.bottom =
-        "120px";
-
-    message.style.transform =
-        "translateX(-50%)";
-
-    message.style.zIndex =
-        "99999";
-
-    message.style.padding =
-        "10px 18px";
-
-    message.style.border =
-        "1px solid #00ff9d";
-
-    message.style.borderRadius =
-        "10px";
-
-    message.style.background =
-        "rgba(4,14,27,.95)";
-
-    message.style.color =
-        "#00ff9d";
-
-    message.style.fontFamily =
-        "monospace";
-
-    message.style.fontSize =
-        "13px";
-
-    message.style.fontWeight =
-        "bold";
-
-    message.style.boxShadow =
-        "0 0 20px rgba(0,255,157,.25)";
-
-    document.body.appendChild(
-        message
-    );
+        const target =
+            event.target;
 
 
-    setTimeout(
+        if(
+            target &&
+            target.classList &&
+            target.classList.contains(
+                "coordinate-close"
+            )
+        ){
 
-        () => {
+            event.stopPropagation();
 
-            message.remove();
+        }
 
-        },
+    },
 
-        1200
+    true
 
-    );
-
-}
-
+);
 
 
 
@@ -1354,6 +1321,7 @@ async function requestWakeLock(){
 }
 
 
+
 // =========================================================
 // RELEASE WAKE LOCK
 // =========================================================
@@ -1386,6 +1354,7 @@ async function releaseWakeLock(){
     }
 
 }
+
 
 
 // =========================================================
@@ -1689,12 +1658,8 @@ async function start(){
         true;
 
 
-    // 화면 꺼짐 방지
-
     await requestWakeLock();
 
-
-    // GPS
 
     watchId =
 
