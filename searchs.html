@@ -10,9 +10,7 @@ initial-scale=1.0,
 maximum-scale=1.0,
 user-scalable=no">
 
-<title>
-🛰 SEARCH AND RESCUE AI MAP
-</title>
+<title>🛰 SEARCH AND RESCUE AI MAP</title>
 
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
 
@@ -95,7 +93,7 @@ header::after {
 
 
 /* =========================================================
-   MAP
+   MAP CONTAINER
    ========================================================= */
 
 #container {
@@ -170,7 +168,7 @@ header::after {
 
 
 /* =========================================================
-   RESCUE ID
+   NAME INPUT
    ========================================================= */
 
 #name {
@@ -443,9 +441,11 @@ button[onclick="loadAllHistory()"] {
 
 .coordinate-window {
 
+    position: relative;
+
     min-width: 190px;
 
-    padding: 12px;
+    padding: 13px 38px 12px 12px;
 
     background:
         rgba(4,14,27,.97);
@@ -467,8 +467,75 @@ button[onclick="loadAllHistory()"] {
     box-shadow:
         0 5px 25px
         rgba(0,0,0,.6);
+}
 
-    position: relative;
+
+/* =========================================================
+   COORDINATE CLOSE BUTTON
+   ========================================================= */
+
+.coordinate-close {
+
+    position: absolute;
+
+    top: 5px;
+    right: 5px;
+
+    width: 28px;
+    height: 28px;
+
+    min-height: 28px;
+
+    padding: 0;
+    margin: 0;
+
+    border:
+        1px solid
+        rgba(255,80,80,.75);
+
+    border-radius: 7px;
+
+    background:
+        rgba(80,10,15,.95);
+
+    color: #ff5757;
+
+    font-family: monospace;
+
+    font-size: 16px;
+    font-weight: bold;
+
+    line-height: 25px;
+
+    text-align: center;
+
+    cursor: pointer;
+
+    z-index: 10;
+
+    box-shadow:
+        0 0 8px
+        rgba(255,0,0,.15);
+}
+
+.coordinate-close:hover {
+
+    background:
+        rgba(255,50,50,.25);
+
+    color: #ff7777;
+}
+
+.coordinate-close:active {
+
+    transform: scale(.88);
+
+    background:
+        rgba(255,50,50,.4);
+
+    box-shadow:
+        0 0 15px
+        rgba(255,0,0,.35);
 }
 
 
@@ -485,8 +552,6 @@ button[onclick="loadAllHistory()"] {
     font-weight: bold;
 
     margin-bottom: 5px;
-
-    padding-right: 25px;
 }
 
 
@@ -503,58 +568,7 @@ button[onclick="loadAllHistory()"] {
 
 
 /* =========================================================
-   COORDINATE CLOSE BUTTON
-   ========================================================= */
-
-.coordinate-close {
-
-    position: absolute;
-
-    top: 5px;
-    right: 6px;
-
-    width: 28px;
-    height: 28px;
-
-    min-height: 28px;
-
-    padding: 0;
-    margin: 0;
-
-    border:
-        1px solid
-        rgba(255,80,80,.7);
-
-    border-radius: 7px;
-
-    background:
-        rgba(80,10,15,.9);
-
-    color: #ff5757;
-
-    font-family: monospace;
-
-    font-size: 16px;
-    font-weight: bold;
-
-    line-height: 26px;
-
-    text-align: center;
-
-    cursor: pointer;
-}
-
-.coordinate-close:active {
-
-    background:
-        rgba(255,50,50,.35);
-
-    transform: scale(.9);
-}
-
-
-/* =========================================================
-   COORDINATE MARKER
+   CLICK MARKER
    ========================================================= */
 
 .coordinate-marker {
@@ -573,7 +587,6 @@ button[onclick="loadAllHistory()"] {
         #ff4444;
 
     box-shadow:
-
         0 0 0 5px
         rgba(255,40,40,.15),
 
@@ -623,6 +636,11 @@ button[onclick="loadAllHistory()"] {
         font-size: 12px;
     }
 
+    .coordinate-window {
+        min-width: 175px;
+        font-size: 11px;
+    }
+
 }
 
 
@@ -669,7 +687,7 @@ and
 
 
 /* =========================================================
-   TABLET / PC
+   DESKTOP
    ========================================================= */
 
 @media (min-width:768px) {
@@ -732,54 +750,42 @@ and
     onclick="start()"
     disabled
 >
-
 START
-
 </button>
 
 
 <button
     onclick="goMyLocation()"
 >
-
 📍 MY LOCATION
-
 </button>
 
 
 <button
     onclick="shareLocation()"
 >
-
 📡 위치 공유
-
 </button>
 
 
 <button
     onclick="sendSOS()"
 >
-
 🚨 SOS
-
 </button>
 
 
 <button
     onclick="stopTracking()"
 >
-
 ⛔ STOP
-
 </button>
 
 
 <button
     onclick="loadAllHistory()"
 >
-
 📦 전체 기록
-
 </button>
 
 
@@ -804,6 +810,7 @@ const API_URL =
 "https://script.google.com/macros/s/AKfycbyem5fAs2XGxNy6wrHO3s68CmJyHy7GI31IBKdiz49KtN3sfikYdfmpP07-3dWqna2R/exec";
 
 
+
 // =========================================================
 // DEVICE
 // =========================================================
@@ -826,6 +833,7 @@ if(!DEVICE_ID){
     );
 
 }
+
 
 
 // =========================================================
@@ -897,6 +905,7 @@ const startBtn =
     );
 
 
+
 // =========================================================
 // NAME INPUT
 // =========================================================
@@ -914,6 +923,7 @@ nameInput.addEventListener(
     }
 
 );
+
 
 
 // =========================================================
@@ -973,6 +983,7 @@ function getNowTime(){
 }
 
 
+
 // =========================================================
 // MAP
 // =========================================================
@@ -1000,7 +1011,39 @@ new kakao.maps.Map(
 
 
 // =========================================================
+// CLEAR CLICKED LOCATION
+// 좌표창 + 빨간 좌표 마커 동시 삭제
+// =========================================================
+
+function clearClickedLocation(){
+
+    // 좌표 정보창 삭제
+
+    if(clickOverlay){
+
+        clickOverlay.setMap(null);
+
+        clickOverlay = null;
+
+    }
+
+
+    // 빨간 좌표 마커 삭제
+
+    if(clickMarker){
+
+        clickMarker.setMap(null);
+
+        clickMarker = null;
+
+    }
+
+}
+
+
+// =========================================================
 // MAP CLICK → COORDINATE
+// 지도 클릭 시 좌표창 표시
 // =========================================================
 
 kakao.maps.event.addListener(
@@ -1017,6 +1060,7 @@ kakao.maps.event.addListener(
         const lng =
             mouseEvent.latLng.getLng();
 
+
         const latText =
             lat.toFixed(6);
 
@@ -1025,7 +1069,7 @@ kakao.maps.event.addListener(
 
 
         // -------------------------------------------------
-        // 기존 좌표창 + 마커 제거
+        // 기존 좌표창 / 좌표마커 제거
         // -------------------------------------------------
 
         clearClickedLocation();
@@ -1034,11 +1078,6 @@ kakao.maps.event.addListener(
         // -------------------------------------------------
         // 빨간 좌표 마커
         // -------------------------------------------------
-
-        const markerContent =
-
-            `<div class="coordinate-marker"></div>`;
-
 
         clickMarker =
 
@@ -1051,7 +1090,7 @@ kakao.maps.event.addListener(
                     mouseEvent.latLng,
 
                 content:
-                    markerContent,
+                    '<div class="coordinate-marker"></div>',
 
                 yAnchor:
                     0.5,
@@ -1066,52 +1105,86 @@ kakao.maps.event.addListener(
 
 
         // -------------------------------------------------
-        // 좌표 정보창
+        // 좌표 정보창 DOM 생성
         // -------------------------------------------------
 
         const infoContent =
 
-            `<div
-                class="coordinate-window"
-                onclick="event.stopPropagation()"
-            >
-
-                <button
-                    type="button"
-                    class="coordinate-close"
-                    onclick="
-                        event.preventDefault();
-                        event.stopPropagation();
-                        closeCoordinateWindow();
-                    "
-                >
-
-                    ✕
-
-                </button>
+            document.createElement("div");
 
 
-                <div class="coordinate-title">
-
-                    📍 SELECTED LOCATION
-
-                </div>
+        infoContent.className =
+            "coordinate-window";
 
 
-                <div class="coordinate-value">
+        infoContent.innerHTML = `
 
-                    LAT :
-                    ${latText}
+            <button
+                type="button"
+                class="coordinate-close"
+                aria-label="좌표창 닫기"
+            >✕</button>
 
-                    <br>
+            <div class="coordinate-title">
 
-                    LNG :
-                    ${lngText}
+                📍 SELECTED LOCATION
 
-                </div>
+            </div>
 
-            </div>`;
+            <div class="coordinate-value">
 
+                LAT :
+                ${latText}
+
+                <br>
+
+                LNG :
+                ${lngText}
+
+            </div>
+
+        `;
+
+
+        // -------------------------------------------------
+        // ✕ 버튼
+        // -------------------------------------------------
+
+        const closeButton =
+
+            infoContent.querySelector(
+                ".coordinate-close"
+            );
+
+
+        closeButton.addEventListener(
+
+            "click",
+
+            function(event){
+
+                /*
+                 * 버튼 클릭이 지도 클릭으로 전달되는 것을
+                 * 최대한 방지
+                 */
+
+                event.preventDefault();
+
+                event.stopPropagation();
+
+
+                // 좌표창 + 빨간 마커 삭제
+
+                clearClickedLocation();
+
+            }
+
+        );
+
+
+        // -------------------------------------------------
+        // 좌표 정보창 생성
+        // -------------------------------------------------
 
         clickOverlay =
 
@@ -1142,42 +1215,40 @@ kakao.maps.event.addListener(
 );
 
 
-// =========================================================
-// CLOSE COORDINATE WINDOW
-// =========================================================
-
-function closeCoordinateWindow(){
-
-    clearClickedLocation();
-
-}
-
 
 // =========================================================
-// CLEAR CLICKED LOCATION
-// 좌표창 + 빨간 좌표마커 동시 제거
+// COORDINATE OVERLAY TOUCH EVENT
+// 모바일에서 ✕ 버튼 터치 안정화
 // =========================================================
 
-function clearClickedLocation(){
+document.addEventListener(
 
-    if(clickOverlay){
+    "touchstart",
 
-        clickOverlay.setMap(null);
+    function(event){
 
-        clickOverlay = null;
+        const target =
+            event.target;
 
-    }
 
+        if(
+            target &&
+            target.classList &&
+            target.classList.contains(
+                "coordinate-close"
+            )
+        ){
 
-    if(clickMarker){
+            event.stopPropagation();
 
-        clickMarker.setMap(null);
+        }
 
-        clickMarker = null;
+    },
 
-    }
+    true
 
-}
+);
+
 
 
 // =========================================================
@@ -1250,6 +1321,7 @@ async function requestWakeLock(){
 }
 
 
+
 // =========================================================
 // RELEASE WAKE LOCK
 // =========================================================
@@ -1282,6 +1354,7 @@ async function releaseWakeLock(){
     }
 
 }
+
 
 
 // =========================================================
@@ -1327,6 +1400,7 @@ document.addEventListener(
     }
 
 );
+
 
 
 // =========================================================
@@ -1410,6 +1484,7 @@ function loadNationalParks(){
     );
 
 }
+
 
 
 // =========================================================
@@ -1534,6 +1609,7 @@ function drawPark(
 
 
 loadNationalParks();
+
 
 
 // =========================================================
@@ -1696,6 +1772,7 @@ async function start(){
 }
 
 
+
 // =========================================================
 // SEND DATA
 // =========================================================
@@ -1769,6 +1846,7 @@ function sendData(){
 }
 
 
+
 // =========================================================
 // LOAD LIVE
 // =========================================================
@@ -1815,6 +1893,7 @@ function loadLive(){
 }
 
 
+
 // =========================================================
 // LIVE RENDER
 // =========================================================
@@ -1843,6 +1922,7 @@ function renderLive(data){
 
             const lat =
                 Number(p.lat);
+
 
             const lng =
                 Number(p.lng);
@@ -1974,6 +2054,7 @@ function renderLive(data){
 }
 
 
+
 // =========================================================
 // MY LOCATION
 // =========================================================
@@ -2004,6 +2085,7 @@ function goMyLocation(){
     );
 
 }
+
 
 
 // =========================================================
@@ -2093,6 +2175,7 @@ function sendSOS(){
     );
 
 }
+
 
 
 // =========================================================
@@ -2198,6 +2281,7 @@ ${mapURL}`;
 }
 
 
+
 // =========================================================
 // MOBILE AUTO CENTER
 // =========================================================
@@ -2237,6 +2321,7 @@ function startMobileCenter(){
         );
 
 }
+
 
 
 // =========================================================
@@ -2406,6 +2491,7 @@ async function stopTracking(){
 }
 
 
+
 // =========================================================
 // HISTORY LOAD
 // =========================================================
@@ -2453,6 +2539,7 @@ function loadAllHistory(){
     );
 
 }
+
 
 
 // =========================================================
@@ -2508,6 +2595,7 @@ function clearHistory(){
 }
 
 
+
 // =========================================================
 // HISTORY VIEW
 // =========================================================
@@ -2536,6 +2624,7 @@ function showHistory(data){
 
             const lat =
                 Number(d.lat);
+
 
             const lng =
                 Number(d.lng);
@@ -2736,6 +2825,7 @@ function showHistory(data){
     }
 
 }
+
 
 
 // =========================================================
