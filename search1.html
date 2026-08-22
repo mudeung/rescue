@@ -766,10 +766,10 @@ var selectedCircle = null;
 
 var circles = [];
 
-var zoneVisibility = {
-    high:true,
-    middle:true,
-    low:true
+ar zoneVisibility = {
+    high:false,
+    middle:false,
+    low:false
 };
 
 
@@ -798,15 +798,24 @@ circleData.forEach(function(data){
             zIndex:1
         });
 
-    circle.setMap(map);
+    circle.setMap(
+    zoneVisibility[data.zone]
+    ? map
+    : null
+);
 
-    var marker =
-        new kakao.maps.Marker({
+var marker =
+    new kakao.maps.Marker({
 
-            position:position,
-            map:map,
-            title:data.name
-        });
+        position:position,
+
+        map:
+            zoneVisibility[data.zone]
+            ? map
+            : null,
+
+        title:data.name
+    });
 
 
     function selectLocation(){
