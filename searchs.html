@@ -71,6 +71,7 @@ header {
 
     font-size: 14px;
     font-weight: bold;
+
     letter-spacing: 1px;
 
     padding-top:
@@ -93,7 +94,7 @@ header::after {
 
 
 /* =========================================================
-   MAP CONTAINER
+   MAP
    ========================================================= */
 
 #container {
@@ -168,7 +169,7 @@ header::after {
 
 
 /* =========================================================
-   NAME INPUT
+   INPUT
    ========================================================= */
 
 #name {
@@ -266,7 +267,7 @@ button:disabled {
 
 
 /* =========================================================
-   START
+   BUTTON LAYOUT
    ========================================================= */
 
 #startBtn {
@@ -304,19 +305,9 @@ button:disabled {
     box-shadow: none;
 }
 
-
-/* =========================================================
-   MY LOCATION
-   ========================================================= */
-
 button[onclick="goMyLocation()"] {
     grid-column: span 2;
 }
-
-
-/* =========================================================
-   SHARE
-   ========================================================= */
 
 button[onclick="shareLocation()"] {
     grid-column: span 2;
@@ -333,11 +324,6 @@ button[onclick="shareLocation()"] {
             rgba(0,25,45,.95)
         );
 }
-
-
-/* =========================================================
-   SOS
-   ========================================================= */
 
 button[onclick="sendSOS()"] {
     grid-column: span 2;
@@ -368,11 +354,6 @@ button[onclick="sendSOS()"]:active {
         rgba(255,0,0,.35);
 }
 
-
-/* =========================================================
-   STOP
-   ========================================================= */
-
 button[onclick="stopTracking()"] {
     grid-column: span 2;
 
@@ -381,11 +362,6 @@ button[onclick="stopTracking()"] {
     border-color:
         rgba(255,179,71,.45);
 }
-
-
-/* =========================================================
-   HISTORY
-   ========================================================= */
 
 button[onclick="loadAllHistory()"] {
     grid-column: span 2;
@@ -432,20 +408,44 @@ button[onclick="loadAllHistory()"] {
         rgba(0,0,0,.35);
 
     backdrop-filter: blur(6px);
+
+    cursor: pointer;
+
+    user-select: none;
+
+    touch-action: manipulation;
+
+    transition:
+        transform .15s,
+        background .15s;
+}
+
+.name-label:active {
+
+    transform:
+        scale(.92);
+
+    background:
+        rgba(0,60,45,.98);
+
+    box-shadow:
+        0 0 18px
+        rgba(0,255,157,.35);
+
 }
 
 
 /* =========================================================
-   CLICK COORDINATE WINDOW
+   COORDINATE WINDOW
    ========================================================= */
 
 .coordinate-window {
 
     position: relative;
 
-    min-width: 190px;
+    min-width: 200px;
 
-    padding: 13px 38px 12px 12px;
+    padding: 12px 12px 12px 12px;
 
     background:
         rgba(4,14,27,.97);
@@ -467,75 +467,9 @@ button[onclick="loadAllHistory()"] {
     box-shadow:
         0 5px 25px
         rgba(0,0,0,.6);
-}
 
+    user-select: none;
 
-/* =========================================================
-   COORDINATE CLOSE BUTTON
-   ========================================================= */
-
-.coordinate-close {
-
-    position: absolute;
-
-    top: 5px;
-    right: 5px;
-
-    width: 28px;
-    height: 28px;
-
-    min-height: 28px;
-
-    padding: 0;
-    margin: 0;
-
-    border:
-        1px solid
-        rgba(255,80,80,.75);
-
-    border-radius: 7px;
-
-    background:
-        rgba(80,10,15,.95);
-
-    color: #ff5757;
-
-    font-family: monospace;
-
-    font-size: 16px;
-    font-weight: bold;
-
-    line-height: 25px;
-
-    text-align: center;
-
-    cursor: pointer;
-
-    z-index: 10;
-
-    box-shadow:
-        0 0 8px
-        rgba(255,0,0,.15);
-}
-
-.coordinate-close:hover {
-
-    background:
-        rgba(255,50,50,.25);
-
-    color: #ff7777;
-}
-
-.coordinate-close:active {
-
-    transform: scale(.88);
-
-    background:
-        rgba(255,50,50,.4);
-
-    box-shadow:
-        0 0 15px
-        rgba(255,0,0,.35);
 }
 
 
@@ -552,6 +486,9 @@ button[onclick="loadAllHistory()"] {
     font-weight: bold;
 
     margin-bottom: 5px;
+
+    padding-right: 22px;
+
 }
 
 
@@ -564,11 +501,82 @@ button[onclick="loadAllHistory()"] {
     color: #00ff9d;
 
     word-break: break-all;
+
 }
 
 
 /* =========================================================
-   CLICK MARKER
+   CLOSE BUTTON
+   ========================================================= */
+
+.coordinate-close {
+
+    position: absolute;
+
+    top: 5px;
+    right: 5px;
+
+    width: 30px;
+    height: 30px;
+
+    min-height: 30px;
+
+    padding: 0;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border:
+        1px solid
+        rgba(255,255,255,.25);
+
+    border-radius: 7px;
+
+    background:
+        rgba(255,50,50,.15);
+
+    color: #ff6666;
+
+    font-family: Arial, sans-serif;
+
+    font-size: 17px;
+
+    font-weight: bold;
+
+    line-height: 1;
+
+    cursor: pointer;
+
+    z-index: 10;
+}
+
+.coordinate-close:hover {
+
+    background:
+        rgba(255,50,50,.35);
+
+    color: #ffffff;
+
+    border-color:
+        #ff5555;
+
+}
+
+.coordinate-close:active {
+
+    transform:
+        scale(.88);
+
+    background:
+        rgba(255,40,40,.5);
+
+}
+
+
+/* =========================================================
+   CLICK COORDINATE MARKER
    ========================================================= */
 
 .coordinate-marker {
@@ -592,6 +600,49 @@ button[onclick="loadAllHistory()"] {
 
         0 0 20px
         rgba(255,0,0,.8);
+
+}
+
+
+/* =========================================================
+   COPY MESSAGE
+   ========================================================= */
+
+#copyMessage {
+
+    position: fixed;
+
+    left: 50%;
+
+    bottom: 120px;
+
+    transform:
+        translateX(-50%);
+
+    z-index: 99999;
+
+    padding: 10px 18px;
+
+    border:
+        1px solid #00ff9d;
+
+    border-radius: 10px;
+
+    background:
+        rgba(4,14,27,.95);
+
+    color: #00ff9d;
+
+    font-family: monospace;
+
+    font-size: 13px;
+
+    font-weight: bold;
+
+    box-shadow:
+        0 0 20px
+        rgba(0,255,157,.25);
+
 }
 
 
@@ -636,17 +687,8 @@ button[onclick="loadAllHistory()"] {
         font-size: 12px;
     }
 
-    .coordinate-window {
-        min-width: 175px;
-        font-size: 11px;
-    }
-
 }
 
-
-/* =========================================================
-   LANDSCAPE
-   ========================================================= */
 
 @media
 (orientation: landscape)
@@ -686,10 +728,6 @@ and
 }
 
 
-/* =========================================================
-   DESKTOP
-   ========================================================= */
-
 @media (min-width:768px) {
 
     #panel {
@@ -701,10 +739,6 @@ and
 
 }
 
-
-/* =========================================================
-   SAFE AREA
-   ========================================================= */
 
 @supports (padding:max(0px)) {
 
@@ -750,42 +784,54 @@ and
     onclick="start()"
     disabled
 >
+
 START
+
 </button>
 
 
 <button
     onclick="goMyLocation()"
 >
+
 📍 MY LOCATION
+
 </button>
 
 
 <button
     onclick="shareLocation()"
 >
+
 📡 위치 공유
+
 </button>
 
 
 <button
     onclick="sendSOS()"
 >
+
 🚨 SOS
+
 </button>
 
 
 <button
     onclick="stopTracking()"
 >
+
 ⛔ STOP
+
 </button>
 
 
 <button
     onclick="loadAllHistory()"
 >
+
 📦 전체 기록
+
 </button>
 
 
@@ -810,7 +856,6 @@ const API_URL =
 "https://script.google.com/macros/s/AKfycbyem5fAs2XGxNy6wrHO3s68CmJyHy7GI31IBKdiz49KtN3sfikYdfmpP07-3dWqna2R/exec";
 
 
-
 // =========================================================
 // DEVICE
 // =========================================================
@@ -833,7 +878,6 @@ if(!DEVICE_ID){
     );
 
 }
-
 
 
 // =========================================================
@@ -871,6 +915,8 @@ const markers = {};
 
 const labels = {};
 
+const livePositions = {};
+
 const historyMarkers = [];
 
 const historyLines = [];
@@ -905,7 +951,6 @@ const startBtn =
     );
 
 
-
 // =========================================================
 // NAME INPUT
 // =========================================================
@@ -923,7 +968,6 @@ nameInput.addEventListener(
     }
 
 );
-
 
 
 // =========================================================
@@ -983,7 +1027,6 @@ function getNowTime(){
 }
 
 
-
 // =========================================================
 // MAP
 // =========================================================
@@ -1012,12 +1055,9 @@ new kakao.maps.Map(
 
 // =========================================================
 // CLEAR CLICKED LOCATION
-// 좌표창 + 빨간 좌표 마커 동시 삭제
 // =========================================================
 
 function clearClickedLocation(){
-
-    // 좌표 정보창 삭제
 
     if(clickOverlay){
 
@@ -1027,8 +1067,6 @@ function clearClickedLocation(){
 
     }
 
-
-    // 빨간 좌표 마커 삭제
 
     if(clickMarker){
 
@@ -1042,8 +1080,7 @@ function clearClickedLocation(){
 
 
 // =========================================================
-// MAP CLICK → COORDINATE
-// 지도 클릭 시 좌표창 표시
+// MAP CLICK
 // =========================================================
 
 kakao.maps.event.addListener(
@@ -1068,16 +1105,14 @@ kakao.maps.event.addListener(
             lng.toFixed(6);
 
 
-        // -------------------------------------------------
-        // 기존 좌표창 / 좌표마커 제거
-        // -------------------------------------------------
+        // 기존 좌표 표시 삭제
 
         clearClickedLocation();
 
 
-        // -------------------------------------------------
+        // =================================================
         // 빨간 좌표 마커
-        // -------------------------------------------------
+        // =================================================
 
         clickMarker =
 
@@ -1099,17 +1134,16 @@ kakao.maps.event.addListener(
                     0.5,
 
                 zIndex:
-                    999
+                    2000
 
             });
 
 
-        // -------------------------------------------------
-        // 좌표 정보창 DOM 생성
-        // -------------------------------------------------
+        // =================================================
+        // 좌표창 DOM 생성
+        // =================================================
 
         const infoContent =
-
             document.createElement("div");
 
 
@@ -1122,7 +1156,7 @@ kakao.maps.event.addListener(
             <button
                 type="button"
                 class="coordinate-close"
-                aria-label="좌표창 닫기"
+                aria-label="닫기"
             >✕</button>
 
             <div class="coordinate-title">
@@ -1146,9 +1180,9 @@ kakao.maps.event.addListener(
         `;
 
 
-        // -------------------------------------------------
-        // ✕ 버튼
-        // -------------------------------------------------
+        // =================================================
+        // 닫기 버튼
+        // =================================================
 
         const closeButton =
 
@@ -1163,17 +1197,9 @@ kakao.maps.event.addListener(
 
             function(event){
 
-                /*
-                 * 버튼 클릭이 지도 클릭으로 전달되는 것을
-                 * 최대한 방지
-                 */
-
                 event.preventDefault();
 
                 event.stopPropagation();
-
-
-                // 좌표창 + 빨간 마커 삭제
 
                 clearClickedLocation();
 
@@ -1182,9 +1208,9 @@ kakao.maps.event.addListener(
         );
 
 
-        // -------------------------------------------------
-        // 좌표 정보창 생성
-        // -------------------------------------------------
+        // =================================================
+        // 좌표창
+        // =================================================
 
         clickOverlay =
 
@@ -1200,13 +1226,13 @@ kakao.maps.event.addListener(
                     infoContent,
 
                 yAnchor:
-                    1.2,
+                    1.25,
 
                 xAnchor:
                     0.5,
 
                 zIndex:
-                    1000
+                    2100
 
             });
 
@@ -1215,40 +1241,229 @@ kakao.maps.event.addListener(
 );
 
 
-
 // =========================================================
-// COORDINATE OVERLAY TOUCH EVENT
-// 모바일에서 ✕ 버튼 터치 안정화
+// HTML ESCAPE
 // =========================================================
 
-document.addEventListener(
+function escapeHTML(value){
 
-    "touchstart",
+    return String(value)
 
-    function(event){
+        .replace(
+            /&/g,
+            "&amp;"
+        )
 
-        const target =
-            event.target;
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
 
 
-        if(
-            target &&
-            target.classList &&
-            target.classList.contains(
-                "coordinate-close"
-            )
-        ){
+// =========================================================
+// LIVE NAME → COORDINATE
+// =========================================================
+
+function showLiveCoordinate(name){
+
+    const p =
+        livePositions[name];
+
+
+    if(!p)
+        return;
+
+
+    const lat =
+        Number(p.lat);
+
+    const lng =
+        Number(p.lng);
+
+
+    if(
+        !Number.isFinite(lat) ||
+        !Number.isFinite(lng)
+    )
+        return;
+
+
+    const position =
+
+        new kakao.maps.LatLng(
+            lat,
+            lng
+        );
+
+
+    // 기존 표시 제거
+
+    clearClickedLocation();
+
+
+    // =================================================
+    // 빨간 좌표 마커
+    // =================================================
+
+    clickMarker =
+
+        new kakao.maps.CustomOverlay({
+
+            map:
+                map,
+
+            position:
+                position,
+
+            content:
+                '<div class="coordinate-marker"></div>',
+
+            yAnchor:
+                0.5,
+
+            xAnchor:
+                0.5,
+
+            zIndex:
+                2000
+
+        });
+
+
+    // =================================================
+    // 좌표창
+    // =================================================
+
+    const infoContent =
+        document.createElement("div");
+
+
+    infoContent.className =
+        "coordinate-window";
+
+
+    infoContent.innerHTML = `
+
+        <button
+            type="button"
+            class="coordinate-close"
+            aria-label="닫기"
+        >✕</button>
+
+        <div class="coordinate-title">
+
+            🛰 ${escapeHTML(name)}
+
+        </div>
+
+        <div class="coordinate-value">
+
+            LAT :
+            ${lat.toFixed(6)}
+
+            <br>
+
+            LNG :
+            ${lng.toFixed(6)}
+
+            <br>
+
+            ACC :
+            ${
+                Number.isFinite(
+                    Number(p.accuracy)
+                )
+                ?
+                Number(p.accuracy).toFixed(1)
+                + " m"
+                :
+                "-"
+            }
+
+        </div>
+
+    `;
+
+
+    // =================================================
+    // ✕
+    // =================================================
+
+    const closeButton =
+
+        infoContent.querySelector(
+            ".coordinate-close"
+        );
+
+
+    closeButton.addEventListener(
+
+        "click",
+
+        function(event){
+
+            event.preventDefault();
 
             event.stopPropagation();
 
+            clearClickedLocation();
+
         }
 
-    },
+    );
 
-    true
 
-);
+    // =================================================
+    // OVERLAY
+    // =================================================
 
+    clickOverlay =
+
+        new kakao.maps.CustomOverlay({
+
+            map:
+                map,
+
+            position:
+                position,
+
+            content:
+                infoContent,
+
+            yAnchor:
+                1.25,
+
+            xAnchor:
+                0.5,
+
+            zIndex:
+                2100
+
+        });
+
+
+    // 선택한 구조대 위치로 이동
+
+    map.setCenter(position);
+
+}
 
 
 // =========================================================
@@ -1262,10 +1477,6 @@ async function requestWakeLock(){
         if(
             !("wakeLock" in navigator)
         ){
-
-            console.log(
-                "Wake Lock API 미지원"
-            );
 
             return;
 
@@ -1286,20 +1497,11 @@ async function requestWakeLock(){
             );
 
 
-        console.log(
-            "🔒 화면 꺼짐 방지 ON"
-        );
-
-
         wakeLock.addEventListener(
 
             "release",
 
             () => {
-
-                console.log(
-                    "🔓 Wake Lock 해제"
-                );
 
                 wakeLock = null;
 
@@ -1321,7 +1523,6 @@ async function requestWakeLock(){
 }
 
 
-
 // =========================================================
 // RELEASE WAKE LOCK
 // =========================================================
@@ -1335,10 +1536,6 @@ async function releaseWakeLock(){
             await wakeLock.release();
 
             wakeLock = null;
-
-            console.log(
-                "🔓 화면 꺼짐 방지 OFF"
-            );
 
         }
 
@@ -1356,9 +1553,8 @@ async function releaseWakeLock(){
 }
 
 
-
 // =========================================================
-// SCREEN RETURN
+// VISIBILITY
 // =========================================================
 
 document.addEventListener(
@@ -1384,7 +1580,6 @@ document.addEventListener(
                         new kakao.maps.LatLng(
 
                             lastPos.lat,
-
                             lastPos.lng
 
                         )
@@ -1402,7 +1597,6 @@ document.addEventListener(
 );
 
 
-
 // =========================================================
 // NATIONAL PARK
 // =========================================================
@@ -1418,6 +1612,7 @@ function loadNationalParks(){
     )
 
     .then(
+
         data => {
 
             data.features.forEach(
@@ -1486,11 +1681,6 @@ function loadNationalParks(){
 }
 
 
-
-// =========================================================
-// DRAW PARK
-// =========================================================
-
 function drawPark(
     coords,
     feature
@@ -1549,7 +1739,6 @@ function drawPark(
             const name =
 
                 feature.properties.name ||
-
                 "국립공원";
 
 
@@ -1563,7 +1752,7 @@ function drawPark(
                     border-radius:8px;
                     font-family:monospace">
 
-                    🏔 ${name}
+                    🏔 ${escapeHTML(name)}
 
                     <br><br>
 
@@ -1609,7 +1798,6 @@ function drawPark(
 
 
 loadNationalParks();
-
 
 
 // =========================================================
@@ -1698,7 +1886,6 @@ async function start(){
                     new kakao.maps.LatLng(
 
                         lastPos.lat,
-
                         lastPos.lng
 
                     )
@@ -1743,22 +1930,16 @@ async function start(){
     intervalSend =
 
         setInterval(
-
             sendData,
-
             5000
-
         );
 
 
     intervalLoad =
 
         setInterval(
-
             loadLive,
-
             3000
-
         );
 
 
@@ -1770,7 +1951,6 @@ async function start(){
     loadLive();
 
 }
-
 
 
 // =========================================================
@@ -1846,7 +2026,6 @@ function sendData(){
 }
 
 
-
 // =========================================================
 // LOAD LIVE
 // =========================================================
@@ -1856,9 +2035,7 @@ function loadLive(){
     fetch(
 
         API_URL +
-
         "?live=1&t=" +
-
         Date.now()
 
     )
@@ -1893,7 +2070,6 @@ function loadLive(){
 }
 
 
-
 // =========================================================
 // LIVE RENDER
 // =========================================================
@@ -1903,16 +2079,43 @@ function renderLive(data){
     const latest = {};
 
 
+    // 최신 데이터
+
     data.forEach(
 
         p => {
 
-            latest[p.name] =
-                p;
+            if(p.name){
+
+                latest[p.name] = p;
+
+            }
 
         }
 
     );
+
+
+    // 현재 위치 저장
+
+    Object.keys(latest)
+    .forEach(
+
+        name => {
+
+            livePositions[name] =
+                latest[name];
+
+        }
+
+    );
+
+
+    // =====================================================
+    // 같은 위치 그룹
+    // =====================================================
+
+    const groups = {};
 
 
     Object.values(latest)
@@ -1923,6 +2126,112 @@ function renderLive(data){
             const lat =
                 Number(p.lat);
 
+            const lng =
+                Number(p.lng);
+
+
+            if(
+                !Number.isFinite(lat) ||
+                !Number.isFinite(lng)
+            )
+                return;
+
+
+            const groupKey =
+
+                Math.round(lat * 100000) +
+                "_" +
+                Math.round(lng * 100000);
+
+
+            if(!groups[groupKey]){
+
+                groups[groupKey] = [];
+
+            }
+
+
+            groups[groupKey].push(p);
+
+        }
+
+    );
+
+
+    // =====================================================
+    // 이름표 분산
+    // =====================================================
+
+    Object.values(groups)
+    .forEach(
+
+        group => {
+
+            group.sort(
+
+                (a,b) => {
+
+                    return String(a.name)
+                        .localeCompare(
+                            String(b.name)
+                        );
+
+                }
+
+            );
+
+
+            group.forEach(
+
+                (p,index) => {
+
+                    let offsetX = 0;
+
+
+                    if(index === 0){
+
+                        offsetX = 0;
+
+                    }
+
+                    else if(index % 2 === 1){
+
+                        offsetX =
+                            Math.ceil(index / 2) * 75;
+
+                    }
+
+                    else{
+
+                        offsetX =
+                            -Math.floor(index / 2) * 75;
+
+                    }
+
+
+                    p._labelOffsetX =
+                        offsetX;
+
+                }
+
+            );
+
+        }
+
+    );
+
+
+    // =====================================================
+    // 표시
+    // =====================================================
+
+    Object.values(latest)
+    .forEach(
+
+        p => {
+
+            const lat =
+                Number(p.lat);
 
             const lng =
                 Number(p.lng);
@@ -1947,6 +2256,10 @@ function renderLive(data){
                 );
 
 
+            // =================================================
+            // MARKER
+            // =================================================
+
             if(!markers[key]){
 
                 markers[key] =
@@ -1961,30 +2274,6 @@ function renderLive(data){
 
                     });
 
-
-                labels[key] =
-
-                    new kakao.maps.CustomOverlay({
-
-                        map:
-                            map,
-
-                        position:
-                            position,
-
-                        content:
-
-                            `<div class="name-label">
-
-                                🛰 ${p.name}
-
-                            </div>`,
-
-                        yAnchor:
-                            1.5
-
-                    });
-
             }
 
             else{
@@ -1994,14 +2283,12 @@ function renderLive(data){
                         position
                     );
 
-
-                labels[key]
-                    .setPosition(
-                        position
-                    );
-
             }
 
+
+            // =================================================
+            // ICON
+            // =================================================
 
             if(
                 p.status === "SOS"
@@ -2047,12 +2334,169 @@ function renderLive(data){
 
             }
 
+
+            // =================================================
+            // NAME LABEL DOM
+            // =================================================
+
+            const labelContent =
+                document.createElement("div");
+
+
+            labelContent.className =
+                "name-label";
+
+
+            labelContent.innerHTML =
+                `🛰 ${escapeHTML(p.name)}`;
+
+
+            // =================================================
+            // 이름 클릭
+            // =================================================
+
+            labelContent.addEventListener(
+
+                "click",
+
+                function(event){
+
+                    event.preventDefault();
+
+                    event.stopPropagation();
+
+
+                    showLiveCoordinate(
+                        p.name
+                    );
+
+                }
+
+            );
+
+
+            // =================================================
+            // OVERLAY
+            // =================================================
+
+            if(!labels[key]){
+
+                labels[key] =
+
+                    new kakao.maps.CustomOverlay({
+
+                        map:
+                            map,
+
+                        position:
+                            position,
+
+                        content:
+                            labelContent,
+
+                        yAnchor:
+                            1.5,
+
+                        xAnchor:
+                            0.5,
+
+                        zIndex:
+                            1500
+
+                    });
+
+            }
+
+            else{
+
+                labels[key]
+                    .setPosition(
+                        position
+                    );
+
+                labels[key]
+                    .setContent(
+                        labelContent
+                    );
+
+            }
+
+
+            // =================================================
+            // 좌우 분산
+            // =================================================
+
+            const offsetX =
+                Number(p._labelOffsetX) || 0;
+
+
+            labelContent.style.transform =
+
+                `translateX(${offsetX}px)`;
+
+        }
+
+    );
+
+
+    // =====================================================
+    // 사라진 구조대 제거
+    // =====================================================
+
+    Object.keys(markers)
+    .forEach(
+
+        key => {
+
+            if(!latest[key]){
+
+                markers[key]
+                    .setMap(null);
+
+                delete markers[key];
+
+            }
+
+        }
+
+    );
+
+
+    Object.keys(labels)
+    .forEach(
+
+        key => {
+
+            if(!latest[key]){
+
+                labels[key]
+                    .setMap(null);
+
+                delete labels[key];
+
+            }
+
+        }
+
+    );
+
+
+    Object.keys(livePositions)
+    .forEach(
+
+        key => {
+
+            if(!latest[key]){
+
+                delete livePositions[key];
+
+            }
+
         }
 
     );
 
 }
-
 
 
 // =========================================================
@@ -2077,7 +2521,6 @@ function goMyLocation(){
         new kakao.maps.LatLng(
 
             lastPos.lat,
-
             lastPos.lng
 
         )
@@ -2085,7 +2528,6 @@ function goMyLocation(){
     );
 
 }
-
 
 
 // =========================================================
@@ -2175,7 +2617,6 @@ function sendSOS(){
     );
 
 }
-
 
 
 // =========================================================
@@ -2281,7 +2722,6 @@ ${mapURL}`;
 }
 
 
-
 // =========================================================
 // MOBILE AUTO CENTER
 // =========================================================
@@ -2305,7 +2745,6 @@ function startMobileCenter(){
                         new kakao.maps.LatLng(
 
                             lastPos.lat,
-
                             lastPos.lng
 
                         )
@@ -2321,7 +2760,6 @@ function startMobileCenter(){
         );
 
 }
-
 
 
 // =========================================================
@@ -2424,6 +2862,17 @@ async function stopTracking(){
     endTime = "";
 
 
+    // =====================================================
+    // 좌표창도 제거
+    // =====================================================
+
+    clearClickedLocation();
+
+
+    // =====================================================
+    // 구조대 마커 제거
+    // =====================================================
+
     Object.values(markers)
     .forEach(
 
@@ -2472,6 +2921,18 @@ async function stopTracking(){
     );
 
 
+    Object.keys(livePositions)
+    .forEach(
+
+        k => {
+
+            delete livePositions[k];
+
+        }
+
+    );
+
+
     nameInput.disabled =
         false;
 
@@ -2489,7 +2950,6 @@ async function stopTracking(){
     );
 
 }
-
 
 
 // =========================================================
@@ -2539,7 +2999,6 @@ function loadAllHistory(){
     );
 
 }
-
 
 
 // =========================================================
@@ -2595,7 +3054,6 @@ function clearHistory(){
 }
 
 
-
 // =========================================================
 // HISTORY VIEW
 // =========================================================
@@ -2625,7 +3083,6 @@ function showHistory(data){
             const lat =
                 Number(d.lat);
 
-
             const lng =
                 Number(d.lng);
 
@@ -2647,11 +3104,8 @@ function showHistory(data){
             grouped[d.name].push(
 
                 new kakao.maps.LatLng(
-
                     lat,
-
                     lng
-
                 )
 
             );
@@ -2768,7 +3222,7 @@ function showHistory(data){
 
                     `<div class="name-label">
 
-                        🟢 START ${name}
+                        🟢 START ${escapeHTML(name)}
 
                     </div>`,
 
@@ -2797,7 +3251,7 @@ function showHistory(data){
 
                     `<div class="name-label">
 
-                        🔴 END ${name}
+                        🔴 END ${escapeHTML(name)}
 
                     </div>`,
 
@@ -2827,7 +3281,6 @@ function showHistory(data){
 }
 
 
-
 // =========================================================
 // INITIAL LIVE LOAD
 // =========================================================
@@ -2836,10 +3289,11 @@ loadLive();
 
 
 // =========================================================
-// MOBILE CENTER READY
+// MOBILE CENTER
 // =========================================================
 
 startMobileCenter();
+
 
 </script>
 
