@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
 
 <meta charset="utf-8">
@@ -53,7 +52,7 @@ header{
 
     background:#1e3a8a;
 
-    padding:8px 45px 8px 10px;
+    padding:8px 50px 8px 10px;
 
     text-align:center;
 
@@ -144,6 +143,10 @@ header{
     transform:scale(.96);
 }
 
+#controls button:last-child{
+    margin-bottom:0;
+}
+
 /* ================= RECORD PANEL ================= */
 
 #recordPanel{
@@ -161,7 +164,7 @@ header{
     padding:10px;
 
     background:
-        rgba(2,6,23,.96);
+        rgba(2,6,23,.95);
 
     border:
         1px solid
@@ -171,38 +174,7 @@ header{
 
     box-shadow:
         0 5px 25px rgba(0,0,0,.5);
-}
 
-/* ================= RECORD TITLE ================= */
-
-.recordTitle{
-
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:center;
-
-    margin-bottom:7px;
-
-    font-size:12px;
-
-    font-weight:bold;
-
-    color:#38bdf8;
-}
-
-#recordCount{
-
-    background:#0ea5e9;
-
-    color:#fff;
-
-    padding:3px 7px;
-
-    border-radius:10px;
-
-    font-size:10px;
 }
 
 /* ================= INPUT ================= */
@@ -230,6 +202,7 @@ header{
     outline:none;
 
     font-size:13px;
+
 }
 
 #recordText:focus{
@@ -239,9 +212,10 @@ header{
     box-shadow:
         0 0 8px
         rgba(56,189,248,.3);
+
 }
 
-/* ================= SAVE BUTTON ================= */
+/* ================= RECORD BUTTON ================= */
 
 #saveRecordBtn{
 
@@ -262,6 +236,7 @@ header{
     font-size:13px;
 
     font-weight:bold;
+
 }
 
 /* ================= RECORD LIST ================= */
@@ -273,6 +248,7 @@ header{
     overflow-y:auto;
 
     margin-top:7px;
+
 }
 
 .recordItem{
@@ -291,31 +267,25 @@ header{
     font-size:11px;
 
     line-height:1.5;
+
 }
 
 .recordItem button{
 
     margin-top:5px;
 
-    margin-right:3px;
-
-    padding:5px 7px;
+    padding:4px 7px;
 
     border:0;
 
     border-radius:4px;
 
+    background:#dc2626;
+
     color:#fff;
 
     font-size:10px;
-}
 
-.recordMove{
-    background:#2563eb;
-}
-
-.recordDelete{
-    background:#dc2626;
 }
 
 /* ================= MOBILE ================= */
@@ -338,7 +308,7 @@ header{
 
         width:150px;
 
-        max-height:47vh;
+        max-height:48vh;
 
     }
 
@@ -363,10 +333,6 @@ header{
         height:48px;
     }
 
-    #recordList{
-        max-height:150px;
-    }
-
 }
 
 /* ================= LOCATION LABEL ================= */
@@ -389,6 +355,7 @@ header{
     font-weight:bold;
 
     white-space:nowrap;
+
 }
 
 </style>
@@ -402,9 +369,7 @@ header{
 </header>
 
 
-<!-- =====================================================
-     CONTROL
-===================================================== -->
+<!-- ================= CONTROL ================= -->
 
 <div id="controls">
 
@@ -452,10 +417,6 @@ header{
         📋 저장 기록 보기
     </button>
 
-    <button onclick="loadRecords()">
-        🔄 기록 다시 불러오기
-    </button>
-
     <button onclick="clearAllRecords()">
         🗑 전체 기록 삭제
     </button>
@@ -463,55 +424,32 @@ header{
 </div>
 
 
-<!-- =====================================================
-     RECORD PANEL
-===================================================== -->
+<!-- ================= RECORD PANEL ================= -->
 
 <div id="recordPanel">
-
-    <div class="recordTitle">
-
-        <span>
-            📝 현장 조사 기록
-        </span>
-
-        <span id="recordCount">
-            0건
-        </span>
-
-    </div>
-
 
     <textarea
         id="recordText"
         placeholder="현장 기록을 입력하세요&#10;예: 등산객 1명 탈진, 응급조치 후 하산 유도">
     </textarea>
 
-
     <button
         id="saveRecordBtn"
         onclick="saveCurrentRecord()">
-
         💾 현재 위치 + 현장 기록 저장
-
     </button>
-
 
     <div id="recordList"></div>
 
 </div>
 
 
-<!-- =====================================================
-     MAP
-===================================================== -->
+<!-- ================= MAP ================= -->
 
 <div id="map"></div>
 
 
-<!-- =====================================================
-     KAKAO MAP
-===================================================== -->
+<!-- ================= KAKAO ================= -->
 
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424"></script>
 
@@ -525,10 +463,10 @@ header{
 const GOOGLE_SCRIPT_URL =
 "https://script.google.com/macros/s/AKfycbyQSj47r-l2fSmBePIC11bAGtICM4eoQ7_WXXH3DuEkytDfyf524ROm0PLIQJSJmgikow/exec";
 
-
+      
 /* =========================================================
    MAP
-========================================================= */
+   ========================================================= */
 
 var map =
 new kakao.maps.Map(
@@ -540,7 +478,7 @@ new kakao.maps.Map(
         center:
             new kakao.maps.LatLng(
                 35.124019,
-                126.988190
+                126.008190
             ),
 
         level:4
@@ -555,313 +493,316 @@ map.setDraggable(true);
 
 /* =========================================================
    ZONE DATA
-========================================================= */
+   ========================================================= */
 
 var circleData = [
 
-{
-lat:35.121000,
-lng:127.002681,
-radius:300,
-color:"#0000FF",
-name:"고지대 원효: 서석대",
-zone:"high"
-},
+    {
+        lat:35.121000,
+        lng:127.002681,
+        radius:300,
+        color:"#0000FF",
+        name:"고지대 원효: 서석대",
+        zone:"high"
+    },
 
-{
-lat:35.117408,
-lng:127.002317,
-radius:300,
-color:"#0000FF",
-name:"고지대 원효: 입석대",
-zone:"high"
-},
+    {
+        lat:35.117408,
+        lng:127.002317,
+        radius:300,
+        color:"#0000FF",
+        name:"고지대 원효: 입석대",
+        zone:"high"
+    },
 
-{
-lat:35.116332,
-lng:126.998781,
-radius:300,
-color:"#0000FF",
-name:"고지대 원효: 장불재",
-zone:"high"
-},
+    {
+        lat:35.116332,
+        lng:126.998781,
+        radius:300,
+        color:"#0000FF",
+        name:"고지대 원효: 장불재",
+        zone:"high"
+    },
 
-{
-lat:35.122537,
-lng:126.992581,
-radius:300,
-color:"#0000FF",
-name:"고지대 원효: 중봉",
-zone:"high"
-},
+    {
+        lat:35.122537,
+        lng:126.992581,
+        radius:300,
+        color:"#0000FF",
+        name:"고지대 원효: 중봉",
+        zone:"high"
+    },
 
-{
-lat:35.126846,
-lng:126.993461,
-radius:300,
-color:"#0000FF",
-name:"고지대 원효: 얼음바위",
-zone:"high"
-},
+    {
+        lat:35.126846,
+        lng:126.993461,
+        radius:300,
+        color:"#0000FF",
+        name:"고지대 원효: 얼음바위",
+        zone:"high"
+    },
 
-{
-lat:35.119166,
-lng:126.994473,
-radius:300,
-color:"#0000FF",
-name:"고지대 원효: 용추삼거리",
-zone:"high"
-},
+    {
+        lat:35.119166,
+        lng:126.994473,
+        radius:300,
+        color:"#0000FF",
+        name:"고지대 원효: 용추삼거리",
+        zone:"high"
+    },
 
-{
-lat:35.136860,
-lng:126.981961,
-radius:300,
-color:"#FFFF00",
-name:"중지대 원효: 늦재삼거리",
-zone:"middle"
-},
 
-{
-lat:35.131065,
-lng:126.977755,
-radius:300,
-color:"#FFFF00",
-name:"중지대 원효: 토끼등",
-zone:"middle"
-},
+    {
+        lat:35.136860,
+        lng:126.981961,
+        radius:300,
+        color:"#FFFF00",
+        name:"중지대 원효: 늦재삼거리",
+        zone:"middle"
+    },
 
-{
-lat:35.133099,
-lng:126.985547,
-radius:300,
-color:"#FFFF00",
-name:"중지대 원효: 동화사터",
-zone:"middle"
-},
+    {
+        lat:35.131065,
+        lng:126.977755,
+        radius:300,
+        color:"#FFFF00",
+        name:"중지대 원효: 토끼등",
+        zone:"middle"
+    },
 
-{
-lat:35.123940,
-lng:126.982866,
-radius:300,
-color:"#FFFF00",
-name:"중지대 원효: 백운암터",
-zone:"middle"
-},
+    {
+        lat:35.133099,
+        lng:126.985547,
+        radius:300,
+        color:"#FFFF00",
+        name:"중지대 원효: 동화사터",
+        zone:"middle"
+    },
 
-{
-lat:35.125883,
-lng:126.978439,
-radius:300,
-color:"#FFFF00",
-name:"중지대 원효: 봉황대",
-zone:"middle"
-},
+    {
+        lat:35.123940,
+        lng:126.982866,
+        radius:300,
+        color:"#FFFF00",
+        name:"중지대 원효: 백운암터",
+        zone:"middle"
+    },
 
-{
-lat:35.138809,
-lng:126.986800,
-radius:300,
-color:"#FFFF00",
-name:"중지대 원효: 물통거리",
-zone:"middle"
-},
+    {
+        lat:35.125883,
+        lng:126.978439,
+        radius:300,
+        color:"#FFFF00",
+        name:"중지대 원효: 봉황대",
+        zone:"middle"
+    },
 
-{
-lat:35.141982,
-lng:126.983762,
-radius:300,
-color:"#FFFF00",
-name:"중지대 원효: 늦재삼거리",
-zone:"middle"
-},
+    {
+        lat:35.138809,
+        lng:126.986800,
+        radius:300,
+        color:"#FFFF00",
+        name:"중지대 원효: 물통거리",
+        zone:"middle"
+    },
 
-{
-lat:35.144595,
-lng:126.988845,
-radius:300,
-color:"#FFFF00",
-name:"중지대 원효: 원효광장",
-zone:"middle"
-},
+    {
+        lat:35.141982,
+        lng:126.983762,
+        radius:300,
+        color:"#FFFF00",
+        name:"중지대 원효: 늦재삼거리",
+        zone:"middle"
+    },
 
-{
-lat:35.141437,
-lng:126.995007,
-radius:300,
-color:"#FFFF00",
-name:"중지대 원효: 무등산장",
-zone:"middle"
-},
+    {
+        lat:35.144595,
+        lng:126.988845,
+        radius:300,
+        color:"#FFFF00",
+        name:"중지대 원효: 원효광장",
+        zone:"middle"
+    },
 
-{
-lat:35.147757,
-lng:126.985220,
-radius:300,
-color:"#FFFF00",
-name:"중지대 원효: 원효사후문",
-zone:"middle"
-},
+    {
+        lat:35.141437,
+        lng:126.995007,
+        radius:300,
+        color:"#FFFF00",
+        name:"중지대 원효: 무등산장",
+        zone:"middle"
+    },
 
-{
-lat:35.121645,
-lng:126.967070,
-radius:300,
-color:"#FFFF00",
-name:"중지대 증심: 운소봉",
-zone:"middle"
-},
+    {
+        lat:35.147757,
+        lng:126.985220,
+        radius:300,
+        color:"#FFFF00",
+        name:"중지대 원효: 원효사후문",
+        zone:"middle"
+    },
 
-{
-lat:35.114570,
-lng:126.987328,
-radius:300,
-color:"#FFFF00",
-name:"중지대 증심: 용추폭포삼거리",
-zone:"middle"
-},
 
-{
-lat:35.138202,
-lng:126.977384,
-radius:300,
-color:"#FFFF00",
-name:"중지대 증심: 바람재",
-zone:"middle"
-},
+    {
+        lat:35.121645,
+        lng:126.967070,
+        radius:300,
+        color:"#FFFF00",
+        name:"중지대 증심: 운소봉",
+        zone:"middle"
+    },
 
-{
-lat:35.119082,
-lng:126.984469,
-radius:300,
-color:"#FFFF00",
-name:"중지대 증심: 중머리재",
-zone:"middle"
-},
+    {
+        lat:35.114570,
+        lng:126.987328,
+        radius:300,
+        color:"#FFFF00",
+        name:"중지대 증심: 용추폭포삼거리",
+        zone:"middle"
+    },
 
-{
-lat:35.117489,
-lng:126.981037,
-radius:300,
-color:"#FFFF00",
-name:"중지대 증심: 서인봉",
-zone:"middle"
-},
+    {
+        lat:35.138202,
+        lng:126.977384,
+        radius:300,
+        color:"#FFFF00",
+        name:"중지대 증심: 바람재",
+        zone:"middle"
+    },
 
-{
-lat:35.120585,
-lng:126.969019,
-radius:300,
-color:"#FFFF00",
-name:"중지대 증심: 새인봉",
-zone:"middle"
-},
+    {
+        lat:35.119082,
+        lng:126.984469,
+        radius:300,
+        color:"#FFFF00",
+        name:"중지대 증심: 중머리재",
+        zone:"middle"
+    },
 
-{
-lat:35.119564,
-lng:126.972893,
-radius:300,
-color:"#FFFF00",
-name:"중지대 증심: 새인봉갈림길",
-zone:"middle"
-},
+    {
+        lat:35.117489,
+        lng:126.981037,
+        radius:300,
+        color:"#FFFF00",
+        name:"중지대 증심: 서인봉",
+        zone:"middle"
+    },
 
-{
-lat:35.125583,
-lng:126.972202,
-radius:300,
-color:"#00AA00",
-name:"저지대 증심: 당산나무",
-zone:"low"
-},
+    {
+        lat:35.120585,
+        lng:126.969019,
+        radius:300,
+        color:"#FFFF00",
+        name:"중지대 증심: 새인봉",
+        zone:"middle"
+    },
 
-{
-lat:35.116201,
-lng:126.970673,
-radius:300,
-color:"#00AA00",
-name:"저지대 증심: 선주암갈림길",
-zone:"low"
-},
+    {
+        lat:35.119564,
+        lng:126.972893,
+        radius:300,
+        color:"#FFFF00",
+        name:"중지대 증심: 새인봉갈림길",
+        zone:"middle"
+    },
 
-{
-lat:35.122200,
-lng:126.971525,
-radius:300,
-color:"#00AA00",
-name:"저지대 증심: 약사사",
-zone:"low"
-},
 
-{
-lat:35.127789,
-lng:126.969612,
-radius:300,
-color:"#00AA00",
-name:"저지대 증심: 증심사",
-zone:"low"
-},
+    {
+        lat:35.125583,
+        lng:126.972202,
+        radius:300,
+        color:"#00AA00",
+        name:"저지대 증심: 당산나무",
+        zone:"low"
+    },
 
-{
-lat:35.132837,
-lng:126.969636,
-radius:300,
-color:"#00AA00",
-name:"저지대 증심: 덕산골",
-zone:"low"
-},
+    {
+        lat:35.116201,
+        lng:126.970673,
+        radius:300,
+        color:"#00AA00",
+        name:"저지대 증심: 선주암갈림길",
+        zone:"low"
+    },
 
-{
-lat:35.131413,
-lng:126.963440,
-radius:300,
-color:"#00AA00",
-name:"저지대 증심: 증심교",
-zone:"low"
-},
+    {
+        lat:35.122200,
+        lng:126.971525,
+        radius:300,
+        color:"#00AA00",
+        name:"저지대 증심: 약사사",
+        zone:"low"
+    },
 
-{
-lat:35.099325,
-lng:126.964050,
-radius:300,
-color:"#00AA00",
-name:"저지대 증심: 제2수원지",
-zone:"low"
-},
+    {
+        lat:35.127789,
+        lng:126.969612,
+        radius:300,
+        color:"#00AA00",
+        name:"저지대 증심: 증심사",
+        zone:"low"
+    },
 
-{
-lat:35.162281,
-lng:126.980286,
-radius:300,
-color:"#FFFFFF",
-name:"원효지구: 원효분소",
-zone:"low"
-},
+    {
+        lat:35.132837,
+        lng:126.969636,
+        radius:300,
+        color:"#00AA00",
+        name:"저지대 증심: 덕산골",
+        zone:"low"
+    },
 
-{
-lat:35.131429,
-lng:126.948076,
-radius:300,
-color:"#FFFFFF",
-name:"증심지구: 무등산사무소",
-zone:"low"
-},
+    {
+        lat:35.131413,
+        lng:126.963440,
+        radius:300,
+        color:"#00AA00",
+        name:"저지대 증심: 증심교",
+        zone:"low"
+    },
 
-{
-lat:35.133163,
-lng:126.960296,
-radius:300,
-color:"#00AA00",
-name:"증심지구: 증심센터",
-zone:"low"
-}
+    {
+        lat:35.099325,
+        lng:126.964050,
+        radius:300,
+        color:"#00AA00",
+        name:"저지대 증심: 제2수원지",
+        zone:"low"
+    },
+
+    {
+        lat:35.162281,
+        lng:126.980286,
+        radius:300,
+        color:"#FFFFFF",
+        name:"원효지구: 원효분소",
+        zone:"low"
+    },
+
+    {
+        lat:35.131429,
+        lng:126.948076,
+        radius:300,
+        color:"#FFFFFF",
+        name:"증심지구: 무등산사무소",
+        zone:"low"
+    },
+
+    {
+        lat:35.133163,
+        lng:126.960296,
+        radius:300,
+        color:"#00AA00",
+        name:"증심지구: 증심센터",
+        zone:"low"
+    }
 
 ];
 
 
 /* =========================================================
    ZONE VARIABLES
-========================================================= */
+   ========================================================= */
 
 var bounds =
 new kakao.maps.LatLngBounds();
@@ -885,8 +826,8 @@ var zoneVisibility = {
 
 
 /* =========================================================
-   DRAW ZONES
-========================================================= */
+   ZONE DRAW
+   ========================================================= */
 
 circleData.forEach(function(data){
 
@@ -990,22 +931,25 @@ circleData.forEach(function(data){
 
         var content = `
 
-        <div style="
-            padding:10px;
-            font-size:13px;
-            color:#000;
-            line-height:1.6;
-        ">
+            <div style="
+                padding:10px;
+                font-size:13px;
+                color:#000;
+                line-height:1.6;
+            ">
 
-            <strong>${escapeHTML(data.name)}</strong><br>
+                <strong>${data.name}</strong><br>
 
-            위도 : ${data.lat}<br>
+                위도 :
+                ${data.lat}<br>
 
-            경도 : ${data.lng}<br>
+                경도 :
+                ${data.lng}<br>
 
-            반경 : ${data.radius}m
+                반경 :
+                ${data.radius}m
 
-        </div>
+            </div>
 
         `;
 
@@ -1022,7 +966,6 @@ circleData.forEach(function(data){
         "click",
         selectLocation
     );
-
 
     kakao.maps.event.addListener(
         circle,
@@ -1052,7 +995,7 @@ map.setBounds(bounds);
 
 /* =========================================================
    ZONE TOGGLE
-========================================================= */
+   ========================================================= */
 
 function toggleZone(zone){
 
@@ -1072,7 +1015,6 @@ function toggleZone(zone){
 
             );
 
-
             item.marker.setMap(
 
                 zoneVisibility[zone]
@@ -1090,7 +1032,7 @@ function toggleZone(zone){
 
 /* =========================================================
    CURRENT LOCATION
-========================================================= */
+   ========================================================= */
 
 var userMarker = null;
 
@@ -1099,8 +1041,6 @@ var userAccuracyCircle = null;
 var lastLatitude = null;
 
 var lastLongitude = null;
-
-var currentAccuracy = 0;
 
 
 function getCurrentLocation(){
@@ -1120,48 +1060,24 @@ function getCurrentLocation(){
 
         function(position){
 
-            currentAccuracy =
-                position.coords.accuracy || 0;
-
-
             saveAndDisplay(
 
                 position.coords.latitude,
 
                 position.coords.longitude,
 
-                currentAccuracy
+                position.coords.accuracy
 
-            );
-
-
-            alert(
-                "📍 현재 위치를 가져왔습니다."
             );
 
         },
 
         function(error){
 
-            var message =
-                "GPS 오류가 발생했습니다.";
-
-            if(error.code === 1){
-                message =
-                    "위치 권한이 거부되었습니다.\n브라우저의 위치 권한을 허용해주세요.";
-            }
-
-            else if(error.code === 2){
-                message =
-                    "현재 위치를 확인할 수 없습니다.";
-            }
-
-            else if(error.code === 3){
-                message =
-                    "GPS 위치 확인 시간이 초과되었습니다.";
-            }
-
-            alert(message);
+            alert(
+                "GPS 오류 : " +
+                error.message
+            );
 
         },
 
@@ -1181,8 +1097,8 @@ function getCurrentLocation(){
 
 
 /* =========================================================
-   DISPLAY CURRENT LOCATION
-========================================================= */
+   DISPLAY LOCATION
+   ========================================================= */
 
 function saveAndDisplay(
     lat,
@@ -1190,18 +1106,15 @@ function saveAndDisplay(
     accuracy
 ){
 
-    lastLatitude = Number(lat);
+    lastLatitude = lat;
 
-    lastLongitude = Number(lng);
-
-    currentAccuracy =
-        Number(accuracy) || 0;
+    lastLongitude = lng;
 
 
     var locPosition =
         new kakao.maps.LatLng(
-            lastLatitude,
-            lastLongitude
+            lat,
+            lng
         );
 
 
@@ -1212,7 +1125,6 @@ function saveAndDisplay(
         );
 
     }
-
     else{
 
         userMarker =
@@ -1220,9 +1132,7 @@ function saveAndDisplay(
 
                 map:map,
 
-                position:locPosition,
-
-                title:"현재 위치"
+                position:locPosition
 
             });
 
@@ -1236,11 +1146,10 @@ function saveAndDisplay(
         );
 
         userAccuracyCircle.setRadius(
-            currentAccuracy || 20
+            accuracy || 20
         );
 
     }
-
     else{
 
         userAccuracyCircle =
@@ -1250,7 +1159,7 @@ function saveAndDisplay(
 
                 center:locPosition,
 
-                radius:currentAccuracy || 20,
+                radius:accuracy || 20,
 
                 strokeWeight:1,
 
@@ -1274,118 +1183,45 @@ function saveAndDisplay(
 
 /* =========================================================
    PREPARE RECORD
-========================================================= */
+   ========================================================= */
 
 function prepareRecord(){
 
-    if(!navigator.geolocation){
+    getCurrentLocation();
 
-        alert("GPS를 사용할 수 없습니다.");
+    setTimeout(function(){
 
-        return;
+        document
+            .getElementById("recordText")
+            .focus();
 
-    }
-
-
-    navigator.geolocation.getCurrentPosition(
-
-        function(position){
-
-            currentAccuracy =
-                position.coords.accuracy || 0;
-
-
-            saveAndDisplay(
-
-                position.coords.latitude,
-
-                position.coords.longitude,
-
-                currentAccuracy
-
-            );
-
-
-            document
-                .getElementById("recordText")
-                .focus();
-
-        },
-
-        function(error){
-
-            alert(
-                "현재 위치를 가져오지 못했습니다.\n" +
-                error.message
-            );
-
-        },
-
-        {
-
-            enableHighAccuracy:true,
-
-            maximumAge:1000,
-
-            timeout:15000
-
-        }
-
-    );
+    },1000);
 
 }
 
 
 /* =========================================================
-   LOCAL STORAGE
-========================================================= */
+   RECORD STORAGE
+   ========================================================= */
 
-const STORAGE_KEY =
-"MUDEUNG_MOUNTAIN_RECORDS_V2";
+var STORAGE_KEY =
+"MUDEUNG_MOUNTAIN_RECORDS";
 
-
-/* =========================================================
-   GET RECORDS
-========================================================= */
 
 function getRecords(){
 
     try{
 
-        var raw =
+        return JSON.parse(
+
             localStorage.getItem(
                 STORAGE_KEY
-            );
+            ) || "[]"
 
-
-        if(!raw){
-
-            return [];
-
-        }
-
-
-        var records =
-            JSON.parse(raw);
-
-
-        if(!Array.isArray(records)){
-
-            return [];
-
-        }
-
-
-        return records;
+        );
 
     }
-
-    catch(error){
-
-        console.error(
-            "기록 읽기 오류:",
-            error
-        );
+    catch(e){
 
         return [];
 
@@ -1394,72 +1230,24 @@ function getRecords(){
 }
 
 
-/* =========================================================
-   SAVE RECORDS
-========================================================= */
-
 function saveRecords(records){
 
-    try{
+    localStorage.setItem(
 
-        localStorage.setItem(
+        STORAGE_KEY,
 
-            STORAGE_KEY,
+        JSON.stringify(records)
 
-            JSON.stringify(records)
-
-        );
-
-
-        /* 실제 저장됐는지 즉시 확인 */
-
-        var check =
-            localStorage.getItem(
-                STORAGE_KEY
-            );
-
-
-        if(!check){
-
-            throw new Error(
-                "localStorage 저장 확인 실패"
-            );
-
-        }
-
-
-        return true;
-
-    }
-
-    catch(error){
-
-        console.error(
-            "localStorage 저장 오류:",
-            error
-        );
-
-
-        alert(
-            "기록 저장에 실패했습니다.\n" +
-            "브라우저 저장공간을 확인해주세요."
-        );
-
-
-        return false;
-
-    }
+    );
 
 }
 
 
 /* =========================================================
    SAVE CURRENT RECORD
-========================================================= */
+   ========================================================= */
 
 function saveCurrentRecord(){
-
-    /* GPS가 없는 경우 */
 
     if(
         lastLatitude === null ||
@@ -1467,7 +1255,7 @@ function saveCurrentRecord(){
     ){
 
         alert(
-            "먼저 📍 현위치 가져오기를 눌러주세요."
+            "먼저 📍 현위치를 가져오세요."
         );
 
         getCurrentLocation();
@@ -1490,11 +1278,9 @@ function saveCurrentRecord(){
             "현장 기록 내용을 입력하세요."
         );
 
-
         document
             .getElementById("recordText")
             .focus();
-
 
         return;
 
@@ -1519,13 +1305,13 @@ function saveCurrentRecord(){
             now.getTime(),
 
         lat:
-            Number(lastLatitude),
+            lastLatitude,
 
         lng:
-            Number(lastLongitude),
+            lastLongitude,
 
         accuracy:
-            Number(currentAccuracy) || 0,
+            window.currentAccuracy || 0,
 
         text:
             text
@@ -1540,47 +1326,25 @@ function saveCurrentRecord(){
     records.unshift(record);
 
 
-    /* 저장 */
+    saveRecords(records);
 
-    var success =
-        saveRecords(records);
-
-
-    if(!success){
-
-        return;
-
-    }
-
-
-    /* 지도에 표시 */
 
     addRecordMarker(record);
 
 
-    /* 서버 전송 */
-
     sendRecordToServer(record);
 
-
-    /* 입력창 초기화 */
 
     document
         .getElementById("recordText")
         .value = "";
 
 
-    /* 목록 다시 표시 */
-
     renderRecordList();
 
 
     alert(
-        "💾 현장 기록이 저장되었습니다.\n\n" +
-        "위도: " +
-        record.lat.toFixed(6) +
-        "\n경도: " +
-        record.lng.toFixed(6)
+        "💾 현위치 기록이 저장되었습니다."
     );
 
 }
@@ -1588,31 +1352,17 @@ function saveCurrentRecord(){
 
 /* =========================================================
    RECORD MARKERS
-========================================================= */
+   ========================================================= */
 
 var recordMarkers = [];
 
 
 function addRecordMarker(record){
 
-    if(
-        !record ||
-        typeof record.lat !== "number" ||
-        typeof record.lng !== "number"
-    ){
-
-        return;
-
-    }
-
-
     var position =
         new kakao.maps.LatLng(
-
             record.lat,
-
             record.lng
-
         );
 
 
@@ -1623,7 +1373,7 @@ function addRecordMarker(record){
 
             position:position,
 
-            title:"📝 현장기록"
+            title:"현장기록"
 
         });
 
@@ -1641,44 +1391,32 @@ function addRecordMarker(record){
 
             var content = `
 
-            <div style="
-                padding:10px;
-                color:#000;
-                font-size:12px;
-                line-height:1.6;
-                min-width:200px;
-            ">
+                <div style="
+                    padding:10px;
+                    color:#000;
+                    font-size:12px;
+                    line-height:1.6;
+                    min-width:190px;
+                ">
 
-                <strong>
-                    📝 현장기록
-                </strong>
+                    <strong>📝 현장기록</strong><br>
 
-                <br>
+                    ${record.time}<br>
 
-                ${escapeHTML(record.time)}
+                    위도 :
+                    ${Number(record.lat).toFixed(6)}<br>
 
-                <br>
+                    경도 :
+                    ${Number(record.lng).toFixed(6)}<br>
 
-                위도 :
-                ${Number(record.lat).toFixed(6)}
+                    정확도 :
+                    ${Math.round(record.accuracy || 0)}m
 
-                <br>
+                    <hr>
 
-                경도 :
-                ${Number(record.lng).toFixed(6)}
+                    ${escapeHTML(record.text)}
 
-                <br>
-
-                정확도 :
-                ${Math.round(
-                    Number(record.accuracy) || 0
-                )}m
-
-                <hr>
-
-                ${escapeHTML(record.text)}
-
-            </div>
+                </div>
 
             `;
 
@@ -1687,16 +1425,10 @@ function addRecordMarker(record){
                 content
             );
 
-
             infowindow.open(
                 map,
                 marker
             );
-
-
-            map.setLevel(3);
-
-            map.panTo(position);
 
         }
 
@@ -1707,11 +1439,11 @@ function addRecordMarker(record){
 
 /* =========================================================
    ESCAPE HTML
-========================================================= */
+   ========================================================= */
 
 function escapeHTML(text){
 
-    return String(text)
+    return text
 
         .replace(/&/g,"&amp;")
 
@@ -1727,8 +1459,8 @@ function escapeHTML(text){
 
 
 /* =========================================================
-   RENDER RECORD LIST
-========================================================= */
+   RECORD LIST
+   ========================================================= */
 
 function renderRecordList(){
 
@@ -1738,36 +1470,14 @@ function renderRecordList(){
         );
 
 
-    var count =
-        document.getElementById(
-            "recordCount"
-        );
-
-
     var records =
         getRecords();
 
 
-    count.textContent =
-        records.length + "건";
-
-
     if(records.length === 0){
 
-        list.innerHTML = `
-
-            <div style="
-                padding:10px;
-                color:#94a3b8;
-                text-align:center;
-                font-size:11px;
-            ">
-
-                저장된 현장기록이 없습니다.
-
-            </div>
-
-        `;
+        list.innerHTML =
+            "";
 
         return;
 
@@ -1779,59 +1489,39 @@ function renderRecordList(){
 
             return `
 
-            <div class="recordItem">
+                <div class="recordItem">
 
-                🕒
-                ${escapeHTML(record.time)}
+                    🕒 ${record.time}<br>
 
-                <br>
+                    📍
+                    ${Number(record.lat).toFixed(6)},
+                    ${Number(record.lng).toFixed(6)}
 
-                📍
-                ${Number(record.lat).toFixed(6)},
-                ${Number(record.lng).toFixed(6)}
+                    <br>
 
-                <br>
+                    📝
+                    ${escapeHTML(record.text)}
 
-                🎯 정확도:
-                ${Math.round(
-                    Number(record.accuracy) || 0
-                )}m
+                    <br>
 
-                <br>
+                    <button
+                        onclick="deleteRecord(${record.id})">
 
-                📝
-                ${escapeHTML(record.text)}
+                        삭제
 
-                <br>
+                    </button>
 
+                    <button
+                        onclick="moveToRecord(
+                            ${record.lat},
+                            ${record.lng}
+                        )">
 
-                <button
-                    class="recordMove"
-                    onclick="
-                        moveToRecord(
-                            ${Number(record.lat)},
-                            ${Number(record.lng)}
-                        )
-                    ">
+                        지도 이동
 
-                    📍 지도 이동
+                    </button>
 
-                </button>
-
-
-                <button
-                    class="recordDelete"
-                    onclick="
-                        deleteRecord(
-                            ${Number(record.id)}
-                        )
-                    ">
-
-                    🗑 삭제
-
-                </button>
-
-            </div>
+                </div>
 
             `;
 
@@ -1841,69 +1531,15 @@ function renderRecordList(){
 
 
 /* =========================================================
-   LOAD RECORDS
-========================================================= */
-
-function loadRecords(){
-
-    /* 기존 마커 삭제 */
-
-    recordMarkers.forEach(
-        function(marker){
-
-            marker.setMap(null);
-
-        }
-    );
-
-
-    recordMarkers = [];
-
-
-    /* 저장된 기록 읽기 */
-
-    var records =
-        getRecords();
-
-
-    /* 지도에 다시 표시 */
-
-    records.forEach(
-        function(record){
-
-            addRecordMarker(record);
-
-        }
-    );
-
-
-    /* 목록 표시 */
-
-    renderRecordList();
-
-
-    alert(
-        "🔄 저장된 기록 " +
-        records.length +
-        "건을 불러왔습니다."
-    );
-
-}
-
-
-/* =========================================================
    MOVE TO RECORD
-========================================================= */
+   ========================================================= */
 
-function moveToRecord(
-    lat,
-    lng
-){
+function moveToRecord(lat,lng){
 
     var position =
         new kakao.maps.LatLng(
-            Number(lat),
-            Number(lng)
+            lat,
+            lng
         );
 
 
@@ -1916,13 +1552,13 @@ function moveToRecord(
 
 /* =========================================================
    DELETE RECORD
-========================================================= */
+   ========================================================= */
 
 function deleteRecord(id){
 
     if(
         !confirm(
-            "이 현장기록을 삭제하시겠습니까?"
+            "이 기록을 삭제하시겠습니까?"
         )
     ){
 
@@ -1932,91 +1568,56 @@ function deleteRecord(id){
 
 
     var records =
-        getRecords();
-
-
-    var newRecords =
-        records.filter(
-
-            function(record){
-
-                return Number(record.id)
-                    !== Number(id);
-
-            }
-
+        getRecords()
+        .filter(
+            r => r.id !== id
         );
 
 
-    if(
-        !saveRecords(newRecords)
-    ){
-
-        return;
-
-    }
+    saveRecords(records);
 
 
     redrawRecordMarkers();
 
     renderRecordList();
 
-
-    alert(
-        "🗑 기록이 삭제되었습니다."
-    );
-
 }
 
 
 /* =========================================================
    REDRAW RECORD MARKERS
-========================================================= */
+   ========================================================= */
 
 function redrawRecordMarkers(){
 
     recordMarkers.forEach(
-
-        function(marker){
-
-            marker.setMap(null);
-
-        }
-
+        marker => marker.setMap(null)
     );
 
 
     recordMarkers = [];
 
 
-    var records =
-        getRecords();
-
-
-    records.forEach(
-
-        function(record){
-
-            addRecordMarker(record);
-
-        }
-
-    );
+    getRecords()
+        .forEach(
+            record =>
+                addRecordMarker(record)
+        );
 
 }
 
 
 /* =========================================================
    SHOW ALL RECORDS
-========================================================= */
+   ========================================================= */
 
 function showAllRecords(){
 
+    renderRecordList();
+
+
     var records =
         getRecords();
-
-
-    renderRecordList();
 
 
     if(records.length === 0){
@@ -2030,64 +1631,38 @@ function showAllRecords(){
     }
 
 
-    var recordBounds =
+    var bounds =
         new kakao.maps.LatLngBounds();
 
 
-    records.forEach(
+    records.forEach(function(record){
 
-        function(record){
+        bounds.extend(
 
-            recordBounds.extend(
+            new kakao.maps.LatLng(
+                record.lat,
+                record.lng
+            )
 
-                new kakao.maps.LatLng(
+        );
 
-                    record.lat,
-
-                    record.lng
-
-                )
-
-            );
-
-        }
-
-    );
+    });
 
 
-    map.setBounds(
-        recordBounds
-    );
+    map.setBounds(bounds);
 
 }
 
 
 /* =========================================================
    CLEAR ALL RECORDS
-========================================================= */
+   ========================================================= */
 
 function clearAllRecords(){
 
-    var records =
-        getRecords();
-
-
-    if(records.length === 0){
-
-        alert(
-            "삭제할 기록이 없습니다."
-        );
-
-        return;
-
-    }
-
-
     if(
         !confirm(
-            "저장된 " +
-            records.length +
-            "건의 모든 기록을 삭제하시겠습니까?"
+            "저장된 모든 현장기록을 삭제하시겠습니까?"
         )
     ){
 
@@ -2096,33 +1671,13 @@ function clearAllRecords(){
     }
 
 
-    try{
-
-        localStorage.removeItem(
-            STORAGE_KEY
-        );
-
-    }
-
-    catch(error){
-
-        alert(
-            "기록 삭제에 실패했습니다."
-        );
-
-        return;
-
-    }
+    localStorage.removeItem(
+        STORAGE_KEY
+    );
 
 
     recordMarkers.forEach(
-
-        function(marker){
-
-            marker.setMap(null);
-
-        }
-
+        marker => marker.setMap(null)
     );
 
 
@@ -2131,23 +1686,24 @@ function clearAllRecords(){
 
     renderRecordList();
 
-
-    alert(
-        "🗑 모든 현장기록을 삭제했습니다."
-    );
-
 }
 
 
 /* =========================================================
-   GOOGLE APPS SCRIPT
-========================================================= */
+   SEND RECORD TO GOOGLE SCRIPT
+   ========================================================= */
 
 function sendRecordToServer(record){
 
     if(
-        !GOOGLE_SCRIPT_URL
+        !GOOGLE_SCRIPT_URL ||
+        GOOGLE_SCRIPT_URL ===
+        "YOUR_GOOGLE_SCRIPT_URL"
     ){
+
+        console.log(
+            "Google Apps Script URL 미설정"
+        );
 
         return;
 
@@ -2165,10 +1721,8 @@ function sendRecordToServer(record){
             mode:"no-cors",
 
             headers:{
-
                 "Content-Type":
-                    "text/plain;charset=utf-8"
-
+                    "text/plain"
             },
 
             body:
@@ -2177,14 +1731,8 @@ function sendRecordToServer(record){
                     type:
                         "FIELD_RECORD",
 
-                    id:
-                        record.id,
-
                     time:
                         record.time,
-
-                    timestamp:
-                        record.timestamp,
 
                     lat:
                         record.lat,
@@ -2210,7 +1758,7 @@ function sendRecordToServer(record){
     .then(function(){
 
         console.log(
-            "Google 서버 전송 완료"
+            "서버 기록 전송 완료"
         );
 
     })
@@ -2218,7 +1766,7 @@ function sendRecordToServer(record){
     .catch(function(error){
 
         console.log(
-            "Google 서버 전송 실패:",
+            "서버 기록 전송 실패",
             error
         );
 
@@ -2229,7 +1777,7 @@ function sendRecordToServer(record){
 
 /* =========================================================
    REALTIME TRACKING
-========================================================= */
+   ========================================================= */
 
 var trackingId = null;
 
@@ -2266,8 +1814,8 @@ function startTracking(){
 
             function(position){
 
-                currentAccuracy =
-                    position.coords.accuracy || 0;
+                window.currentAccuracy =
+                    position.coords.accuracy;
 
 
                 saveAndDisplay(
@@ -2276,7 +1824,7 @@ function startTracking(){
 
                     position.coords.longitude,
 
-                    currentAccuracy
+                    position.coords.accuracy
 
                 );
 
@@ -2285,7 +1833,7 @@ function startTracking(){
             function(error){
 
                 console.log(
-                    "GPS ERROR:",
+                    "GPS ERROR",
                     error
                 );
 
@@ -2305,7 +1853,7 @@ function startTracking(){
 
 
     alert(
-        "🟢 실시간 추적을 시작했습니다."
+        "🟢 실시간 추적 시작"
     );
 
 }
@@ -2313,7 +1861,7 @@ function startTracking(){
 
 /* =========================================================
    STOP TRACKING
-========================================================= */
+   ========================================================= */
 
 function stopTracking(){
 
@@ -2333,7 +1881,7 @@ function stopTracking(){
 
 
     alert(
-        "🔴 실시간 추적을 종료했습니다."
+        "🔴 실시간 추적 종료"
     );
 
 }
@@ -2341,7 +1889,7 @@ function stopTracking(){
 
 /* =========================================================
    WAKE LOCK
-========================================================= */
+   ========================================================= */
 
 var wakeLock = null;
 
@@ -2355,18 +1903,20 @@ async function requestWakeLock(){
         ){
 
             wakeLock =
-                await navigator
-                .wakeLock
+                await navigator.wakeLock
                 .request("screen");
+
+            console.log(
+                "화면 꺼짐 방지 ON"
+            );
 
         }
 
     }
-
     catch(error){
 
         console.log(
-            "WakeLock 오류:",
+            "WakeLock 오류",
             error
         );
 
@@ -2388,13 +1938,9 @@ async function releaseWakeLock(){
         }
 
     }
-
     catch(error){
 
-        console.log(
-            "WakeLock 종료 오류:",
-            error
-        );
+        console.log(error);
 
     }
 
@@ -2408,14 +1954,9 @@ document.addEventListener(
     function(){
 
         if(
-
             document.visibilityState ===
-            "visible"
-
-            &&
-
+            "visible" &&
             trackingId !== null
-
         ){
 
             requestWakeLock();
@@ -2429,7 +1970,7 @@ document.addEventListener(
 
 /* =========================================================
    DISTANCE MEASURE
-========================================================= */
+   ========================================================= */
 
 var drawingFlag = false;
 
@@ -2443,7 +1984,6 @@ var dots = [];
 function startMeasure(){
 
     drawingFlag = true;
-
 
     alert(
         "📏 지도 위를 클릭하여 거리 측정을 시작하세요."
@@ -2491,17 +2031,13 @@ function resetMeasure(){
     }
 
 
-    dots.forEach(
+    dots.forEach(function(dot){
 
-        function(dot){
+        dot.circle.setMap(null);
 
-            dot.circle.setMap(null);
+        dot.overlay.setMap(null);
 
-            dot.overlay.setMap(null);
-
-        }
-
-    );
+    });
 
 
     dots = [];
@@ -2510,8 +2046,8 @@ function resetMeasure(){
 
 
 /* =========================================================
-   MAP CLICK FOR DISTANCE
-========================================================= */
+   MAP CLICK
+   ========================================================= */
 
 kakao.maps.event.addListener(
 
@@ -2521,11 +2057,8 @@ kakao.maps.event.addListener(
 
     function(mouseEvent){
 
-        if(!drawingFlag){
-
+        if(!drawingFlag)
             return;
-
-        }
 
 
         var clickPosition =
@@ -2552,21 +2085,16 @@ kakao.maps.event.addListener(
                 });
 
         }
-
         else{
 
             var path =
                 clickLine.getPath();
 
-
             path.push(
                 clickPosition
             );
 
-
-            clickLine.setPath(
-                path
-            );
+            clickLine.setPath(path);
 
         }
 
@@ -2586,7 +2114,7 @@ kakao.maps.event.addListener(
 
 /* =========================================================
    DISTANCE DOT
-========================================================= */
+   ========================================================= */
 
 function addDot(
     position,
@@ -2619,19 +2147,17 @@ function addDot(
 
             content:
 
-            `<div style="
-                background:#FF0000;
-                color:#fff;
-                padding:4px 6px;
-                font-size:11px;
-                border-radius:4px;
-                white-space:nowrap;
-            ">
-
-                총거리 :
-                ${distance.toFixed(0)}m
-
-            </div>`,
+                `<div style="
+                    background:#FF0000;
+                    color:#fff;
+                    padding:4px 6px;
+                    font-size:11px;
+                    border-radius:4px;
+                    white-space:nowrap;
+                ">
+                    총거리 :
+                    ${distance.toFixed(0)}m
+                </div>`,
 
             position:position,
 
@@ -2655,93 +2181,22 @@ function addDot(
 
 
 /* =========================================================
-   PAGE LOAD
-========================================================= */
+   INITIAL RECORD LOAD
+   ========================================================= */
 
-window.addEventListener(
+redrawRecordMarkers();
 
-    "load",
-
-    function(){
-
-        console.log(
-            "현장조사 시스템 시작"
-        );
-
-
-        /*
-         * 기존 localStorage 기록을
-         * 자동으로 불러옵니다.
-         */
-
-        loadRecordsSilently();
-
-
-    }
-
-);
+renderRecordList();
 
 
 /* =========================================================
-   SILENT LOAD
-========================================================= */
+   INITIAL CURRENT ACCURACY
+   ========================================================= */
 
-function loadRecordsSilently(){
-
-    try{
-
-        var records =
-            getRecords();
-
-
-        console.log(
-            "저장된 현장기록:",
-            records.length,
-            "건"
-        );
-
-
-        recordMarkers.forEach(
-
-            function(marker){
-
-                marker.setMap(null);
-
-            }
-
-        );
-
-
-        recordMarkers = [];
-
-
-        records.forEach(
-
-            function(record){
-
-                addRecordMarker(record);
-
-            }
-
-        );
-
-
-        renderRecordList();
-
-    }
-
-    catch(error){
-
-        console.error(
-            "기록 자동 불러오기 오류:",
-            error
-        );
-
-    }
-
-}
+window.currentAccuracy = 0;
 
 </script>
 
 </body>
 </html>
+
