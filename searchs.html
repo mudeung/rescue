@@ -434,7 +434,7 @@ button[onclick="loadAllHistory()"] {
 
     width: 100%;
 
-    min-height: 36px;
+    min-height: 40px;
 
     margin-top: 8px;
 
@@ -454,6 +454,21 @@ button[onclick="loadAllHistory()"] {
     font-family: monospace;
 
     font-size: 11px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    touch-action: manipulation;
+
+}
+
+.coordinate-copy:active {
+
+    transform: scale(.96);
+
+    background:
+        rgba(0,255,157,.25);
 
 }
 
@@ -925,29 +940,10 @@ kakao.maps.event.addListener(
 
 
         // -------------------------------------------------
-        // 기존 좌표 마커 제거
+        // 기존 좌표창 닫기
         // -------------------------------------------------
 
-        if(clickMarker){
-
-            clickMarker.setMap(null);
-
-            clickMarker = null;
-
-        }
-
-
-        // -------------------------------------------------
-        // 기존 좌표창 제거
-        // -------------------------------------------------
-
-        if(clickOverlay){
-
-            clickOverlay.setMap(null);
-
-            clickOverlay = null;
-
-        }
+        closeCoordinateWindow();
 
 
         // -------------------------------------------------
@@ -985,13 +981,8 @@ kakao.maps.event.addListener(
 
 
         // -------------------------------------------------
-        // 좌표 정보
+        // 좌표 정보창
         // -------------------------------------------------
-
-        const coordinateText =
-
-            `${latText}, ${lngText}`;
-
 
         const infoContent =
 
@@ -1016,13 +1007,8 @@ kakao.maps.event.addListener(
                 </div>
 
                 <button
+                    type="button"
                     class="coordinate-copy"
-                    onclick="
-                        copyCoordinate(
-                            '${latText}',
-                            '${lngText}'
-                        )
-                    "
                 >
 
                     📋 클릭위치 좌표확인
@@ -1056,9 +1042,88 @@ kakao.maps.event.addListener(
 
             });
 
+
+        // -------------------------------------------------
+        // 중요:
+        // CustomOverlay 안의 버튼에 직접 이벤트 연결
+        // -------------------------------------------------
+
+        setTimeout(
+
+            () => {
+
+                const copyButton =
+
+                    document.querySelector(
+                        ".coordinate-copy"
+                    );
+
+
+                if(copyButton){
+
+                    copyButton.addEventListener(
+
+                        "click",
+
+                        function(e){
+
+                            e.preventDefault();
+
+                            e.stopPropagation();
+
+
+                            copyCoordinate(
+                                latText,
+                                lngText
+                            );
+
+                        },
+
+                        {
+                            once: true
+                        }
+
+                    );
+
+                }
+
+            },
+
+            0
+
+        );
+
     }
 
 );
+
+
+
+// =========================================================
+// CLOSE COORDINATE WINDOW
+// =========================================================
+
+function closeCoordinateWindow(){
+
+    if(clickOverlay){
+
+        clickOverlay.setMap(null);
+
+        clickOverlay = null;
+
+    }
+
+
+    if(clickMarker){
+
+        clickMarker.setMap(null);
+
+        clickMarker = null;
+
+    }
+
+}
+
 
 
 // =========================================================
@@ -1067,28 +1132,47 @@ kakao.maps.event.addListener(
 
 async function copyCoordinate(lat, lng){
 
-    const text = `${lat}, ${lng}`;
+    const text =
+        `${lat}, ${lng}`;
 
-    let success = false;
+
+    console.log(
+        "📋 좌표 복사 시도:",
+        text
+    );
+
 
     // -------------------------------------------------
-    // 1. Clipboard API 시도
+    // 1. Clipboard API
     // -------------------------------------------------
 
-    try {
+    try{
 
-        if (
+        if(
             navigator.clipboard &&
             window.isSecureContext
-        ) {
+        ){
 
-            await navigator.clipboard.writeText(text);
+            await navigator.clipboard.writeText(
+                text
+            );
 
-            success = true;
+
+            console.log(
+                "📋 Clipboard API 복사 성공"
+            );
+
+
+            closeCoordinateWindow();
+
+            showCopyMessage();
+
+            return;
 
         }
 
     }
+
     catch(error){
 
         console.log(
@@ -1100,108 +1184,128 @@ async function copyCoordinate(lat, lng){
 
 
     // -------------------------------------------------
-    // 2. 구형 모바일 브라우저 fallback
+    // 2. 모바일 fallback
     // -------------------------------------------------
 
-    if(!success){
+    try{
 
-        try {
-
-            const textarea =
-                document.createElement("textarea");
-
-            textarea.value = text;
-
-            textarea.style.position = "fixed";
-            textarea.style.left = "-9999px";
-            textarea.style.top = "0";
-
-            textarea.setAttribute(
-                "readonly",
-                ""
+        const textarea =
+            document.createElement(
+                "textarea"
             );
 
-            document.body.appendChild(
-                textarea
-            );
 
-            textarea.focus();
-            textarea.select();
-
-            textarea.setSelectionRange(
-                0,
-                textarea.value.length
-            );
-
-            success =
-                document.execCommand("copy");
-
-            document.body.removeChild(
-                textarea
-            );
-
-        }
-        catch(error){
-
-            console.log(
-                "Fallback 복사 실패:",
-                error
-            );
-
-        }
-
-    }
+        textarea.value =
+            text;
 
 
-    // -------------------------------------------------
-    // 3. 복사 성공
-    // -------------------------------------------------
-
-    if(success){
-
-        console.log(
-            "📋 좌표 복사 완료:",
-            text
+        textarea.setAttribute(
+            "readonly",
+            ""
         );
 
 
-        // 좌표 팝업 닫기
-        if(clickOverlay){
+        textarea.style.position =
+            "fixed";
 
-            clickOverlay.setMap(null);
+        textarea.style.top =
+            "50%";
 
-            clickOverlay = null;
+        textarea.style.left =
+            "50%";
+
+        textarea.style.width =
+            "1px";
+
+        textarea.style.height =
+            "1px";
+
+        textarea.style.padding =
+            "0";
+
+        textarea.style.border =
+            "0";
+
+        textarea.style.outline =
+            "none";
+
+        textarea.style.boxShadow =
+            "none";
+
+        textarea.style.background =
+            "transparent";
+
+        textarea.style.opacity =
+            "0";
+
+
+        document.body.appendChild(
+            textarea
+        );
+
+
+        textarea.focus();
+
+        textarea.select();
+
+
+        textarea.setSelectionRange(
+            0,
+            textarea.value.length
+        );
+
+
+        const copied =
+
+            document.execCommand(
+                "copy"
+            );
+
+
+        document.body.removeChild(
+            textarea
+        );
+
+
+        if(copied){
+
+            console.log(
+                "📋 모바일 fallback 복사 성공"
+            );
+
+
+            closeCoordinateWindow();
+
+            showCopyMessage();
+
+            return;
 
         }
 
+    }
 
-        // 좌표 마커 제거
-        if(clickMarker){
+    catch(error){
 
-            clickMarker.setMap(null);
-
-            clickMarker = null;
-
-        }
-
-
-        // 성공 메시지는 alert 대신
-        // 잠깐만 표시
-        showCopyMessage();
-
-        return;
+        console.log(
+            "Fallback 복사 실패:",
+            error
+        );
 
     }
 
 
     // -------------------------------------------------
-    // 4. 모든 복사 방법 실패
+    // 3. 최종 실패
     // -------------------------------------------------
 
     alert(
+
         "좌표 복사에 실패했습니다.\n\n" +
+
         "좌표:\n" +
+
         text
+
     );
 
 }
@@ -1217,50 +1321,66 @@ function showCopyMessage(){
     const message =
         document.createElement("div");
 
+
     message.textContent =
         "📋 좌표 복사 완료";
+
 
     message.style.position =
         "fixed";
 
+
     message.style.left =
         "50%";
+
 
     message.style.bottom =
         "120px";
 
+
     message.style.transform =
         "translateX(-50%)";
+
 
     message.style.zIndex =
         "99999";
 
+
     message.style.padding =
         "10px 18px";
+
 
     message.style.border =
         "1px solid #00ff9d";
 
+
     message.style.borderRadius =
         "10px";
+
 
     message.style.background =
         "rgba(4,14,27,.95)";
 
+
     message.style.color =
         "#00ff9d";
+
 
     message.style.fontFamily =
         "monospace";
 
+
     message.style.fontSize =
         "13px";
+
 
     message.style.fontWeight =
         "bold";
 
+
     message.style.boxShadow =
         "0 0 20px rgba(0,255,157,.25)";
+
 
     document.body.appendChild(
         message
@@ -1280,7 +1400,6 @@ function showCopyMessage(){
     );
 
 }
-
 
 
 
@@ -1354,6 +1473,7 @@ async function requestWakeLock(){
 }
 
 
+
 // =========================================================
 // RELEASE WAKE LOCK
 // =========================================================
@@ -1386,6 +1506,7 @@ async function releaseWakeLock(){
     }
 
 }
+
 
 
 // =========================================================
@@ -1689,12 +1810,8 @@ async function start(){
         true;
 
 
-    // 화면 꺼짐 방지
-
     await requestWakeLock();
 
-
-    // GPS
 
     watchId =
 
@@ -2505,6 +2622,9 @@ async function stopTracking(){
         }
 
     );
+
+
+    closeCoordinateWindow();
 
 
     nameInput.disabled =
