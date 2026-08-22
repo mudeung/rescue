@@ -1065,22 +1065,107 @@ kakao.maps.event.addListener(
 // COPY COORDINATE
 // =========================================================
 
-function copyCoordinate(
-    lat,
-    lng
-){
+async function copyCoordinate(lat, lng){
 
-    const text =
-        `${lat}, ${lng}`;
+    const text = `${lat}, ${lng}`;
+
+    let success = false;
+
+    // -------------------------------------------------
+    // 1. Clipboard API 시도
+    // -------------------------------------------------
+
+    try {
+
+        if (
+            navigator.clipboard &&
+            window.isSecureContext
+        ) {
+
+            await navigator.clipboard.writeText(text);
+
+            success = true;
+
+        }
+
+    }
+    catch(error){
+
+        console.log(
+            "Clipboard API 실패:",
+            error
+        );
+
+    }
 
 
     // -------------------------------------------------
-    // 복사 성공 처리
+    // 2. 구형 모바일 브라우저 fallback
     // -------------------------------------------------
 
-    function copySuccess(){
+    if(!success){
 
-        // 좌표 정보 팝업 자동 닫기
+        try {
+
+            const textarea =
+                document.createElement("textarea");
+
+            textarea.value = text;
+
+            textarea.style.position = "fixed";
+            textarea.style.left = "-9999px";
+            textarea.style.top = "0";
+
+            textarea.setAttribute(
+                "readonly",
+                ""
+            );
+
+            document.body.appendChild(
+                textarea
+            );
+
+            textarea.focus();
+            textarea.select();
+
+            textarea.setSelectionRange(
+                0,
+                textarea.value.length
+            );
+
+            success =
+                document.execCommand("copy");
+
+            document.body.removeChild(
+                textarea
+            );
+
+        }
+        catch(error){
+
+            console.log(
+                "Fallback 복사 실패:",
+                error
+            );
+
+        }
+
+    }
+
+
+    // -------------------------------------------------
+    // 3. 복사 성공
+    // -------------------------------------------------
+
+    if(success){
+
+        console.log(
+            "📋 좌표 복사 완료:",
+            text
+        );
+
+
+        // 좌표 팝업 닫기
         if(clickOverlay){
 
             clickOverlay.setMap(null);
@@ -1089,7 +1174,8 @@ function copyCoordinate(
 
         }
 
-        // 좌표 마커도 함께 제거
+
+        // 좌표 마커 제거
         if(clickMarker){
 
             clickMarker.setMap(null);
@@ -1098,69 +1184,100 @@ function copyCoordinate(
 
         }
 
+
+        // 성공 메시지는 alert 대신
+        // 잠깐만 표시
+        showCopyMessage();
+
+        return;
+
     }
 
 
     // -------------------------------------------------
-    // Clipboard API
+    // 4. 모든 복사 방법 실패
     // -------------------------------------------------
 
-    if(
-        navigator.clipboard &&
-        navigator.clipboard.writeText
-    ){
+    alert(
+        "좌표 복사에 실패했습니다.\n\n" +
+        "좌표:\n" +
+        text
+    );
 
-        navigator.clipboard
-        .writeText(text)
+}
 
-        .then(
 
-            () => {
 
-                // 복사 성공 즉시 팝업 닫기
-                copySuccess();
+// =========================================================
+// COPY SUCCESS MESSAGE
+// =========================================================
 
-            }
+function showCopyMessage(){
 
-        )
+    const message =
+        document.createElement("div");
 
-        .catch(
+    message.textContent =
+        "📋 좌표 복사 완료";
 
-            () => {
+    message.style.position =
+        "fixed";
 
-                // Clipboard API 실패 시 기존 방식
-                const result = prompt(
-                    "좌표를 복사하세요",
-                    text
-                );
+    message.style.left =
+        "50%";
 
-                // 사용자가 확인한 경우 팝업 닫기
-                if(result !== null){
+    message.style.bottom =
+        "120px";
 
-                    copySuccess();
+    message.style.transform =
+        "translateX(-50%)";
 
-                }
+    message.style.zIndex =
+        "99999";
 
-            }
+    message.style.padding =
+        "10px 18px";
 
-        );
+    message.style.border =
+        "1px solid #00ff9d";
 
-    }
+    message.style.borderRadius =
+        "10px";
 
-    else{
+    message.style.background =
+        "rgba(4,14,27,.95)";
 
-        const result = prompt(
-            "좌표를 복사하세요",
-            text
-        );
+    message.style.color =
+        "#00ff9d";
 
-        if(result !== null){
+    message.style.fontFamily =
+        "monospace";
 
-            copySuccess();
+    message.style.fontSize =
+        "13px";
 
-        }
+    message.style.fontWeight =
+        "bold";
 
-    }
+    message.style.boxShadow =
+        "0 0 20px rgba(0,255,157,.25)";
+
+    document.body.appendChild(
+        message
+    );
+
+
+    setTimeout(
+
+        () => {
+
+            message.remove();
+
+        },
+
+        1200
+
+    );
 
 }
 
