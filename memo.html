@@ -1,695 +1,2453 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>나의 메모장</title>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width,
+               initial-scale=1.0,
+               maximum-scale=1.0,
+               user-scalable=no">
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+<title>Paper Note</title>
 
-    :root {
-      --bg: #f5f6f8;
-      --panel: #ffffff;
-      --border: #e5e7eb;
-      --text: #202124;
-      --subtext: #6b7280;
-      --accent: #4f46e5;
-      --hover: #f0f1f5;
-      --danger: #ef4444;
-    }
+<style>
+/* =========================================================
+   기본
+========================================================= */
 
-    body.dark {
-      --bg: #18181b;
-      --panel: #232326;
-      --border: #3f3f46;
-      --text: #f4f4f5;
-      --subtext: #a1a1aa;
-      --accent: #818cf8;
-      --hover: #303036;
-      --danger: #f87171;
-    }
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
 
-    body {
-      margin: 0;
-      font-family:
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        "Noto Sans KR",
-        sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      height: 100vh;
-      overflow: hidden;
-    }
+:root {
+  --app-bg: #eef0f5;
+  --paper: #ffffff;
+  --surface: rgba(255,255,255,.88);
+  --text: #17181c;
+  --muted: #858994;
+  --line: #e3e5ea;
+  --accent: #6d5dfc;
+  --accent-light: #eeeaff;
+  --danger: #ef5b68;
+  --shadow:
+    0 12px 35px rgba(20, 25, 45, .10),
+    0 2px 8px rgba(20, 25, 45, .06);
+}
 
-    .app {
-      display: flex;
-      height: 100vh;
-    }
+body.dark {
+  --app-bg: #141519;
+  --paper: #202126;
+  --surface: rgba(35,36,42,.94);
+  --text: #f4f4f5;
+  --muted: #a0a2ab;
+  --line: #35363d;
+  --accent: #8b7cff;
+  --accent-light: #302c50;
+  --shadow:
+    0 15px 40px rgba(0,0,0,.30);
+}
 
-    /* 사이드바 */
-    .sidebar {
-      width: 300px;
-      background: var(--panel);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      flex-shrink: 0;
-    }
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
 
-    .sidebar-header {
-      padding: 22px 18px 14px;
-    }
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "SF Pro Display",
+    "Segoe UI",
+    "Noto Sans KR",
+    sans-serif;
 
-    .title {
-      font-size: 22px;
-      font-weight: 700;
-      margin-bottom: 16px;
-    }
+  background: var(--app-bg);
+  color: var(--text);
+}
 
-    .new-note {
-      width: 100%;
-      border: none;
-      background: var(--accent);
-      color: white;
-      padding: 12px 16px;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-    }
 
-    .new-note:hover {
-      opacity: 0.9;
-    }
+/* =========================================================
+   앱
+========================================================= */
 
-    .search {
-      margin: 4px 18px 12px;
-      padding: 11px 13px;
-      border: 1px solid var(--border);
-      border-radius: 9px;
-      outline: none;
-      background: var(--bg);
-      color: var(--text);
-      font-size: 14px;
-    }
+.app {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
 
-    .search:focus {
-      border-color: var(--accent);
-    }
 
-    .note-list {
-      overflow-y: auto;
-      padding: 4px 10px 20px;
-      flex: 1;
-    }
+/* =========================================================
+   상단 헤더
+========================================================= */
 
-    .note-item {
-      padding: 13px 12px;
-      margin-bottom: 4px;
-      border-radius: 9px;
-      cursor: pointer;
-    }
+.header {
+  height: 68px;
+  flex-shrink: 0;
 
-    .note-item:hover {
-      background: var(--hover);
-    }
+  display: flex;
+  align-items: center;
 
-    .note-item.active {
-      background: var(--accent);
-      color: white;
-    }
+  padding: 0 22px;
 
-    .note-item-title {
-      font-size: 14px;
-      font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      margin-bottom: 5px;
-    }
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
 
-    .note-item-preview {
-      font-size: 12px;
-      opacity: 0.7;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 
-    .note-item-date {
-      font-size: 11px;
-      opacity: 0.55;
-      margin-top: 7px;
-    }
+  z-index: 20;
+}
 
-    .sidebar-footer {
-      border-top: 1px solid var(--border);
-      padding: 12px 18px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
 
-    .count {
-      color: var(--subtext);
-      font-size: 12px;
-    }
+  min-width: 220px;
+}
 
-    .theme-btn {
-      border: none;
-      background: transparent;
-      color: var(--text);
-      cursor: pointer;
-      font-size: 18px;
-      padding: 5px;
-    }
+.logo {
+  width: 36px;
+  height: 36px;
 
-    /* 편집 영역 */
-    .editor {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-    }
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-    .editor-header {
-      height: 64px;
-      border-bottom: 1px solid var(--border);
-      background: var(--panel);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 25px;
-    }
+  border-radius: 11px;
 
-    .save-status {
-      font-size: 12px;
-      color: var(--subtext);
-    }
+  background:
+    linear-gradient(
+      135deg,
+      #7869ff,
+      #5c4af4
+    );
 
-    .delete-btn {
-      border: none;
-      background: transparent;
-      color: var(--danger);
-      cursor: pointer;
-      font-size: 13px;
-      padding: 8px 10px;
-      border-radius: 7px;
-    }
+  color: white;
 
-    .delete-btn:hover {
-      background: rgba(239, 68, 68, 0.1);
-    }
+  font-size: 18px;
 
-    .editor-content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 45px max(30px, 7vw);
-    }
+  box-shadow:
+    0 5px 14px rgba(100,85,245,.28);
+}
 
-    .note-title {
-      width: 100%;
-      border: none;
-      outline: none;
-      background: transparent;
-      color: var(--text);
-      font-size: 32px;
-      font-weight: 700;
-      margin-bottom: 20px;
-    }
+.brand-text strong {
+  display: block;
+  font-size: 15px;
+  line-height: 18px;
+}
 
-    .note-title::placeholder {
-      color: var(--subtext);
-      opacity: 0.5;
-    }
+.brand-text span {
+  display: block;
 
-    .note-body {
-      width: 100%;
-      min-height: calc(100vh - 180px);
-      resize: none;
-      border: none;
-      outline: none;
-      background: transparent;
-      color: var(--text);
-      font-size: 16px;
-      line-height: 1.8;
-      font-family: inherit;
-    }
+  margin-top: 2px;
 
-    .note-body::placeholder {
-      color: var(--subtext);
-      opacity: 0.6;
-    }
+  color: var(--muted);
+  font-size: 11px;
+}
 
-    /* 빈 화면 */
-    .empty {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      color: var(--subtext);
-      background: var(--bg);
-    }
+.header-center {
+  flex: 1;
 
-    .empty-icon {
-      font-size: 55px;
-      margin-bottom: 15px;
-    }
+  display: flex;
+  justify-content: center;
+}
 
-    .empty h2 {
-      color: var(--text);
-      margin: 0 0 8px;
-    }
+.page-title {
+  padding: 7px 15px;
 
-    .empty p {
-      margin: 0;
-      font-size: 14px;
-    }
+  border-radius: 9px;
 
-    @media (max-width: 700px) {
-      .sidebar {
-        width: 220px;
-      }
+  font-size: 13px;
+  color: var(--muted);
 
-      .editor-content {
-        padding: 30px 20px;
-      }
+  background: var(--app-bg);
+}
 
-      .note-title {
-        font-size: 26px;
-      }
-    }
+.header-actions {
+  min-width: 220px;
 
-    @media (max-width: 520px) {
-      .sidebar {
-        width: 100px;
-      }
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 7px;
+}
 
-      .sidebar-header {
-        padding: 15px 10px;
-      }
 
-      .title {
-        font-size: 16px;
-      }
+/* =========================================================
+   공통 버튼
+========================================================= */
 
-      .new-note {
-        padding: 10px 5px;
-        font-size: 12px;
-      }
+.icon-btn {
+  width: 40px;
+  height: 40px;
 
-      .search {
-        margin: 4px 8px 10px;
-        width: calc(100% - 16px);
-      }
+  border: 1px solid transparent;
+  border-radius: 11px;
 
-      .note-list {
-        padding: 4px;
-      }
+  background: transparent;
+  color: var(--text);
 
-      .note-item {
-        padding: 10px 7px;
-      }
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-      .note-item-preview,
-      .note-item-date {
-        display: none;
-      }
+  cursor: pointer;
 
-      .sidebar-footer {
-        padding: 10px;
-      }
+  font-size: 17px;
 
-      .count {
-        display: none;
-      }
+  transition:
+    background .18s ease,
+    transform .18s ease,
+    border .18s ease;
+}
 
-      .editor-header {
-        padding: 0 12px;
-      }
-    }
-  </style>
+.icon-btn:hover {
+  background: var(--app-bg);
+  border-color: var(--line);
+}
+
+.icon-btn:active {
+  transform: scale(.94);
+}
+
+.primary-btn {
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  padding: 0 15px;
+
+  border: 0;
+  border-radius: 11px;
+
+  background: var(--accent);
+  color: white;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 6px 16px rgba(109,93,252,.25);
+
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease;
+}
+
+.primary-btn:hover {
+  box-shadow:
+    0 8px 22px rgba(109,93,252,.35);
+}
+
+.primary-btn:active {
+  transform: scale(.96);
+}
+
+
+/* =========================================================
+   작업 영역
+========================================================= */
+
+.workspace {
+  position: relative;
+
+  flex: 1;
+
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(109,93,252,.08),
+      transparent 35%
+    ),
+    var(--app-bg);
+}
+
+
+/* =========================================================
+   페이지 영역
+========================================================= */
+
+.page-area {
+  position: absolute;
+  inset: 0;
+
+  overflow: auto;
+
+  padding:
+    38px
+    70px
+    150px;
+
+  display: flex;
+  justify-content: center;
+
+  /*
+   * 태블릿에서 브라우저 스크롤 대신
+   * 필기 영역 자체를 안정적으로 유지
+   */
+  overscroll-behavior: contain;
+}
+
+
+/* =========================================================
+   실제 종이
+========================================================= */
+
+.paper {
+  position: relative;
+
+  flex: 0 0 auto;
+
+  width: min(920px, 92vw);
+  height: max(1180px, calc(100vh - 150px));
+
+  background: var(--paper);
+
+  border-radius: 5px;
+
+  box-shadow: var(--shadow);
+
+  overflow: hidden;
+}
+
+
+/* 종이 줄 */
+.paper.lines {
+  background-color: var(--paper);
+
+  background-image:
+    linear-gradient(
+      to bottom,
+      transparent 31px,
+      rgba(115,130,160,.13) 32px,
+      transparent 33px
+    );
+
+  background-size:
+    100% 32px;
+}
+
+
+/* 격자 */
+.paper.grid {
+  background-color: var(--paper);
+
+  background-image:
+    linear-gradient(
+      rgba(110,125,155,.11) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(110,125,155,.11) 1px,
+      transparent 1px
+    );
+
+  background-size:
+    28px 28px;
+}
+
+
+/* =========================================================
+   캔버스
+========================================================= */
+
+canvas {
+  position: absolute;
+
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  touch-action: none;
+
+  cursor: crosshair;
+}
+
+
+/* =========================================================
+   페이지 번호
+========================================================= */
+
+.page-number {
+  position: absolute;
+
+  bottom: 15px;
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  color: var(--muted);
+
+  font-size: 10px;
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   플로팅 툴바
+========================================================= */
+
+.floating-toolbar {
+  position: absolute;
+
+  left: 50%;
+  bottom: 22px;
+
+  transform: translateX(-50%);
+
+  min-height: 64px;
+
+  padding: 9px;
+
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  background: var(--surface);
+
+  border: 1px solid rgba(255,255,255,.55);
+
+  border-radius: 18px;
+
+  box-shadow:
+    0 14px 38px rgba(20,25,45,.16),
+    0 2px 8px rgba(20,25,45,.07);
+
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+
+  z-index: 30;
+}
+
+
+/* 툴바 버튼 */
+
+.tool-btn {
+  position: relative;
+
+  width: 46px;
+  height: 46px;
+
+  border: 0;
+  border-radius: 13px;
+
+  background: transparent;
+  color: var(--text);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 19px;
+
+  cursor: pointer;
+
+  transition:
+    background .16s ease,
+    color .16s ease,
+    transform .16s ease;
+}
+
+.tool-btn:hover {
+  background: var(--app-bg);
+}
+
+.tool-btn:active {
+  transform: scale(.91);
+}
+
+.tool-btn.active {
+  color: var(--accent);
+  background: var(--accent-light);
+}
+
+.tool-btn:disabled {
+  opacity: .28;
+  cursor: default;
+}
+
+
+/* 세로 구분선 */
+
+.tool-divider {
+  width: 1px;
+  height: 30px;
+
+  background: var(--line);
+
+  margin: 0 4px;
+}
+
+
+/* =========================================================
+   펜 색상 표시
+========================================================= */
+
+.current-color {
+  width: 22px;
+  height: 22px;
+
+  border-radius: 50%;
+
+  border: 2px solid var(--paper);
+
+  box-shadow:
+    0 0 0 1px var(--line);
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   설정 팝업
+========================================================= */
+
+.popover {
+  position: absolute;
+
+  bottom: 98px;
+  left: 50%;
+
+  transform:
+    translateX(-50%)
+    translateY(10px)
+    scale(.96);
+
+  width: 270px;
+
+  padding: 17px;
+
+  background: var(--surface);
+
+  border: 1px solid var(--line);
+
+  border-radius: 17px;
+
+  box-shadow:
+    0 18px 45px rgba(20,25,45,.16);
+
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+
+  opacity: 0;
+  pointer-events: none;
+
+  transition:
+    opacity .18s ease,
+    transform .18s ease;
+
+  z-index: 40;
+}
+
+.popover.show {
+  opacity: 1;
+  pointer-events: auto;
+
+  transform:
+    translateX(-50%)
+    translateY(0)
+    scale(1);
+}
+
+.popover-title {
+  margin-bottom: 13px;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  color: var(--muted);
+}
+
+
+/* =========================================================
+   굵기
+========================================================= */
+
+.range-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+input[type="range"] {
+  flex: 1;
+
+  accent-color: var(--accent);
+}
+
+.size-preview {
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.size-dot {
+  width: 12px;
+  height: 12px;
+
+  border-radius: 50%;
+
+  background: var(--text);
+}
+
+
+/* =========================================================
+   색상
+========================================================= */
+
+.colors {
+  display: grid;
+
+  grid-template-columns:
+    repeat(7, 1fr);
+
+  gap: 9px;
+}
+
+.color-btn {
+  width: 27px;
+  height: 27px;
+
+  border: 2px solid transparent;
+
+  border-radius: 50%;
+
+  cursor: pointer;
+
+  transition:
+    transform .15s ease,
+    border .15s ease;
+}
+
+.color-btn:hover {
+  transform: scale(1.13);
+}
+
+.color-btn.active {
+  border-color: var(--accent);
+
+  box-shadow:
+    0 0 0 2px var(--paper),
+    0 0 0 3px var(--accent);
+}
+
+
+/* =========================================================
+   용지 설정
+========================================================= */
+
+.paper-menu {
+  display: flex;
+  gap: 7px;
+}
+
+.paper-option {
+  flex: 1;
+
+  padding: 9px 5px;
+
+  border: 1px solid var(--line);
+
+  border-radius: 9px;
+
+  background: transparent;
+  color: var(--text);
+
+  cursor: pointer;
+
+  font-size: 11px;
+}
+
+.paper-option.active {
+  border-color: var(--accent);
+
+  background: var(--accent-light);
+
+  color: var(--accent);
+}
+
+
+/* =========================================================
+   저장 상태
+========================================================= */
+
+.save-indicator {
+  position: absolute;
+
+  top: 17px;
+  right: 20px;
+
+  padding: 6px 10px;
+
+  border-radius: 20px;
+
+  background: var(--surface);
+
+  border: 1px solid var(--line);
+
+  color: var(--muted);
+
+  font-size: 10px;
+
+  backdrop-filter: blur(12px);
+
+  z-index: 15;
+
+  transition:
+    opacity .3s ease;
+}
+
+
+/* =========================================================
+   토스트
+========================================================= */
+
+.toast {
+  position: absolute;
+
+  left: 50%;
+  bottom: 105px;
+
+  transform:
+    translate(-50%, 10px);
+
+  padding: 9px 15px;
+
+  border-radius: 10px;
+
+  background: #1e2026;
+
+  color: white;
+
+  font-size: 12px;
+
+  opacity: 0;
+  pointer-events: none;
+
+  transition:
+    opacity .2s ease,
+    transform .2s ease;
+
+  z-index: 100;
+}
+
+.toast.show {
+  opacity: 1;
+
+  transform:
+    translate(-50%, 0);
+}
+
+
+/* =========================================================
+   모바일 / 작은 태블릿
+========================================================= */
+
+@media (max-width: 800px) {
+
+  .header {
+    height: 58px;
+    padding: 0 10px;
+  }
+
+  .brand {
+    min-width: auto;
+  }
+
+  .brand-text {
+    display: none;
+  }
+
+  .logo {
+    width: 34px;
+    height: 34px;
+  }
+
+  .header-center {
+    justify-content: flex-start;
+    padding-left: 10px;
+  }
+
+  .header-actions {
+    min-width: auto;
+  }
+
+  .header-actions .text-label {
+    display: none;
+  }
+
+  .primary-btn {
+    width: 40px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .page-area {
+    padding:
+      15px
+      15px
+      125px;
+  }
+
+  .paper {
+    width: 100%;
+    min-width: 100%;
+    height: calc(100vh - 115px);
+
+    border-radius: 4px;
+  }
+
+  .floating-toolbar {
+    bottom: 12px;
+
+    max-width:
+      calc(100vw - 18px);
+
+    overflow-x: auto;
+
+    border-radius: 17px;
+  }
+
+  .tool-btn {
+    flex: 0 0 44px;
+  }
+
+  .tool-divider {
+    flex: 0 0 1px;
+  }
+
+  .popover {
+    bottom: 87px;
+  }
+}
+
+
+/* =========================================================
+   매우 작은 화면
+========================================================= */
+
+@media (max-width: 500px) {
+
+  .header-center {
+    display: none;
+  }
+
+  .page-area {
+    padding:
+      7px
+      7px
+      115px;
+  }
+
+  .paper {
+    min-height: 900px;
+  }
+
+  .floating-toolbar {
+    gap: 2px;
+    padding: 6px;
+  }
+
+  .tool-btn {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+  }
+
+  .popover {
+    width: 250px;
+  }
+}
+</style>
 </head>
+
 
 <body>
 
 <div class="app">
 
-  <!-- 사이드바 -->
-  <aside class="sidebar">
+  <!-- =====================================================
+       HEADER
+  ====================================================== -->
 
-    <div class="sidebar-header">
-      <div class="title">📝 나의 메모장</div>
+  <header class="header">
 
-      <button class="new-note" onclick="createNote()">
-        ＋ 새 메모
-      </button>
+    <div class="brand">
+
+      <div class="logo">
+        ✎
+      </div>
+
+      <div class="brand-text">
+
+        <strong>Paper Note</strong>
+
+        <span>
+          Digital handwriting
+        </span>
+
+      </div>
+
     </div>
 
-    <input
-      type="text"
-      id="search"
-      class="search"
-      placeholder="메모 검색..."
-      oninput="renderNotes()"
-    >
 
-    <div id="noteList" class="note-list"></div>
+    <div class="header-center">
 
-    <div class="sidebar-footer">
-      <span id="noteCount" class="count">0개의 메모</span>
+      <div class="page-title">
+        내 필기 노트
+      </div>
+
+    </div>
+
+
+    <div class="header-actions">
 
       <button
-        class="theme-btn"
-        onclick="toggleDarkMode()"
-        title="다크 모드"
-      >
-        🌙
+        class="icon-btn"
+        onclick="toggleDark()"
+        title="다크 모드">
+        ◐
       </button>
+
+      <button
+        class="icon-btn"
+        onclick="shareNote()"
+        title="공유">
+        ↗
+      </button>
+
+      <button
+        class="primary-btn"
+        onclick="saveNote()">
+
+        <span>↓</span>
+
+        <span class="text-label">
+          저장
+        </span>
+
+      </button>
+
     </div>
 
-  </aside>
+  </header>
 
-  <!-- 편집 영역 -->
-  <main id="main" class="empty">
-    <div>
-      <div class="empty-icon">🗒️</div>
-      <h2>메모를 선택하세요</h2>
-      <p>왼쪽에서 메모를 선택하거나 새 메모를 만들어보세요.</p>
+
+  <!-- =====================================================
+       WORKSPACE
+  ====================================================== -->
+
+  <main class="workspace">
+
+    <div class="page-area">
+
+      <div
+        id="paper"
+        class="paper lines">
+
+        <canvas id="canvas"></canvas>
+
+        <div class="page-number">
+          1
+        </div>
+
+      </div>
+
     </div>
+
+
+    <!-- 저장 상태 -->
+
+    <div
+      id="saveIndicator"
+      class="save-indicator">
+
+      자동 저장됨
+
+    </div>
+
+
+    <!-- ===================================================
+         설정 팝업
+    ==================================================== -->
+
+    <div
+      id="popover"
+      class="popover">
+
+      <!-- 펜 굵기 -->
+
+      <div class="popover-title">
+        펜 굵기
+      </div>
+
+      <div class="range-row">
+
+        <input
+          id="sizeRange"
+          type="range"
+          min="1"
+          max="15"
+          value="4">
+
+        <div class="size-preview">
+          <div
+            id="sizeDot"
+            class="size-dot">
+          </div>
+        </div>
+
+      </div>
+
+
+      <div
+        style="
+          height:1px;
+          background:var(--line);
+          margin:18px 0;
+        ">
+      </div>
+
+
+      <!-- 색상 -->
+
+      <div class="popover-title">
+        펜 색상
+      </div>
+
+      <div class="colors">
+
+        <button
+          class="color-btn active"
+          style="background:#17181c"
+          data-color="#17181c">
+        </button>
+
+        <button
+          class="color-btn"
+          style="background:#ef4444"
+          data-color="#ef4444">
+        </button>
+
+        <button
+          class="color-btn"
+          style="background:#f97316"
+          data-color="#f97316">
+        </button>
+
+        <button
+          class="color-btn"
+          style="background:#eab308"
+          data-color="#eab308">
+        </button>
+
+        <button
+          class="color-btn"
+          style="background:#22c55e"
+          data-color="#22c55e">
+        </button>
+
+        <button
+          class="color-btn"
+          style="background:#3b82f6"
+          data-color="#3b82f6">
+        </button>
+
+        <button
+          class="color-btn"
+          style="background:#8b5cf6"
+          data-color="#8b5cf6">
+        </button>
+
+        <button
+          class="color-btn"
+          style="background:#ec4899"
+          data-color="#ec4899">
+        </button>
+
+        <button
+          class="color-btn"
+          style="background:#06b6d4"
+          data-color="#06b6d4">
+        </button>
+
+        <button
+          class="color-btn"
+          style="background:#795548"
+          data-color="#795548">
+        </button>
+
+        <button
+          class="color-btn"
+          style="background:#64748b"
+          data-color="#64748b">
+        </button>
+
+        <button
+          class="color-btn"
+          style="background:#ffffff; border:1px solid #ddd"
+          data-color="#ffffff">
+        </button>
+
+        <button
+          class="color-btn"
+          style="background:#000000"
+          data-color="#000000">
+        </button>
+
+        <button
+          class="color-btn"
+          style="background:#14b8a6"
+          data-color="#14b8a6">
+        </button>
+
+      </div>
+
+
+      <div
+        style="
+          height:1px;
+          background:var(--line);
+          margin:18px 0;
+        ">
+      </div>
+
+
+      <!-- 용지 -->
+
+      <div class="popover-title">
+        용지 스타일
+      </div>
+
+      <div class="paper-menu">
+
+        <button
+          class="paper-option active"
+          onclick="setPaper('lines')">
+          줄
+        </button>
+
+        <button
+          class="paper-option"
+          onclick="setPaper('grid')">
+          격자
+        </button>
+
+        <button
+          class="paper-option"
+          onclick="setPaper('plain')">
+          무지
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- ===================================================
+         플로팅 툴바
+    ==================================================== -->
+
+    <div class="floating-toolbar">
+
+      <!-- 펜 -->
+
+      <button
+        id="penTool"
+        class="tool-btn active"
+        onclick="setTool('pen')"
+        title="펜">
+
+        ✎
+
+      </button>
+
+
+      <!-- 색상 / 굵기 -->
+
+      <button
+        id="settingsTool"
+        class="tool-btn"
+        onclick="togglePopover()"
+        title="펜 설정">
+
+        <div
+          id="currentColor"
+          class="current-color"
+          style="background:#17181c">
+        </div>
+
+      </button>
+
+
+      <div class="tool-divider"></div>
+
+
+      <!-- 지우개 -->
+
+      <button
+        id="eraserTool"
+        class="tool-btn"
+        onclick="setTool('eraser')"
+        title="지우개">
+
+        ⌫
+
+      </button>
+
+
+      <!-- 실행 취소 -->
+
+      <button
+        id="undoTool"
+        class="tool-btn"
+        onclick="undo()"
+        title="실행 취소">
+
+        ↶
+
+      </button>
+
+
+      <!-- 다시 실행 -->
+
+      <button
+        id="redoTool"
+        class="tool-btn"
+        onclick="redo()"
+        title="다시 실행">
+
+        ↷
+
+      </button>
+
+
+      <div class="tool-divider"></div>
+
+
+      <!-- 전체 삭제 -->
+
+      <button
+        class="tool-btn"
+        onclick="clearCanvas()"
+        title="전체 지우기">
+
+        ⌫
+
+      </button>
+
+    </div>
+
+
+    <!-- 토스트 -->
+
+    <div
+      id="toast"
+      class="toast">
+    </div>
+
   </main>
 
 </div>
 
 
 <script>
-  let notes = JSON.parse(localStorage.getItem("myNotes")) || [];
-  let currentId = null;
+/* =========================================================
+   상태
+========================================================= */
 
-  // 저장
-  function saveNotes() {
-    localStorage.setItem("myNotes", JSON.stringify(notes));
+const canvas =
+  document.getElementById("canvas");
+
+const ctx =
+  canvas.getContext("2d");
+
+const paper =
+  document.getElementById("paper");
+
+let drawing = false;
+
+let tool = "pen";
+
+let color = "#17181c";
+
+let size = 4;
+
+let lastX = 0;
+let lastY = 0;
+
+let undoStack = [];
+let redoStack = [];
+
+let saveTimer;
+
+
+/* =========================================================
+   캔버스 크기
+========================================================= */
+
+function resizeCanvas() {
+
+  const rect =
+    paper.getBoundingClientRect();
+
+  const dpr =
+    window.devicePixelRatio || 1;
+
+  /*
+   * 현재 이미지 저장
+   */
+  let oldImage = null;
+
+  if (canvas.width > 0 && canvas.height > 0) {
+    oldImage =
+      canvas.toDataURL("image/png");
   }
 
-  // ID 생성
-  function generateId() {
-    return Date.now() + Math.random().toString(16).slice(2);
-  }
+  canvas.width =
+    rect.width * dpr;
 
-  // 새 메모
-  function createNote() {
-    const note = {
-      id: generateId(),
-      title: "새 메모",
-      content: "",
-      updatedAt: new Date().toISOString()
+  canvas.height =
+    rect.height * dpr;
+
+  canvas.style.width =
+    rect.width + "px";
+
+  canvas.style.height =
+    rect.height + "px";
+
+  ctx.setTransform(
+    dpr,
+    0,
+    0,
+    dpr,
+    0,
+    0
+  );
+
+  /*
+   * 배경
+   */
+  ctx.globalCompositeOperation =
+    "source-over";
+
+  /*
+   * 기존 이미지 복구
+   */
+  if (oldImage) {
+
+    const img =
+      new Image();
+
+    img.onload = () => {
+
+      ctx.drawImage(
+        img,
+        0,
+        0,
+        rect.width,
+        rect.height
+      );
     };
 
-    notes.unshift(note);
-    currentId = note.id;
+    img.src = oldImage;
 
-    saveNotes();
-    renderNotes();
-    renderEditor();
+  } else {
 
+    /*
+     * 초기에는 투명 캔버스.
+     * 저장할 때 흰색 배경을 넣음.
+     */
+  }
+}
+
+
+/* =========================================================
+   초기화
+========================================================= */
+
+resizeCanvas();
+
+window.addEventListener(
+  "resize",
+  resizeCanvas
+);
+
+
+/* =========================================================
+   좌표
+========================================================= */
+
+function getPoint(e) {
+
+  const rect =
+    canvas.getBoundingClientRect();
+
+  return {
+    x: e.clientX - rect.left,
+    y: e.clientY - rect.top
+  };
+}
+
+
+/* =========================================================
+   도구
+========================================================= */
+
+function setTool(value) {
+
+  tool = value;
+
+  document
+    .getElementById("penTool")
+    .classList.toggle(
+      "active",
+      value === "pen"
+    );
+
+  document
+    .getElementById("eraserTool")
+    .classList.toggle(
+      "active",
+      value === "eraser"
+    );
+
+  canvas.style.cursor =
+    value === "pen"
+      ? "crosshair"
+      : "cell";
+
+  closePopover();
+}
+
+
+/* =========================================================
+   필기 시작
+========================================================= */
+
+canvas.addEventListener(
+  "pointerdown",
+  startDrawing
+);
+
+function startDrawing(e) {
+
+  e.preventDefault();
+
+  drawing = true;
+
+  canvas.setPointerCapture(
+    e.pointerId
+  );
+
+  const p =
+    getPoint(e);
+
+  lastX = p.x;
+  lastY = p.y;
+
+  saveState();
+
+  drawPoint(
+    p.x,
+    p.y,
+    e.pressure
+  );
+}
+
+
+/* =========================================================
+   필기
+========================================================= */
+
+canvas.addEventListener(
+  "pointermove",
+  draw
+);
+
+function draw(e) {
+
+  if (!drawing) return;
+
+  e.preventDefault();
+
+  const p =
+    getPoint(e);
+
+  let pressure =
+    e.pressure > 0
+      ? e.pressure
+      : .5;
+
+  ctx.lineCap =
+    "round";
+
+  ctx.lineJoin =
+    "round";
+
+  if (tool === "pen") {
+
+    ctx.globalCompositeOperation =
+      "source-over";
+
+    ctx.strokeStyle =
+      color;
+
+    /*
+     * 필압 적용
+     */
+    ctx.lineWidth =
+      Math.max(
+        .8,
+        size *
+        (.55 + pressure)
+      );
+
+  } else {
+
+    ctx.globalCompositeOperation =
+      "destination-out";
+
+    ctx.lineWidth =
+      Math.max(
+        15,
+        size * 4
+      );
+  }
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    lastX,
+    lastY
+  );
+
+  ctx.lineTo(
+    p.x,
+    p.y
+  );
+
+  ctx.stroke();
+
+  lastX = p.x;
+  lastY = p.y;
+
+  ctx.globalCompositeOperation =
+    "source-over";
+
+  scheduleSave();
+}
+
+
+/* =========================================================
+   점
+========================================================= */
+
+function drawPoint(
+  x,
+  y,
+  pressure
+) {
+
+  ctx.beginPath();
+
+  if (tool === "eraser") {
+
+    ctx.globalCompositeOperation =
+      "destination-out";
+
+    ctx.arc(
+      x,
+      y,
+      Math.max(8, size * 2),
+      0,
+      Math.PI * 2
+    );
+
+    ctx.fill();
+
+  } else {
+
+    ctx.globalCompositeOperation =
+      "source-over";
+
+    ctx.fillStyle =
+      color;
+
+    const p =
+      pressure > 0
+        ? pressure
+        : .5;
+
+    const radius =
+      Math.max(
+        .5,
+        size * (.55 + p) / 2
+      );
+
+    ctx.arc(
+      x,
+      y,
+      radius,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.fill();
+  }
+
+  ctx.globalCompositeOperation =
+    "source-over";
+}
+
+
+/* =========================================================
+   종료
+========================================================= */
+
+canvas.addEventListener(
+  "pointerup",
+  stopDrawing
+);
+
+canvas.addEventListener(
+  "pointercancel",
+  stopDrawing
+);
+
+function stopDrawing() {
+
+  if (!drawing) return;
+
+  drawing = false;
+
+  redoStack = [];
+
+  updateHistoryButtons();
+
+  scheduleSave();
+}
+
+
+/* =========================================================
+   Undo 상태
+========================================================= */
+
+function saveState() {
+
+  undoStack.push(
+    canvas.toDataURL("image/png")
+  );
+
+  if (undoStack.length > 40) {
+    undoStack.shift();
+  }
+
+  redoStack = [];
+
+  updateHistoryButtons();
+}
+
+
+/* =========================================================
+   Undo
+========================================================= */
+
+function undo() {
+
+  if (!undoStack.length) return;
+
+  redoStack.push(
+    canvas.toDataURL("image/png")
+  );
+
+  const state =
+    undoStack.pop();
+
+  restoreImage(state);
+
+  updateHistoryButtons();
+
+  scheduleSave();
+}
+
+
+/* =========================================================
+   Redo
+========================================================= */
+
+function redo() {
+
+  if (!redoStack.length) return;
+
+  undoStack.push(
+    canvas.toDataURL("image/png")
+  );
+
+  const state =
+    redoStack.pop();
+
+  restoreImage(state);
+
+  updateHistoryButtons();
+
+  scheduleSave();
+}
+
+
+/* =========================================================
+   이미지 복구
+========================================================= */
+
+function restoreImage(src) {
+
+  const img =
+    new Image();
+
+  img.onload = () => {
+
+    const rect =
+      paper.getBoundingClientRect();
+
+    ctx.clearRect(
+      0,
+      0,
+      rect.width,
+      rect.height
+    );
+
+    ctx.drawImage(
+      img,
+      0,
+      0,
+      rect.width,
+      rect.height
+    );
+  };
+
+  img.src = src;
+}
+
+
+/* =========================================================
+   Undo 버튼
+========================================================= */
+
+function updateHistoryButtons() {
+
+  document
+    .getElementById("undoTool")
+    .disabled =
+      undoStack.length === 0;
+
+  document
+    .getElementById("redoTool")
+    .disabled =
+      redoStack.length === 0;
+}
+
+
+/* =========================================================
+   전체 삭제
+========================================================= */
+
+function clearCanvas() {
+
+  if (
+    !confirm(
+      "이 페이지의 필기를 모두 지울까요?"
+    )
+  ) return;
+
+  saveState();
+
+  const rect =
+    paper.getBoundingClientRect();
+
+  ctx.clearRect(
+    0,
+    0,
+    rect.width,
+    rect.height
+  );
+
+  redoStack = [];
+
+  updateHistoryButtons();
+
+  scheduleSave();
+
+  showToast(
+    "페이지를 지웠습니다"
+  );
+}
+
+
+/* =========================================================
+   자동 저장
+========================================================= */
+
+function scheduleSave() {
+
+  const indicator =
+    document.getElementById(
+      "saveIndicator"
+    );
+
+  indicator.textContent =
+    "저장 중...";
+
+  clearTimeout(saveTimer);
+
+  saveTimer =
     setTimeout(() => {
-      document.querySelector(".note-title")?.focus();
-    }, 50);
-  }
 
-  // 메모 선택
-  function selectNote(id) {
-    currentId = id;
-    renderNotes();
-    renderEditor();
-  }
+      localStorage.setItem(
+        "paperNote",
+        canvas.toDataURL(
+          "image/png"
+        )
+      );
 
-  // 메모 목록 표시
-  function renderNotes() {
-    const list = document.getElementById("noteList");
-    const keyword = document.getElementById("search").value.toLowerCase();
+      localStorage.setItem(
+        "paperNoteColor",
+        color
+      );
 
-    const filtered = notes.filter(note =>
-      note.title.toLowerCase().includes(keyword) ||
-      note.content.toLowerCase().includes(keyword)
+      localStorage.setItem(
+        "paperNoteSize",
+        size
+      );
+
+      indicator.textContent =
+        "자동 저장됨";
+
+    }, 450);
+}
+
+
+/* =========================================================
+   저장 이미지 생성
+========================================================= */
+
+function createExportCanvas() {
+
+  const rect =
+    paper.getBoundingClientRect();
+
+  const scale = 2;
+
+  const out =
+    document.createElement(
+      "canvas"
     );
 
-    list.innerHTML = "";
+  out.width =
+    rect.width * scale;
 
-    if (filtered.length === 0) {
-      list.innerHTML = `
-        <div style="
-          padding: 25px 10px;
-          text-align: center;
-          color: var(--subtext);
-          font-size: 12px;
-        ">
-          메모가 없습니다.
-        </div>
-      `;
-    }
+  out.height =
+    rect.height * scale;
 
-    filtered.forEach(note => {
-      const item = document.createElement("div");
+  const outCtx =
+    out.getContext("2d");
 
-      item.className =
-        "note-item" +
-        (note.id === currentId ? " active" : "");
+  /*
+   * 흰색 종이
+   */
+  outCtx.fillStyle =
+    "#ffffff";
 
-      const title =
-        note.title.trim() || "제목 없음";
+  outCtx.fillRect(
+    0,
+    0,
+    out.width,
+    out.height
+  );
 
-      const preview =
-        note.content.trim() || "내용 없음";
+  /*
+   * 필기
+   */
+  outCtx.drawImage(
+    canvas,
+    0,
+    0,
+    out.width,
+    out.height
+  );
 
-      const date =
-        formatDate(note.updatedAt);
+  return out;
+}
 
-      item.innerHTML = `
-        <div class="note-item-title">
-          ${escapeHTML(title)}
-        </div>
 
-        <div class="note-item-preview">
-          ${escapeHTML(preview)}
-        </div>
+/* =========================================================
+   PNG 저장
+========================================================= */
 
-        <div class="note-item-date">
-          ${date}
-        </div>
-      `;
+function saveNote() {
 
-      item.onclick = () => selectNote(note.id);
+  const out =
+    createExportCanvas();
 
-      list.appendChild(item);
-    });
-
-    document.getElementById("noteCount").textContent =
-      `${notes.length}개의 메모`;
-  }
-
-  // 편집기 표시
-  function renderEditor() {
-    const main = document.getElementById("main");
-
-    const note = notes.find(n => n.id === currentId);
-
-    if (!note) {
-      main.className = "empty";
-
-      main.innerHTML = `
-        <div>
-          <div class="empty-icon">🗒️</div>
-          <h2>메모를 선택하세요</h2>
-          <p>왼쪽에서 메모를 선택하거나 새 메모를 만들어보세요.</p>
-        </div>
-      `;
-
-      return;
-    }
-
-    main.className = "editor";
-
-    main.innerHTML = `
-      <div class="editor-header">
-
-        <span id="saveStatus" class="save-status">
-          저장됨
-        </span>
-
-        <button
-          class="delete-btn"
-          onclick="deleteCurrentNote()"
-        >
-          🗑 삭제
-        </button>
-
-      </div>
-
-      <div class="editor-content">
-
-        <input
-          id="noteTitle"
-          class="note-title"
-          type="text"
-          placeholder="제목"
-          value="${escapeAttribute(note.title)}"
-          oninput="updateTitle(this.value)"
-        >
-
-        <textarea
-          id="noteBody"
-          class="note-body"
-          placeholder="여기에 메모를 입력하세요..."
-          oninput="updateContent(this.value)"
-        >${escapeHTML(note.content)}</textarea>
-
-      </div>
-    `;
-
-    document.getElementById("noteBody").focus();
-  }
-
-  // 제목 수정
-  function updateTitle(value) {
-    const note = notes.find(n => n.id === currentId);
-
-    if (!note) return;
-
-    note.title = value;
-    note.updatedAt = new Date().toISOString();
-
-    saveNotes();
-    renderNotes();
-    showSaving();
-  }
-
-  // 내용 수정
-  function updateContent(value) {
-    const note = notes.find(n => n.id === currentId);
-
-    if (!note) return;
-
-    note.content = value;
-    note.updatedAt = new Date().toISOString();
-
-    saveNotes();
-    renderNotes();
-    showSaving();
-  }
-
-  // 저장 상태
-  let saveTimer;
-
-  function showSaving() {
-    const status = document.getElementById("saveStatus");
-
-    if (!status) return;
-
-    status.textContent = "저장 중...";
-
-    clearTimeout(saveTimer);
-
-    saveTimer = setTimeout(() => {
-      status.textContent = "자동 저장됨";
-    }, 300);
-  }
-
-  // 현재 메모 삭제
-  function deleteCurrentNote() {
-    const note = notes.find(n => n.id === currentId);
-
-    if (!note) return;
-
-    const confirmed = confirm(
-      `"${note.title || "제목 없음"}" 메모를 삭제할까요?`
+  const link =
+    document.createElement(
+      "a"
     );
 
-    if (!confirmed) return;
+  const date =
+    new Date();
 
-    notes = notes.filter(n => n.id !== currentId);
+  const name =
+    "PaperNote_" +
+    date.getFullYear() +
+    "-" +
+    String(
+      date.getMonth() + 1
+    ).padStart(2, "0") +
+    "-" +
+    String(
+      date.getDate()
+    ).padStart(2, "0") +
+    ".png";
 
-    currentId = notes.length
-      ? notes[0].id
-      : null;
+  link.download =
+    name;
 
-    saveNotes();
-    renderNotes();
-    renderEditor();
-  }
+  link.href =
+    out.toDataURL(
+      "image/png"
+    );
 
-  // 날짜
-  function formatDate(dateString) {
-    const date = new Date(dateString);
+  link.click();
 
-    const now = new Date();
+  showToast(
+    "필기를 PNG로 저장했습니다"
+  );
+}
 
-    const diff =
-      Math.floor((now - date) / 1000);
 
-    if (diff < 60) {
-      return "방금 전";
+/* =========================================================
+   공유
+========================================================= */
+
+async function shareNote() {
+
+  const out =
+    createExportCanvas();
+
+  out.toBlob(
+    async blob => {
+
+      if (!blob) return;
+
+      const file =
+        new File(
+          [blob],
+          "PaperNote.png",
+          {
+            type: "image/png"
+          }
+        );
+
+      /*
+       * 모바일 공유
+       */
+      if (
+        navigator.share &&
+        (
+          !navigator.canShare ||
+          navigator.canShare({
+            files: [file]
+          })
+        )
+      ) {
+
+        try {
+
+          await navigator.share({
+            title:
+              "Paper Note",
+            text:
+              "필기 메모",
+            files: [file]
+          });
+
+          showToast(
+            "공유했습니다"
+          );
+
+          return;
+
+        } catch (error) {
+
+          if (
+            error.name ===
+            "AbortError"
+          ) {
+            return;
+          }
+        }
+      }
+
+      /*
+       * 공유를 지원하지 않는 브라우저
+       */
+      const link =
+        document.createElement(
+          "a"
+        );
+
+      link.download =
+        "PaperNote.png";
+
+      link.href =
+        URL.createObjectURL(
+          blob
+        );
+
+      link.click();
+
+      URL.revokeObjectURL(
+        link.href
+      );
+
+      showToast(
+        "공유 기능이 없어 PNG로 저장했습니다"
+      );
+
+    },
+    "image/png"
+  );
+}
+
+
+/* =========================================================
+   팝업
+========================================================= */
+
+function togglePopover() {
+
+  document
+    .getElementById("popover")
+    .classList.toggle("show");
+}
+
+function closePopover() {
+
+  document
+    .getElementById("popover")
+    .classList.remove("show");
+}
+
+
+/* =========================================================
+   펜 굵기
+========================================================= */
+
+document
+  .getElementById("sizeRange")
+  .addEventListener(
+    "input",
+    e => {
+
+      size =
+        Number(
+          e.target.value
+        );
+
+      updateSizePreview();
+
+      setTool("pen");
     }
+  );
 
-    if (diff < 3600) {
-      return Math.floor(diff / 60) + "분 전";
-    }
 
-    if (diff < 86400) {
-      return Math.floor(diff / 3600) + "시간 전";
-    }
+function updateSizePreview() {
 
-    return date.toLocaleDateString("ko-KR", {
-      month: "short",
-      day: "numeric"
-    });
-  }
+  const dot =
+    document.getElementById(
+      "sizeDot"
+    );
 
-  // HTML 보안 처리
-  function escapeHTML(str) {
-    return String(str)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
-  }
+  const value =
+    Math.min(
+      25,
+      Math.max(
+        3,
+        size * 1.6
+      )
+    );
 
-  function escapeAttribute(str) {
-    return String(str)
-      .replace(/&/g, "&amp;")
-      .replace(/"/g, "&quot;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
-  }
+  dot.style.width =
+    value + "px";
 
-  // 다크 모드
-  function toggleDarkMode() {
-    document.body.classList.toggle("dark");
+  dot.style.height =
+    value + "px";
+}
 
-    localStorage.setItem(
-      "darkMode",
-      document.body.classList.contains("dark")
+updateSizePreview();
+
+
+/* =========================================================
+   색상
+========================================================= */
+
+document
+  .querySelectorAll(".color-btn")
+  .forEach(button => {
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        color =
+          button.dataset.color;
+
+        document
+          .getElementById(
+            "currentColor"
+          )
+          .style.background =
+            color;
+
+        document
+          .querySelectorAll(
+            ".color-btn"
+          )
+          .forEach(
+            b =>
+              b.classList.remove(
+                "active"
+              )
+          );
+
+        button.classList.add(
+          "active"
+        );
+
+        setTool("pen");
+
+        scheduleSave();
+      }
+    );
+  });
+
+
+/* =========================================================
+   용지
+========================================================= */
+
+function setPaper(type) {
+
+  paper.classList.remove(
+    "lines",
+    "grid"
+  );
+
+  if (
+    type === "lines"
+  ) {
+    paper.classList.add(
+      "lines"
     );
   }
 
-  // 초기화
-  if (localStorage.getItem("darkMode") === "true") {
-    document.body.classList.add("dark");
+  if (
+    type === "grid"
+  ) {
+    paper.classList.add(
+      "grid"
+    );
   }
 
-  renderNotes();
+  document
+    .querySelectorAll(
+      ".paper-option"
+    )
+    .forEach(
+      button =>
+        button.classList.remove(
+          "active"
+        )
+    );
 
-  // 저장된 메모가 있다면 첫 메모 선택
-  if (notes.length > 0) {
-    currentId = notes[0].id;
-    renderNotes();
-    renderEditor();
+  event
+    ?.target
+    ?.classList.add(
+      "active"
+    );
+}
+
+
+/* =========================================================
+   다크 모드
+========================================================= */
+
+function toggleDark() {
+
+  document.body.classList.toggle(
+    "dark"
+  );
+
+  localStorage.setItem(
+    "paperNoteDark",
+    document.body.classList.contains(
+      "dark"
+    )
+  );
+}
+
+if (
+  localStorage.getItem(
+    "paperNoteDark"
+  ) === "true"
+) {
+
+  document.body.classList.add(
+    "dark"
+  );
+}
+
+
+/* =========================================================
+   저장된 필기 불러오기
+========================================================= */
+
+function loadNote() {
+
+  const saved =
+    localStorage.getItem(
+      "paperNote"
+    );
+
+  if (saved) {
+
+    const img =
+      new Image();
+
+    img.onload = () => {
+
+      const rect =
+        paper.getBoundingClientRect();
+
+      ctx.clearRect(
+        0,
+        0,
+        rect.width,
+        rect.height
+      );
+
+      ctx.drawImage(
+        img,
+        0,
+        0,
+        rect.width,
+        rect.height
+      );
+    };
+
+    img.src = saved;
   }
+
+
+  const savedColor =
+    localStorage.getItem(
+      "paperNoteColor"
+    );
+
+  if (savedColor) {
+
+    color =
+      savedColor;
+
+    document
+      .getElementById(
+        "currentColor"
+      )
+      .style.background =
+      color;
+
+    document
+      .querySelectorAll(
+        ".color-btn"
+      )
+      .forEach(button => {
+
+        button.classList.toggle(
+          "active",
+          button.dataset.color ===
+          color
+        );
+
+      });
+  }
+
+
+  const savedSize =
+    localStorage.getItem(
+      "paperNoteSize"
+    );
+
+  if (savedSize) {
+
+    size =
+      Number(savedSize);
+
+    document
+      .getElementById(
+        "sizeRange"
+      )
+      .value =
+      size;
+
+    updateSizePreview();
+  }
+}
+
+
+/* =========================================================
+   토스트
+========================================================= */
+
+let toastTimer;
+
+function showToast(message) {
+
+  const toast =
+    document.getElementById(
+      "toast"
+    );
+
+  toast.textContent =
+    message;
+
+  toast.classList.add(
+    "show"
+  );
+
+  clearTimeout(
+    toastTimer
+  );
+
+  toastTimer =
+    setTimeout(() => {
+
+      toast.classList.remove(
+        "show"
+      );
+
+    }, 1800);
+}
+
+
+/* =========================================================
+   외부 클릭 시 팝업 닫기
+========================================================= */
+
+document.addEventListener(
+  "pointerdown",
+  e => {
+
+    const popover =
+      document.getElementById(
+        "popover"
+      );
+
+    const settings =
+      document.getElementById(
+        "settingsTool"
+      );
+
+    if (
+      !popover.contains(e.target) &&
+      !settings.contains(e.target)
+    ) {
+
+      closePopover();
+    }
+  }
+);
+
+
+/* =========================================================
+   키보드 단축키
+========================================================= */
+
+document.addEventListener(
+  "keydown",
+  e => {
+
+    const command =
+      e.ctrlKey ||
+      e.metaKey;
+
+    if (
+      command &&
+      e.key.toLowerCase() === "z"
+    ) {
+
+      e.preventDefault();
+
+      if (e.shiftKey) {
+        redo();
+      } else {
+        undo();
+      }
+    }
+
+    if (
+      command &&
+      e.key.toLowerCase() === "y"
+    ) {
+
+      e.preventDefault();
+
+      redo();
+    }
+
+    if (
+      command &&
+      e.key.toLowerCase() === "s"
+    ) {
+
+      e.preventDefault();
+
+      saveNote();
+    }
+  }
+);
+
+
+/* =========================================================
+   시작
+========================================================= */
+
+setTimeout(() => {
+
+  loadNote();
+
+  updateHistoryButtons();
+
+}, 100);
+
 </script>
 
 </body>
