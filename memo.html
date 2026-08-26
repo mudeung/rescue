@@ -1,16 +1,25 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
+
 <meta charset="UTF-8">
 
-<meta name="viewport"
-      content="width=device-width,
-               initial-scale=1,
-               maximum-scale=1,
-               user-scalable=no,
-               viewport-fit=cover">
+<meta
+    name="viewport"
+    content="
+        width=device-width,
+        initial-scale=1,
+        maximum-scale=1,
+        user-scalable=no,
+        viewport-fit=cover
+    "
+>
 
-<meta name="theme-color" content="#f4f5f8">
+<meta
+    name="theme-color"
+    content="#f4f5f8"
+>
 
 <title>Paper Note</title>
 
@@ -22,14 +31,19 @@
 
 * {
     box-sizing: border-box;
+
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
+
+    user-select: none;
 }
 
 html,
 body {
+
     width: 100%;
     height: 100%;
+
     margin: 0;
     padding: 0;
 
@@ -38,8 +52,6 @@ body {
     font-family:
         -apple-system,
         BlinkMacSystemFont,
-        "SF Pro Display",
-        "SF Pro Text",
         "Segoe UI",
         "Noto Sans KR",
         sans-serif;
@@ -50,11 +62,8 @@ body {
 
 button,
 input {
-    font: inherit;
-}
 
-button {
-    user-select: none;
+    font: inherit;
 }
 
 
@@ -64,46 +73,64 @@ button {
 
 :root {
 
-    --bg: #eef0f5;
-    --paper: #ffffff;
-    --surface: rgba(255,255,255,.90);
+    --bg:
+        #eef0f5;
 
-    --text: #17181c;
-    --muted: #858994;
+    --paper:
+        #ffffff;
 
-    --border: #e1e3e8;
+    --surface:
+        rgba(255,255,255,.92);
 
-    --accent: #6d5dfc;
-    --accent-soft: #eeeaff;
+    --text:
+        #17181c;
 
-    --toolbar-shadow:
-        0 16px 40px rgba(25,30,50,.14),
-        0 3px 10px rgba(25,30,50,.07);
+    --muted:
+        #858994;
 
-    --paper-shadow:
-        0 18px 45px rgba(25,30,50,.12),
-        0 3px 10px rgba(25,30,50,.06);
+    --border:
+        #e1e3e8;
+
+    --accent:
+        #6d5dfc;
+
+    --accent-soft:
+        #eeeaff;
+
+    --shadow:
+        0 18px 45px
+        rgba(20,25,45,.14);
 }
 
 body.dark {
 
-    --bg: #15161a;
-    --paper: #202126;
-    --surface: rgba(34,35,41,.93);
+    --bg:
+        #15161a;
 
-    --text: #f3f4f6;
-    --muted: #9da0aa;
+    --paper:
+        #202126;
 
-    --border: #36373f;
+    --surface:
+        rgba(32,33,39,.94);
 
-    --accent: #8b7cff;
-    --accent-soft: #312d51;
+    --text:
+        #f4f4f6;
 
-    --toolbar-shadow:
-        0 18px 45px rgba(0,0,0,.35);
+    --muted:
+        #9b9da7;
 
-    --paper-shadow:
-        0 20px 50px rgba(0,0,0,.35);
+    --border:
+        #383941;
+
+    --accent:
+        #8b7cff;
+
+    --accent-soft:
+        #302c50;
+
+    --shadow:
+        0 20px 50px
+        rgba(0,0,0,.38);
 }
 
 
@@ -112,11 +139,15 @@ body.dark {
 ========================================================= */
 
 .app {
+
     width: 100%;
     height: 100%;
 
-    display: flex;
-    flex-direction: column;
+    display:
+        flex;
+
+    flex-direction:
+        column;
 }
 
 
@@ -126,26 +157,37 @@ body.dark {
 
 .header {
 
-    height: 66px;
+    height: 64px;
 
-    flex: 0 0 66px;
+    flex:
+        0 0 64px;
 
-    display: flex;
-    align-items: center;
+    display:
+        flex;
+
+    align-items:
+        center;
 
     padding:
-        0 20px;
+        0 18px;
 
-    background: var(--surface);
+    background:
+        var(--surface);
 
     border-bottom:
         1px solid var(--border);
 
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter:
+        blur(20px);
 
-    position: relative;
-    z-index: 100;
+    -webkit-backdrop-filter:
+        blur(20px);
+
+    position:
+        relative;
+
+    z-index:
+        100;
 }
 
 
@@ -155,32 +197,47 @@ body.dark {
 
 .brand {
 
-    min-width: 220px;
+    display:
+        flex;
 
-    display: flex;
-    align-items: center;
+    align-items:
+        center;
 
-    gap: 11px;
+    gap:
+        10px;
+
+    min-width:
+        220px;
 }
 
 .logo {
 
-    width: 36px;
-    height: 36px;
+    width:
+        36px;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    height:
+        36px;
 
-    border-radius: 11px;
+    display:
+        flex;
 
-    color: white;
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    border-radius:
+        11px;
+
+    color:
+        white;
 
     background:
         linear-gradient(
             135deg,
             #8173ff,
-            #5c4af3
+            #5948f1
         );
 
     box-shadow:
@@ -190,46 +247,64 @@ body.dark {
 
 .logo svg {
 
-    width: 20px;
-    height: 20px;
+    width:
+        20px;
 
-    stroke: currentColor;
-    fill: none;
+    height:
+        20px;
 
-    stroke-width: 1.8;
+    fill:
+        none;
 
-    stroke-linecap: round;
-    stroke-linejoin: round;
+    stroke:
+        currentColor;
+
+    stroke-width:
+        1.8;
+
+    stroke-linecap:
+        round;
+
+    stroke-linejoin:
+        round;
 }
 
 .brand-name {
 
-    font-size: 15px;
-    font-weight: 700;
+    font-size:
+        15px;
 
-    line-height: 18px;
+    font-weight:
+        750;
 }
 
 .brand-sub {
 
-    margin-top: 2px;
+    margin-top:
+        2px;
 
-    color: var(--muted);
+    font-size:
+        10px;
 
-    font-size: 10px;
+    color:
+        var(--muted);
 }
 
 
 /* =========================================================
-   TITLE
+   CENTER
 ========================================================= */
 
 .header-center {
 
-    flex: 1;
+    flex:
+        1;
 
-    display: flex;
-    justify-content: center;
+    display:
+        flex;
+
+    justify-content:
+        center;
 }
 
 .page-title {
@@ -237,17 +312,17 @@ body.dark {
     padding:
         7px 15px;
 
-    border-radius: 10px;
+    border-radius:
+        10px;
 
-    background: var(--bg);
+    background:
+        var(--bg);
 
-    color: var(--muted);
+    color:
+        var(--muted);
 
-    font-size: 12px;
-
-    border:
-        1px solid
-        transparent;
+    font-size:
+        12px;
 }
 
 
@@ -257,160 +332,163 @@ body.dark {
 
 .header-actions {
 
-    min-width: 220px;
+    min-width:
+        220px;
 
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
+    display:
+        flex;
 
-    gap: 7px;
+    justify-content:
+        flex-end;
+
+    align-items:
+        center;
+
+    gap:
+        7px;
 }
 
 
 /* =========================================================
-   COMMON ICON
-========================================================= */
-
-svg {
-
-    display: block;
-
-    stroke: currentColor;
-    fill: none;
-
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-
-.icon-btn svg,
-.tool-btn svg,
-.primary-btn svg,
-.zoom-btn svg {
-
-    pointer-events: none;
-
-    transition:
-        transform .16s ease,
-        stroke-width .16s ease;
-}
-
-.icon-btn svg {
-    width: 20px;
-    height: 20px;
-
-    stroke-width: 1.8;
-}
-
-.tool-btn svg {
-    width: 21px;
-    height: 21px;
-
-    stroke-width: 1.8;
-}
-
-.zoom-btn svg {
-    width: 17px;
-    height: 17px;
-
-    stroke-width: 1.8;
-}
-
-.primary-btn svg {
-    width: 17px;
-    height: 17px;
-
-    stroke-width: 1.9;
-}
-
-
-/* =========================================================
-   BUTTON
+   ICON BUTTON
 ========================================================= */
 
 .icon-btn {
 
-    width: 40px;
-    height: 40px;
+    width:
+        40px;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    height:
+        40px;
 
-    border: 1px solid transparent;
+    display:
+        flex;
 
-    border-radius: 11px;
+    align-items:
+        center;
 
-    background: transparent;
+    justify-content:
+        center;
 
-    color: var(--text);
+    border:
+        1px solid transparent;
 
-    cursor: pointer;
+    border-radius:
+        11px;
 
-    transition:
-        background .16s ease,
-        border .16s ease,
-        transform .16s ease;
+    background:
+        transparent;
+
+    color:
+        var(--text);
+
+    cursor:
+        pointer;
 }
 
 .icon-btn:hover {
 
-    background: var(--bg);
+    background:
+        var(--bg);
 
     border-color:
         var(--border);
 }
 
-.icon-btn:active {
+.icon-btn svg {
 
-    transform: scale(.93);
+    width:
+        20px;
+
+    height:
+        20px;
+
+    fill:
+        none;
+
+    stroke:
+        currentColor;
+
+    stroke-width:
+        1.8;
+
+    stroke-linecap:
+        round;
+
+    stroke-linejoin:
+        round;
 }
 
 
+/* =========================================================
+   PRIMARY
+========================================================= */
+
 .primary-btn {
 
-    height: 40px;
+    height:
+        40px;
 
     padding:
         0 15px;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display:
+        flex;
 
-    gap: 7px;
+    align-items:
+        center;
 
-    border: 0;
+    justify-content:
+        center;
 
-    border-radius: 11px;
+    gap:
+        7px;
 
-    color: white;
+    border:
+        0;
 
-    background: var(--accent);
+    border-radius:
+        11px;
 
-    font-size: 12px;
-    font-weight: 700;
+    background:
+        var(--accent);
 
-    cursor: pointer;
+    color:
+        white;
+
+    font-size:
+        12px;
+
+    font-weight:
+        700;
 
     box-shadow:
         0 7px 18px
         rgba(109,93,252,.27);
-
-    transition:
-        transform .16s ease,
-        box-shadow .16s ease;
 }
 
-.primary-btn:hover {
+.primary-btn svg {
 
-    box-shadow:
-        0 9px 24px
-        rgba(109,93,252,.35);
-}
+    width:
+        17px;
 
-.primary-btn:active {
+    height:
+        17px;
 
-    transform: scale(.95);
+    fill:
+        none;
+
+    stroke:
+        currentColor;
+
+    stroke-width:
+        1.9;
+
+    stroke-linecap:
+        round;
+
+    stroke-linejoin:
+        round;
 }
 
 
@@ -420,53 +498,62 @@ svg {
 
 .workspace {
 
-    position: relative;
+    position:
+        relative;
 
-    flex: 1;
+    flex:
+        1;
 
-    overflow: hidden;
+    overflow:
+        hidden;
 
     background:
         radial-gradient(
             circle at 50% 0%,
             rgba(109,93,252,.09),
-            transparent 38%
+            transparent 40%
         ),
         var(--bg);
 }
 
 
 /* =========================================================
-   PAGE VIEWPORT
+   PAGE AREA
+
+   핵심:
+   touch-action:none
+
+   브라우저 기본 제스처를 페이지에서 직접 관리.
 ========================================================= */
 
 .page-area {
 
-    position: absolute;
+    position:
+        absolute;
 
-    inset: 0;
+    inset:
+        0;
 
-    overflow: auto;
+    overflow:
+        hidden;
+
+    display:
+        flex;
+
+    justify-content:
+        center;
+
+    align-items:
+        flex-start;
 
     padding:
-        35px
-        60px
-        145px;
+        35px 50px 130px;
 
-    display: flex;
-
-    justify-content: center;
-    align-items: flex-start;
+    touch-action:
+        none;
 
     overscroll-behavior:
-        contain;
-
-    /*
-       캔버스 자체는 PointerEvent를 받는다.
-       페이지 스크롤은 손가락 두 개 동작에 의해 처리한다.
-    */
-
-    touch-action: none;
+        none;
 }
 
 
@@ -476,9 +563,8 @@ svg {
 
 .paper {
 
-    position: relative;
-
-    flex: 0 0 auto;
+    position:
+        relative;
 
     width:
         min(900px, 92vw);
@@ -486,18 +572,23 @@ svg {
     height:
         max(
             1180px,
-            calc(100vh - 140px)
+            calc(100vh - 130px)
         );
+
+    flex:
+        0 0 auto;
 
     background:
         var(--paper);
 
-    border-radius: 5px;
+    border-radius:
+        5px;
 
     box-shadow:
-        var(--paper-shadow);
+        var(--shadow);
 
-    overflow: hidden;
+    overflow:
+        hidden;
 
     transform-origin:
         center center;
@@ -517,20 +608,10 @@ svg {
         var(--paper);
 
     background-image:
-
         linear-gradient(
             to bottom,
-
             transparent 31px,
-
-            rgba(
-                100,
-                120,
-                155,
-                .14
-            )
-            32px,
-
+            rgba(100,120,155,.14) 32px,
             transparent 33px
         );
 
@@ -540,7 +621,7 @@ svg {
 
 
 /* =========================================================
-   PAPER GRID
+   GRID
 ========================================================= */
 
 .paper.grid {
@@ -551,23 +632,13 @@ svg {
     background-image:
 
         linear-gradient(
-            rgba(
-                100,
-                120,
-                155,
-                .12
-            ) 1px,
+            rgba(100,120,155,.12) 1px,
             transparent 1px
         ),
 
         linear-gradient(
             90deg,
-            rgba(
-                100,
-                120,
-                155,
-                .12
-            ) 1px,
+            rgba(100,120,155,.12) 1px,
             transparent 1px
         );
 
@@ -578,44 +649,44 @@ svg {
 
 /* =========================================================
    CANVAS
+
+   중요:
+   필기 캔버스도 touch-action:none
 ========================================================= */
 
 #canvas {
 
-    position: absolute;
+    position:
+        absolute;
 
-    inset: 0;
+    inset:
+        0;
 
-    width: 100%;
-    height: 100%;
+    width:
+        100%;
 
-    display: block;
+    height:
+        100%;
 
-    touch-action: none;
+    display:
+        block;
 
-    cursor: crosshair;
-}
+    touch-action:
+        none;
 
+    /*
+       S펜 입력 중
+       브라우저 선택/드래그 방지
+    */
 
-/* =========================================================
-   PAGE NUMBER
-========================================================= */
+    -webkit-user-select:
+        none;
 
-.page-number {
+    user-select:
+        none;
 
-    position: absolute;
-
-    left: 50%;
-    bottom: 14px;
-
-    transform:
-        translateX(-50%);
-
-    color: var(--muted);
-
-    font-size: 10px;
-
-    pointer-events: none;
+    cursor:
+        crosshair;
 }
 
 
@@ -625,33 +696,38 @@ svg {
 
 .save-indicator {
 
-    position: absolute;
+    position:
+        absolute;
 
-    top: 16px;
-    right: 18px;
+    top:
+        15px;
+
+    right:
+        18px;
 
     padding:
         6px 10px;
 
-    border-radius: 20px;
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        20px;
 
     background:
         var(--surface);
 
-    border:
-        1px solid
-        var(--border);
+    color:
+        var(--muted);
 
-    color: var(--muted);
-
-    font-size: 10px;
+    font-size:
+        10px;
 
     backdrop-filter:
         blur(12px);
 
-    pointer-events: none;
-
-    z-index: 20;
+    pointer-events:
+        none;
 }
 
 
@@ -661,22 +737,32 @@ svg {
 
 .floating-toolbar {
 
-    position: absolute;
+    position:
+        absolute;
 
-    left: 50%;
-    bottom: 20px;
+    left:
+        50%;
+
+    bottom:
+        18px;
 
     transform:
         translateX(-50%);
 
-    min-height: 63px;
+    min-height:
+        62px;
 
-    display: flex;
-    align-items: center;
+    display:
+        flex;
 
-    gap: 4px;
+    align-items:
+        center;
 
-    padding: 8px;
+    gap:
+        4px;
+
+    padding:
+        8px;
 
     background:
         var(--surface);
@@ -685,10 +771,11 @@ svg {
         1px solid
         rgba(255,255,255,.55);
 
-    border-radius: 18px;
+    border-radius:
+        18px;
 
     box-shadow:
-        var(--toolbar-shadow);
+        var(--shadow);
 
     backdrop-filter:
         blur(22px);
@@ -696,42 +783,49 @@ svg {
     -webkit-backdrop-filter:
         blur(22px);
 
-    z-index: 50;
+    z-index:
+        50;
 }
 
 
 /* =========================================================
-   TOOL BUTTON
+   TOOL
 ========================================================= */
 
 .tool-btn {
 
-    position: relative;
+    width:
+        46px;
 
-    width: 46px;
-    height: 46px;
+    height:
+        46px;
 
-    flex: 0 0 46px;
+    flex:
+        0 0 46px;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display:
+        flex;
 
-    border: 0;
+    align-items:
+        center;
 
-    border-radius: 13px;
+    justify-content:
+        center;
+
+    border:
+        0;
+
+    border-radius:
+        13px;
 
     background:
         transparent;
 
-    color: var(--text);
+    color:
+        var(--text);
 
-    cursor: pointer;
-
-    transition:
-        background .15s ease,
-        color .15s ease,
-        transform .15s ease;
+    cursor:
+        pointer;
 }
 
 .tool-btn:hover {
@@ -740,45 +834,63 @@ svg {
         var(--bg);
 }
 
-.tool-btn:active {
-
-    transform:
-        scale(.90);
-}
-
 .tool-btn.active {
-
-    color:
-        var(--accent);
 
     background:
         var(--accent-soft);
+
+    color:
+        var(--accent);
 }
 
 .tool-btn:disabled {
 
-    opacity: .27;
+    opacity:
+        .25;
+}
 
-    cursor: default;
+.tool-btn svg {
+
+    width:
+        21px;
+
+    height:
+        21px;
+
+    fill:
+        none;
+
+    stroke:
+        currentColor;
+
+    stroke-width:
+        1.8;
+
+    stroke-linecap:
+        round;
+
+    stroke-linejoin:
+        round;
 }
 
 
 /* =========================================================
-   TOOL DIVIDER
+   DIVIDER
 ========================================================= */
 
 .tool-divider {
 
-    width: 1px;
-    height: 30px;
+    width:
+        1px;
 
-    flex: 0 0 1px;
-
-    margin:
-        0 4px;
+    height:
+        30px;
 
     background:
         var(--border);
+
+    margin:
+        0 4px;
 }
 
 
@@ -788,18 +900,20 @@ svg {
 
 .current-color {
 
-    width: 22px;
-    height: 22px;
+    width:
+        22px;
 
-    border-radius: 50%;
+    height:
+        22px;
+
+    border-radius:
+        50%;
 
     border:
-        2px solid
-        var(--paper);
+        2px solid var(--paper);
 
     box-shadow:
-        0 0 0 1px
-        var(--border);
+        0 0 0 1px var(--border);
 }
 
 
@@ -809,27 +923,32 @@ svg {
 
 .popover {
 
-    position: absolute;
+    position:
+        absolute;
 
-    left: 50%;
-    bottom: 97px;
+    left:
+        50%;
 
-    width: 285px;
+    bottom:
+        95px;
 
-    padding: 17px;
+    width:
+        285px;
 
-    border-radius: 18px;
+    padding:
+        17px;
+
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        18px;
 
     background:
         var(--surface);
 
-    border:
-        1px solid
-        var(--border);
-
     box-shadow:
-        0 18px 45px
-        rgba(20,25,45,.18);
+        var(--shadow);
 
     backdrop-filter:
         blur(22px);
@@ -842,22 +961,26 @@ svg {
         translateY(10px)
         scale(.97);
 
-    opacity: 0;
+    opacity:
+        0;
 
-    pointer-events: none;
+    pointer-events:
+        none;
 
     transition:
-        opacity .18s ease,
-        transform .18s ease;
+        .18s ease;
 
-    z-index: 70;
+    z-index:
+        70;
 }
 
 .popover.show {
 
-    opacity: 1;
+    opacity:
+        1;
 
-    pointer-events: auto;
+    pointer-events:
+        auto;
 
     transform:
         translateX(-50%)
@@ -865,39 +988,42 @@ svg {
         scale(1);
 }
 
-
-/* =========================================================
-   POPOVER TITLE
-========================================================= */
-
 .popover-title {
 
-    margin-bottom: 12px;
+    margin-bottom:
+        12px;
 
     color:
         var(--muted);
 
-    font-size: 11px;
+    font-size:
+        11px;
 
-    font-weight: 700;
+    font-weight:
+        700;
 }
 
 
 /* =========================================================
-   SIZE
+   RANGE
 ========================================================= */
 
 .range-row {
 
-    display: flex;
-    align-items: center;
+    display:
+        flex;
 
-    gap: 12px;
+    align-items:
+        center;
+
+    gap:
+        12px;
 }
 
 .range-row input {
 
-    flex: 1;
+    flex:
+        1;
 
     accent-color:
         var(--accent);
@@ -905,27 +1031,35 @@ svg {
 
 .size-preview {
 
-    width: 38px;
-    height: 34px;
+    width:
+        38px;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    height:
+        34px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
 }
 
 .size-dot {
 
-    width: 8px;
-    height: 8px;
+    width:
+        8px;
 
-    border-radius: 50%;
+    height:
+        8px;
+
+    border-radius:
+        50%;
 
     background:
         var(--text);
-
-    transition:
-        width .1s,
-        height .1s;
 }
 
 
@@ -935,47 +1069,42 @@ svg {
 
 .colors {
 
-    display: grid;
+    display:
+        grid;
 
     grid-template-columns:
         repeat(10, 1fr);
 
-    gap: 10px;
+    gap:
+        10px;
 }
 
 .color-btn {
 
-    width: 23px;
-    height: 23px;
+    width:
+        23px;
 
-    padding: 0;
+    height:
+        23px;
+
+    padding:
+        0;
 
     border:
-        2px solid
-        transparent;
+        2px solid transparent;
 
-    border-radius: 50%;
+    border-radius:
+        50%;
 
-    cursor: pointer;
-
-    transition:
-        transform .14s ease;
-}
-
-.color-btn:hover {
-
-    transform:
-        scale(1.16);
+    cursor:
+        pointer;
 }
 
 .color-btn.active {
 
     box-shadow:
-        0 0 0 2px
-        var(--paper),
-
-        0 0 0 3px
-        var(--accent);
+        0 0 0 2px var(--paper),
+        0 0 0 3px var(--accent);
 }
 
 
@@ -985,23 +1114,26 @@ svg {
 
 .paper-menu {
 
-    display: flex;
+    display:
+        flex;
 
-    gap: 7px;
+    gap:
+        7px;
 }
 
 .paper-option {
 
-    flex: 1;
+    flex:
+        1;
 
     padding:
         9px 5px;
 
     border:
-        1px solid
-        var(--border);
+        1px solid var(--border);
 
-    border-radius: 9px;
+    border-radius:
+        9px;
 
     background:
         transparent;
@@ -1009,9 +1141,8 @@ svg {
     color:
         var(--text);
 
-    cursor: pointer;
-
-    font-size: 11px;
+    font-size:
+        11px;
 }
 
 .paper-option.active {
@@ -1019,11 +1150,11 @@ svg {
     border-color:
         var(--accent);
 
-    color:
-        var(--accent);
-
     background:
         var(--accent-soft);
+
+    color:
+        var(--accent);
 }
 
 
@@ -1033,26 +1164,35 @@ svg {
 
 .zoom-control {
 
-    position: absolute;
+    position:
+        absolute;
 
-    left: 17px;
-    bottom: 22px;
+    left:
+        16px;
 
-    display: flex;
-    align-items: center;
+    bottom:
+        20px;
 
-    gap: 3px;
+    display:
+        flex;
 
-    padding: 6px;
+    align-items:
+        center;
+
+    gap:
+        3px;
+
+    padding:
+        6px;
 
     background:
         var(--surface);
 
     border:
-        1px solid
-        var(--border);
+        1px solid var(--border);
 
-    border-radius: 14px;
+    border-radius:
+        14px;
 
     box-shadow:
         0 10px 25px
@@ -1061,49 +1201,77 @@ svg {
     backdrop-filter:
         blur(18px);
 
-    z-index: 40;
+    z-index:
+        40;
 }
 
 .zoom-btn {
 
-    width: 34px;
-    height: 34px;
+    width:
+        34px;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    height:
+        34px;
 
-    border: 0;
+    display:
+        flex;
 
-    border-radius: 9px;
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    border:
+        0;
+
+    border-radius:
+        9px;
 
     background:
         transparent;
 
     color:
         var(--text);
-
-    cursor: pointer;
 }
 
-.zoom-btn:hover {
+.zoom-btn svg {
 
-    background:
-        var(--bg);
+    width:
+        17px;
+
+    height:
+        17px;
+
+    fill:
+        none;
+
+    stroke:
+        currentColor;
+
+    stroke-width:
+        1.8;
+
+    stroke-linecap:
+        round;
+
+    stroke-linejoin:
+        round;
 }
 
 .zoom-value {
 
-    min-width: 52px;
+    min-width:
+        52px;
 
-    text-align: center;
+    text-align:
+        center;
 
     color:
         var(--muted);
 
-    font-size: 11px;
-
-    user-select: none;
+    font-size:
+        11px;
 }
 
 
@@ -1113,18 +1281,23 @@ svg {
 
 .toast {
 
-    position: absolute;
+    position:
+        absolute;
 
-    left: 50%;
-    bottom: 103px;
+    left:
+        50%;
+
+    bottom:
+        100px;
 
     transform:
-        translate(-50%, 10px);
+        translate(-50%,10px);
 
     padding:
         9px 15px;
 
-    border-radius: 10px;
+    border-radius:
+        10px;
 
     background:
         #202126;
@@ -1132,25 +1305,29 @@ svg {
     color:
         white;
 
-    font-size: 12px;
+    font-size:
+        12px;
 
-    opacity: 0;
+    opacity:
+        0;
 
-    pointer-events: none;
+    pointer-events:
+        none;
 
     transition:
-        opacity .18s ease,
-        transform .18s ease;
+        .18s ease;
 
-    z-index: 100;
+    z-index:
+        100;
 }
 
 .toast.show {
 
-    opacity: 1;
+    opacity:
+        1;
 
     transform:
-        translate(-50%, 0);
+        translate(-50%,0);
 }
 
 
@@ -1158,13 +1335,15 @@ svg {
    TABLET
 ========================================================= */
 
-@media (max-width: 800px) {
+@media(max-width:800px) {
 
     .header {
 
-        height: 58px;
+        height:
+            58px;
 
-        flex-basis: 58px;
+        flex-basis:
+            58px;
 
         padding:
             0 10px;
@@ -1179,13 +1358,8 @@ svg {
     .brand-name,
     .brand-sub {
 
-        display: none;
-    }
-
-    .logo {
-
-        width: 34px;
-        height: 34px;
+        display:
+            none;
     }
 
     .header-center {
@@ -1205,22 +1379,23 @@ svg {
 
     .primary-btn {
 
-        width: 40px;
+        width:
+            40px;
 
-        padding: 0;
+        padding:
+            0;
     }
 
     .primary-btn .text-label {
 
-        display: none;
+        display:
+            none;
     }
 
     .page-area {
 
         padding:
-            15px
-            15px
-            125px;
+            12px 12px 115px;
     }
 
     .paper {
@@ -1232,37 +1407,28 @@ svg {
             100%;
 
         height:
-            calc(100vh - 110px);
+            calc(100vh - 100px);
     }
 
     .floating-toolbar {
 
         bottom:
-            11px;
+            9px;
 
         max-width:
-            calc(100vw - 18px);
+            calc(100vw - 16px);
 
         overflow-x:
             auto;
-
-        border-radius:
-            17px;
-    }
-
-    .popover {
-
-        bottom:
-            87px;
     }
 
     .zoom-control {
 
+        bottom:
+            78px;
+
         left:
             10px;
-
-        bottom:
-            82px;
     }
 }
 
@@ -1271,7 +1437,7 @@ svg {
    PHONE
 ========================================================= */
 
-@media (max-width: 500px) {
+@media(max-width:500px) {
 
     .header-center {
 
@@ -1282,24 +1448,7 @@ svg {
     .page-area {
 
         padding:
-            7px
-            7px
-            110px;
-    }
-
-    .paper {
-
-        min-height:
-            900px;
-    }
-
-    .floating-toolbar {
-
-        gap:
-            2px;
-
-        padding:
-            6px;
+            7px 7px 108px;
     }
 
     .tool-btn {
@@ -1314,6 +1463,12 @@ svg {
             40px;
     }
 
+    .floating-toolbar {
+
+        padding:
+            6px;
+    }
+
     .popover {
 
         width:
@@ -1323,15 +1478,17 @@ svg {
     .colors {
 
         grid-template-columns:
-            repeat(8, 1fr);
+            repeat(8,1fr);
     }
 }
 
 </style>
+
 </head>
 
 
 <body>
+
 
 <div class="app">
 
@@ -1351,15 +1508,21 @@ svg {
                 <path d="M12 20h9"/>
 
                 <path
-                    d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1
-                       1-4 13.5-13.5Z"/>
+                    d="
+                    M16.5 3.5
+                    a2.1 2.1 0 0 1 3 3
+                    L8 18
+                    l-4 1
+                    1-4
+                    Z
+                    "
+                />
 
                 <path d="M15 5l3 3"/>
 
             </svg>
 
         </div>
-
 
         <div>
 
@@ -1368,7 +1531,7 @@ svg {
             </div>
 
             <div class="brand-sub">
-                Digital handwriting
+                S Pen handwriting
             </div>
 
         </div>
@@ -1388,7 +1551,7 @@ svg {
     <div class="header-actions">
 
 
-        <!-- DARK MODE -->
+        <!-- DARK -->
 
         <button
             class="icon-btn"
@@ -1398,8 +1561,14 @@ svg {
             <svg viewBox="0 0 24 24">
 
                 <path
-                    d="M21 12.8A8.5 8.5 0 1 1 11.2 3
-                       6.7 6.7 0 0 0 21 12.8Z"/>
+                    d="
+                    M21 12.8
+                    A8.5 8.5 0 1 1
+                    11.2 3
+                    A6.7 6.7 0 0 0
+                    21 12.8Z
+                    "
+                />
 
             </svg>
 
@@ -1415,15 +1584,19 @@ svg {
 
             <svg viewBox="0 0 24 24">
 
-                <path
-                    d="M12 16V3"/>
+                <path d="M12 16V3"/>
+
+                <path d="M7 8l5-5 5 5"/>
 
                 <path
-                    d="M7 8l5-5 5 5"/>
-
-                <path
-                    d="M5 12v7a2 2 0 0 0 2 2h10
-                       a2 2 0 0 0 2-2v-7"/>
+                    d="
+                    M5 12v7
+                    a2 2 0 0 0 2 2
+                    h10
+                    a2 2 0 0 0 2-2
+                    v-7
+                    "
+                />
 
             </svg>
 
@@ -1438,14 +1611,11 @@ svg {
 
             <svg viewBox="0 0 24 24">
 
-                <path
-                    d="M5 20h14"/>
+                <path d="M5 20h14"/>
 
-                <path
-                    d="M12 4v11"/>
+                <path d="M12 4v11"/>
 
-                <path
-                    d="M7 10l5 5 5-5"/>
+                <path d="M7 10l5 5 5-5"/>
 
             </svg>
 
@@ -1467,7 +1637,9 @@ svg {
 <main class="workspace">
 
 
-    <div class="page-area">
+    <div
+        id="pageArea"
+        class="page-area">
 
 
         <div
@@ -1475,20 +1647,15 @@ svg {
             class="paper lines">
 
 
-            <canvas id="canvas">
+            <canvas
+                id="canvas">
             </canvas>
 
-
-            <div class="page-number">
-                1
-            </div>
 
         </div>
 
     </div>
 
-
-    <!-- SAVE STATUS -->
 
     <div
         id="saveIndicator"
@@ -1500,7 +1667,7 @@ svg {
 
 
     <!-- =================================================
-         PEN SETTINGS
+         PEN POPOVER
     ================================================== -->
 
     <div
@@ -1520,9 +1687,9 @@ svg {
                 type="range"
                 min="1"
                 max="15"
-                step="0.5"
-                value="4">
-
+                step=".5"
+                value="4"
+            >
 
             <div class="size-preview">
 
@@ -1550,152 +1717,126 @@ svg {
         </div>
 
 
-        <!-- 기존 + 추가 5색 -->
-
         <div class="colors">
 
-
-            <!-- 기존 -->
 
             <button
                 class="color-btn active"
                 style="background:#17181c"
-                data-color="#17181c"
-                title="블랙">
+                data-color="#17181c">
             </button>
 
             <button
                 class="color-btn"
                 style="background:#ef4444"
-                data-color="#ef4444"
-                title="레드">
+                data-color="#ef4444">
             </button>
 
             <button
                 class="color-btn"
                 style="background:#f97316"
-                data-color="#f97316"
-                title="오렌지">
+                data-color="#f97316">
             </button>
 
             <button
                 class="color-btn"
                 style="background:#eab308"
-                data-color="#eab308"
-                title="옐로우">
+                data-color="#eab308">
             </button>
 
             <button
                 class="color-btn"
                 style="background:#22c55e"
-                data-color="#22c55e"
-                title="그린">
+                data-color="#22c55e">
             </button>
 
             <button
                 class="color-btn"
                 style="background:#3b82f6"
-                data-color="#3b82f6"
-                title="블루">
+                data-color="#3b82f6">
             </button>
 
             <button
                 class="color-btn"
                 style="background:#8b5cf6"
-                data-color="#8b5cf6"
-                title="퍼플">
+                data-color="#8b5cf6">
             </button>
 
             <button
                 class="color-btn"
                 style="background:#ec4899"
-                data-color="#ec4899"
-                title="핑크">
+                data-color="#ec4899">
             </button>
 
             <button
                 class="color-btn"
                 style="background:#06b6d4"
-                data-color="#06b6d4"
-                title="시안">
+                data-color="#06b6d4">
             </button>
 
             <button
                 class="color-btn"
                 style="background:#795548"
-                data-color="#795548"
-                title="브라운">
+                data-color="#795548">
             </button>
 
             <button
                 class="color-btn"
                 style="background:#64748b"
-                data-color="#64748b"
-                title="슬레이트">
+                data-color="#64748b">
             </button>
 
             <button
                 class="color-btn"
                 style="
-                    background:#ffffff;
-                    border:1px solid #d5d7dc;
+                    background:#fff;
+                    border-color:#d5d7dc
                 "
-                data-color="#ffffff"
-                title="화이트">
+                data-color="#ffffff">
             </button>
 
             <button
                 class="color-btn"
-                style="background:#000000"
-                data-color="#000000"
-                title="딥블랙">
+                style="background:#000"
+                data-color="#000000">
             </button>
 
             <button
                 class="color-btn"
                 style="background:#14b8a6"
-                data-color="#14b8a6"
-                title="민트">
+                data-color="#14b8a6">
             </button>
 
-
-            <!-- =================================================
-                 추가 5색
-            ================================================== -->
+            <!-- 추가 5색 -->
 
             <button
                 class="color-btn"
                 style="background:#0f766e"
-                data-color="#0f766e"
-                title="딥민트">
+                data-color="#0f766e">
             </button>
 
             <button
                 class="color-btn"
                 style="background:#1d4ed8"
-                data-color="#1d4ed8"
-                title="딥블루">
+                data-color="#1d4ed8">
             </button>
 
             <button
                 class="color-btn"
                 style="background:#7c3aed"
-                data-color="#7c3aed"
-                title="딥퍼플">
+                data-color="#7c3aed">
             </button>
 
             <button
                 class="color-btn"
                 style="background:#be185d"
-                data-color="#be185d"
-                title="딥핑크">
+                data-color="#be185d">
             </button>
 
             <button
                 class="color-btn"
                 style="background:#b45309"
-                data-color="#b45309"
-                title="앰버">
+                data-color="#b45309">
             </button>
 
         </div>
@@ -1711,7 +1852,7 @@ svg {
 
 
         <div class="popover-title">
-            용지 스타일
+            용지
         </div>
 
 
@@ -1721,27 +1862,21 @@ svg {
                 class="paper-option active"
                 data-paper="lines"
                 onclick="setPaper('lines')">
-
                 줄
-
             </button>
 
             <button
                 class="paper-option"
                 data-paper="grid"
                 onclick="setPaper('grid')">
-
                 격자
-
             </button>
 
             <button
                 class="paper-option"
                 data-paper="plain"
                 onclick="setPaper('plain')">
-
                 무지
-
             </button>
 
         </div>
@@ -1755,16 +1890,13 @@ svg {
 
     <div class="zoom-control">
 
-
         <button
             class="zoom-btn"
-            onclick="zoomOut()"
-            title="축소">
+            onclick="zoomOut()">
 
             <svg viewBox="0 0 24 24">
 
-                <path
-                    d="M5 12h14"/>
+                <path d="M5 12h14"/>
 
             </svg>
 
@@ -1782,16 +1914,13 @@ svg {
 
         <button
             class="zoom-btn"
-            onclick="zoomIn()"
-            title="확대">
+            onclick="zoomIn()">
 
             <svg viewBox="0 0 24 24">
 
-                <path
-                    d="M12 5v14"/>
+                <path d="M12 5v14"/>
 
-                <path
-                    d="M5 12h14"/>
+                <path d="M5 12h14"/>
 
             </svg>
 
@@ -1800,16 +1929,19 @@ svg {
 
         <button
             class="zoom-btn"
-            onclick="resetZoom()"
-            title="원래 크기">
+            onclick="resetZoom()">
 
             <svg viewBox="0 0 24 24">
 
                 <path
-                    d="M4 12a8 8 0 1 0 2.3-5.6"/>
+                    d="
+                    M4 12
+                    a8 8 0 1 0
+                    2.3-5.6
+                    "
+                />
 
-                <path
-                    d="M4 5v5h5"/>
+                <path d="M4 5v5h5"/>
 
             </svg>
 
@@ -1831,26 +1963,31 @@ svg {
             id="penTool"
             class="tool-btn active"
             onclick="setTool('pen')"
-            title="펜">
+            title="S펜">
 
             <svg viewBox="0 0 24 24">
 
-                <path
-                    d="M12 20h9"/>
+                <path d="M12 20h9"/>
 
                 <path
-                    d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1
-                       1-4 13.5-13.5Z"/>
+                    d="
+                    M16.5 3.5
+                    a2.1 2.1 0 0 1 3 3
+                    L8 18
+                    l-4 1
+                    1-4
+                    Z
+                    "
+                />
 
-                <path
-                    d="M15 5l3 3"/>
+                <path d="M15 5l3 3"/>
 
             </svg>
 
         </button>
 
 
-        <!-- PEN SETTINGS -->
+        <!-- COLOR / SIZE -->
 
         <button
             id="settingsTool"
@@ -1867,8 +2004,7 @@ svg {
         </button>
 
 
-        <div class="tool-divider">
-        </div>
+        <div class="tool-divider"></div>
 
 
         <!-- ERASER -->
@@ -1881,17 +2017,23 @@ svg {
 
             <svg viewBox="0 0 24 24">
 
-                <path
-                    d="M7 21h10"/>
+                <path d="M7 21h10"/>
 
                 <path
-                    d="M5.5 15.5L15 6a2.1 2.1 0 0 1 3 0l1.5 1.5
-                   a2.1 2.1 0 0 1 0 3L10 20H6
-                   a2 2 0 0 1-1.4-.6l-.1-.1
-                   a2 2 0 0 1 0-2.8Z"/>
+                    d="
+                    M5.5 15.5
+                    L15 6
+                    a2.1 2.1 0 0 1 3 0
+                    l1.5 1.5
+                    a2.1 2.1 0 0 1 0 3
+                    L10 20H6
+                    a2 2 0 0 1-1.4-.6
+                    l-.1-.1
+                    a2 2 0 0 1 0-2.8Z
+                    "
+                />
 
-                <path
-                    d="M13 8l4 4"/>
+                <path d="M13 8l4 4"/>
 
             </svg>
 
@@ -1903,16 +2045,18 @@ svg {
         <button
             id="undoTool"
             class="tool-btn"
-            onclick="undo()"
-            title="실행 취소">
+            onclick="undo()">
 
             <svg viewBox="0 0 24 24">
 
-                <path
-                    d="M9 14L4 9l5-5"/>
+                <path d="M9 14L4 9l5-5"/>
 
                 <path
-                    d="M4 9h10a6 6 0 0 1 6 6v1"/>
+                    d="
+                    M4 9h10
+                    a6 6 0 0 1 6 6v1
+                    "
+                />
 
             </svg>
 
@@ -1924,24 +2068,25 @@ svg {
         <button
             id="redoTool"
             class="tool-btn"
-            onclick="redo()"
-            title="다시 실행">
+            onclick="redo()">
 
             <svg viewBox="0 0 24 24">
 
-                <path
-                    d="M15 14l5-5-5-5"/>
+                <path d="M15 14l5-5-5-5"/>
 
                 <path
-                    d="M20 9H10a6 6 0 0 0-6 6v1"/>
+                    d="
+                    M20 9H10
+                    a6 6 0 0 0-6 6v1
+                    "
+                />
 
             </svg>
 
         </button>
 
 
-        <div class="tool-divider">
-        </div>
+        <div class="tool-divider"></div>
 
 
         <!-- CLEAR -->
@@ -1953,30 +2098,26 @@ svg {
 
             <svg viewBox="0 0 24 24">
 
-                <path
-                    d="M4 7h16"/>
+                <path d="M4 7h16"/>
+
+                <path d="M10 11v6"/>
+
+                <path d="M14 11v6"/>
 
                 <path
-                    d="M10 11v6"/>
+                    d="
+                    M6 7l1 13h10l1-13
+                    "
+                />
 
-                <path
-                    d="M14 11v6"/>
-
-                <path
-                    d="M6 7l1 13h10l1-13"/>
-
-                <path
-                    d="M9 7V4h6v3"/>
+                <path d="M9 7V4h6v3"/>
 
             </svg>
 
         </button>
 
-
     </div>
 
-
-    <!-- TOAST -->
 
     <div
         id="toast"
@@ -1999,16 +2140,19 @@ const canvas =
     document.getElementById("canvas");
 
 const ctx =
-    canvas.getContext("2d", {
-        alpha: true,
-        desynchronized: true
-    });
+    canvas.getContext(
+        "2d",
+        {
+            alpha: true,
+            desynchronized: true
+        }
+    );
 
 const paper =
     document.getElementById("paper");
 
 const pageArea =
-    document.querySelector(".page-area");
+    document.getElementById("pageArea");
 
 
 /* =========================================================
@@ -2026,16 +2170,20 @@ let size =
 
 
 /*
-   필기 부드러움.
-
-   너무 높은 값:
-   - 반응이 느려질 수 있음
-
-   너무 낮은 값:
-   - 선이 떨릴 수 있음
+   S펜만 필기.
 */
+const PEN_ONLY =
+    true;
 
-const SMOOTHING = 0.28;
+
+/*
+   필기 smoothing
+*/
+const POSITION_SMOOTHING =
+    0.72;
+
+const PRESSURE_SMOOTHING =
+    0.30;
 
 
 /* =========================================================
@@ -2045,17 +2193,20 @@ const SMOOTHING = 0.28;
 let drawing =
     false;
 
+let activePenId =
+    null;
+
 let lastX =
     0;
 
 let lastY =
     0;
 
-let lastTime =
-    0;
-
 let lastPressure =
     .5;
+
+let lastTime =
+    0;
 
 
 /* =========================================================
@@ -2070,7 +2221,7 @@ let redoStack =
 
 
 /* =========================================================
-   AUTOSAVE
+   SAVE
 ========================================================= */
 
 let saveTimer =
@@ -2098,11 +2249,14 @@ let panY =
 
 
 /* =========================================================
-   TOUCH / PINCH
+   TOUCH POINTERS
+
+   손가락은 절대 drawing에 사용하지 않는다.
 ========================================================= */
 
-const pointers =
+const touchPointers =
     new Map();
+
 
 let pinchStartDistance =
     0;
@@ -2140,7 +2294,7 @@ function resizeCanvas() {
 
 
     /*
-       기존 그림 보존
+       기존 필기 보존
     */
 
     let oldImage =
@@ -2168,6 +2322,7 @@ function resizeCanvas() {
             rect.height * dpr
         );
 
+
     canvas.style.width =
         rect.width + "px";
 
@@ -2190,21 +2345,22 @@ function resizeCanvas() {
 
     if (oldImage) {
 
-        const img =
+        const image =
             new Image();
 
-        img.onload = () => {
+        image.onload =
+            function() {
 
-            ctx.drawImage(
-                img,
-                0,
-                0,
-                rect.width,
-                rect.height
-            );
-        };
+                ctx.drawImage(
+                    image,
+                    0,
+                    0,
+                    rect.width,
+                    rect.height
+                );
+            };
 
-        img.src =
+        image.src =
             oldImage;
     }
 }
@@ -2220,15 +2376,16 @@ window.addEventListener(
 
 
 /* =========================================================
-   DEVICE PIXEL RATIO
+   CANVAS SIZE
 ========================================================= */
 
-function getCanvasCSSSize() {
+function canvasSize() {
 
     const rect =
         canvas.getBoundingClientRect();
 
     return {
+
         width:
             rect.width,
 
@@ -2239,10 +2396,10 @@ function getCanvasCSSSize() {
 
 
 /* =========================================================
-   POINTER POSITION
+   EVENT TO CANVAS COORDINATE
 ========================================================= */
 
-function getCanvasPoint(e) {
+function getPoint(e) {
 
     const rect =
         canvas.getBoundingClientRect();
@@ -2261,131 +2418,151 @@ function getCanvasPoint(e) {
 
 
 /* =========================================================
-   POINTER DOWN
+   IS PEN
 ========================================================= */
 
-canvas.addEventListener(
-    "pointerdown",
-    onPointerDown,
-    {
-        passive: false
-    }
-);
+function isPen(e) {
 
-
-function onPointerDown(e) {
-
-    e.preventDefault();
-
-
-    /*
-       브라우저가 펜을
-       다른 제스처로 해석하지 않도록 한다.
-    */
-
-    try {
-
-        canvas.setPointerCapture(
-            e.pointerId
-        );
-
-    } catch (_) {}
-
-
-    pointers.set(
-        e.pointerId,
-        {
-            x: e.clientX,
-            y: e.clientY,
-            type: e.pointerType
-        }
+    return (
+        e.pointerType === "pen"
     );
-
-
-    /*
-       두 포인터:
-       확대 / 축소
-    */
-
-    if (pointers.size >= 2) {
-
-        drawing =
-            false;
-
-        startPinch();
-
-        return;
-    }
-
-
-    /*
-       손가락은 필기하지 않는다.
-       한 손가락은 대기.
-    */
-
-    if (
-        e.pointerType === "touch"
-    ) {
-
-        return;
-    }
-
-
-    /*
-       stylus / pen / mouse
-    */
-
-    startDrawing(e);
 }
 
 
 /* =========================================================
-   START PINCH
+   IS TOUCH
 ========================================================= */
 
-function startPinch() {
+function isTouch(e) {
 
-    const values =
-        [...pointers.values()];
-
-    if (values.length < 2) {
-        return;
-    }
-
-    const a =
-        values[0];
-
-    const b =
-        values[1];
-
-
-    pinchStartDistance =
-        distance(
-            a,
-            b
-        );
-
-    pinchStartZoom =
-        zoom;
-
-    const center =
-        centerPoint(
-            a,
-            b
-        );
-
-    pinchCenterX =
-        center.x;
-
-    pinchCenterY =
-        center.y;
-
-    pinchStartPanX =
-        panX;
-
-    pinchStartPanY =
-        panY;
+    return (
+        e.pointerType === "touch"
+    );
 }
+
+
+/* =========================================================
+   POINTER DOWN
+
+   ★ 가장 중요한 부분
+========================================================= */
+
+canvas.addEventListener(
+    "pointerdown",
+    function(e) {
+
+        e.preventDefault();
+
+
+        /*
+           TOUCH
+
+           손가락/손바닥은
+           절대로 필기 시작하지 않는다.
+        */
+
+        if (
+            isTouch(e)
+        ) {
+
+            touchPointers.set(
+                e.pointerId,
+                {
+                    x: e.clientX,
+                    y: e.clientY
+                }
+            );
+
+
+            /*
+               두 손가락이면
+               확대/이동 준비
+            */
+
+            if (
+                touchPointers.size >= 2
+            ) {
+
+                drawing =
+                    false;
+
+                activePenId =
+                    null;
+
+                beginPinch();
+            }
+
+
+            return;
+        }
+
+
+        /*
+           PEN
+
+           S펜만 여기로 들어온다.
+        */
+
+        if (
+            isPen(e)
+        ) {
+
+            /*
+               이미 다른 S펜 입력 중이면
+               무시
+            */
+
+            if (
+                activePenId !== null
+            ) {
+
+                return;
+            }
+
+
+            activePenId =
+                e.pointerId;
+
+
+            try {
+
+                canvas.setPointerCapture(
+                    e.pointerId
+                );
+
+            } catch (_) {}
+
+
+            startPenStroke(e);
+
+            return;
+        }
+
+
+        /*
+           Mouse
+
+           데스크톱 테스트를 위해
+           마우스도 허용.
+
+           태블릿에서는 보통
+           mouse 입력이 발생하지 않는다.
+        */
+
+        if (
+            e.pointerType === "mouse" &&
+            e.buttons === 1
+        ) {
+
+            startPenStroke(e);
+        }
+
+    },
+    {
+        passive:
+            false
+    }
+);
 
 
 /* =========================================================
@@ -2394,193 +2571,103 @@ function startPinch() {
 
 canvas.addEventListener(
     "pointermove",
-    onPointerMove,
+    function(e) {
+
+        e.preventDefault();
+
+
+        /*
+           TOUCH
+        */
+
+        if (
+            isTouch(e)
+        ) {
+
+            if (
+                touchPointers.has(
+                    e.pointerId
+                )
+            ) {
+
+                touchPointers.set(
+                    e.pointerId,
+                    {
+                        x: e.clientX,
+                        y: e.clientY
+                    }
+                );
+            }
+
+
+            if (
+                touchPointers.size >= 2
+            ) {
+
+                drawing =
+                    false;
+
+                updatePinch();
+            }
+
+
+            /*
+               ★ touch는 여기서 끝.
+               drawStroke 호출 절대 금지.
+            */
+
+            return;
+        }
+
+
+        /*
+           PEN
+        */
+
+        if (
+            isPen(e)
+        ) {
+
+            if (
+                e.pointerId !==
+                activePenId
+            ) {
+
+                return;
+            }
+
+
+            if (
+                drawing
+            ) {
+
+                processPenMove(e);
+            }
+
+
+            return;
+        }
+
+
+        /*
+           MOUSE
+        */
+
+        if (
+            e.pointerType === "mouse" &&
+            drawing &&
+            e.buttons === 1
+        ) {
+
+            processPenMove(e);
+        }
+
+    },
     {
-        passive: false
+        passive:
+            false
     }
 );
-
-
-function onPointerMove(e) {
-
-    e.preventDefault();
-
-
-    if (
-        pointers.has(
-            e.pointerId
-        )
-    ) {
-
-        pointers.set(
-            e.pointerId,
-            {
-                x: e.clientX,
-                y: e.clientY,
-                type: e.pointerType
-            }
-        );
-    }
-
-
-    /*
-       두 손가락 제스처
-    */
-
-    if (
-        pointers.size >= 2
-    ) {
-
-        drawing =
-            false;
-
-        updatePinch();
-
-        return;
-    }
-
-
-    /*
-       손가락은 필기하지 않는다.
-    */
-
-    if (
-        e.pointerType === "touch"
-    ) {
-
-        return;
-    }
-
-
-    /*
-       필기
-    */
-
-    if (drawing) {
-
-        drawStroke(e);
-    }
-}
-
-
-/* =========================================================
-   UPDATE PINCH
-========================================================= */
-
-function updatePinch() {
-
-    const values =
-        [...pointers.values()];
-
-    if (values.length < 2) {
-        return;
-    }
-
-    const a =
-        values[0];
-
-    const b =
-        values[1];
-
-
-    const currentDistance =
-        distance(
-            a,
-            b
-        );
-
-
-    if (
-        pinchStartDistance <= 0
-    ) {
-
-        return;
-    }
-
-
-    let newZoom =
-        pinchStartZoom *
-        (
-            currentDistance /
-            pinchStartDistance
-        );
-
-
-    newZoom =
-        Math.max(
-            MIN_ZOOM,
-            Math.min(
-                MAX_ZOOM,
-                newZoom
-            )
-        );
-
-
-    const center =
-        centerPoint(
-            a,
-            b
-        );
-
-
-    const dx =
-        center.x -
-        pinchCenterX;
-
-    const dy =
-        center.y -
-        pinchCenterY;
-
-
-    /*
-       확대하면서
-       손가락 중심을 유지하도록 이동
-    */
-
-    const ratio =
-        newZoom /
-        pinchStartZoom;
-
-
-    panX =
-        pinchStartPanX +
-        dx;
-
-
-    panY =
-        pinchStartPanY +
-        dy;
-
-
-    /*
-       확대 중심 보정
-    */
-
-    panX -=
-        (
-            pinchCenterX -
-            window.innerWidth / 2
-        ) *
-        (
-            ratio - 1
-        );
-
-    panY -=
-        (
-            pinchCenterY -
-            window.innerHeight / 2
-        ) *
-        (
-            ratio - 1
-        );
-
-
-    zoom =
-        newZoom;
-
-
-    applyZoom();
-}
 
 
 /* =========================================================
@@ -2589,45 +2676,99 @@ function updatePinch() {
 
 canvas.addEventListener(
     "pointerup",
-    onPointerUp,
+    endPointer,
     {
-        passive: false
+        passive:
+            false
     }
 );
+
 
 canvas.addEventListener(
     "pointercancel",
-    onPointerUp,
+    endPointer,
     {
-        passive: false
+        passive:
+            false
     }
 );
 
 
-function onPointerUp(e) {
+function endPointer(e) {
 
     e.preventDefault();
 
 
-    pointers.delete(
-        e.pointerId
-    );
-
+    /*
+       TOUCH
+    */
 
     if (
-        pointers.size < 2
+        isTouch(e)
     ) {
 
-        pinchStartDistance =
-            0;
+        touchPointers.delete(
+            e.pointerId
+        );
+
+
+        if (
+            touchPointers.size < 2
+        ) {
+
+            pinchStartDistance =
+                0;
+        }
+
+
+        return;
     }
 
 
+    /*
+       PEN
+    */
+
     if (
-        pointers.size === 0
+        isPen(e)
     ) {
 
-        if (drawing) {
+        if (
+            e.pointerId ===
+            activePenId
+        ) {
+
+            if (
+                drawing
+            ) {
+
+                finishStroke();
+            }
+
+
+            drawing =
+                false;
+
+            activePenId =
+                null;
+        }
+
+
+        return;
+    }
+
+
+    /*
+       MOUSE
+    */
+
+    if (
+        e.pointerType === "mouse"
+    ) {
+
+        if (
+            drawing
+        ) {
 
             finishStroke();
         }
@@ -2639,64 +2780,31 @@ function onPointerUp(e) {
 
 
 /* =========================================================
-   DISTANCE
+   PEN STROKE START
 ========================================================= */
 
-function distance(a, b) {
-
-    const dx =
-        a.x - b.x;
-
-    const dy =
-        a.y - b.y;
-
-    return Math.sqrt(
-        dx * dx +
-        dy * dy
-    );
-}
-
-
-/* =========================================================
-   CENTER
-========================================================= */
-
-function centerPoint(a, b) {
-
-    return {
-
-        x:
-            (a.x + b.x) / 2,
-
-        y:
-            (a.y + b.y) / 2
-    };
-}
-
-
-/* =========================================================
-   START DRAWING
-========================================================= */
-
-function startDrawing(e) {
+function startPenStroke(e) {
 
     drawing =
         true;
 
 
-    const p =
-        getCanvasPoint(e);
+    /*
+       Undo 상태 저장
+    */
+
+    saveState();
+
+
+    const point =
+        getPoint(e);
 
 
     lastX =
-        p.x;
+        point.x;
 
     lastY =
-        p.y;
-
-
-    lastTime =
-        performance.now();
+        point.y;
 
 
     lastPressure =
@@ -2705,69 +2813,74 @@ function startDrawing(e) {
         );
 
 
-    /*
-       시작 상태 저장
-    */
-
-    saveState();
+    lastTime =
+        performance.now();
 
 
     /*
-       짧은 탭도 점으로 인식
+       첫 점
     */
 
     drawDot(
-        p.x,
-        p.y,
+        point.x,
+        point.y,
         lastPressure
     );
 }
 
 
 /* =========================================================
-   PRESSURE
+   PEN MOVE
+
+   getCoalescedEvents() 사용
 ========================================================= */
 
-function normalizePressure(
-    pressure
-) {
+function processPenMove(e) {
 
     /*
-       일부 브라우저 / 기기는
-       pressure를 0 또는 0.5로 줄 수 있다.
+       브라우저가 한 번의 이벤트에
+       여러 개의 필기 좌표를 합쳐놓은 경우
+       가능한 모든 좌표를 처리한다.
     */
 
+    let events;
+
+
     if (
-        !pressure ||
-        pressure <= 0
+        typeof e.getCoalescedEvents ===
+        "function"
     ) {
 
-        return .5;
+        events =
+            e.getCoalescedEvents();
+
+    } else {
+
+        events =
+            [e];
     }
 
 
-    /*
-       너무 극단적인 값 방지
-    */
+    for (
+        const pointEvent
+        of events
+    ) {
 
-    return Math.max(
-        .08,
-        Math.min(
-            1,
-            pressure
-        )
-    );
+        processSinglePenPoint(
+            pointEvent
+        );
+    }
 }
 
 
 /* =========================================================
-   DRAW STROKE
+   SINGLE PEN POINT
 ========================================================= */
 
-function drawStroke(e) {
+function processSinglePenPoint(e) {
 
-    const p =
-        getCanvasPoint(e);
+    const point =
+        getPoint(e);
 
 
     const pressure =
@@ -2777,7 +2890,29 @@ function drawStroke(e) {
 
 
     /*
-       pressure smoothing
+       좌표 smoothing
+    */
+
+    const x =
+        lastX +
+        (
+            point.x -
+            lastX
+        ) *
+        POSITION_SMOOTHING;
+
+
+    const y =
+        lastY +
+        (
+            point.y -
+            lastY
+        ) *
+        POSITION_SMOOTHING;
+
+
+    /*
+       필압 smoothing
     */
 
     const smoothPressure =
@@ -2786,32 +2921,7 @@ function drawStroke(e) {
             pressure -
             lastPressure
         ) *
-        SMOOTHING;
-
-
-    /*
-       좌표 smoothing
-
-       S펜 미세 떨림을 줄이면서
-       지연을 최소화한다.
-    */
-
-    const smoothX =
-        lastX +
-        (
-            p.x -
-            lastX
-        ) *
-        .82;
-
-
-    const smoothY =
-        lastY +
-        (
-            p.y -
-            lastY
-        ) *
-        .82;
+        PRESSURE_SMOOTHING;
 
 
     const now =
@@ -2827,11 +2937,11 @@ function drawStroke(e) {
 
 
     const dx =
-        smoothX -
+        x -
         lastX;
 
     const dy =
-        smoothY -
+        y -
         lastY;
 
 
@@ -2843,21 +2953,17 @@ function drawStroke(e) {
 
 
     /*
-       너무 작은 이동은
-       무시해서 떨림 제거
+       너무 작은 떨림 제거
     */
 
     if (
-        distanceMoved < 0.12
+        distanceMoved <
+        .08
     ) {
 
         return;
     }
 
-
-    /*
-       스타일러스 속도 계산
-    */
 
     const velocity =
         distanceMoved /
@@ -2867,31 +2973,58 @@ function drawStroke(e) {
     drawSegment(
         lastX,
         lastY,
-        smoothX,
-        smoothY,
+        x,
+        y,
         smoothPressure,
         velocity
     );
 
 
     lastX =
-        smoothX;
+        x;
 
     lastY =
-        smoothY;
+        y;
 
     lastPressure =
         smoothPressure;
 
     lastTime =
         now;
+}
 
+
+/* =========================================================
+   PRESSURE
+========================================================= */
+
+function normalizePressure(
+    pressure
+) {
 
     /*
-       자동 저장
+       일부 브라우저가
+       S펜 pressure를 0으로 보내는 경우
     */
 
-    scheduleSave();
+    if (
+        !Number.isFinite(
+            pressure
+        ) ||
+        pressure <= 0
+    ) {
+
+        return .5;
+    }
+
+
+    return Math.max(
+        .05,
+        Math.min(
+            1,
+            pressure
+        )
+    );
 }
 
 
@@ -2918,6 +3051,10 @@ function drawSegment(
         "round";
 
 
+    /*
+       ERASER
+    */
+
     if (
         tool === "eraser"
     ) {
@@ -2926,33 +3063,35 @@ function drawSegment(
             "destination-out";
 
 
-        /*
-           지우개는 필압 영향을
-           조금만 받게 한다.
-        */
-
         ctx.lineWidth =
             Math.max(
                 12,
                 size *
                 (
-                    2.7 +
+                    2.5 +
                     pressure * 1.8
                 )
             );
 
-    } else {
+    }
+
+
+    /*
+       PEN
+    */
+
+    else {
 
         ctx.globalCompositeOperation =
             "source-over";
-
 
         ctx.strokeStyle =
             color;
 
 
         /*
-           기본 필압 반영
+           필압에 따른 자연스러운
+           굵기 변화
         */
 
         let width =
@@ -2965,8 +3104,8 @@ function drawSegment(
 
 
         /*
-           빠르게 쓸 때
-           지나치게 두꺼워지는 것 방지
+           빠른 필기는
+           살짝 얇게
         */
 
         if (
@@ -2982,7 +3121,7 @@ function drawSegment(
             Math.max(
                 .55,
                 Math.min(
-                    size * 1.25,
+                    size * 1.3,
                     width
                 )
             );
@@ -2995,15 +3134,40 @@ function drawSegment(
 
     ctx.beginPath();
 
+
+    /*
+       Quadratic curve로
+       아주 짧은 구간도 부드럽게
+    */
+
+    const midX =
+        (x1 + x2) / 2;
+
+    const midY =
+        (y1 + y2) / 2;
+
+
     ctx.moveTo(
         x1,
         y1
     );
 
-    ctx.lineTo(
+
+    ctx.quadraticCurveTo(
+        x1,
+        y1,
+        midX,
+        midY
+    );
+
+
+    ctx.quadraticCurveTo(
+        x2,
+        y2,
         x2,
         y2
     );
+
 
     ctx.stroke();
 
@@ -3061,9 +3225,8 @@ function drawDot(
                 .45,
                 size *
                 (
-                    .32 +
-                    pressure *
-                    .45
+                    .30 +
+                    pressure * .45
                 )
             );
 
@@ -3087,7 +3250,7 @@ function drawDot(
 
 
 /* =========================================================
-   FINISH STROKE
+   FINISH
 ========================================================= */
 
 function finishStroke() {
@@ -3105,15 +3268,260 @@ function finishStroke() {
 
 
 /* =========================================================
+   PINCH
+========================================================= */
+
+function beginPinch() {
+
+    const values =
+        [...touchPointers.values()];
+
+
+    if (
+        values.length < 2
+    ) {
+
+        return;
+    }
+
+
+    const a =
+        values[0];
+
+    const b =
+        values[1];
+
+
+    pinchStartDistance =
+        distance(
+            a,
+            b
+        );
+
+
+    pinchStartZoom =
+        zoom;
+
+
+    const center =
+        midpoint(
+            a,
+            b
+        );
+
+
+    pinchCenterX =
+        center.x;
+
+    pinchCenterY =
+        center.y;
+
+
+    pinchStartPanX =
+        panX;
+
+    pinchStartPanY =
+        panY;
+}
+
+
+/* =========================================================
+   UPDATE PINCH
+========================================================= */
+
+function updatePinch() {
+
+    const values =
+        [...touchPointers.values()];
+
+
+    if (
+        values.length < 2
+    ) {
+
+        return;
+    }
+
+
+    const a =
+        values[0];
+
+    const b =
+        values[1];
+
+
+    const currentDistance =
+        distance(
+            a,
+            b
+        );
+
+
+    if (
+        pinchStartDistance <= 0
+    ) {
+
+        return;
+    }
+
+
+    let newZoom =
+        pinchStartZoom *
+        (
+            currentDistance /
+            pinchStartDistance
+        );
+
+
+    newZoom =
+        Math.max(
+            MIN_ZOOM,
+            Math.min(
+                MAX_ZOOM,
+                newZoom
+            )
+        );
+
+
+    const center =
+        midpoint(
+            a,
+            b
+        );
+
+
+    panX =
+        pinchStartPanX +
+        (
+            center.x -
+            pinchCenterX
+        );
+
+
+    panY =
+        pinchStartPanY +
+        (
+            center.y -
+            pinchCenterY
+        );
+
+
+    zoom =
+        newZoom;
+
+
+    applyZoom();
+}
+
+
+/* =========================================================
+   GEOMETRY
+========================================================= */
+
+function distance(a,b) {
+
+    const dx =
+        a.x - b.x;
+
+    const dy =
+        a.y - b.y;
+
+    return Math.sqrt(
+        dx * dx +
+        dy * dy
+    );
+}
+
+
+function midpoint(a,b) {
+
+    return {
+
+        x:
+            (a.x + b.x) / 2,
+
+        y:
+            (a.y + b.y) / 2
+    };
+}
+
+
+/* =========================================================
+   ZOOM
+========================================================= */
+
+function applyZoom() {
+
+    paper.style.transform =
+        `
+        translate3d(
+            ${panX}px,
+            ${panY}px,
+            0
+        )
+        scale(${zoom})
+        `;
+
+
+    document
+        .getElementById(
+            "zoomValue"
+        )
+        .textContent =
+        Math.round(
+            zoom * 100
+        ) + "%";
+}
+
+
+function zoomIn() {
+
+    zoom =
+        Math.min(
+            MAX_ZOOM,
+            zoom + .25
+        );
+
+    applyZoom();
+}
+
+
+function zoomOut() {
+
+    zoom =
+        Math.max(
+            MIN_ZOOM,
+            zoom - .25
+        );
+
+    applyZoom();
+}
+
+
+function resetZoom() {
+
+    zoom =
+        1;
+
+    panX =
+        0;
+
+    panY =
+        0;
+
+    applyZoom();
+
+    showToast(
+        "100%"
+    );
+}
+
+
+/* =========================================================
    HISTORY
 ========================================================= */
 
 function saveState() {
-
-    /*
-       동일한 상태가 연속으로
-       쌓이는 것을 방지
-    */
 
     const state =
         canvas.toDataURL(
@@ -3122,7 +3530,7 @@ function saveState() {
 
 
     if (
-        undoStack.length > 0 &&
+        undoStack.length &&
         undoStack[
             undoStack.length - 1
         ] === state
@@ -3138,7 +3546,7 @@ function saveState() {
 
 
     if (
-        undoStack.length > 35
+        undoStack.length > 40
     ) {
 
         undoStack.shift();
@@ -3152,14 +3560,10 @@ function saveState() {
 }
 
 
-/* =========================================================
-   UNDO
-========================================================= */
-
 function undo() {
 
     if (
-        undoStack.length === 0
+        !undoStack.length
     ) {
 
         return;
@@ -3192,14 +3596,10 @@ function undo() {
 }
 
 
-/* =========================================================
-   REDO
-========================================================= */
-
 function redo() {
 
     if (
-        redoStack.length === 0
+        !redoStack.length
     ) {
 
         return;
@@ -3232,59 +3632,56 @@ function redo() {
 }
 
 
-/* =========================================================
-   RESTORE IMAGE
-========================================================= */
-
 function restoreImage(src) {
 
-    const img =
+    const image =
         new Image();
 
 
-    img.onload = () => {
+    image.onload =
+        function() {
 
-        const size =
-            getCanvasCSSSize();
-
-
-        ctx.clearRect(
-            0,
-            0,
-            size.width,
-            size.height
-        );
+            const s =
+                canvasSize();
 
 
-        ctx.drawImage(
-            img,
-            0,
-            0,
-            size.width,
-            size.height
-        );
-    };
+            ctx.clearRect(
+                0,
+                0,
+                s.width,
+                s.height
+            );
 
 
-    img.src =
+            ctx.drawImage(
+                image,
+                0,
+                0,
+                s.width,
+                s.height
+            );
+        };
+
+
+    image.src =
         src;
 }
 
 
-/* =========================================================
-   HISTORY BUTTONS
-========================================================= */
-
 function updateHistoryButtons() {
 
     document
-        .getElementById("undoTool")
+        .getElementById(
+            "undoTool"
+        )
         .disabled =
         undoStack.length === 0;
 
 
     document
-        .getElementById("redoTool")
+        .getElementById(
+            "redoTool"
+        )
         .disabled =
         redoStack.length === 0;
 }
@@ -3298,7 +3695,7 @@ function clearCanvas() {
 
     if (
         !confirm(
-            "이 페이지의 필기를 모두 지울까요?"
+            "필기를 모두 지울까요?"
         )
     ) {
 
@@ -3309,15 +3706,15 @@ function clearCanvas() {
     saveState();
 
 
-    const size =
-        getCanvasCSSSize();
+    const s =
+        canvasSize();
 
 
     ctx.clearRect(
         0,
         0,
-        size.width,
-        size.height
+        s.width,
+        s.height
     );
 
 
@@ -3365,12 +3762,6 @@ function setTool(value) {
         );
 
 
-    canvas.style.cursor =
-        value === "pen"
-            ? "crosshair"
-            : "cell";
-
-
     closePopover();
 }
 
@@ -3404,7 +3795,7 @@ function closePopover() {
 
 
 /* =========================================================
-   PEN SIZE
+   SIZE
 ========================================================= */
 
 const sizeRange =
@@ -3415,11 +3806,11 @@ const sizeRange =
 
 sizeRange.addEventListener(
     "input",
-    () => {
+    function() {
 
         size =
             Number(
-                sizeRange.value
+                this.value
             );
 
 
@@ -3443,10 +3834,10 @@ function updateSizePreview() {
 
 
     const diameter =
-        Math.min(
-            26,
-            Math.max(
-                3,
+        Math.max(
+            3,
+            Math.min(
+                26,
                 size * 1.65
             )
         );
@@ -3476,10 +3867,10 @@ document
 
             button.addEventListener(
                 "click",
-                () => {
+                function() {
 
                     color =
-                        button.dataset.color;
+                        this.dataset.color;
 
 
                     document
@@ -3495,17 +3886,14 @@ document
                             ".color-btn"
                         )
                         .forEach(
-                            b => {
-
-                                b.classList
-                                    .remove(
-                                        "active"
-                                    );
-                            }
+                            b =>
+                            b.classList.remove(
+                                "active"
+                            )
                         );
 
 
-                    button.classList.add(
+                    this.classList.add(
                         "active"
                     );
 
@@ -3572,89 +3960,6 @@ function setPaper(type) {
 
 
 /* =========================================================
-   ZOOM
-========================================================= */
-
-function applyZoom() {
-
-    paper.style.transform =
-        `translate3d(
-            ${panX}px,
-            ${panY}px,
-            0
-        ) scale(${zoom})`;
-
-
-    updateZoomText();
-}
-
-
-function updateZoomText() {
-
-    document
-        .getElementById(
-            "zoomValue"
-        )
-        .textContent =
-        Math.round(
-            zoom * 100
-        ) + "%";
-}
-
-
-function setZoom(value) {
-
-    zoom =
-        Math.max(
-            MIN_ZOOM,
-            Math.min(
-                MAX_ZOOM,
-                value
-            )
-        );
-
-
-    applyZoom();
-}
-
-
-function zoomIn() {
-
-    setZoom(
-        zoom + .25
-    );
-}
-
-
-function zoomOut() {
-
-    setZoom(
-        zoom - .25
-    );
-}
-
-
-function resetZoom() {
-
-    zoom =
-        1;
-
-    panX =
-        0;
-
-    panY =
-        0;
-
-
-    applyZoom();
-
-    showToast(
-        "100%"
-    );
-}
-
-
-/* =========================================================
    AUTOSAVE
 ========================================================= */
 
@@ -3677,7 +3982,7 @@ function scheduleSave() {
 
     saveTimer =
         setTimeout(
-            () => {
+            function() {
 
                 localStorage.setItem(
                     "paperNote",
@@ -3703,13 +4008,13 @@ function scheduleSave() {
                     "자동 저장됨";
 
             },
-            500
+            450
         );
 }
 
 
 /* =========================================================
-   EXPORT CANVAS
+   EXPORT
 ========================================================= */
 
 function createExportCanvas() {
@@ -3732,11 +4037,6 @@ function createExportCanvas() {
             "2d"
         );
 
-
-    /*
-       PNG 저장 시
-       흰색 배경
-    */
 
     outputCtx.fillStyle =
         "#ffffff";
@@ -3762,7 +4062,7 @@ function createExportCanvas() {
 
 
 /* =========================================================
-   SAVE PNG
+   SAVE
 ========================================================= */
 
 function saveNote() {
@@ -3777,26 +4077,8 @@ function saveNote() {
         );
 
 
-    const now =
-        new Date();
-
-
-    const date =
-        now.getFullYear() +
-        "-" +
-        String(
-            now.getMonth() + 1
-        ).padStart(2, "0") +
-        "-" +
-        String(
-            now.getDate()
-        ).padStart(2, "0");
-
-
     link.download =
-        "PaperNote_" +
-        date +
-        ".png";
+        "PaperNote.png";
 
 
     link.href =
@@ -3809,7 +4091,7 @@ function saveNote() {
 
 
     showToast(
-        "필기를 저장했습니다"
+        "PNG 저장 완료"
     );
 }
 
@@ -3825,13 +4107,9 @@ async function shareNote() {
 
 
     output.toBlob(
-        async blob => {
+        async function(blob) {
 
             if (!blob) {
-
-                showToast(
-                    "공유할 수 없습니다"
-                );
 
                 return;
             }
@@ -3848,17 +4126,13 @@ async function shareNote() {
                 );
 
 
-            /*
-               Android / iPadOS 등
-               Web Share API
-            */
-
             if (
                 navigator.share &&
                 (
                     !navigator.canShare ||
                     navigator.canShare({
-                        files: [file]
+                        files:
+                            [file]
                     })
                 )
             ) {
@@ -3871,24 +4145,19 @@ async function shareNote() {
                             "Paper Note",
 
                         text:
-                            "필기 메모",
+                            "S펜 필기 노트",
 
                         files:
                             [file]
                     });
 
 
-                    showToast(
-                        "공유했습니다"
-                    );
-
-
                     return;
 
-                } catch (error) {
+                } catch (err) {
 
                     if (
-                        error.name ===
+                        err.name ===
                         "AbortError"
                     ) {
 
@@ -3897,11 +4166,6 @@ async function shareNote() {
                 }
             }
 
-
-            /*
-               Web Share를 지원하지 않는
-               브라우저에서는 PNG 다운로드
-            */
 
             const url =
                 URL.createObjectURL(
@@ -3922,19 +4186,11 @@ async function shareNote() {
                 "PaperNote.png";
 
 
-            document.body.appendChild(
-                link
-            );
-
-
             link.click();
 
 
-            link.remove();
-
-
             setTimeout(
-                () => {
+                function() {
 
                     URL.revokeObjectURL(
                         url
@@ -3976,10 +4232,30 @@ function toggleDark() {
 
 
 /* =========================================================
-   LOAD SAVED NOTE
+   LOAD
 ========================================================= */
 
 function loadNote() {
+
+    /*
+       Dark
+    */
+
+    if (
+        localStorage.getItem(
+            "paperNoteDark"
+        ) === "true"
+    ) {
+
+        document.body.classList.add(
+            "dark"
+        );
+    }
+
+
+    /*
+       Note
+    */
 
     const saved =
         localStorage.getItem(
@@ -3989,42 +4265,42 @@ function loadNote() {
 
     if (saved) {
 
-        const img =
+        const image =
             new Image();
 
 
-        img.onload =
-            () => {
+        image.onload =
+            function() {
 
-                const size =
-                    getCanvasCSSSize();
+                const s =
+                    canvasSize();
 
 
                 ctx.clearRect(
                     0,
                     0,
-                    size.width,
-                    size.height
+                    s.width,
+                    s.height
                 );
 
 
                 ctx.drawImage(
-                    img,
+                    image,
                     0,
                     0,
-                    size.width,
-                    size.height
+                    s.width,
+                    s.height
                 );
             };
 
 
-        img.src =
+        image.src =
             saved;
     }
 
 
     /*
-       색상
+       Color
     */
 
     const savedColor =
@@ -4065,7 +4341,7 @@ function loadNote() {
 
 
     /*
-       굵기
+       Size
     */
 
     const savedSize =
@@ -4123,7 +4399,7 @@ function showToast(message) {
 
     toastTimer =
         setTimeout(
-            () => {
+            function() {
 
                 toast.classList.remove(
                     "show"
@@ -4136,18 +4412,17 @@ function showToast(message) {
 
 
 /* =========================================================
-   OUTSIDE POPOVER
+   CLOSE POPOVER
 ========================================================= */
 
 document.addEventListener(
     "pointerdown",
-    e => {
+    function(e) {
 
         const popover =
             document.getElementById(
                 "popover"
             );
-
 
         const settings =
             document.getElementById(
@@ -4174,30 +4449,24 @@ document.addEventListener(
 
 
 /* =========================================================
-   KEYBOARD SHORTCUT
+   KEYBOARD
 ========================================================= */
 
 document.addEventListener(
     "keydown",
-    e => {
+    function(e) {
 
         const command =
             e.ctrlKey ||
             e.metaKey;
 
 
-        /*
-           Undo
-        */
-
         if (
             command &&
-            e.key.toLowerCase() ===
-            "z"
+            e.key.toLowerCase() === "z"
         ) {
 
             e.preventDefault();
-
 
             if (e.shiftKey) {
 
@@ -4210,14 +4479,9 @@ document.addEventListener(
         }
 
 
-        /*
-           Redo
-        */
-
         if (
             command &&
-            e.key.toLowerCase() ===
-            "y"
+            e.key.toLowerCase() === "y"
         ) {
 
             e.preventDefault();
@@ -4226,14 +4490,9 @@ document.addEventListener(
         }
 
 
-        /*
-           Save
-        */
-
         if (
             command &&
-            e.key.toLowerCase() ===
-            "s"
+            e.key.toLowerCase() === "s"
         ) {
 
             e.preventDefault();
@@ -4249,7 +4508,7 @@ document.addEventListener(
 ========================================================= */
 
 setTimeout(
-    () => {
+    function() {
 
         loadNote();
 
@@ -4266,4 +4525,5 @@ setTimeout(
 </script>
 
 </body>
+
 </html>
