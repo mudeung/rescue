@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
+
 <meta name="viewport"
       content="width=device-width,
                initial-scale=1.0,
@@ -16,55 +17,60 @@
 ========================================================= */
 
 * {
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
 }
 
 :root {
-  --app-bg: #eef0f5;
-  --paper: #ffffff;
-  --surface: rgba(255,255,255,.88);
-  --text: #17181c;
-  --muted: #858994;
-  --line: #e3e5ea;
-  --accent: #6d5dfc;
-  --accent-light: #eeeaff;
-  --danger: #ef5b68;
-  --shadow:
-    0 12px 35px rgba(20, 25, 45, .10),
-    0 2px 8px rgba(20, 25, 45, .06);
+    --app-bg: #eef0f5;
+    --paper: #ffffff;
+    --surface: rgba(255,255,255,.92);
+
+    --text: #17181c;
+    --muted: #858994;
+    --line: #e3e5ea;
+
+    --accent: #6d5dfc;
+    --accent-light: #eeeaff;
+
+    --shadow:
+        0 12px 35px rgba(20,25,45,.10),
+        0 2px 8px rgba(20,25,45,.06);
 }
 
 body.dark {
-  --app-bg: #141519;
-  --paper: #202126;
-  --surface: rgba(35,36,42,.94);
-  --text: #f4f4f5;
-  --muted: #a0a2ab;
-  --line: #35363d;
-  --accent: #8b7cff;
-  --accent-light: #302c50;
-  --shadow:
-    0 15px 40px rgba(0,0,0,.30);
+    --app-bg: #141519;
+    --paper: #202126;
+    --surface: rgba(35,36,42,.94);
+
+    --text: #f4f4f5;
+    --muted: #a0a2ab;
+    --line: #35363d;
+
+    --accent: #8b7cff;
+    --accent-light: #302c50;
+
+    --shadow:
+        0 15px 40px rgba(0,0,0,.30);
 }
 
 html,
 body {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  overflow: hidden;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
 
-  font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    "SF Pro Display",
-    "Segoe UI",
-    "Noto Sans KR",
-    sans-serif;
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "SF Pro Display",
+        "Segoe UI",
+        "Noto Sans KR",
+        sans-serif;
 
-  background: var(--app-bg);
-  color: var(--text);
+    background: var(--app-bg);
+    color: var(--text);
 }
 
 
@@ -73,10 +79,10 @@ body {
 ========================================================= */
 
 .app {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 
@@ -85,192 +91,243 @@ body {
 ========================================================= */
 
 .header {
-  height: 68px;
-  flex-shrink: 0;
+    height: 68px;
+    flex-shrink: 0;
 
-  display: flex;
-  align-items: center;
+    display: flex;
+    align-items: center;
 
-  padding: 0 22px;
+    padding: 0 22px;
 
-  background: var(--surface);
-  border-bottom: 1px solid var(--line);
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
 
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
 
-  z-index: 20;
+    z-index: 100;
 }
 
 .brand {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-
-  min-width: 220px;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-width: 220px;
 }
 
 .logo {
-  width: 36px;
-  height: 36px;
+    width: 36px;
+    height: 36px;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-  border-radius: 11px;
+    border-radius: 11px;
 
-  background:
-    linear-gradient(
-      135deg,
-      #7869ff,
-      #5c4af4
-    );
+    background:
+        linear-gradient(
+            135deg,
+            #7869ff,
+            #5c4af4
+        );
 
-  color: white;
+    color: white;
 
-  font-size: 18px;
+    box-shadow:
+        0 5px 14px
+        rgba(100,85,245,.28);
+}
 
-  box-shadow:
-    0 5px 14px rgba(100,85,245,.28);
+.logo svg {
+    width: 20px;
+    height: 20px;
 }
 
 .brand-text strong {
-  display: block;
-  font-size: 15px;
-  line-height: 18px;
+    display: block;
+    font-size: 15px;
+    line-height: 18px;
 }
 
 .brand-text span {
-  display: block;
-
-  margin-top: 2px;
-
-  color: var(--muted);
-  font-size: 11px;
+    display: block;
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 11px;
 }
 
 .header-center {
-  flex: 1;
-
-  display: flex;
-  justify-content: center;
+    flex: 1;
+    display: flex;
+    justify-content: center;
 }
 
 .page-title {
-  padding: 7px 15px;
+    padding: 7px 15px;
 
-  border-radius: 9px;
+    border-radius: 9px;
 
-  font-size: 13px;
-  color: var(--muted);
+    font-size: 13px;
+    color: var(--muted);
 
-  background: var(--app-bg);
+    background: var(--app-bg);
 }
 
 .header-actions {
-  min-width: 220px;
+    min-width: 220px;
 
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 7px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+
+    gap: 7px;
 }
 
 
 /* =========================================================
-   공통 버튼
+   공통 SVG
+========================================================= */
+
+.icon-btn svg,
+.tool-btn svg,
+.primary-btn svg,
+.zoom-btn svg {
+    width: 20px;
+    height: 20px;
+
+    stroke: currentColor;
+    fill: none;
+
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+
+    pointer-events: none;
+
+    transition:
+        transform .16s ease,
+        stroke-width .16s ease;
+}
+
+.tool-btn svg {
+    width: 21px;
+    height: 21px;
+}
+
+.primary-btn svg {
+    width: 17px;
+    height: 17px;
+}
+
+.zoom-btn svg {
+    width: 17px;
+    height: 17px;
+}
+
+.icon-btn:hover svg,
+.tool-btn:hover svg {
+    transform: scale(1.06);
+}
+
+.tool-btn.active svg {
+    stroke-width: 2.1;
+}
+
+
+/* =========================================================
+   버튼
 ========================================================= */
 
 .icon-btn {
-  width: 40px;
-  height: 40px;
+    width: 40px;
+    height: 40px;
 
-  border: 1px solid transparent;
-  border-radius: 11px;
+    border: 1px solid transparent;
+    border-radius: 11px;
 
-  background: transparent;
-  color: var(--text);
+    background: transparent;
+    color: var(--text);
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-  cursor: pointer;
+    cursor: pointer;
 
-  font-size: 17px;
-
-  transition:
-    background .18s ease,
-    transform .18s ease,
-    border .18s ease;
+    transition:
+        background .18s ease,
+        transform .18s ease,
+        border .18s ease;
 }
 
 .icon-btn:hover {
-  background: var(--app-bg);
-  border-color: var(--line);
+    background: var(--app-bg);
+    border-color: var(--line);
 }
 
 .icon-btn:active {
-  transform: scale(.94);
+    transform: scale(.94);
 }
 
 .primary-btn {
-  height: 40px;
+    height: 40px;
 
-  display: flex;
-  align-items: center;
-  gap: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-  padding: 0 15px;
+    gap: 7px;
 
-  border: 0;
-  border-radius: 11px;
+    padding: 0 15px;
 
-  background: var(--accent);
-  color: white;
+    border: 0;
+    border-radius: 11px;
 
-  font-size: 13px;
-  font-weight: 600;
+    background: var(--accent);
+    color: white;
 
-  cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
 
-  box-shadow:
-    0 6px 16px rgba(109,93,252,.25);
+    cursor: pointer;
 
-  transition:
-    transform .18s ease,
-    box-shadow .18s ease;
+    box-shadow:
+        0 6px 16px
+        rgba(109,93,252,.25);
+
+    transition:
+        transform .18s ease,
+        box-shadow .18s ease;
 }
 
 .primary-btn:hover {
-  box-shadow:
-    0 8px 22px rgba(109,93,252,.35);
+    box-shadow:
+        0 8px 22px
+        rgba(109,93,252,.35);
 }
 
 .primary-btn:active {
-  transform: scale(.96);
+    transform: scale(.96);
 }
 
 
 /* =========================================================
-   작업 영역
+   작업 공간
 ========================================================= */
 
 .workspace {
-  position: relative;
+    position: relative;
+    flex: 1;
+    overflow: hidden;
 
-  flex: 1;
-
-  overflow: hidden;
-
-  background:
-    radial-gradient(
-      circle at 50% 0%,
-      rgba(109,93,252,.08),
-      transparent 35%
-    ),
-    var(--app-bg);
+    background:
+        radial-gradient(
+            circle at 50% 0%,
+            rgba(109,93,252,.08),
+            transparent 35%
+        ),
+        var(--app-bg);
 }
 
 
@@ -279,83 +336,95 @@ body {
 ========================================================= */
 
 .page-area {
-  position: absolute;
-  inset: 0;
+    position: absolute;
+    inset: 0;
 
-  overflow: auto;
+    overflow: auto;
 
-  padding:
-    38px
-    70px
-    150px;
+    padding:
+        38px
+        70px
+        150px;
 
-  display: flex;
-  justify-content: center;
+    display: flex;
+    justify-content: center;
 
-  /*
-   * 태블릿에서 브라우저 스크롤 대신
-   * 필기 영역 자체를 안정적으로 유지
-   */
-  overscroll-behavior: contain;
+    overscroll-behavior: contain;
+
+    touch-action: none;
 }
 
 
 /* =========================================================
-   실제 종이
+   종이
 ========================================================= */
 
 .paper {
-  position: relative;
+    position: relative;
 
-  flex: 0 0 auto;
+    flex: 0 0 auto;
 
-  width: min(920px, 92vw);
-  height: max(1180px, calc(100vh - 150px));
+    width:
+        min(920px, 92vw);
 
-  background: var(--paper);
+    height:
+        max(
+            1180px,
+            calc(100vh - 150px)
+        );
 
-  border-radius: 5px;
+    background: var(--paper);
 
-  box-shadow: var(--shadow);
+    border-radius: 5px;
 
-  overflow: hidden;
+    box-shadow: var(--shadow);
+
+    overflow: hidden;
+
+    transform-origin: center center;
+
+    will-change: transform;
 }
 
 
-/* 종이 줄 */
+/* =========================================================
+   줄 노트
+========================================================= */
+
 .paper.lines {
-  background-color: var(--paper);
+    background-color: var(--paper);
 
-  background-image:
-    linear-gradient(
-      to bottom,
-      transparent 31px,
-      rgba(115,130,160,.13) 32px,
-      transparent 33px
-    );
+    background-image:
+        linear-gradient(
+            to bottom,
+            transparent 31px,
+            rgba(115,130,160,.13) 32px,
+            transparent 33px
+        );
 
-  background-size:
-    100% 32px;
+    background-size: 100% 32px;
 }
 
 
-/* 격자 */
+/* =========================================================
+   격자
+========================================================= */
+
 .paper.grid {
-  background-color: var(--paper);
+    background-color: var(--paper);
 
-  background-image:
-    linear-gradient(
-      rgba(110,125,155,.11) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      90deg,
-      rgba(110,125,155,.11) 1px,
-      transparent 1px
-    );
+    background-image:
+        linear-gradient(
+            rgba(110,125,155,.11) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(110,125,155,.11) 1px,
+            transparent 1px
+        );
 
-  background-size:
-    28px 28px;
+    background-size: 28px 28px;
 }
 
 
@@ -364,18 +433,17 @@ body {
 ========================================================= */
 
 canvas {
-  position: absolute;
+    position: absolute;
+    inset: 0;
 
-  inset: 0;
+    width: 100%;
+    height: 100%;
 
-  width: 100%;
-  height: 100%;
+    display: block;
 
-  display: block;
+    touch-action: none;
 
-  touch-action: none;
-
-  cursor: crosshair;
+    cursor: crosshair;
 }
 
 
@@ -384,305 +452,18 @@ canvas {
 ========================================================= */
 
 .page-number {
-  position: absolute;
+    position: absolute;
 
-  bottom: 15px;
-  left: 50%;
+    bottom: 15px;
+    left: 50%;
 
-  transform: translateX(-50%);
+    transform: translateX(-50%);
 
-  color: var(--muted);
+    color: var(--muted);
 
-  font-size: 10px;
+    font-size: 10px;
 
-  pointer-events: none;
-}
-
-
-/* =========================================================
-   플로팅 툴바
-========================================================= */
-
-.floating-toolbar {
-  position: absolute;
-
-  left: 50%;
-  bottom: 22px;
-
-  transform: translateX(-50%);
-
-  min-height: 64px;
-
-  padding: 9px;
-
-  display: flex;
-  align-items: center;
-  gap: 5px;
-
-  background: var(--surface);
-
-  border: 1px solid rgba(255,255,255,.55);
-
-  border-radius: 18px;
-
-  box-shadow:
-    0 14px 38px rgba(20,25,45,.16),
-    0 2px 8px rgba(20,25,45,.07);
-
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
-
-  z-index: 30;
-}
-
-
-/* 툴바 버튼 */
-
-.tool-btn {
-  position: relative;
-
-  width: 46px;
-  height: 46px;
-
-  border: 0;
-  border-radius: 13px;
-
-  background: transparent;
-  color: var(--text);
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  font-size: 19px;
-
-  cursor: pointer;
-
-  transition:
-    background .16s ease,
-    color .16s ease,
-    transform .16s ease;
-}
-
-.tool-btn:hover {
-  background: var(--app-bg);
-}
-
-.tool-btn:active {
-  transform: scale(.91);
-}
-
-.tool-btn.active {
-  color: var(--accent);
-  background: var(--accent-light);
-}
-
-.tool-btn:disabled {
-  opacity: .28;
-  cursor: default;
-}
-
-
-/* 세로 구분선 */
-
-.tool-divider {
-  width: 1px;
-  height: 30px;
-
-  background: var(--line);
-
-  margin: 0 4px;
-}
-
-
-/* =========================================================
-   펜 색상 표시
-========================================================= */
-
-.current-color {
-  width: 22px;
-  height: 22px;
-
-  border-radius: 50%;
-
-  border: 2px solid var(--paper);
-
-  box-shadow:
-    0 0 0 1px var(--line);
-
-  pointer-events: none;
-}
-
-
-/* =========================================================
-   설정 팝업
-========================================================= */
-
-.popover {
-  position: absolute;
-
-  bottom: 98px;
-  left: 50%;
-
-  transform:
-    translateX(-50%)
-    translateY(10px)
-    scale(.96);
-
-  width: 270px;
-
-  padding: 17px;
-
-  background: var(--surface);
-
-  border: 1px solid var(--line);
-
-  border-radius: 17px;
-
-  box-shadow:
-    0 18px 45px rgba(20,25,45,.16);
-
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
-
-  opacity: 0;
-  pointer-events: none;
-
-  transition:
-    opacity .18s ease,
-    transform .18s ease;
-
-  z-index: 40;
-}
-
-.popover.show {
-  opacity: 1;
-  pointer-events: auto;
-
-  transform:
-    translateX(-50%)
-    translateY(0)
-    scale(1);
-}
-
-.popover-title {
-  margin-bottom: 13px;
-
-  font-size: 12px;
-  font-weight: 700;
-
-  color: var(--muted);
-}
-
-
-/* =========================================================
-   굵기
-========================================================= */
-
-.range-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-input[type="range"] {
-  flex: 1;
-
-  accent-color: var(--accent);
-}
-
-.size-preview {
-  width: 34px;
-  height: 34px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.size-dot {
-  width: 12px;
-  height: 12px;
-
-  border-radius: 50%;
-
-  background: var(--text);
-}
-
-
-/* =========================================================
-   색상
-========================================================= */
-
-.colors {
-  display: grid;
-
-  grid-template-columns:
-    repeat(7, 1fr);
-
-  gap: 9px;
-}
-
-.color-btn {
-  width: 27px;
-  height: 27px;
-
-  border: 2px solid transparent;
-
-  border-radius: 50%;
-
-  cursor: pointer;
-
-  transition:
-    transform .15s ease,
-    border .15s ease;
-}
-
-.color-btn:hover {
-  transform: scale(1.13);
-}
-
-.color-btn.active {
-  border-color: var(--accent);
-
-  box-shadow:
-    0 0 0 2px var(--paper),
-    0 0 0 3px var(--accent);
-}
-
-
-/* =========================================================
-   용지 설정
-========================================================= */
-
-.paper-menu {
-  display: flex;
-  gap: 7px;
-}
-
-.paper-option {
-  flex: 1;
-
-  padding: 9px 5px;
-
-  border: 1px solid var(--line);
-
-  border-radius: 9px;
-
-  background: transparent;
-  color: var(--text);
-
-  cursor: pointer;
-
-  font-size: 11px;
-}
-
-.paper-option.active {
-  border-color: var(--accent);
-
-  background: var(--accent-light);
-
-  color: var(--accent);
+    pointer-events: none;
 }
 
 
@@ -691,29 +472,400 @@ input[type="range"] {
 ========================================================= */
 
 .save-indicator {
-  position: absolute;
+    position: absolute;
 
-  top: 17px;
-  right: 20px;
+    top: 17px;
+    right: 20px;
 
-  padding: 6px 10px;
+    padding: 6px 10px;
 
-  border-radius: 20px;
+    border-radius: 20px;
 
-  background: var(--surface);
+    background: var(--surface);
 
-  border: 1px solid var(--line);
+    border: 1px solid var(--line);
 
-  color: var(--muted);
+    color: var(--muted);
 
-  font-size: 10px;
+    font-size: 10px;
 
-  backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
 
-  z-index: 15;
+    z-index: 30;
+}
 
-  transition:
-    opacity .3s ease;
+
+/* =========================================================
+   플로팅 툴바
+========================================================= */
+
+.floating-toolbar {
+    position: absolute;
+
+    left: 50%;
+    bottom: 22px;
+
+    transform: translateX(-50%);
+
+    min-height: 64px;
+
+    padding: 9px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 5px;
+
+    background: var(--surface);
+
+    border:
+        1px solid
+        rgba(255,255,255,.55);
+
+    border-radius: 18px;
+
+    box-shadow:
+        0 14px 38px
+        rgba(20,25,45,.16),
+
+        0 2px 8px
+        rgba(20,25,45,.07);
+
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+
+    z-index: 50;
+}
+
+
+/* =========================================================
+   도구 버튼
+========================================================= */
+
+.tool-btn {
+    position: relative;
+
+    width: 46px;
+    height: 46px;
+
+    border: 0;
+    border-radius: 13px;
+
+    background: transparent;
+    color: var(--text);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+
+    transition:
+        background .16s ease,
+        color .16s ease,
+        transform .16s ease;
+}
+
+.tool-btn:hover {
+    background: var(--app-bg);
+}
+
+.tool-btn:active {
+    transform: scale(.91);
+}
+
+.tool-btn.active {
+    color: var(--accent);
+    background: var(--accent-light);
+}
+
+.tool-btn:disabled {
+    opacity: .28;
+    cursor: default;
+}
+
+
+/* =========================================================
+   구분선
+========================================================= */
+
+.tool-divider {
+    width: 1px;
+    height: 30px;
+
+    background: var(--line);
+
+    margin: 0 4px;
+}
+
+
+/* =========================================================
+   현재 색상
+========================================================= */
+
+.current-color {
+    width: 22px;
+    height: 22px;
+
+    border-radius: 50%;
+
+    border:
+        2px solid
+        var(--paper);
+
+    box-shadow:
+        0 0 0 1px
+        var(--line);
+
+    pointer-events: none;
+}
+
+
+/* =========================================================
+   설정 팝업
+========================================================= */
+
+.popover {
+    position: absolute;
+
+    bottom: 98px;
+    left: 50%;
+
+    transform:
+        translateX(-50%)
+        translateY(10px)
+        scale(.96);
+
+    width: 270px;
+
+    padding: 17px;
+
+    background: var(--surface);
+
+    border: 1px solid var(--line);
+
+    border-radius: 17px;
+
+    box-shadow:
+        0 18px 45px
+        rgba(20,25,45,.16);
+
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+
+    opacity: 0;
+
+    pointer-events: none;
+
+    transition:
+        opacity .18s ease,
+        transform .18s ease;
+
+    z-index: 60;
+}
+
+.popover.show {
+    opacity: 1;
+
+    pointer-events: auto;
+
+    transform:
+        translateX(-50%)
+        translateY(0)
+        scale(1);
+}
+
+.popover-title {
+    margin-bottom: 13px;
+
+    font-size: 12px;
+
+    font-weight: 700;
+
+    color: var(--muted);
+}
+
+
+/* =========================================================
+   굵기
+========================================================= */
+
+.range-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+input[type="range"] {
+    flex: 1;
+    accent-color: var(--accent);
+}
+
+.size-preview {
+    width: 34px;
+    height: 34px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.size-dot {
+    width: 8px;
+    height: 8px;
+
+    border-radius: 50%;
+
+    background: var(--text);
+}
+
+
+/* =========================================================
+   색상
+========================================================= */
+
+.colors {
+    display: grid;
+
+    grid-template-columns:
+        repeat(7, 1fr);
+
+    gap: 9px;
+}
+
+.color-btn {
+    width: 27px;
+    height: 27px;
+
+    border:
+        2px solid transparent;
+
+    border-radius: 50%;
+
+    cursor: pointer;
+
+    transition:
+        transform .15s ease,
+        border .15s ease;
+}
+
+.color-btn:hover {
+    transform: scale(1.13);
+}
+
+.color-btn.active {
+    border-color: var(--accent);
+
+    box-shadow:
+        0 0 0 2px var(--paper),
+        0 0 0 3px var(--accent);
+}
+
+
+/* =========================================================
+   용지 선택
+========================================================= */
+
+.paper-menu {
+    display: flex;
+    gap: 7px;
+}
+
+.paper-option {
+    flex: 1;
+
+    padding: 9px 5px;
+
+    border:
+        1px solid
+        var(--line);
+
+    border-radius: 9px;
+
+    background: transparent;
+
+    color: var(--text);
+
+    cursor: pointer;
+
+    font-size: 11px;
+}
+
+.paper-option.active {
+    border-color: var(--accent);
+
+    background: var(--accent-light);
+
+    color: var(--accent);
+}
+
+
+/* =========================================================
+   줌
+========================================================= */
+
+.zoom-control {
+    position: absolute;
+
+    left: 18px;
+    bottom: 24px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 4px;
+
+    padding: 6px;
+
+    background: var(--surface);
+
+    border:
+        1px solid
+        var(--line);
+
+    border-radius: 14px;
+
+    box-shadow:
+        0 10px 25px
+        rgba(20,25,45,.10);
+
+    backdrop-filter: blur(18px);
+
+    z-index: 40;
+}
+
+.zoom-btn {
+    width: 34px;
+    height: 34px;
+
+    border: 0;
+    border-radius: 9px;
+
+    background: transparent;
+
+    color: var(--text);
+
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.zoom-btn:hover {
+    background: var(--app-bg);
+}
+
+.zoom-value {
+    min-width: 50px;
+
+    text-align: center;
+
+    font-size: 11px;
+
+    color: var(--muted);
+
+    user-select: none;
 }
 
 
@@ -722,161 +874,171 @@ input[type="range"] {
 ========================================================= */
 
 .toast {
-  position: absolute;
+    position: absolute;
 
-  left: 50%;
-  bottom: 105px;
+    left: 50%;
+    bottom: 105px;
 
-  transform:
-    translate(-50%, 10px);
+    transform:
+        translate(-50%, 10px);
 
-  padding: 9px 15px;
+    padding:
+        9px 15px;
 
-  border-radius: 10px;
+    border-radius: 10px;
 
-  background: #1e2026;
+    background: #1e2026;
 
-  color: white;
+    color: white;
 
-  font-size: 12px;
+    font-size: 12px;
 
-  opacity: 0;
-  pointer-events: none;
+    opacity: 0;
 
-  transition:
-    opacity .2s ease,
-    transform .2s ease;
+    pointer-events: none;
 
-  z-index: 100;
+    transition:
+        opacity .2s ease,
+        transform .2s ease;
+
+    z-index: 100;
 }
 
 .toast.show {
-  opacity: 1;
+    opacity: 1;
 
-  transform:
-    translate(-50%, 0);
+    transform:
+        translate(-50%, 0);
 }
 
 
 /* =========================================================
-   모바일 / 작은 태블릿
+   태블릿
 ========================================================= */
 
 @media (max-width: 800px) {
 
-  .header {
-    height: 58px;
-    padding: 0 10px;
-  }
+    .header {
+        height: 58px;
+        padding: 0 10px;
+    }
 
-  .brand {
-    min-width: auto;
-  }
+    .brand {
+        min-width: auto;
+    }
 
-  .brand-text {
-    display: none;
-  }
+    .brand-text {
+        display: none;
+    }
 
-  .logo {
-    width: 34px;
-    height: 34px;
-  }
+    .logo {
+        width: 34px;
+        height: 34px;
+    }
 
-  .header-center {
-    justify-content: flex-start;
-    padding-left: 10px;
-  }
+    .header-center {
+        justify-content: flex-start;
+        padding-left: 10px;
+    }
 
-  .header-actions {
-    min-width: auto;
-  }
+    .header-actions {
+        min-width: auto;
+    }
 
-  .header-actions .text-label {
-    display: none;
-  }
+    .header-actions .text-label {
+        display: none;
+    }
 
-  .primary-btn {
-    width: 40px;
-    padding: 0;
-    justify-content: center;
-  }
+    .primary-btn {
+        width: 40px;
+        padding: 0;
+    }
 
-  .page-area {
-    padding:
-      15px
-      15px
-      125px;
-  }
+    .page-area {
+        padding:
+            15px
+            15px
+            125px;
+    }
 
-  .paper {
-    width: 100%;
-    min-width: 100%;
-    height: calc(100vh - 115px);
+    .paper {
+        width: 100%;
+        min-width: 100%;
 
-    border-radius: 4px;
-  }
+        height:
+            calc(100vh - 115px);
 
-  .floating-toolbar {
-    bottom: 12px;
+        border-radius: 4px;
+    }
 
-    max-width:
-      calc(100vw - 18px);
+    .floating-toolbar {
+        bottom: 12px;
 
-    overflow-x: auto;
+        max-width:
+            calc(100vw - 18px);
 
-    border-radius: 17px;
-  }
+        overflow-x: auto;
 
-  .tool-btn {
-    flex: 0 0 44px;
-  }
+        border-radius: 17px;
+    }
 
-  .tool-divider {
-    flex: 0 0 1px;
-  }
+    .tool-btn {
+        flex: 0 0 44px;
+    }
 
-  .popover {
-    bottom: 87px;
-  }
+    .tool-divider {
+        flex: 0 0 1px;
+    }
+
+    .popover {
+        bottom: 87px;
+    }
+
+    .zoom-control {
+        left: 10px;
+        bottom: 82px;
+    }
 }
 
 
 /* =========================================================
-   매우 작은 화면
+   스마트폰
 ========================================================= */
 
 @media (max-width: 500px) {
 
-  .header-center {
-    display: none;
-  }
+    .header-center {
+        display: none;
+    }
 
-  .page-area {
-    padding:
-      7px
-      7px
-      115px;
-  }
+    .page-area {
+        padding:
+            7px
+            7px
+            115px;
+    }
 
-  .paper {
-    min-height: 900px;
-  }
+    .paper {
+        min-height: 900px;
+    }
 
-  .floating-toolbar {
-    gap: 2px;
-    padding: 6px;
-  }
+    .floating-toolbar {
+        gap: 2px;
+        padding: 6px;
+    }
 
-  .tool-btn {
-    width: 40px;
-    height: 40px;
-    flex-basis: 40px;
-  }
+    .tool-btn {
+        width: 40px;
+        height: 40px;
 
-  .popover {
-    width: 250px;
-  }
+        flex-basis: 40px;
+    }
+
+    .popover {
+        width: 250px;
+    }
 }
+
 </style>
 </head>
 
@@ -885,92 +1047,151 @@ input[type="range"] {
 
 <div class="app">
 
-  <!-- =====================================================
-       HEADER
-  ====================================================== -->
+<!-- =====================================================
+     HEADER
+====================================================== -->
 
-  <header class="header">
+<header class="header">
 
     <div class="brand">
 
-      <div class="logo">
-        ✎
-      </div>
+        <div class="logo">
 
-      <div class="brand-text">
+            <svg viewBox="0 0 24 24">
+                <path
+                    d="M12 20h9"/>
+                <path
+                    d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1
+                       1-4 13.5-13.5Z"/>
+                <path
+                    d="M15 5l3 3"/>
+            </svg>
 
-        <strong>Paper Note</strong>
+        </div>
 
-        <span>
-          Digital handwriting
-        </span>
+        <div class="brand-text">
 
-      </div>
+            <strong>
+                Paper Note
+            </strong>
+
+            <span>
+                Digital handwriting
+            </span>
+
+        </div>
 
     </div>
 
 
     <div class="header-center">
 
-      <div class="page-title">
-        내 필기 노트
-      </div>
+        <div class="page-title">
+            내 필기 노트
+        </div>
 
     </div>
 
 
     <div class="header-actions">
 
-      <button
-        class="icon-btn"
-        onclick="toggleDark()"
-        title="다크 모드">
-        ◐
-      </button>
+        <!-- 다크 모드 -->
 
-      <button
-        class="icon-btn"
-        onclick="shareNote()"
-        title="공유">
-        ↗
-      </button>
+        <button
+            class="icon-btn"
+            onclick="toggleDark()"
+            title="다크 모드">
 
-      <button
-        class="primary-btn"
-        onclick="saveNote()">
+            <svg viewBox="0 0 24 24">
 
-        <span>↓</span>
+                <path
+                    d="M21 12.8A8.5 8.5 0 1 1 11.2 3
+                       6.7 6.7 0 0 0 21 12.8Z"/>
 
-        <span class="text-label">
-          저장
-        </span>
+            </svg>
 
-      </button>
+        </button>
+
+
+        <!-- 공유 -->
+
+        <button
+            class="icon-btn"
+            onclick="shareNote()"
+            title="공유">
+
+            <svg viewBox="0 0 24 24">
+
+                <path
+                    d="M12 16V3"/>
+
+                <path
+                    d="M7 8l5-5 5 5"/>
+
+                <path
+                    d="M5 12v7a2 2 0 0 0 2 2h10
+                       a2 2 0 0 0 2-2v-7"/>
+
+            </svg>
+
+        </button>
+
+
+        <!-- 저장 -->
+
+        <button
+            class="primary-btn"
+            onclick="saveNote()">
+
+            <svg viewBox="0 0 24 24">
+
+                <path
+                    d="M5 20h14"/>
+
+                <path
+                    d="M12 4v11"/>
+
+                <path
+                    d="M7 10l5 5 5-5"/>
+
+            </svg>
+
+            <span class="text-label">
+                저장
+            </span>
+
+        </button>
 
     </div>
 
-  </header>
+</header>
 
 
-  <!-- =====================================================
-       WORKSPACE
-  ====================================================== -->
+<!-- =====================================================
+     WORKSPACE
+====================================================== -->
 
-  <main class="workspace">
+<main class="workspace">
+
 
     <div class="page-area">
 
-      <div
-        id="paper"
-        class="paper lines">
 
-        <canvas id="canvas"></canvas>
+        <div
+            id="paper"
+            class="paper lines">
 
-        <div class="page-number">
-          1
+
+            <canvas id="canvas">
+            </canvas>
+
+
+            <div class="page-number">
+                1
+            </div>
+
+
         </div>
-
-      </div>
 
     </div>
 
@@ -978,282 +1199,426 @@ input[type="range"] {
     <!-- 저장 상태 -->
 
     <div
-      id="saveIndicator"
-      class="save-indicator">
+        id="saveIndicator"
+        class="save-indicator">
 
-      자동 저장됨
+        자동 저장됨
 
     </div>
 
 
-    <!-- ===================================================
-         설정 팝업
-    ==================================================== -->
+    <!-- =================================================
+         펜 설정
+    ================================================== -->
 
     <div
-      id="popover"
-      class="popover">
+        id="popover"
+        class="popover">
 
-      <!-- 펜 굵기 -->
 
-      <div class="popover-title">
-        펜 굵기
-      </div>
-
-      <div class="range-row">
-
-        <input
-          id="sizeRange"
-          type="range"
-          min="1"
-          max="15"
-          value="4">
-
-        <div class="size-preview">
-          <div
-            id="sizeDot"
-            class="size-dot">
-          </div>
+        <div class="popover-title">
+            펜 굵기
         </div>
 
-      </div>
+
+        <div class="range-row">
+
+            <input
+                id="sizeRange"
+                type="range"
+                min="1"
+                max="15"
+                value="4">
 
 
-      <div
-        style="
-          height:1px;
-          background:var(--line);
-          margin:18px 0;
-        ">
-      </div>
+            <div class="size-preview">
+
+                <div
+                    id="sizeDot"
+                    class="size-dot">
+                </div>
+
+            </div>
+
+        </div>
 
 
-      <!-- 색상 -->
-
-      <div class="popover-title">
-        펜 색상
-      </div>
-
-      <div class="colors">
-
-        <button
-          class="color-btn active"
-          style="background:#17181c"
-          data-color="#17181c">
-        </button>
-
-        <button
-          class="color-btn"
-          style="background:#ef4444"
-          data-color="#ef4444">
-        </button>
-
-        <button
-          class="color-btn"
-          style="background:#f97316"
-          data-color="#f97316">
-        </button>
-
-        <button
-          class="color-btn"
-          style="background:#eab308"
-          data-color="#eab308">
-        </button>
-
-        <button
-          class="color-btn"
-          style="background:#22c55e"
-          data-color="#22c55e">
-        </button>
-
-        <button
-          class="color-btn"
-          style="background:#3b82f6"
-          data-color="#3b82f6">
-        </button>
-
-        <button
-          class="color-btn"
-          style="background:#8b5cf6"
-          data-color="#8b5cf6">
-        </button>
-
-        <button
-          class="color-btn"
-          style="background:#ec4899"
-          data-color="#ec4899">
-        </button>
-
-        <button
-          class="color-btn"
-          style="background:#06b6d4"
-          data-color="#06b6d4">
-        </button>
-
-        <button
-          class="color-btn"
-          style="background:#795548"
-          data-color="#795548">
-        </button>
-
-        <button
-          class="color-btn"
-          style="background:#64748b"
-          data-color="#64748b">
-        </button>
-
-        <button
-          class="color-btn"
-          style="background:#ffffff; border:1px solid #ddd"
-          data-color="#ffffff">
-        </button>
-
-        <button
-          class="color-btn"
-          style="background:#000000"
-          data-color="#000000">
-        </button>
-
-        <button
-          class="color-btn"
-          style="background:#14b8a6"
-          data-color="#14b8a6">
-        </button>
-
-      </div>
+        <div
+            style="
+                height:1px;
+                background:var(--line);
+                margin:18px 0;
+            ">
+        </div>
 
 
-      <div
-        style="
-          height:1px;
-          background:var(--line);
-          margin:18px 0;
-        ">
-      </div>
+        <div class="popover-title">
+            펜 색상
+        </div>
 
 
-      <!-- 용지 -->
+        <div class="colors">
 
-      <div class="popover-title">
-        용지 스타일
-      </div>
+            <button
+                class="color-btn active"
+                style="background:#17181c"
+                data-color="#17181c">
+            </button>
 
-      <div class="paper-menu">
+            <button
+                class="color-btn"
+                style="background:#ef4444"
+                data-color="#ef4444">
+            </button>
 
-        <button
-          class="paper-option active"
-          onclick="setPaper('lines')">
-          줄
-        </button>
+            <button
+                class="color-btn"
+                style="background:#f97316"
+                data-color="#f97316">
+            </button>
 
-        <button
-          class="paper-option"
-          onclick="setPaper('grid')">
-          격자
-        </button>
+            <button
+                class="color-btn"
+                style="background:#eab308"
+                data-color="#eab308">
+            </button>
 
-        <button
-          class="paper-option"
-          onclick="setPaper('plain')">
-          무지
-        </button>
+            <button
+                class="color-btn"
+                style="background:#22c55e"
+                data-color="#22c55e">
+            </button>
 
-      </div>
+            <button
+                class="color-btn"
+                style="background:#3b82f6"
+                data-color="#3b82f6">
+            </button>
+
+            <button
+                class="color-btn"
+                style="background:#8b5cf6"
+                data-color="#8b5cf6">
+            </button>
+
+            <button
+                class="color-btn"
+                style="background:#ec4899"
+                data-color="#ec4899">
+            </button>
+
+            <button
+                class="color-btn"
+                style="background:#06b6d4"
+                data-color="#06b6d4">
+            </button>
+
+            <button
+                class="color-btn"
+                style="background:#795548"
+                data-color="#795548">
+            </button>
+
+            <button
+                class="color-btn"
+                style="background:#64748b"
+                data-color="#64748b">
+            </button>
+
+            <button
+                class="color-btn"
+                style="
+                    background:#ffffff;
+                    border:1px solid #ddd
+                "
+                data-color="#ffffff">
+            </button>
+
+            <button
+                class="color-btn"
+                style="background:#000000"
+                data-color="#000000">
+            </button>
+
+            <button
+                class="color-btn"
+                style="background:#14b8a6"
+                data-color="#14b8a6">
+            </button>
+
+        </div>
+
+
+        <div
+            style="
+                height:1px;
+                background:var(--line);
+                margin:18px 0;
+            ">
+        </div>
+
+
+        <div class="popover-title">
+            용지 스타일
+        </div>
+
+
+        <div class="paper-menu">
+
+            <button
+                class="paper-option active"
+                data-paper="lines"
+                onclick="setPaper('lines')">
+
+                줄
+
+            </button>
+
+            <button
+                class="paper-option"
+                data-paper="grid"
+                onclick="setPaper('grid')">
+
+                격자
+
+            </button>
+
+            <button
+                class="paper-option"
+                data-paper="plain"
+                onclick="setPaper('plain')">
+
+                무지
+
+            </button>
+
+        </div>
 
     </div>
 
 
-    <!-- ===================================================
-         플로팅 툴바
-    ==================================================== -->
+    <!-- =================================================
+         줌
+    ================================================== -->
+
+    <div class="zoom-control">
+
+        <button
+            class="zoom-btn"
+            onclick="zoomOut()"
+            title="축소">
+
+            <svg viewBox="0 0 24 24">
+
+                <path
+                    d="M5 12h14"/>
+
+            </svg>
+
+        </button>
+
+
+        <div
+            id="zoomValue"
+            class="zoom-value">
+
+            100%
+
+        </div>
+
+
+        <button
+            class="zoom-btn"
+            onclick="zoomIn()"
+            title="확대">
+
+            <svg viewBox="0 0 24 24">
+
+                <path
+                    d="M12 5v14"/>
+
+                <path
+                    d="M5 12h14"/>
+
+            </svg>
+
+        </button>
+
+
+        <button
+            class="zoom-btn"
+            onclick="resetZoom()"
+            title="원래 크기">
+
+            <svg viewBox="0 0 24 24">
+
+                <path
+                    d="M4 12a8 8 0 1 0 2.3-5.6"/>
+
+                <path
+                    d="M4 5v5h5"/>
+
+            </svg>
+
+        </button>
+
+    </div>
+
+
+    <!-- =================================================
+         하단 툴바
+    ================================================== -->
 
     <div class="floating-toolbar">
 
-      <!-- 펜 -->
 
-      <button
-        id="penTool"
-        class="tool-btn active"
-        onclick="setTool('pen')"
-        title="펜">
+        <!-- 펜 -->
 
-        ✎
+        <button
+            id="penTool"
+            class="tool-btn active"
+            onclick="setTool('pen')"
+            title="펜">
 
-      </button>
+            <svg viewBox="0 0 24 24">
+
+                <path
+                    d="M12 20h9"/>
+
+                <path
+                    d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1
+                       1-4 13.5-13.5Z"/>
+
+                <path
+                    d="M15 5l3 3"/>
+
+            </svg>
+
+        </button>
 
 
-      <!-- 색상 / 굵기 -->
+        <!-- 색상 / 펜 설정 -->
 
-      <button
-        id="settingsTool"
-        class="tool-btn"
-        onclick="togglePopover()"
-        title="펜 설정">
+        <button
+            id="settingsTool"
+            class="tool-btn"
+            onclick="togglePopover()"
+            title="펜 설정">
 
-        <div
-          id="currentColor"
-          class="current-color"
-          style="background:#17181c">
+            <div
+                id="currentColor"
+                class="current-color"
+                style="background:#17181c">
+            </div>
+
+        </button>
+
+
+        <div class="tool-divider">
         </div>
 
-      </button>
+
+        <!-- 지우개 -->
+
+        <button
+            id="eraserTool"
+            class="tool-btn"
+            onclick="setTool('eraser')"
+            title="지우개">
+
+            <svg viewBox="0 0 24 24">
+
+                <path
+                    d="M7 21h10"/>
+
+                <path
+                    d="M5.5 15.5L15 6a2.1 2.1 0 0 1 3 0l1.5 1.5
+                       a2.1 2.1 0 0 1 0 3L10 20H6
+                       a2 2 0 0 1-1.4-.6l-.1-.1
+                       a2 2 0 0 1 0-2.8Z"/>
+
+                <path
+                    d="M13 8l4 4"/>
+
+            </svg>
+
+        </button>
 
 
-      <div class="tool-divider"></div>
+        <!-- 실행 취소 -->
+
+        <button
+            id="undoTool"
+            class="tool-btn"
+            onclick="undo()"
+            title="실행 취소">
+
+            <svg viewBox="0 0 24 24">
+
+                <path
+                    d="M9 14L4 9l5-5"/>
+
+                <path
+                    d="M4 9h10a6 6 0 0 1 6 6v1"/>
+
+            </svg>
+
+        </button>
 
 
-      <!-- 지우개 -->
+        <!-- 다시 실행 -->
 
-      <button
-        id="eraserTool"
-        class="tool-btn"
-        onclick="setTool('eraser')"
-        title="지우개">
+        <button
+            id="redoTool"
+            class="tool-btn"
+            onclick="redo()"
+            title="다시 실행">
 
-        ⌫
+            <svg viewBox="0 0 24 24">
 
-      </button>
+                <path
+                    d="M15 14l5-5-5-5"/>
 
+                <path
+                    d="M20 9H10a6 6 0 0 0-6 6v1"/>
 
-      <!-- 실행 취소 -->
+            </svg>
 
-      <button
-        id="undoTool"
-        class="tool-btn"
-        onclick="undo()"
-        title="실행 취소">
-
-        ↶
-
-      </button>
+        </button>
 
 
-      <!-- 다시 실행 -->
-
-      <button
-        id="redoTool"
-        class="tool-btn"
-        onclick="redo()"
-        title="다시 실행">
-
-        ↷
-
-      </button>
+        <div class="tool-divider">
+        </div>
 
 
-      <div class="tool-divider"></div>
+        <!-- 전체 삭제 -->
 
+        <button
+            class="tool-btn"
+            onclick="clearCanvas()"
+            title="전체 지우기">
 
-      <!-- 전체 삭제 -->
+            <svg viewBox="0 0 24 24">
 
-      <button
-        class="tool-btn"
-        onclick="clearCanvas()"
-        title="전체 지우기">
+                <path
+                    d="M4 7h16"/>
 
-        ⌫
+                <path
+                    d="M10 11v6"/>
 
-      </button>
+                <path
+                    d="M14 11v6"/>
+
+                <path
+                    d="M6 7l1 13h10l1-13"/>
+
+                <path
+                    d="M9 7V4h6v3"/>
+
+            </svg>
+
+        </button>
+
 
     </div>
 
@@ -1261,28 +1626,30 @@ input[type="range"] {
     <!-- 토스트 -->
 
     <div
-      id="toast"
-      class="toast">
+        id="toast"
+        class="toast">
     </div>
 
-  </main>
+
+</main>
 
 </div>
 
 
 <script>
+
 /* =========================================================
-   상태
+   기본 상태
 ========================================================= */
 
 const canvas =
-  document.getElementById("canvas");
+    document.getElementById("canvas");
 
 const ctx =
-  canvas.getContext("2d");
+    canvas.getContext("2d");
 
 const paper =
-  document.getElementById("paper");
+    document.getElementById("paper");
 
 let drawing = false;
 
@@ -1302,141 +1669,453 @@ let saveTimer;
 
 
 /* =========================================================
+   줌
+========================================================= */
+
+let zoom = 1;
+
+const MIN_ZOOM = 0.5;
+const MAX_ZOOM = 4;
+
+let panX = 0;
+let panY = 0;
+
+
+/* =========================================================
+   터치
+========================================================= */
+
+let touches = new Map();
+
+let pinchStartDistance = 0;
+let pinchStartZoom = 1;
+
+let pinchStartPanX = 0;
+let pinchStartPanY = 0;
+
+let pinchCenterX = 0;
+let pinchCenterY = 0;
+
+
+/* =========================================================
    캔버스 크기
 ========================================================= */
 
 function resizeCanvas() {
 
-  const rect =
-    paper.getBoundingClientRect();
+    const rect =
+        paper.getBoundingClientRect();
 
-  const dpr =
-    window.devicePixelRatio || 1;
+    const dpr =
+        window.devicePixelRatio || 1;
 
-  /*
-   * 현재 이미지 저장
-   */
-  let oldImage = null;
+    let oldImage = null;
 
-  if (canvas.width > 0 && canvas.height > 0) {
-    oldImage =
-      canvas.toDataURL("image/png");
-  }
+    if (
+        canvas.width > 0 &&
+        canvas.height > 0
+    ) {
+        oldImage =
+            canvas.toDataURL("image/png");
+    }
 
-  canvas.width =
-    rect.width * dpr;
+    canvas.width =
+        rect.width * dpr;
 
-  canvas.height =
-    rect.height * dpr;
+    canvas.height =
+        rect.height * dpr;
 
-  canvas.style.width =
-    rect.width + "px";
+    canvas.style.width =
+        rect.width + "px";
 
-  canvas.style.height =
-    rect.height + "px";
+    canvas.style.height =
+        rect.height + "px";
 
-  ctx.setTransform(
-    dpr,
-    0,
-    0,
-    dpr,
-    0,
-    0
-  );
-
-  /*
-   * 배경
-   */
-  ctx.globalCompositeOperation =
-    "source-over";
-
-  /*
-   * 기존 이미지 복구
-   */
-  if (oldImage) {
-
-    const img =
-      new Image();
-
-    img.onload = () => {
-
-      ctx.drawImage(
-        img,
+    ctx.setTransform(
+        dpr,
         0,
         0,
-        rect.width,
-        rect.height
-      );
-    };
+        dpr,
+        0,
+        0
+    );
 
-    img.src = oldImage;
+    if (oldImage) {
 
-  } else {
+        const img =
+            new Image();
 
-    /*
-     * 초기에는 투명 캔버스.
-     * 저장할 때 흰색 배경을 넣음.
-     */
-  }
+        img.onload = () => {
+
+            ctx.drawImage(
+                img,
+                0,
+                0,
+                rect.width,
+                rect.height
+            );
+
+        };
+
+        img.src = oldImage;
+    }
 }
-
-
-/* =========================================================
-   초기화
-========================================================= */
 
 resizeCanvas();
 
 window.addEventListener(
-  "resize",
-  resizeCanvas
+    "resize",
+    resizeCanvas
 );
 
 
 /* =========================================================
-   좌표
+   줌 적용
 ========================================================= */
 
-function getPoint(e) {
+function applyZoom() {
 
-  const rect =
-    canvas.getBoundingClientRect();
+    paper.style.transform =
+        `translate(${panX}px, ${panY}px)
+         scale(${zoom})`;
 
-  return {
-    x: e.clientX - rect.left,
-    y: e.clientY - rect.top
-  };
+    updateZoomText();
+}
+
+
+function updateZoomText() {
+
+    document
+        .getElementById("zoomValue")
+        .textContent =
+        Math.round(zoom * 100) + "%";
+}
+
+
+function zoomIn() {
+
+    setZoom(
+        zoom + 0.25
+    );
+}
+
+
+function zoomOut() {
+
+    setZoom(
+        zoom - 0.25
+    );
+}
+
+
+function resetZoom() {
+
+    zoom = 1;
+
+    panX = 0;
+    panY = 0;
+
+    applyZoom();
+
+    showToast("100%");
+}
+
+
+function setZoom(value) {
+
+    zoom =
+        Math.max(
+            MIN_ZOOM,
+            Math.min(
+                MAX_ZOOM,
+                value
+            )
+        );
+
+    applyZoom();
 }
 
 
 /* =========================================================
-   도구
+   터치 계산
 ========================================================= */
 
-function setTool(value) {
+function getDistance(a, b) {
 
-  tool = value;
+    const dx =
+        a.x - b.x;
 
-  document
-    .getElementById("penTool")
-    .classList.toggle(
-      "active",
-      value === "pen"
+    const dy =
+        a.y - b.y;
+
+    return Math.sqrt(
+        dx * dx +
+        dy * dy
+    );
+}
+
+
+function getCenter(a, b) {
+
+    return {
+        x: (a.x + b.x) / 2,
+        y: (a.y + b.y) / 2
+    };
+}
+
+
+function getScreenPoint(e) {
+
+    return {
+        x: e.clientX,
+        y: e.clientY
+    };
+}
+
+
+/* =========================================================
+   캔버스 좌표
+========================================================= */
+
+function getPoint(e) {
+
+    const rect =
+        canvas.getBoundingClientRect();
+
+    return {
+        x:
+            (e.clientX - rect.left) / zoom,
+
+        y:
+            (e.clientY - rect.top) / zoom
+    };
+}
+
+
+/* =========================================================
+   POINTER DOWN
+========================================================= */
+
+canvas.addEventListener(
+    "pointerdown",
+    handlePointerDown
+);
+
+
+function handlePointerDown(e) {
+
+    e.preventDefault();
+
+    touches.set(
+        e.pointerId,
+        getScreenPoint(e)
     );
 
-  document
-    .getElementById("eraserTool")
-    .classList.toggle(
-      "active",
-      value === "eraser"
+    try {
+        canvas.setPointerCapture(
+            e.pointerId
+        );
+    } catch (error) {}
+
+
+    /* 두 손가락 */
+
+    if (touches.size === 2) {
+
+        drawing = false;
+
+        const points =
+            [...touches.values()];
+
+        const a = points[0];
+        const b = points[1];
+
+        pinchStartDistance =
+            getDistance(a, b);
+
+        pinchStartZoom =
+            zoom;
+
+        const center =
+            getCenter(a, b);
+
+        pinchCenterX =
+            center.x;
+
+        pinchCenterY =
+            center.y;
+
+        pinchStartPanX =
+            panX;
+
+        pinchStartPanY =
+            panY;
+
+        return;
+    }
+
+
+    /* 손가락은 필기하지 않음 */
+
+    if (e.pointerType === "touch") {
+        return;
+    }
+
+
+    /* S펜 / 마우스 */
+
+    startDrawing(e);
+}
+
+
+/* =========================================================
+   POINTER MOVE
+========================================================= */
+
+canvas.addEventListener(
+    "pointermove",
+    handlePointerMove
+);
+
+
+function handlePointerMove(e) {
+
+    e.preventDefault();
+
+    if (
+        touches.has(e.pointerId)
+    ) {
+
+        touches.set(
+            e.pointerId,
+            getScreenPoint(e)
+        );
+    }
+
+
+    /* 두 손가락 줌 + 이동 */
+
+    if (touches.size >= 2) {
+
+        drawing = false;
+
+        const points =
+            [...touches.values()];
+
+        const a = points[0];
+        const b = points[1];
+
+        const distance =
+            getDistance(a, b);
+
+        if (pinchStartDistance <= 0) {
+            return;
+        }
+
+        let newZoom =
+            pinchStartZoom *
+            (
+                distance /
+                pinchStartDistance
+            );
+
+        newZoom =
+            Math.max(
+                MIN_ZOOM,
+                Math.min(
+                    MAX_ZOOM,
+                    newZoom
+                )
+            );
+
+        const center =
+            getCenter(a, b);
+
+        const moveX =
+            center.x -
+            pinchCenterX;
+
+        const moveY =
+            center.y -
+            pinchCenterY;
+
+        const zoomRatio =
+            newZoom /
+            pinchStartZoom;
+
+        panX =
+            pinchStartPanX +
+            moveX -
+            (
+                pinchCenterX -
+                window.innerWidth / 2
+            ) *
+            (
+                zoomRatio - 1
+            );
+
+        panY =
+            pinchStartPanY +
+            moveY -
+            (
+                pinchCenterY -
+                window.innerHeight / 2
+            ) *
+            (
+                zoomRatio - 1
+            );
+
+        zoom = newZoom;
+
+        applyZoom();
+
+        return;
+    }
+
+
+    /* 일반 필기 */
+
+    if (
+        drawing &&
+        e.pointerType !== "touch"
+    ) {
+
+        draw(e);
+    }
+}
+
+
+/* =========================================================
+   POINTER UP
+========================================================= */
+
+canvas.addEventListener(
+    "pointerup",
+    handlePointerUp
+);
+
+canvas.addEventListener(
+    "pointercancel",
+    handlePointerUp
+);
+
+
+function handlePointerUp(e) {
+
+    touches.delete(
+        e.pointerId
     );
 
-  canvas.style.cursor =
-    value === "pen"
-      ? "crosshair"
-      : "cell";
+    if (touches.size === 0) {
 
-  closePopover();
+        if (drawing) {
+            stopDrawing();
+        }
+
+        drawing = false;
+
+        pinchStartDistance = 0;
+    }
 }
 
 
@@ -1444,34 +2123,27 @@ function setTool(value) {
    필기 시작
 ========================================================= */
 
-canvas.addEventListener(
-  "pointerdown",
-  startDrawing
-);
-
 function startDrawing(e) {
 
-  e.preventDefault();
+    if (e.pointerType === "touch") {
+        return;
+    }
 
-  drawing = true;
+    drawing = true;
 
-  canvas.setPointerCapture(
-    e.pointerId
-  );
+    const p =
+        getPoint(e);
 
-  const p =
-    getPoint(e);
+    lastX = p.x;
+    lastY = p.y;
 
-  lastX = p.x;
-  lastY = p.y;
+    saveState();
 
-  saveState();
-
-  drawPoint(
-    p.x,
-    p.y,
-    e.pressure
-  );
+    drawPoint(
+        p.x,
+        p.y,
+        e.pressure
+    );
 }
 
 
@@ -1479,82 +2151,78 @@ function startDrawing(e) {
    필기
 ========================================================= */
 
-canvas.addEventListener(
-  "pointermove",
-  draw
-);
-
 function draw(e) {
 
-  if (!drawing) return;
+    if (!drawing) {
+        return;
+    }
 
-  e.preventDefault();
+    if (e.pointerType === "touch") {
+        return;
+    }
 
-  const p =
-    getPoint(e);
+    const p =
+        getPoint(e);
 
-  let pressure =
-    e.pressure > 0
-      ? e.pressure
-      : .5;
+    const pressure =
+        e.pressure > 0
+            ? e.pressure
+            : 0.5;
 
-  ctx.lineCap =
-    "round";
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
 
-  ctx.lineJoin =
-    "round";
+    if (tool === "pen") {
 
-  if (tool === "pen") {
+        ctx.globalCompositeOperation =
+            "source-over";
+
+        ctx.strokeStyle =
+            color;
+
+        ctx.lineWidth =
+            Math.max(
+                0.8,
+                size *
+                (
+                    0.55 +
+                    pressure
+                )
+            );
+
+    } else {
+
+        ctx.globalCompositeOperation =
+            "destination-out";
+
+        ctx.lineWidth =
+            Math.max(
+                15,
+                size * 4
+            );
+    }
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        lastX,
+        lastY
+    );
+
+    ctx.lineTo(
+        p.x,
+        p.y
+    );
+
+    ctx.stroke();
+
+    lastX = p.x;
+    lastY = p.y;
 
     ctx.globalCompositeOperation =
-      "source-over";
+        "source-over";
 
-    ctx.strokeStyle =
-      color;
-
-    /*
-     * 필압 적용
-     */
-    ctx.lineWidth =
-      Math.max(
-        .8,
-        size *
-        (.55 + pressure)
-      );
-
-  } else {
-
-    ctx.globalCompositeOperation =
-      "destination-out";
-
-    ctx.lineWidth =
-      Math.max(
-        15,
-        size * 4
-      );
-  }
-
-  ctx.beginPath();
-
-  ctx.moveTo(
-    lastX,
-    lastY
-  );
-
-  ctx.lineTo(
-    p.x,
-    p.y
-  );
-
-  ctx.stroke();
-
-  lastX = p.x;
-  lastY = p.y;
-
-  ctx.globalCompositeOperation =
-    "source-over";
-
-  scheduleSave();
+    scheduleSave();
 }
 
 
@@ -1563,88 +2231,83 @@ function draw(e) {
 ========================================================= */
 
 function drawPoint(
-  x,
-  y,
-  pressure
+    x,
+    y,
+    pressure
 ) {
 
-  ctx.beginPath();
+    ctx.beginPath();
 
-  if (tool === "eraser") {
+    if (tool === "eraser") {
+
+        ctx.globalCompositeOperation =
+            "destination-out";
+
+        ctx.arc(
+            x,
+            y,
+            Math.max(
+                8,
+                size * 2
+            ),
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+
+    } else {
+
+        ctx.globalCompositeOperation =
+            "source-over";
+
+        ctx.fillStyle =
+            color;
+
+        const p =
+            pressure > 0
+                ? pressure
+                : 0.5;
+
+        const radius =
+            Math.max(
+                0.5,
+                size *
+                (
+                    0.55 +
+                    p
+                ) / 2
+            );
+
+        ctx.arc(
+            x,
+            y,
+            radius,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+    }
 
     ctx.globalCompositeOperation =
-      "destination-out";
-
-    ctx.arc(
-      x,
-      y,
-      Math.max(8, size * 2),
-      0,
-      Math.PI * 2
-    );
-
-    ctx.fill();
-
-  } else {
-
-    ctx.globalCompositeOperation =
-      "source-over";
-
-    ctx.fillStyle =
-      color;
-
-    const p =
-      pressure > 0
-        ? pressure
-        : .5;
-
-    const radius =
-      Math.max(
-        .5,
-        size * (.55 + p) / 2
-      );
-
-    ctx.arc(
-      x,
-      y,
-      radius,
-      0,
-      Math.PI * 2
-    );
-
-    ctx.fill();
-  }
-
-  ctx.globalCompositeOperation =
-    "source-over";
+        "source-over";
 }
 
 
 /* =========================================================
-   종료
+   필기 종료
 ========================================================= */
-
-canvas.addEventListener(
-  "pointerup",
-  stopDrawing
-);
-
-canvas.addEventListener(
-  "pointercancel",
-  stopDrawing
-);
 
 function stopDrawing() {
 
-  if (!drawing) return;
+    drawing = false;
 
-  drawing = false;
+    redoStack = [];
 
-  redoStack = [];
+    updateHistoryButtons();
 
-  updateHistoryButtons();
-
-  scheduleSave();
+    scheduleSave();
 }
 
 
@@ -1654,17 +2317,17 @@ function stopDrawing() {
 
 function saveState() {
 
-  undoStack.push(
-    canvas.toDataURL("image/png")
-  );
+    undoStack.push(
+        canvas.toDataURL("image/png")
+    );
 
-  if (undoStack.length > 40) {
-    undoStack.shift();
-  }
+    if (undoStack.length > 40) {
+        undoStack.shift();
+    }
 
-  redoStack = [];
+    redoStack = [];
 
-  updateHistoryButtons();
+    updateHistoryButtons();
 }
 
 
@@ -1674,20 +2337,22 @@ function saveState() {
 
 function undo() {
 
-  if (!undoStack.length) return;
+    if (undoStack.length === 0) {
+        return;
+    }
 
-  redoStack.push(
-    canvas.toDataURL("image/png")
-  );
+    redoStack.push(
+        canvas.toDataURL("image/png")
+    );
 
-  const state =
-    undoStack.pop();
+    const state =
+        undoStack.pop();
 
-  restoreImage(state);
+    restoreImage(state);
 
-  updateHistoryButtons();
+    updateHistoryButtons();
 
-  scheduleSave();
+    scheduleSave();
 }
 
 
@@ -1697,20 +2362,22 @@ function undo() {
 
 function redo() {
 
-  if (!redoStack.length) return;
+    if (redoStack.length === 0) {
+        return;
+    }
 
-  undoStack.push(
-    canvas.toDataURL("image/png")
-  );
+    undoStack.push(
+        canvas.toDataURL("image/png")
+    );
 
-  const state =
-    redoStack.pop();
+    const state =
+        redoStack.pop();
 
-  restoreImage(state);
+    restoreImage(state);
 
-  updateHistoryButtons();
+    updateHistoryButtons();
 
-  scheduleSave();
+    scheduleSave();
 }
 
 
@@ -1720,31 +2387,31 @@ function redo() {
 
 function restoreImage(src) {
 
-  const img =
-    new Image();
+    const img =
+        new Image();
 
-  img.onload = () => {
+    img.onload = () => {
 
-    const rect =
-      paper.getBoundingClientRect();
+        const rect =
+            canvas.getBoundingClientRect();
 
-    ctx.clearRect(
-      0,
-      0,
-      rect.width,
-      rect.height
-    );
+        ctx.clearRect(
+            0,
+            0,
+            rect.width,
+            rect.height
+        );
 
-    ctx.drawImage(
-      img,
-      0,
-      0,
-      rect.width,
-      rect.height
-    );
-  };
+        ctx.drawImage(
+            img,
+            0,
+            0,
+            rect.width,
+            rect.height
+        );
+    };
 
-  img.src = src;
+    img.src = src;
 }
 
 
@@ -1754,15 +2421,15 @@ function restoreImage(src) {
 
 function updateHistoryButtons() {
 
-  document
-    .getElementById("undoTool")
-    .disabled =
-      undoStack.length === 0;
+    document
+        .getElementById("undoTool")
+        .disabled =
+        undoStack.length === 0;
 
-  document
-    .getElementById("redoTool")
-    .disabled =
-      redoStack.length === 0;
+    document
+        .getElementById("redoTool")
+        .disabled =
+        redoStack.length === 0;
 }
 
 
@@ -1772,33 +2439,35 @@ function updateHistoryButtons() {
 
 function clearCanvas() {
 
-  if (
-    !confirm(
-      "이 페이지의 필기를 모두 지울까요?"
-    )
-  ) return;
+    if (
+        !confirm(
+            "이 페이지의 필기를 모두 지울까요?"
+        )
+    ) {
+        return;
+    }
 
-  saveState();
+    saveState();
 
-  const rect =
-    paper.getBoundingClientRect();
+    const rect =
+        canvas.getBoundingClientRect();
 
-  ctx.clearRect(
-    0,
-    0,
-    rect.width,
-    rect.height
-  );
+    ctx.clearRect(
+        0,
+        0,
+        rect.width,
+        rect.height
+    );
 
-  redoStack = [];
+    redoStack = [];
 
-  updateHistoryButtons();
+    updateHistoryButtons();
 
-  scheduleSave();
+    scheduleSave();
 
-  showToast(
-    "페이지를 지웠습니다"
-  );
+    showToast(
+        "페이지를 지웠습니다"
+    );
 }
 
 
@@ -1808,93 +2477,78 @@ function clearCanvas() {
 
 function scheduleSave() {
 
-  const indicator =
-    document.getElementById(
-      "saveIndicator"
-    );
+    const indicator =
+        document.getElementById(
+            "saveIndicator"
+        );
 
-  indicator.textContent =
-    "저장 중...";
+    indicator.textContent =
+        "저장 중...";
 
-  clearTimeout(saveTimer);
+    clearTimeout(saveTimer);
 
-  saveTimer =
-    setTimeout(() => {
+    saveTimer =
+        setTimeout(() => {
 
-      localStorage.setItem(
-        "paperNote",
-        canvas.toDataURL(
-          "image/png"
-        )
-      );
+            localStorage.setItem(
+                "paperNote",
+                canvas.toDataURL("image/png")
+            );
 
-      localStorage.setItem(
-        "paperNoteColor",
-        color
-      );
+            localStorage.setItem(
+                "paperNoteColor",
+                color
+            );
 
-      localStorage.setItem(
-        "paperNoteSize",
-        size
-      );
+            localStorage.setItem(
+                "paperNoteSize",
+                size
+            );
 
-      indicator.textContent =
-        "자동 저장됨";
+            indicator.textContent =
+                "자동 저장됨";
 
-    }, 450);
+        }, 450);
 }
 
 
 /* =========================================================
-   저장 이미지 생성
+   내보내기 캔버스
 ========================================================= */
 
 function createExportCanvas() {
 
-  const rect =
-    paper.getBoundingClientRect();
+    const out =
+        document.createElement(
+            "canvas"
+        );
 
-  const scale = 2;
+    out.width =
+        canvas.width;
 
-  const out =
-    document.createElement(
-      "canvas"
+    out.height =
+        canvas.height;
+
+    const outCtx =
+        out.getContext("2d");
+
+    outCtx.fillStyle =
+        "#ffffff";
+
+    outCtx.fillRect(
+        0,
+        0,
+        out.width,
+        out.height
     );
 
-  out.width =
-    rect.width * scale;
+    outCtx.drawImage(
+        canvas,
+        0,
+        0
+    );
 
-  out.height =
-    rect.height * scale;
-
-  const outCtx =
-    out.getContext("2d");
-
-  /*
-   * 흰색 종이
-   */
-  outCtx.fillStyle =
-    "#ffffff";
-
-  outCtx.fillRect(
-    0,
-    0,
-    out.width,
-    out.height
-  );
-
-  /*
-   * 필기
-   */
-  outCtx.drawImage(
-    canvas,
-    0,
-    0,
-    out.width,
-    out.height
-  );
-
-  return out;
+    return out;
 }
 
 
@@ -1904,43 +2558,40 @@ function createExportCanvas() {
 
 function saveNote() {
 
-  const out =
-    createExportCanvas();
+    const out =
+        createExportCanvas();
 
-  const link =
-    document.createElement(
-      "a"
+    const link =
+        document.createElement(
+            "a"
+        );
+
+    const date =
+        new Date();
+
+    link.download =
+        "PaperNote_" +
+        date.getFullYear() +
+        "-" +
+        String(
+            date.getMonth() + 1
+        ).padStart(2, "0") +
+        "-" +
+        String(
+            date.getDate()
+        ).padStart(2, "0") +
+        ".png";
+
+    link.href =
+        out.toDataURL(
+            "image/png"
+        );
+
+    link.click();
+
+    showToast(
+        "필기를 저장했습니다"
     );
-
-  const date =
-    new Date();
-
-  const name =
-    "PaperNote_" +
-    date.getFullYear() +
-    "-" +
-    String(
-      date.getMonth() + 1
-    ).padStart(2, "0") +
-    "-" +
-    String(
-      date.getDate()
-    ).padStart(2, "0") +
-    ".png";
-
-  link.download =
-    name;
-
-  link.href =
-    out.toDataURL(
-      "image/png"
-    );
-
-  link.click();
-
-  showToast(
-    "필기를 PNG로 저장했습니다"
-  );
 }
 
 
@@ -1950,92 +2601,127 @@ function saveNote() {
 
 async function shareNote() {
 
-  const out =
-    createExportCanvas();
+    const out =
+        createExportCanvas();
 
-  out.toBlob(
-    async blob => {
+    out.toBlob(
+        async blob => {
 
-      if (!blob) return;
+            if (!blob) {
+                return;
+            }
 
-      const file =
-        new File(
-          [blob],
-          "PaperNote.png",
-          {
-            type: "image/png"
-          }
+            const file =
+                new File(
+                    [blob],
+                    "PaperNote.png",
+                    {
+                        type:
+                            "image/png"
+                    }
+                );
+
+            if (
+                navigator.share &&
+                (
+                    !navigator.canShare ||
+                    navigator.canShare({
+                        files: [file]
+                    })
+                )
+            ) {
+
+                try {
+
+                    await navigator.share({
+
+                        title:
+                            "Paper Note",
+
+                        text:
+                            "필기 메모",
+
+                        files:
+                            [file]
+
+                    });
+
+                    showToast(
+                        "공유했습니다"
+                    );
+
+                    return;
+
+                } catch (error) {
+
+                    if (
+                        error.name ===
+                        "AbortError"
+                    ) {
+                        return;
+                    }
+                }
+            }
+
+            const link =
+                document.createElement(
+                    "a"
+                );
+
+            link.download =
+                "PaperNote.png";
+
+            link.href =
+                URL.createObjectURL(
+                    blob
+                );
+
+            link.click();
+
+            setTimeout(() => {
+                URL.revokeObjectURL(
+                    link.href
+                );
+            }, 1000);
+
+            showToast(
+                "PNG로 저장했습니다"
+            );
+
+        },
+        "image/png"
+    );
+}
+
+
+/* =========================================================
+   도구
+========================================================= */
+
+function setTool(value) {
+
+    tool = value;
+
+    document
+        .getElementById("penTool")
+        .classList.toggle(
+            "active",
+            value === "pen"
         );
 
-      /*
-       * 모바일 공유
-       */
-      if (
-        navigator.share &&
-        (
-          !navigator.canShare ||
-          navigator.canShare({
-            files: [file]
-          })
-        )
-      ) {
-
-        try {
-
-          await navigator.share({
-            title:
-              "Paper Note",
-            text:
-              "필기 메모",
-            files: [file]
-          });
-
-          showToast(
-            "공유했습니다"
-          );
-
-          return;
-
-        } catch (error) {
-
-          if (
-            error.name ===
-            "AbortError"
-          ) {
-            return;
-          }
-        }
-      }
-
-      /*
-       * 공유를 지원하지 않는 브라우저
-       */
-      const link =
-        document.createElement(
-          "a"
+    document
+        .getElementById("eraserTool")
+        .classList.toggle(
+            "active",
+            value === "eraser"
         );
 
-      link.download =
-        "PaperNote.png";
+    canvas.style.cursor =
+        value === "pen"
+            ? "crosshair"
+            : "cell";
 
-      link.href =
-        URL.createObjectURL(
-          blob
-        );
-
-      link.click();
-
-      URL.revokeObjectURL(
-        link.href
-      );
-
-      showToast(
-        "공유 기능이 없어 PNG로 저장했습니다"
-      );
-
-    },
-    "image/png"
-  );
+    closePopover();
 }
 
 
@@ -2045,16 +2731,21 @@ async function shareNote() {
 
 function togglePopover() {
 
-  document
-    .getElementById("popover")
-    .classList.toggle("show");
+    document
+        .getElementById("popover")
+        .classList.toggle(
+            "show"
+        );
 }
+
 
 function closePopover() {
 
-  document
-    .getElementById("popover")
-    .classList.remove("show");
+    document
+        .getElementById("popover")
+        .classList.remove(
+            "show"
+        );
 }
 
 
@@ -2063,47 +2754,41 @@ function closePopover() {
 ========================================================= */
 
 document
-  .getElementById("sizeRange")
-  .addEventListener(
-    "input",
-    e => {
+    .getElementById("sizeRange")
+    .addEventListener(
+        "input",
+        e => {
 
-      size =
-        Number(
-          e.target.value
-        );
+            size =
+                Number(
+                    e.target.value
+                );
 
-      updateSizePreview();
+            const dot =
+                document.getElementById(
+                    "sizeDot"
+                );
 
-      setTool("pen");
-    }
-  );
+            const value =
+                Math.min(
+                    25,
+                    Math.max(
+                        3,
+                        size * 1.6
+                    )
+                );
 
+            dot.style.width =
+                value + "px";
 
-function updateSizePreview() {
+            dot.style.height =
+                value + "px";
 
-  const dot =
-    document.getElementById(
-      "sizeDot"
+            setTool("pen");
+
+            scheduleSave();
+        }
     );
-
-  const value =
-    Math.min(
-      25,
-      Math.max(
-        3,
-        size * 1.6
-      )
-    );
-
-  dot.style.width =
-    value + "px";
-
-  dot.style.height =
-    value + "px";
-}
-
-updateSizePreview();
 
 
 /* =========================================================
@@ -2111,44 +2796,45 @@ updateSizePreview();
 ========================================================= */
 
 document
-  .querySelectorAll(".color-btn")
-  .forEach(button => {
+    .querySelectorAll(".color-btn")
+    .forEach(button => {
 
-    button.addEventListener(
-      "click",
-      () => {
+        button.addEventListener(
+            "click",
+            () => {
 
-        color =
-          button.dataset.color;
+                color =
+                    button.dataset.color;
 
-        document
-          .getElementById(
-            "currentColor"
-          )
-          .style.background =
-            color;
+                document
+                    .getElementById(
+                        "currentColor"
+                    )
+                    .style.background =
+                    color;
 
-        document
-          .querySelectorAll(
-            ".color-btn"
-          )
-          .forEach(
-            b =>
-              b.classList.remove(
-                "active"
-              )
-          );
+                document
+                    .querySelectorAll(
+                        ".color-btn"
+                    )
+                    .forEach(
+                        b =>
+                            b.classList
+                                .remove(
+                                    "active"
+                                )
+                    );
 
-        button.classList.add(
-          "active"
+                button.classList.add(
+                    "active"
+                );
+
+                setTool("pen");
+
+                scheduleSave();
+            }
         );
-
-        setTool("pen");
-
-        scheduleSave();
-      }
-    );
-  });
+    });
 
 
 /* =========================================================
@@ -2157,43 +2843,37 @@ document
 
 function setPaper(type) {
 
-  paper.classList.remove(
-    "lines",
-    "grid"
-  );
-
-  if (
-    type === "lines"
-  ) {
-    paper.classList.add(
-      "lines"
+    paper.classList.remove(
+        "lines",
+        "grid"
     );
-  }
 
-  if (
-    type === "grid"
-  ) {
-    paper.classList.add(
-      "grid"
-    );
-  }
+    if (type === "lines") {
 
-  document
-    .querySelectorAll(
-      ".paper-option"
-    )
-    .forEach(
-      button =>
-        button.classList.remove(
-          "active"
+        paper.classList.add(
+            "lines"
+        );
+    }
+
+    if (type === "grid") {
+
+        paper.classList.add(
+            "grid"
+        );
+    }
+
+    document
+        .querySelectorAll(
+            ".paper-option"
         )
-    );
+        .forEach(button => {
 
-  event
-    ?.target
-    ?.classList.add(
-      "active"
-    );
+            button.classList.toggle(
+                "active",
+                button.dataset.paper ===
+                type
+            );
+        });
 }
 
 
@@ -2203,123 +2883,143 @@ function setPaper(type) {
 
 function toggleDark() {
 
-  document.body.classList.toggle(
-    "dark"
-  );
+    document.body.classList.toggle(
+        "dark"
+    );
 
-  localStorage.setItem(
-    "paperNoteDark",
-    document.body.classList.contains(
-      "dark"
-    )
-  );
+    localStorage.setItem(
+        "paperNoteDark",
+        document.body.classList.contains(
+            "dark"
+        )
+    );
 }
 
+
 if (
-  localStorage.getItem(
-    "paperNoteDark"
-  ) === "true"
+    localStorage.getItem(
+        "paperNoteDark"
+    ) === "true"
 ) {
 
-  document.body.classList.add(
-    "dark"
-  );
+    document.body.classList.add(
+        "dark"
+    );
 }
 
 
 /* =========================================================
-   저장된 필기 불러오기
+   저장된 노트
 ========================================================= */
 
 function loadNote() {
 
-  const saved =
-    localStorage.getItem(
-      "paperNote"
-    );
-
-  if (saved) {
-
-    const img =
-      new Image();
-
-    img.onload = () => {
-
-      const rect =
-        paper.getBoundingClientRect();
-
-      ctx.clearRect(
-        0,
-        0,
-        rect.width,
-        rect.height
-      );
-
-      ctx.drawImage(
-        img,
-        0,
-        0,
-        rect.width,
-        rect.height
-      );
-    };
-
-    img.src = saved;
-  }
-
-
-  const savedColor =
-    localStorage.getItem(
-      "paperNoteColor"
-    );
-
-  if (savedColor) {
-
-    color =
-      savedColor;
-
-    document
-      .getElementById(
-        "currentColor"
-      )
-      .style.background =
-      color;
-
-    document
-      .querySelectorAll(
-        ".color-btn"
-      )
-      .forEach(button => {
-
-        button.classList.toggle(
-          "active",
-          button.dataset.color ===
-          color
+    const saved =
+        localStorage.getItem(
+            "paperNote"
         );
 
-      });
-  }
+    if (saved) {
+
+        const img =
+            new Image();
+
+        img.onload = () => {
+
+            const rect =
+                canvas.getBoundingClientRect();
+
+            ctx.clearRect(
+                0,
+                0,
+                rect.width,
+                rect.height
+            );
+
+            ctx.drawImage(
+                img,
+                0,
+                0,
+                rect.width,
+                rect.height
+            );
+        };
+
+        img.src = saved;
+    }
 
 
-  const savedSize =
-    localStorage.getItem(
-      "paperNoteSize"
-    );
+    const savedColor =
+        localStorage.getItem(
+            "paperNoteColor"
+        );
 
-  if (savedSize) {
+    if (savedColor) {
 
-    size =
-      Number(savedSize);
+        color =
+            savedColor;
 
-    document
-      .getElementById(
-        "sizeRange"
-      )
-      .value =
-      size;
+        document
+            .getElementById(
+                "currentColor"
+            )
+            .style.background =
+            color;
 
-    updateSizePreview();
-  }
+        document
+            .querySelectorAll(
+                ".color-btn"
+            )
+            .forEach(button => {
+
+                button.classList.toggle(
+                    "active",
+                    button.dataset.color ===
+                    color
+                );
+            });
+    }
+
+
+    const savedSize =
+        localStorage.getItem(
+            "paperNoteSize"
+        );
+
+    if (savedSize) {
+
+        size =
+            Number(
+                savedSize
+            );
+
+        document
+            .getElementById(
+                "sizeRange"
+            )
+            .value =
+            size;
+
+        const dot =
+            document.getElementById(
+                "sizeDot"
+            );
+
+        const value =
+            Math.min(
+                25,
+                Math.max(
+                    3,
+                    size * 1.6
+                )
+            );
+
+        dot.style.width =
+            value + "px";
+
+        dot.style.height =
+            value + "px";
+    }
 }
 
 
@@ -2331,59 +3031,68 @@ let toastTimer;
 
 function showToast(message) {
 
-  const toast =
-    document.getElementById(
-      "toast"
+    const toast =
+        document.getElementById(
+            "toast"
+        );
+
+    toast.textContent =
+        message;
+
+    toast.classList.add(
+        "show"
     );
 
-  toast.textContent =
-    message;
+    clearTimeout(
+        toastTimer
+    );
 
-  toast.classList.add(
-    "show"
-  );
+    toastTimer =
+        setTimeout(
+            () => {
 
-  clearTimeout(
-    toastTimer
-  );
+                toast.classList.remove(
+                    "show"
+                );
 
-  toastTimer =
-    setTimeout(() => {
-
-      toast.classList.remove(
-        "show"
-      );
-
-    }, 1800);
+            },
+            1500
+        );
 }
 
 
 /* =========================================================
-   외부 클릭 시 팝업 닫기
+   팝업 외부 클릭
 ========================================================= */
 
 document.addEventListener(
-  "pointerdown",
-  e => {
+    "pointerdown",
+    e => {
 
-    const popover =
-      document.getElementById(
-        "popover"
-      );
+        const popover =
+            document.getElementById(
+                "popover"
+            );
 
-    const settings =
-      document.getElementById(
-        "settingsTool"
-      );
+        const settings =
+            document.getElementById(
+                "settingsTool"
+            );
 
-    if (
-      !popover.contains(e.target) &&
-      !settings.contains(e.target)
-    ) {
+        if (
+            popover &&
+            settings &&
+            !popover.contains(
+                e.target
+            ) &&
+            !settings.contains(
+                e.target
+            )
+        ) {
 
-      closePopover();
+            closePopover();
+        }
     }
-  }
 );
 
 
@@ -2392,59 +3101,64 @@ document.addEventListener(
 ========================================================= */
 
 document.addEventListener(
-  "keydown",
-  e => {
+    "keydown",
+    e => {
 
-    const command =
-      e.ctrlKey ||
-      e.metaKey;
+        const command =
+            e.ctrlKey ||
+            e.metaKey;
 
-    if (
-      command &&
-      e.key.toLowerCase() === "z"
-    ) {
 
-      e.preventDefault();
+        if (
+            command &&
+            e.key.toLowerCase() === "z"
+        ) {
 
-      if (e.shiftKey) {
-        redo();
-      } else {
-        undo();
-      }
+            e.preventDefault();
+
+            if (e.shiftKey) {
+                redo();
+            } else {
+                undo();
+            }
+        }
+
+
+        if (
+            command &&
+            e.key.toLowerCase() === "y"
+        ) {
+
+            e.preventDefault();
+
+            redo();
+        }
+
+
+        if (
+            command &&
+            e.key.toLowerCase() === "s"
+        ) {
+
+            e.preventDefault();
+
+            saveNote();
+        }
     }
-
-    if (
-      command &&
-      e.key.toLowerCase() === "y"
-    ) {
-
-      e.preventDefault();
-
-      redo();
-    }
-
-    if (
-      command &&
-      e.key.toLowerCase() === "s"
-    ) {
-
-      e.preventDefault();
-
-      saveNote();
-    }
-  }
 );
 
 
 /* =========================================================
-   시작
+   초기화
 ========================================================= */
 
 setTimeout(() => {
 
-  loadNote();
+    loadNote();
 
-  updateHistoryButtons();
+    updateHistoryButtons();
+
+    applyZoom();
 
 }, 100);
 
