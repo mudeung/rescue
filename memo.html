@@ -5,53 +5,25 @@
 
 <meta name="viewport"
       content="width=device-width,
-               initial-scale=1.0,
-               maximum-scale=1.0,
-               user-scalable=no">
+               initial-scale=1,
+               maximum-scale=1,
+               user-scalable=no,
+               viewport-fit=cover">
+
+<meta name="theme-color" content="#f4f5f8">
 
 <title>Paper Note</title>
 
 <style>
+
 /* =========================================================
-   기본
+   RESET
 ========================================================= */
 
 * {
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
-}
-
-:root {
-    --app-bg: #eef0f5;
-    --paper: #ffffff;
-    --surface: rgba(255,255,255,.92);
-
-    --text: #17181c;
-    --muted: #858994;
-    --line: #e3e5ea;
-
-    --accent: #6d5dfc;
-    --accent-light: #eeeaff;
-
-    --shadow:
-        0 12px 35px rgba(20,25,45,.10),
-        0 2px 8px rgba(20,25,45,.06);
-}
-
-body.dark {
-    --app-bg: #141519;
-    --paper: #202126;
-    --surface: rgba(35,36,42,.94);
-
-    --text: #f4f4f5;
-    --muted: #a0a2ab;
-    --line: #35363d;
-
-    --accent: #8b7cff;
-    --accent-light: #302c50;
-
-    --shadow:
-        0 15px 40px rgba(0,0,0,.30);
+    -webkit-touch-callout: none;
 }
 
 html,
@@ -59,63 +31,140 @@ body {
     width: 100%;
     height: 100%;
     margin: 0;
+    padding: 0;
+
     overflow: hidden;
 
     font-family:
         -apple-system,
         BlinkMacSystemFont,
         "SF Pro Display",
+        "SF Pro Text",
         "Segoe UI",
         "Noto Sans KR",
         sans-serif;
 
-    background: var(--app-bg);
-    color: var(--text);
+    background: #eef0f5;
+    color: #17181c;
+}
+
+button,
+input {
+    font: inherit;
+}
+
+button {
+    user-select: none;
 }
 
 
 /* =========================================================
-   앱
+   THEME
+========================================================= */
+
+:root {
+
+    --bg: #eef0f5;
+    --paper: #ffffff;
+    --surface: rgba(255,255,255,.90);
+
+    --text: #17181c;
+    --muted: #858994;
+
+    --border: #e1e3e8;
+
+    --accent: #6d5dfc;
+    --accent-soft: #eeeaff;
+
+    --toolbar-shadow:
+        0 16px 40px rgba(25,30,50,.14),
+        0 3px 10px rgba(25,30,50,.07);
+
+    --paper-shadow:
+        0 18px 45px rgba(25,30,50,.12),
+        0 3px 10px rgba(25,30,50,.06);
+}
+
+body.dark {
+
+    --bg: #15161a;
+    --paper: #202126;
+    --surface: rgba(34,35,41,.93);
+
+    --text: #f3f4f6;
+    --muted: #9da0aa;
+
+    --border: #36373f;
+
+    --accent: #8b7cff;
+    --accent-soft: #312d51;
+
+    --toolbar-shadow:
+        0 18px 45px rgba(0,0,0,.35);
+
+    --paper-shadow:
+        0 20px 50px rgba(0,0,0,.35);
+}
+
+
+/* =========================================================
+   APP
 ========================================================= */
 
 .app {
     width: 100%;
     height: 100%;
+
     display: flex;
     flex-direction: column;
 }
 
 
 /* =========================================================
-   상단 헤더
+   HEADER
 ========================================================= */
 
 .header {
-    height: 68px;
-    flex-shrink: 0;
+
+    height: 66px;
+
+    flex: 0 0 66px;
 
     display: flex;
     align-items: center;
 
-    padding: 0 22px;
+    padding:
+        0 20px;
 
     background: var(--surface);
-    border-bottom: 1px solid var(--line);
 
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
+    border-bottom:
+        1px solid var(--border);
 
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+
+    position: relative;
     z-index: 100;
 }
 
+
+/* =========================================================
+   BRAND
+========================================================= */
+
 .brand {
+
+    min-width: 220px;
+
     display: flex;
     align-items: center;
+
     gap: 11px;
-    min-width: 220px;
 }
 
 .logo {
+
     width: 36px;
     height: 36px;
 
@@ -125,74 +174,22 @@ body {
 
     border-radius: 11px;
 
+    color: white;
+
     background:
         linear-gradient(
             135deg,
-            #7869ff,
-            #5c4af4
+            #8173ff,
+            #5c4af3
         );
 
-    color: white;
-
     box-shadow:
-        0 5px 14px
+        0 6px 15px
         rgba(100,85,245,.28);
 }
 
 .logo svg {
-    width: 20px;
-    height: 20px;
-}
 
-.brand-text strong {
-    display: block;
-    font-size: 15px;
-    line-height: 18px;
-}
-
-.brand-text span {
-    display: block;
-    margin-top: 2px;
-    color: var(--muted);
-    font-size: 11px;
-}
-
-.header-center {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-}
-
-.page-title {
-    padding: 7px 15px;
-
-    border-radius: 9px;
-
-    font-size: 13px;
-    color: var(--muted);
-
-    background: var(--app-bg);
-}
-
-.header-actions {
-    min-width: 220px;
-
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-
-    gap: 7px;
-}
-
-
-/* =========================================================
-   공통 SVG
-========================================================= */
-
-.icon-btn svg,
-.tool-btn svg,
-.primary-btn svg,
-.zoom-btn svg {
     width: 20px;
     height: 20px;
 
@@ -200,8 +197,95 @@ body {
     fill: none;
 
     stroke-width: 1.8;
+
     stroke-linecap: round;
     stroke-linejoin: round;
+}
+
+.brand-name {
+
+    font-size: 15px;
+    font-weight: 700;
+
+    line-height: 18px;
+}
+
+.brand-sub {
+
+    margin-top: 2px;
+
+    color: var(--muted);
+
+    font-size: 10px;
+}
+
+
+/* =========================================================
+   TITLE
+========================================================= */
+
+.header-center {
+
+    flex: 1;
+
+    display: flex;
+    justify-content: center;
+}
+
+.page-title {
+
+    padding:
+        7px 15px;
+
+    border-radius: 10px;
+
+    background: var(--bg);
+
+    color: var(--muted);
+
+    font-size: 12px;
+
+    border:
+        1px solid
+        transparent;
+}
+
+
+/* =========================================================
+   HEADER ACTIONS
+========================================================= */
+
+.header-actions {
+
+    min-width: 220px;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    gap: 7px;
+}
+
+
+/* =========================================================
+   COMMON ICON
+========================================================= */
+
+svg {
+
+    display: block;
+
+    stroke: currentColor;
+    fill: none;
+
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.icon-btn svg,
+.tool-btn svg,
+.primary-btn svg,
+.zoom-btn svg {
 
     pointer-events: none;
 
@@ -210,68 +294,84 @@ body {
         stroke-width .16s ease;
 }
 
+.icon-btn svg {
+    width: 20px;
+    height: 20px;
+
+    stroke-width: 1.8;
+}
+
 .tool-btn svg {
     width: 21px;
     height: 21px;
-}
 
-.primary-btn svg {
-    width: 17px;
-    height: 17px;
+    stroke-width: 1.8;
 }
 
 .zoom-btn svg {
     width: 17px;
     height: 17px;
+
+    stroke-width: 1.8;
 }
 
-.icon-btn:hover svg,
-.tool-btn:hover svg {
-    transform: scale(1.06);
-}
+.primary-btn svg {
+    width: 17px;
+    height: 17px;
 
-.tool-btn.active svg {
-    stroke-width: 2.1;
+    stroke-width: 1.9;
 }
 
 
 /* =========================================================
-   버튼
+   BUTTON
 ========================================================= */
 
 .icon-btn {
+
     width: 40px;
     height: 40px;
-
-    border: 1px solid transparent;
-    border-radius: 11px;
-
-    background: transparent;
-    color: var(--text);
 
     display: flex;
     align-items: center;
     justify-content: center;
 
+    border: 1px solid transparent;
+
+    border-radius: 11px;
+
+    background: transparent;
+
+    color: var(--text);
+
     cursor: pointer;
 
     transition:
-        background .18s ease,
-        transform .18s ease,
-        border .18s ease;
+        background .16s ease,
+        border .16s ease,
+        transform .16s ease;
 }
 
 .icon-btn:hover {
-    background: var(--app-bg);
-    border-color: var(--line);
+
+    background: var(--bg);
+
+    border-color:
+        var(--border);
 }
 
 .icon-btn:active {
-    transform: scale(.94);
+
+    transform: scale(.93);
 }
 
+
 .primary-btn {
+
     height: 40px;
+
+    padding:
+        0 15px;
 
     display: flex;
     align-items: center;
@@ -279,161 +379,211 @@ body {
 
     gap: 7px;
 
-    padding: 0 15px;
-
     border: 0;
+
     border-radius: 11px;
 
-    background: var(--accent);
     color: white;
 
-    font-size: 13px;
-    font-weight: 600;
+    background: var(--accent);
+
+    font-size: 12px;
+    font-weight: 700;
 
     cursor: pointer;
 
     box-shadow:
-        0 6px 16px
-        rgba(109,93,252,.25);
+        0 7px 18px
+        rgba(109,93,252,.27);
 
     transition:
-        transform .18s ease,
-        box-shadow .18s ease;
+        transform .16s ease,
+        box-shadow .16s ease;
 }
 
 .primary-btn:hover {
+
     box-shadow:
-        0 8px 22px
+        0 9px 24px
         rgba(109,93,252,.35);
 }
 
 .primary-btn:active {
-    transform: scale(.96);
+
+    transform: scale(.95);
 }
 
 
 /* =========================================================
-   작업 공간
+   WORKSPACE
 ========================================================= */
 
 .workspace {
+
     position: relative;
+
     flex: 1;
+
     overflow: hidden;
 
     background:
         radial-gradient(
             circle at 50% 0%,
-            rgba(109,93,252,.08),
-            transparent 35%
+            rgba(109,93,252,.09),
+            transparent 38%
         ),
-        var(--app-bg);
+        var(--bg);
 }
 
 
 /* =========================================================
-   페이지 영역
+   PAGE VIEWPORT
 ========================================================= */
 
 .page-area {
+
     position: absolute;
+
     inset: 0;
 
     overflow: auto;
 
     padding:
-        38px
-        70px
-        150px;
+        35px
+        60px
+        145px;
 
     display: flex;
-    justify-content: center;
 
-    overscroll-behavior: contain;
+    justify-content: center;
+    align-items: flex-start;
+
+    overscroll-behavior:
+        contain;
+
+    /*
+       캔버스 자체는 PointerEvent를 받는다.
+       페이지 스크롤은 손가락 두 개 동작에 의해 처리한다.
+    */
 
     touch-action: none;
 }
 
 
 /* =========================================================
-   종이
+   PAPER
 ========================================================= */
 
 .paper {
+
     position: relative;
 
     flex: 0 0 auto;
 
     width:
-        min(920px, 92vw);
+        min(900px, 92vw);
 
     height:
         max(
             1180px,
-            calc(100vh - 150px)
+            calc(100vh - 140px)
         );
 
-    background: var(--paper);
+    background:
+        var(--paper);
 
     border-radius: 5px;
 
-    box-shadow: var(--shadow);
+    box-shadow:
+        var(--paper-shadow);
 
     overflow: hidden;
 
-    transform-origin: center center;
+    transform-origin:
+        center center;
 
-    will-change: transform;
+    will-change:
+        transform;
 }
 
 
 /* =========================================================
-   줄 노트
+   PAPER LINES
 ========================================================= */
 
 .paper.lines {
-    background-color: var(--paper);
+
+    background-color:
+        var(--paper);
 
     background-image:
+
         linear-gradient(
             to bottom,
+
             transparent 31px,
-            rgba(115,130,160,.13) 32px,
+
+            rgba(
+                100,
+                120,
+                155,
+                .14
+            )
+            32px,
+
             transparent 33px
         );
 
-    background-size: 100% 32px;
+    background-size:
+        100% 32px;
 }
 
 
 /* =========================================================
-   격자
+   PAPER GRID
 ========================================================= */
 
 .paper.grid {
-    background-color: var(--paper);
+
+    background-color:
+        var(--paper);
 
     background-image:
+
         linear-gradient(
-            rgba(110,125,155,.11) 1px,
+            rgba(
+                100,
+                120,
+                155,
+                .12
+            ) 1px,
             transparent 1px
         ),
+
         linear-gradient(
             90deg,
-            rgba(110,125,155,.11) 1px,
+            rgba(
+                100,
+                120,
+                155,
+                .12
+            ) 1px,
             transparent 1px
         );
 
-    background-size: 28px 28px;
+    background-size:
+        28px 28px;
 }
 
 
 /* =========================================================
-   캔버스
+   CANVAS
 ========================================================= */
 
-canvas {
+#canvas {
+
     position: absolute;
+
     inset: 0;
 
     width: 100%;
@@ -448,16 +598,18 @@ canvas {
 
 
 /* =========================================================
-   페이지 번호
+   PAGE NUMBER
 ========================================================= */
 
 .page-number {
+
     position: absolute;
 
-    bottom: 15px;
     left: 50%;
+    bottom: 14px;
 
-    transform: translateX(-50%);
+    transform:
+        translateX(-50%);
 
     color: var(--muted);
 
@@ -468,55 +620,66 @@ canvas {
 
 
 /* =========================================================
-   저장 상태
+   SAVE STATUS
 ========================================================= */
 
 .save-indicator {
+
     position: absolute;
 
-    top: 17px;
-    right: 20px;
+    top: 16px;
+    right: 18px;
 
-    padding: 6px 10px;
+    padding:
+        6px 10px;
 
     border-radius: 20px;
 
-    background: var(--surface);
+    background:
+        var(--surface);
 
-    border: 1px solid var(--line);
+    border:
+        1px solid
+        var(--border);
 
     color: var(--muted);
 
     font-size: 10px;
 
-    backdrop-filter: blur(12px);
+    backdrop-filter:
+        blur(12px);
 
-    z-index: 30;
+    pointer-events: none;
+
+    z-index: 20;
 }
 
 
 /* =========================================================
-   플로팅 툴바
+   FLOATING TOOLBAR
 ========================================================= */
 
 .floating-toolbar {
+
     position: absolute;
 
     left: 50%;
-    bottom: 22px;
+    bottom: 20px;
 
-    transform: translateX(-50%);
+    transform:
+        translateX(-50%);
 
-    min-height: 64px;
-
-    padding: 9px;
+    min-height: 63px;
 
     display: flex;
     align-items: center;
 
-    gap: 5px;
+    gap: 4px;
 
-    background: var(--surface);
+    padding: 8px;
+
+    background:
+        var(--surface);
 
     border:
         1px solid
@@ -525,85 +688,106 @@ canvas {
     border-radius: 18px;
 
     box-shadow:
-        0 14px 38px
-        rgba(20,25,45,.16),
+        var(--toolbar-shadow);
 
-        0 2px 8px
-        rgba(20,25,45,.07);
+    backdrop-filter:
+        blur(22px);
 
-    backdrop-filter: blur(22px);
-    -webkit-backdrop-filter: blur(22px);
+    -webkit-backdrop-filter:
+        blur(22px);
 
     z-index: 50;
 }
 
 
 /* =========================================================
-   도구 버튼
+   TOOL BUTTON
 ========================================================= */
 
 .tool-btn {
+
     position: relative;
 
     width: 46px;
     height: 46px;
 
-    border: 0;
-    border-radius: 13px;
-
-    background: transparent;
-    color: var(--text);
+    flex: 0 0 46px;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
+    border: 0;
+
+    border-radius: 13px;
+
+    background:
+        transparent;
+
+    color: var(--text);
+
     cursor: pointer;
 
     transition:
-        background .16s ease,
-        color .16s ease,
-        transform .16s ease;
+        background .15s ease,
+        color .15s ease,
+        transform .15s ease;
 }
 
 .tool-btn:hover {
-    background: var(--app-bg);
+
+    background:
+        var(--bg);
 }
 
 .tool-btn:active {
-    transform: scale(.91);
+
+    transform:
+        scale(.90);
 }
 
 .tool-btn.active {
-    color: var(--accent);
-    background: var(--accent-light);
+
+    color:
+        var(--accent);
+
+    background:
+        var(--accent-soft);
 }
 
 .tool-btn:disabled {
-    opacity: .28;
+
+    opacity: .27;
+
     cursor: default;
 }
 
 
 /* =========================================================
-   구분선
+   TOOL DIVIDER
 ========================================================= */
 
 .tool-divider {
+
     width: 1px;
     height: 30px;
 
-    background: var(--line);
+    flex: 0 0 1px;
 
-    margin: 0 4px;
+    margin:
+        0 4px;
+
+    background:
+        var(--border);
 }
 
 
 /* =========================================================
-   현재 색상
+   CURRENT COLOR
 ========================================================= */
 
 .current-color {
+
     width: 22px;
     height: 22px;
 
@@ -615,43 +799,48 @@ canvas {
 
     box-shadow:
         0 0 0 1px
-        var(--line);
-
-    pointer-events: none;
+        var(--border);
 }
 
 
 /* =========================================================
-   설정 팝업
+   POPOVER
 ========================================================= */
 
 .popover {
+
     position: absolute;
 
-    bottom: 98px;
     left: 50%;
+    bottom: 97px;
+
+    width: 285px;
+
+    padding: 17px;
+
+    border-radius: 18px;
+
+    background:
+        var(--surface);
+
+    border:
+        1px solid
+        var(--border);
+
+    box-shadow:
+        0 18px 45px
+        rgba(20,25,45,.18);
+
+    backdrop-filter:
+        blur(22px);
+
+    -webkit-backdrop-filter:
+        blur(22px);
 
     transform:
         translateX(-50%)
         translateY(10px)
-        scale(.96);
-
-    width: 270px;
-
-    padding: 17px;
-
-    background: var(--surface);
-
-    border: 1px solid var(--line);
-
-    border-radius: 17px;
-
-    box-shadow:
-        0 18px 45px
-        rgba(20,25,45,.16);
-
-    backdrop-filter: blur(22px);
-    -webkit-backdrop-filter: blur(22px);
+        scale(.97);
 
     opacity: 0;
 
@@ -661,10 +850,11 @@ canvas {
         opacity .18s ease,
         transform .18s ease;
 
-    z-index: 60;
+    z-index: 70;
 }
 
 .popover.show {
+
     opacity: 1;
 
     pointer-events: auto;
@@ -675,34 +865,47 @@ canvas {
         scale(1);
 }
 
-.popover-title {
-    margin-bottom: 13px;
 
-    font-size: 12px;
+/* =========================================================
+   POPOVER TITLE
+========================================================= */
+
+.popover-title {
+
+    margin-bottom: 12px;
+
+    color:
+        var(--muted);
+
+    font-size: 11px;
 
     font-weight: 700;
-
-    color: var(--muted);
 }
 
 
 /* =========================================================
-   굵기
+   SIZE
 ========================================================= */
 
 .range-row {
+
     display: flex;
     align-items: center;
+
     gap: 12px;
 }
 
-input[type="range"] {
+.range-row input {
+
     flex: 1;
-    accent-color: var(--accent);
+
+    accent-color:
+        var(--accent);
 }
 
 .size-preview {
-    width: 34px;
+
+    width: 38px;
     height: 34px;
 
     display: flex;
@@ -711,80 +914,100 @@ input[type="range"] {
 }
 
 .size-dot {
+
     width: 8px;
     height: 8px;
 
     border-radius: 50%;
 
-    background: var(--text);
+    background:
+        var(--text);
+
+    transition:
+        width .1s,
+        height .1s;
 }
 
 
 /* =========================================================
-   색상
+   COLORS
 ========================================================= */
 
 .colors {
+
     display: grid;
 
     grid-template-columns:
-        repeat(7, 1fr);
+        repeat(10, 1fr);
 
-    gap: 9px;
+    gap: 10px;
 }
 
 .color-btn {
-    width: 27px;
-    height: 27px;
+
+    width: 23px;
+    height: 23px;
+
+    padding: 0;
 
     border:
-        2px solid transparent;
+        2px solid
+        transparent;
 
     border-radius: 50%;
 
     cursor: pointer;
 
     transition:
-        transform .15s ease,
-        border .15s ease;
+        transform .14s ease;
 }
 
 .color-btn:hover {
-    transform: scale(1.13);
+
+    transform:
+        scale(1.16);
 }
 
 .color-btn.active {
-    border-color: var(--accent);
 
     box-shadow:
-        0 0 0 2px var(--paper),
-        0 0 0 3px var(--accent);
+        0 0 0 2px
+        var(--paper),
+
+        0 0 0 3px
+        var(--accent);
 }
 
 
 /* =========================================================
-   용지 선택
+   PAPER MENU
 ========================================================= */
 
 .paper-menu {
+
     display: flex;
+
     gap: 7px;
 }
 
 .paper-option {
+
     flex: 1;
 
-    padding: 9px 5px;
+    padding:
+        9px 5px;
 
     border:
         1px solid
-        var(--line);
+        var(--border);
 
     border-radius: 9px;
 
-    background: transparent;
+    background:
+        transparent;
 
-    color: var(--text);
+    color:
+        var(--text);
 
     cursor: pointer;
 
@@ -792,36 +1015,42 @@ input[type="range"] {
 }
 
 .paper-option.active {
-    border-color: var(--accent);
 
-    background: var(--accent-light);
+    border-color:
+        var(--accent);
 
-    color: var(--accent);
+    color:
+        var(--accent);
+
+    background:
+        var(--accent-soft);
 }
 
 
 /* =========================================================
-   줌
+   ZOOM
 ========================================================= */
 
 .zoom-control {
+
     position: absolute;
 
-    left: 18px;
-    bottom: 24px;
+    left: 17px;
+    bottom: 22px;
 
     display: flex;
     align-items: center;
 
-    gap: 4px;
+    gap: 3px;
 
     padding: 6px;
 
-    background: var(--surface);
+    background:
+        var(--surface);
 
     border:
         1px solid
-        var(--line);
+        var(--border);
 
     border-radius: 14px;
 
@@ -829,55 +1058,65 @@ input[type="range"] {
         0 10px 25px
         rgba(20,25,45,.10);
 
-    backdrop-filter: blur(18px);
+    backdrop-filter:
+        blur(18px);
 
     z-index: 40;
 }
 
 .zoom-btn {
+
     width: 34px;
     height: 34px;
-
-    border: 0;
-    border-radius: 9px;
-
-    background: transparent;
-
-    color: var(--text);
-
-    cursor: pointer;
 
     display: flex;
     align-items: center;
     justify-content: center;
+
+    border: 0;
+
+    border-radius: 9px;
+
+    background:
+        transparent;
+
+    color:
+        var(--text);
+
+    cursor: pointer;
 }
 
 .zoom-btn:hover {
-    background: var(--app-bg);
+
+    background:
+        var(--bg);
 }
 
 .zoom-value {
-    min-width: 50px;
+
+    min-width: 52px;
 
     text-align: center;
 
-    font-size: 11px;
+    color:
+        var(--muted);
 
-    color: var(--muted);
+    font-size: 11px;
 
     user-select: none;
 }
 
 
 /* =========================================================
-   토스트
+   TOAST
 ========================================================= */
 
 .toast {
+
     position: absolute;
 
     left: 50%;
-    bottom: 105px;
+    bottom: 103px;
 
     transform:
         translate(-50%, 10px);
@@ -887,9 +1126,11 @@ input[type="range"] {
 
     border-radius: 10px;
 
-    background: #1e2026;
+    background:
+        #202126;
 
-    color: white;
+    color:
+        white;
 
     font-size: 12px;
 
@@ -898,13 +1139,14 @@ input[type="range"] {
     pointer-events: none;
 
     transition:
-        opacity .2s ease,
-        transform .2s ease;
+        opacity .18s ease,
+        transform .18s ease;
 
     z-index: 100;
 }
 
 .toast.show {
+
     opacity: 1;
 
     transform:
@@ -913,48 +1155,68 @@ input[type="range"] {
 
 
 /* =========================================================
-   태블릿
+   TABLET
 ========================================================= */
 
 @media (max-width: 800px) {
 
     .header {
+
         height: 58px;
-        padding: 0 10px;
+
+        flex-basis: 58px;
+
+        padding:
+            0 10px;
     }
 
     .brand {
-        min-width: auto;
+
+        min-width:
+            auto;
     }
 
-    .brand-text {
+    .brand-name,
+    .brand-sub {
+
         display: none;
     }
 
     .logo {
+
         width: 34px;
         height: 34px;
     }
 
     .header-center {
-        justify-content: flex-start;
-        padding-left: 10px;
+
+        justify-content:
+            flex-start;
+
+        padding-left:
+            10px;
     }
 
     .header-actions {
-        min-width: auto;
-    }
 
-    .header-actions .text-label {
-        display: none;
+        min-width:
+            auto;
     }
 
     .primary-btn {
+
         width: 40px;
+
         padding: 0;
     }
 
+    .primary-btn .text-label {
+
+        display: none;
+    }
+
     .page-area {
+
         padding:
             15px
             15px
@@ -962,80 +1224,106 @@ input[type="range"] {
     }
 
     .paper {
-        width: 100%;
-        min-width: 100%;
+
+        width:
+            100%;
+
+        min-width:
+            100%;
 
         height:
-            calc(100vh - 115px);
-
-        border-radius: 4px;
+            calc(100vh - 110px);
     }
 
     .floating-toolbar {
-        bottom: 12px;
+
+        bottom:
+            11px;
 
         max-width:
             calc(100vw - 18px);
 
-        overflow-x: auto;
+        overflow-x:
+            auto;
 
-        border-radius: 17px;
-    }
-
-    .tool-btn {
-        flex: 0 0 44px;
-    }
-
-    .tool-divider {
-        flex: 0 0 1px;
+        border-radius:
+            17px;
     }
 
     .popover {
-        bottom: 87px;
+
+        bottom:
+            87px;
     }
 
     .zoom-control {
-        left: 10px;
-        bottom: 82px;
+
+        left:
+            10px;
+
+        bottom:
+            82px;
     }
 }
 
 
 /* =========================================================
-   스마트폰
+   PHONE
 ========================================================= */
 
 @media (max-width: 500px) {
 
     .header-center {
-        display: none;
+
+        display:
+            none;
     }
 
     .page-area {
+
         padding:
             7px
             7px
-            115px;
+            110px;
     }
 
     .paper {
-        min-height: 900px;
+
+        min-height:
+            900px;
     }
 
     .floating-toolbar {
-        gap: 2px;
-        padding: 6px;
+
+        gap:
+            2px;
+
+        padding:
+            6px;
     }
 
     .tool-btn {
-        width: 40px;
-        height: 40px;
 
-        flex-basis: 40px;
+        width:
+            40px;
+
+        height:
+            40px;
+
+        flex-basis:
+            40px;
     }
 
     .popover {
-        width: 250px;
+
+        width:
+            260px;
+    }
+
+    .colors {
+
+        grid-template-columns:
+            repeat(8, 1fr);
     }
 }
 
@@ -1046,6 +1334,7 @@ input[type="range"] {
 <body>
 
 <div class="app">
+
 
 <!-- =====================================================
      HEADER
@@ -1058,26 +1347,29 @@ input[type="range"] {
         <div class="logo">
 
             <svg viewBox="0 0 24 24">
-                <path
-                    d="M12 20h9"/>
+
+                <path d="M12 20h9"/>
+
                 <path
                     d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1
                        1-4 13.5-13.5Z"/>
-                <path
-                    d="M15 5l3 3"/>
+
+                <path d="M15 5l3 3"/>
+
             </svg>
 
         </div>
 
-        <div class="brand-text">
 
-            <strong>
+        <div>
+
+            <div class="brand-name">
                 Paper Note
-            </strong>
+            </div>
 
-            <span>
+            <div class="brand-sub">
                 Digital handwriting
-            </span>
+            </div>
 
         </div>
 
@@ -1095,7 +1387,8 @@ input[type="range"] {
 
     <div class="header-actions">
 
-        <!-- 다크 모드 -->
+
+        <!-- DARK MODE -->
 
         <button
             class="icon-btn"
@@ -1113,7 +1406,7 @@ input[type="range"] {
         </button>
 
 
-        <!-- 공유 -->
+        <!-- SHARE -->
 
         <button
             class="icon-btn"
@@ -1137,7 +1430,7 @@ input[type="range"] {
         </button>
 
 
-        <!-- 저장 -->
+        <!-- SAVE -->
 
         <button
             class="primary-btn"
@@ -1190,13 +1483,12 @@ input[type="range"] {
                 1
             </div>
 
-
         </div>
 
     </div>
 
 
-    <!-- 저장 상태 -->
+    <!-- SAVE STATUS -->
 
     <div
         id="saveIndicator"
@@ -1208,7 +1500,7 @@ input[type="range"] {
 
 
     <!-- =================================================
-         펜 설정
+         PEN SETTINGS
     ================================================== -->
 
     <div
@@ -1228,6 +1520,7 @@ input[type="range"] {
                 type="range"
                 min="1"
                 max="15"
+                step="0.5"
                 value="4">
 
 
@@ -1246,7 +1539,7 @@ input[type="range"] {
         <div
             style="
                 height:1px;
-                background:var(--line);
+                background:var(--border);
                 margin:18px 0;
             ">
         </div>
@@ -1257,93 +1550,152 @@ input[type="range"] {
         </div>
 
 
+        <!-- 기존 + 추가 5색 -->
+
         <div class="colors">
+
+
+            <!-- 기존 -->
 
             <button
                 class="color-btn active"
                 style="background:#17181c"
-                data-color="#17181c">
+                data-color="#17181c"
+                title="블랙">
             </button>
 
             <button
                 class="color-btn"
                 style="background:#ef4444"
-                data-color="#ef4444">
+                data-color="#ef4444"
+                title="레드">
             </button>
 
             <button
                 class="color-btn"
                 style="background:#f97316"
-                data-color="#f97316">
+                data-color="#f97316"
+                title="오렌지">
             </button>
 
             <button
                 class="color-btn"
                 style="background:#eab308"
-                data-color="#eab308">
+                data-color="#eab308"
+                title="옐로우">
             </button>
 
             <button
                 class="color-btn"
                 style="background:#22c55e"
-                data-color="#22c55e">
+                data-color="#22c55e"
+                title="그린">
             </button>
 
             <button
                 class="color-btn"
                 style="background:#3b82f6"
-                data-color="#3b82f6">
+                data-color="#3b82f6"
+                title="블루">
             </button>
 
             <button
                 class="color-btn"
                 style="background:#8b5cf6"
-                data-color="#8b5cf6">
+                data-color="#8b5cf6"
+                title="퍼플">
             </button>
 
             <button
                 class="color-btn"
                 style="background:#ec4899"
-                data-color="#ec4899">
+                data-color="#ec4899"
+                title="핑크">
             </button>
 
             <button
                 class="color-btn"
                 style="background:#06b6d4"
-                data-color="#06b6d4">
+                data-color="#06b6d4"
+                title="시안">
             </button>
 
             <button
                 class="color-btn"
                 style="background:#795548"
-                data-color="#795548">
+                data-color="#795548"
+                title="브라운">
             </button>
 
             <button
                 class="color-btn"
                 style="background:#64748b"
-                data-color="#64748b">
+                data-color="#64748b"
+                title="슬레이트">
             </button>
 
             <button
                 class="color-btn"
                 style="
                     background:#ffffff;
-                    border:1px solid #ddd
+                    border:1px solid #d5d7dc;
                 "
-                data-color="#ffffff">
+                data-color="#ffffff"
+                title="화이트">
             </button>
 
             <button
                 class="color-btn"
                 style="background:#000000"
-                data-color="#000000">
+                data-color="#000000"
+                title="딥블랙">
             </button>
 
             <button
                 class="color-btn"
                 style="background:#14b8a6"
-                data-color="#14b8a6">
+                data-color="#14b8a6"
+                title="민트">
+            </button>
+
+
+            <!-- =================================================
+                 추가 5색
+            ================================================== -->
+
+            <button
+                class="color-btn"
+                style="background:#0f766e"
+                data-color="#0f766e"
+                title="딥민트">
+            </button>
+
+            <button
+                class="color-btn"
+                style="background:#1d4ed8"
+                data-color="#1d4ed8"
+                title="딥블루">
+            </button>
+
+            <button
+                class="color-btn"
+                style="background:#7c3aed"
+                data-color="#7c3aed"
+                title="딥퍼플">
+            </button>
+
+            <button
+                class="color-btn"
+                style="background:#be185d"
+                data-color="#be185d"
+                title="딥핑크">
+            </button>
+
+            <button
+                class="color-btn"
+                style="background:#b45309"
+                data-color="#b45309"
+                title="앰버">
             </button>
 
         </div>
@@ -1352,7 +1704,7 @@ input[type="range"] {
         <div
             style="
                 height:1px;
-                background:var(--line);
+                background:var(--border);
                 margin:18px 0;
             ">
         </div>
@@ -1398,10 +1750,11 @@ input[type="range"] {
 
 
     <!-- =================================================
-         줌
+         ZOOM
     ================================================== -->
 
     <div class="zoom-control">
+
 
         <button
             class="zoom-btn"
@@ -1466,13 +1819,13 @@ input[type="range"] {
 
 
     <!-- =================================================
-         하단 툴바
+         TOOLBAR
     ================================================== -->
 
     <div class="floating-toolbar">
 
 
-        <!-- 펜 -->
+        <!-- PEN -->
 
         <button
             id="penTool"
@@ -1497,7 +1850,7 @@ input[type="range"] {
         </button>
 
 
-        <!-- 색상 / 펜 설정 -->
+        <!-- PEN SETTINGS -->
 
         <button
             id="settingsTool"
@@ -1518,7 +1871,7 @@ input[type="range"] {
         </div>
 
 
-        <!-- 지우개 -->
+        <!-- ERASER -->
 
         <button
             id="eraserTool"
@@ -1533,9 +1886,9 @@ input[type="range"] {
 
                 <path
                     d="M5.5 15.5L15 6a2.1 2.1 0 0 1 3 0l1.5 1.5
-                       a2.1 2.1 0 0 1 0 3L10 20H6
-                       a2 2 0 0 1-1.4-.6l-.1-.1
-                       a2 2 0 0 1 0-2.8Z"/>
+                   a2.1 2.1 0 0 1 0 3L10 20H6
+                   a2 2 0 0 1-1.4-.6l-.1-.1
+                   a2 2 0 0 1 0-2.8Z"/>
 
                 <path
                     d="M13 8l4 4"/>
@@ -1545,7 +1898,7 @@ input[type="range"] {
         </button>
 
 
-        <!-- 실행 취소 -->
+        <!-- UNDO -->
 
         <button
             id="undoTool"
@@ -1566,7 +1919,7 @@ input[type="range"] {
         </button>
 
 
-        <!-- 다시 실행 -->
+        <!-- REDO -->
 
         <button
             id="redoTool"
@@ -1591,7 +1944,7 @@ input[type="range"] {
         </div>
 
 
-        <!-- 전체 삭제 -->
+        <!-- CLEAR -->
 
         <button
             class="tool-btn"
@@ -1623,7 +1976,7 @@ input[type="range"] {
     </div>
 
 
-    <!-- 토스트 -->
+    <!-- TOAST -->
 
     <div
         id="toast"
@@ -1639,66 +1992,139 @@ input[type="range"] {
 <script>
 
 /* =========================================================
-   기본 상태
+   ELEMENTS
 ========================================================= */
 
 const canvas =
     document.getElementById("canvas");
 
 const ctx =
-    canvas.getContext("2d");
+    canvas.getContext("2d", {
+        alpha: true,
+        desynchronized: true
+    });
 
 const paper =
     document.getElementById("paper");
 
-let drawing = false;
-
-let tool = "pen";
-
-let color = "#17181c";
-
-let size = 4;
-
-let lastX = 0;
-let lastY = 0;
-
-let undoStack = [];
-let redoStack = [];
-
-let saveTimer;
+const pageArea =
+    document.querySelector(".page-area");
 
 
 /* =========================================================
-   줌
+   SETTINGS
 ========================================================= */
 
-let zoom = 1;
+let tool =
+    "pen";
 
-const MIN_ZOOM = 0.5;
-const MAX_ZOOM = 4;
+let color =
+    "#17181c";
 
-let panX = 0;
-let panY = 0;
+let size =
+    4;
+
+
+/*
+   필기 부드러움.
+
+   너무 높은 값:
+   - 반응이 느려질 수 있음
+
+   너무 낮은 값:
+   - 선이 떨릴 수 있음
+*/
+
+const SMOOTHING = 0.28;
 
 
 /* =========================================================
-   터치
+   DRAW STATE
 ========================================================= */
 
-let touches = new Map();
+let drawing =
+    false;
 
-let pinchStartDistance = 0;
-let pinchStartZoom = 1;
+let lastX =
+    0;
 
-let pinchStartPanX = 0;
-let pinchStartPanY = 0;
+let lastY =
+    0;
 
-let pinchCenterX = 0;
-let pinchCenterY = 0;
+let lastTime =
+    0;
+
+let lastPressure =
+    .5;
 
 
 /* =========================================================
-   캔버스 크기
+   HISTORY
+========================================================= */
+
+let undoStack =
+    [];
+
+let redoStack =
+    [];
+
+
+/* =========================================================
+   AUTOSAVE
+========================================================= */
+
+let saveTimer =
+    null;
+
+
+/* =========================================================
+   ZOOM
+========================================================= */
+
+let zoom =
+    1;
+
+const MIN_ZOOM =
+    .5;
+
+const MAX_ZOOM =
+    4;
+
+let panX =
+    0;
+
+let panY =
+    0;
+
+
+/* =========================================================
+   TOUCH / PINCH
+========================================================= */
+
+const pointers =
+    new Map();
+
+let pinchStartDistance =
+    0;
+
+let pinchStartZoom =
+    1;
+
+let pinchStartPanX =
+    0;
+
+let pinchStartPanY =
+    0;
+
+let pinchCenterX =
+    0;
+
+let pinchCenterY =
+    0;
+
+
+/* =========================================================
+   CANVAS RESIZE
 ========================================================= */
 
 function resizeCanvas() {
@@ -1707,29 +2133,47 @@ function resizeCanvas() {
         paper.getBoundingClientRect();
 
     const dpr =
-        window.devicePixelRatio || 1;
+        Math.min(
+            window.devicePixelRatio || 1,
+            3
+        );
 
-    let oldImage = null;
+
+    /*
+       기존 그림 보존
+    */
+
+    let oldImage =
+        null;
 
     if (
         canvas.width > 0 &&
         canvas.height > 0
     ) {
+
         oldImage =
-            canvas.toDataURL("image/png");
+            canvas.toDataURL(
+                "image/png"
+            );
     }
 
+
     canvas.width =
-        rect.width * dpr;
+        Math.round(
+            rect.width * dpr
+        );
 
     canvas.height =
-        rect.height * dpr;
+        Math.round(
+            rect.height * dpr
+        );
 
     canvas.style.width =
         rect.width + "px";
 
     canvas.style.height =
         rect.height + "px";
+
 
     ctx.setTransform(
         dpr,
@@ -1739,6 +2183,10 @@ function resizeCanvas() {
         0,
         0
     );
+
+    ctx.imageSmoothingEnabled =
+        true;
+
 
     if (oldImage) {
 
@@ -1754,14 +2202,16 @@ function resizeCanvas() {
                 rect.width,
                 rect.height
             );
-
         };
 
-        img.src = oldImage;
+        img.src =
+            oldImage;
     }
 }
 
+
 resizeCanvas();
+
 
 window.addEventListener(
     "resize",
@@ -1770,77 +2220,429 @@ window.addEventListener(
 
 
 /* =========================================================
-   줌 적용
+   DEVICE PIXEL RATIO
 ========================================================= */
 
-function applyZoom() {
+function getCanvasCSSSize() {
 
-    paper.style.transform =
-        `translate(${panX}px, ${panY}px)
-         scale(${zoom})`;
+    const rect =
+        canvas.getBoundingClientRect();
 
-    updateZoomText();
+    return {
+        width:
+            rect.width,
+
+        height:
+            rect.height
+    };
 }
 
 
-function updateZoomText() {
+/* =========================================================
+   POINTER POSITION
+========================================================= */
 
-    document
-        .getElementById("zoomValue")
-        .textContent =
-        Math.round(zoom * 100) + "%";
+function getCanvasPoint(e) {
+
+    const rect =
+        canvas.getBoundingClientRect();
+
+    return {
+
+        x:
+            (e.clientX - rect.left) /
+            zoom,
+
+        y:
+            (e.clientY - rect.top) /
+            zoom
+    };
 }
 
 
-function zoomIn() {
+/* =========================================================
+   POINTER DOWN
+========================================================= */
 
-    setZoom(
-        zoom + 0.25
+canvas.addEventListener(
+    "pointerdown",
+    onPointerDown,
+    {
+        passive: false
+    }
+);
+
+
+function onPointerDown(e) {
+
+    e.preventDefault();
+
+
+    /*
+       브라우저가 펜을
+       다른 제스처로 해석하지 않도록 한다.
+    */
+
+    try {
+
+        canvas.setPointerCapture(
+            e.pointerId
+        );
+
+    } catch (_) {}
+
+
+    pointers.set(
+        e.pointerId,
+        {
+            x: e.clientX,
+            y: e.clientY,
+            type: e.pointerType
+        }
     );
+
+
+    /*
+       두 포인터:
+       확대 / 축소
+    */
+
+    if (pointers.size >= 2) {
+
+        drawing =
+            false;
+
+        startPinch();
+
+        return;
+    }
+
+
+    /*
+       손가락은 필기하지 않는다.
+       한 손가락은 대기.
+    */
+
+    if (
+        e.pointerType === "touch"
+    ) {
+
+        return;
+    }
+
+
+    /*
+       stylus / pen / mouse
+    */
+
+    startDrawing(e);
 }
 
 
-function zoomOut() {
+/* =========================================================
+   START PINCH
+========================================================= */
 
-    setZoom(
-        zoom - 0.25
-    );
+function startPinch() {
+
+    const values =
+        [...pointers.values()];
+
+    if (values.length < 2) {
+        return;
+    }
+
+    const a =
+        values[0];
+
+    const b =
+        values[1];
+
+
+    pinchStartDistance =
+        distance(
+            a,
+            b
+        );
+
+    pinchStartZoom =
+        zoom;
+
+    const center =
+        centerPoint(
+            a,
+            b
+        );
+
+    pinchCenterX =
+        center.x;
+
+    pinchCenterY =
+        center.y;
+
+    pinchStartPanX =
+        panX;
+
+    pinchStartPanY =
+        panY;
 }
 
 
-function resetZoom() {
+/* =========================================================
+   POINTER MOVE
+========================================================= */
 
-    zoom = 1;
+canvas.addEventListener(
+    "pointermove",
+    onPointerMove,
+    {
+        passive: false
+    }
+);
 
-    panX = 0;
-    panY = 0;
 
-    applyZoom();
+function onPointerMove(e) {
 
-    showToast("100%");
+    e.preventDefault();
+
+
+    if (
+        pointers.has(
+            e.pointerId
+        )
+    ) {
+
+        pointers.set(
+            e.pointerId,
+            {
+                x: e.clientX,
+                y: e.clientY,
+                type: e.pointerType
+            }
+        );
+    }
+
+
+    /*
+       두 손가락 제스처
+    */
+
+    if (
+        pointers.size >= 2
+    ) {
+
+        drawing =
+            false;
+
+        updatePinch();
+
+        return;
+    }
+
+
+    /*
+       손가락은 필기하지 않는다.
+    */
+
+    if (
+        e.pointerType === "touch"
+    ) {
+
+        return;
+    }
+
+
+    /*
+       필기
+    */
+
+    if (drawing) {
+
+        drawStroke(e);
+    }
 }
 
 
-function setZoom(value) {
+/* =========================================================
+   UPDATE PINCH
+========================================================= */
 
-    zoom =
+function updatePinch() {
+
+    const values =
+        [...pointers.values()];
+
+    if (values.length < 2) {
+        return;
+    }
+
+    const a =
+        values[0];
+
+    const b =
+        values[1];
+
+
+    const currentDistance =
+        distance(
+            a,
+            b
+        );
+
+
+    if (
+        pinchStartDistance <= 0
+    ) {
+
+        return;
+    }
+
+
+    let newZoom =
+        pinchStartZoom *
+        (
+            currentDistance /
+            pinchStartDistance
+        );
+
+
+    newZoom =
         Math.max(
             MIN_ZOOM,
             Math.min(
                 MAX_ZOOM,
-                value
+                newZoom
             )
         );
+
+
+    const center =
+        centerPoint(
+            a,
+            b
+        );
+
+
+    const dx =
+        center.x -
+        pinchCenterX;
+
+    const dy =
+        center.y -
+        pinchCenterY;
+
+
+    /*
+       확대하면서
+       손가락 중심을 유지하도록 이동
+    */
+
+    const ratio =
+        newZoom /
+        pinchStartZoom;
+
+
+    panX =
+        pinchStartPanX +
+        dx;
+
+
+    panY =
+        pinchStartPanY +
+        dy;
+
+
+    /*
+       확대 중심 보정
+    */
+
+    panX -=
+        (
+            pinchCenterX -
+            window.innerWidth / 2
+        ) *
+        (
+            ratio - 1
+        );
+
+    panY -=
+        (
+            pinchCenterY -
+            window.innerHeight / 2
+        ) *
+        (
+            ratio - 1
+        );
+
+
+    zoom =
+        newZoom;
+
 
     applyZoom();
 }
 
 
 /* =========================================================
-   터치 계산
+   POINTER UP
 ========================================================= */
 
-function getDistance(a, b) {
+canvas.addEventListener(
+    "pointerup",
+    onPointerUp,
+    {
+        passive: false
+    }
+);
+
+canvas.addEventListener(
+    "pointercancel",
+    onPointerUp,
+    {
+        passive: false
+    }
+);
+
+
+function onPointerUp(e) {
+
+    e.preventDefault();
+
+
+    pointers.delete(
+        e.pointerId
+    );
+
+
+    if (
+        pointers.size < 2
+    ) {
+
+        pinchStartDistance =
+            0;
+    }
+
+
+    if (
+        pointers.size === 0
+    ) {
+
+        if (drawing) {
+
+            finishStroke();
+        }
+
+        drawing =
+            false;
+    }
+}
+
+
+/* =========================================================
+   DISTANCE
+========================================================= */
+
+function distance(a, b) {
 
     const dx =
         a.x - b.x;
@@ -1855,400 +2657,389 @@ function getDistance(a, b) {
 }
 
 
-function getCenter(a, b) {
-
-    return {
-        x: (a.x + b.x) / 2,
-        y: (a.y + b.y) / 2
-    };
-}
-
-
-function getScreenPoint(e) {
-
-    return {
-        x: e.clientX,
-        y: e.clientY
-    };
-}
-
-
 /* =========================================================
-   캔버스 좌표
+   CENTER
 ========================================================= */
 
-function getPoint(e) {
-
-    const rect =
-        canvas.getBoundingClientRect();
+function centerPoint(a, b) {
 
     return {
+
         x:
-            (e.clientX - rect.left) / zoom,
+            (a.x + b.x) / 2,
 
         y:
-            (e.clientY - rect.top) / zoom
+            (a.y + b.y) / 2
     };
 }
 
 
 /* =========================================================
-   POINTER DOWN
-========================================================= */
-
-canvas.addEventListener(
-    "pointerdown",
-    handlePointerDown
-);
-
-
-function handlePointerDown(e) {
-
-    e.preventDefault();
-
-    touches.set(
-        e.pointerId,
-        getScreenPoint(e)
-    );
-
-    try {
-        canvas.setPointerCapture(
-            e.pointerId
-        );
-    } catch (error) {}
-
-
-    /* 두 손가락 */
-
-    if (touches.size === 2) {
-
-        drawing = false;
-
-        const points =
-            [...touches.values()];
-
-        const a = points[0];
-        const b = points[1];
-
-        pinchStartDistance =
-            getDistance(a, b);
-
-        pinchStartZoom =
-            zoom;
-
-        const center =
-            getCenter(a, b);
-
-        pinchCenterX =
-            center.x;
-
-        pinchCenterY =
-            center.y;
-
-        pinchStartPanX =
-            panX;
-
-        pinchStartPanY =
-            panY;
-
-        return;
-    }
-
-
-    /* 손가락은 필기하지 않음 */
-
-    if (e.pointerType === "touch") {
-        return;
-    }
-
-
-    /* S펜 / 마우스 */
-
-    startDrawing(e);
-}
-
-
-/* =========================================================
-   POINTER MOVE
-========================================================= */
-
-canvas.addEventListener(
-    "pointermove",
-    handlePointerMove
-);
-
-
-function handlePointerMove(e) {
-
-    e.preventDefault();
-
-    if (
-        touches.has(e.pointerId)
-    ) {
-
-        touches.set(
-            e.pointerId,
-            getScreenPoint(e)
-        );
-    }
-
-
-    /* 두 손가락 줌 + 이동 */
-
-    if (touches.size >= 2) {
-
-        drawing = false;
-
-        const points =
-            [...touches.values()];
-
-        const a = points[0];
-        const b = points[1];
-
-        const distance =
-            getDistance(a, b);
-
-        if (pinchStartDistance <= 0) {
-            return;
-        }
-
-        let newZoom =
-            pinchStartZoom *
-            (
-                distance /
-                pinchStartDistance
-            );
-
-        newZoom =
-            Math.max(
-                MIN_ZOOM,
-                Math.min(
-                    MAX_ZOOM,
-                    newZoom
-                )
-            );
-
-        const center =
-            getCenter(a, b);
-
-        const moveX =
-            center.x -
-            pinchCenterX;
-
-        const moveY =
-            center.y -
-            pinchCenterY;
-
-        const zoomRatio =
-            newZoom /
-            pinchStartZoom;
-
-        panX =
-            pinchStartPanX +
-            moveX -
-            (
-                pinchCenterX -
-                window.innerWidth / 2
-            ) *
-            (
-                zoomRatio - 1
-            );
-
-        panY =
-            pinchStartPanY +
-            moveY -
-            (
-                pinchCenterY -
-                window.innerHeight / 2
-            ) *
-            (
-                zoomRatio - 1
-            );
-
-        zoom = newZoom;
-
-        applyZoom();
-
-        return;
-    }
-
-
-    /* 일반 필기 */
-
-    if (
-        drawing &&
-        e.pointerType !== "touch"
-    ) {
-
-        draw(e);
-    }
-}
-
-
-/* =========================================================
-   POINTER UP
-========================================================= */
-
-canvas.addEventListener(
-    "pointerup",
-    handlePointerUp
-);
-
-canvas.addEventListener(
-    "pointercancel",
-    handlePointerUp
-);
-
-
-function handlePointerUp(e) {
-
-    touches.delete(
-        e.pointerId
-    );
-
-    if (touches.size === 0) {
-
-        if (drawing) {
-            stopDrawing();
-        }
-
-        drawing = false;
-
-        pinchStartDistance = 0;
-    }
-}
-
-
-/* =========================================================
-   필기 시작
+   START DRAWING
 ========================================================= */
 
 function startDrawing(e) {
 
-    if (e.pointerType === "touch") {
-        return;
-    }
+    drawing =
+        true;
 
-    drawing = true;
 
     const p =
-        getPoint(e);
+        getCanvasPoint(e);
 
-    lastX = p.x;
-    lastY = p.y;
+
+    lastX =
+        p.x;
+
+    lastY =
+        p.y;
+
+
+    lastTime =
+        performance.now();
+
+
+    lastPressure =
+        normalizePressure(
+            e.pressure
+        );
+
+
+    /*
+       시작 상태 저장
+    */
 
     saveState();
 
-    drawPoint(
+
+    /*
+       짧은 탭도 점으로 인식
+    */
+
+    drawDot(
         p.x,
         p.y,
-        e.pressure
+        lastPressure
     );
 }
 
 
 /* =========================================================
-   필기
+   PRESSURE
 ========================================================= */
 
-function draw(e) {
+function normalizePressure(
+    pressure
+) {
 
-    if (!drawing) {
-        return;
+    /*
+       일부 브라우저 / 기기는
+       pressure를 0 또는 0.5로 줄 수 있다.
+    */
+
+    if (
+        !pressure ||
+        pressure <= 0
+    ) {
+
+        return .5;
     }
 
-    if (e.pointerType === "touch") {
-        return;
-    }
+
+    /*
+       너무 극단적인 값 방지
+    */
+
+    return Math.max(
+        .08,
+        Math.min(
+            1,
+            pressure
+        )
+    );
+}
+
+
+/* =========================================================
+   DRAW STROKE
+========================================================= */
+
+function drawStroke(e) {
 
     const p =
-        getPoint(e);
+        getCanvasPoint(e);
+
 
     const pressure =
-        e.pressure > 0
-            ? e.pressure
-            : 0.5;
+        normalizePressure(
+            e.pressure
+        );
 
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
 
-    if (tool === "pen") {
+    /*
+       pressure smoothing
+    */
 
-        ctx.globalCompositeOperation =
-            "source-over";
+    const smoothPressure =
+        lastPressure +
+        (
+            pressure -
+            lastPressure
+        ) *
+        SMOOTHING;
 
-        ctx.strokeStyle =
-            color;
 
-        ctx.lineWidth =
-            Math.max(
-                0.8,
-                size *
-                (
-                    0.55 +
-                    pressure
-                )
-            );
+    /*
+       좌표 smoothing
 
-    } else {
+       S펜 미세 떨림을 줄이면서
+       지연을 최소화한다.
+    */
 
-        ctx.globalCompositeOperation =
-            "destination-out";
+    const smoothX =
+        lastX +
+        (
+            p.x -
+            lastX
+        ) *
+        .82;
 
-        ctx.lineWidth =
-            Math.max(
-                15,
-                size * 4
-            );
+
+    const smoothY =
+        lastY +
+        (
+            p.y -
+            lastY
+        ) *
+        .82;
+
+
+    const now =
+        performance.now();
+
+
+    const dt =
+        Math.max(
+            1,
+            now -
+            lastTime
+        );
+
+
+    const dx =
+        smoothX -
+        lastX;
+
+    const dy =
+        smoothY -
+        lastY;
+
+
+    const distanceMoved =
+        Math.sqrt(
+            dx * dx +
+            dy * dy
+        );
+
+
+    /*
+       너무 작은 이동은
+       무시해서 떨림 제거
+    */
+
+    if (
+        distanceMoved < 0.12
+    ) {
+
+        return;
     }
 
-    ctx.beginPath();
 
-    ctx.moveTo(
+    /*
+       스타일러스 속도 계산
+    */
+
+    const velocity =
+        distanceMoved /
+        dt;
+
+
+    drawSegment(
         lastX,
-        lastY
+        lastY,
+        smoothX,
+        smoothY,
+        smoothPressure,
+        velocity
     );
 
-    ctx.lineTo(
-        p.x,
-        p.y
-    );
 
-    ctx.stroke();
+    lastX =
+        smoothX;
 
-    lastX = p.x;
-    lastY = p.y;
+    lastY =
+        smoothY;
 
-    ctx.globalCompositeOperation =
-        "source-over";
+    lastPressure =
+        smoothPressure;
+
+    lastTime =
+        now;
+
+
+    /*
+       자동 저장
+    */
 
     scheduleSave();
 }
 
 
 /* =========================================================
-   점
+   DRAW SEGMENT
 ========================================================= */
 
-function drawPoint(
+function drawSegment(
+    x1,
+    y1,
+    x2,
+    y2,
+    pressure,
+    velocity
+) {
+
+    ctx.save();
+
+
+    ctx.lineCap =
+        "round";
+
+    ctx.lineJoin =
+        "round";
+
+
+    if (
+        tool === "eraser"
+    ) {
+
+        ctx.globalCompositeOperation =
+            "destination-out";
+
+
+        /*
+           지우개는 필압 영향을
+           조금만 받게 한다.
+        */
+
+        ctx.lineWidth =
+            Math.max(
+                12,
+                size *
+                (
+                    2.7 +
+                    pressure * 1.8
+                )
+            );
+
+    } else {
+
+        ctx.globalCompositeOperation =
+            "source-over";
+
+
+        ctx.strokeStyle =
+            color;
+
+
+        /*
+           기본 필압 반영
+        */
+
+        let width =
+            size *
+            (
+                .48 +
+                pressure *
+                .72
+            );
+
+
+        /*
+           빠르게 쓸 때
+           지나치게 두꺼워지는 것 방지
+        */
+
+        if (
+            velocity > .8
+        ) {
+
+            width *=
+                .92;
+        }
+
+
+        width =
+            Math.max(
+                .55,
+                Math.min(
+                    size * 1.25,
+                    width
+                )
+            );
+
+
+        ctx.lineWidth =
+            width;
+    }
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        x1,
+        y1
+    );
+
+    ctx.lineTo(
+        x2,
+        y2
+    );
+
+    ctx.stroke();
+
+
+    ctx.restore();
+}
+
+
+/* =========================================================
+   DOT
+========================================================= */
+
+function drawDot(
     x,
     y,
     pressure
 ) {
 
-    ctx.beginPath();
+    ctx.save();
 
-    if (tool === "eraser") {
+
+    if (
+        tool === "eraser"
+    ) {
 
         ctx.globalCompositeOperation =
             "destination-out";
+
+        ctx.beginPath();
 
         ctx.arc(
             x,
             y,
             Math.max(
-                8,
-                size * 2
+                7,
+                size * 1.7
             ),
             0,
             Math.PI * 2
@@ -2264,20 +3055,20 @@ function drawPoint(
         ctx.fillStyle =
             color;
 
-        const p =
-            pressure > 0
-                ? pressure
-                : 0.5;
 
         const radius =
             Math.max(
-                0.5,
+                .45,
                 size *
                 (
-                    0.55 +
-                    p
-                ) / 2
+                    .32 +
+                    pressure *
+                    .45
+                )
             );
+
+
+        ctx.beginPath();
 
         ctx.arc(
             x,
@@ -2290,20 +3081,22 @@ function drawPoint(
         ctx.fill();
     }
 
-    ctx.globalCompositeOperation =
-        "source-over";
+
+    ctx.restore();
 }
 
 
 /* =========================================================
-   필기 종료
+   FINISH STROKE
 ========================================================= */
 
-function stopDrawing() {
+function finishStroke() {
 
-    drawing = false;
+    drawing =
+        false;
 
-    redoStack = [];
+    redoStack =
+        [];
 
     updateHistoryButtons();
 
@@ -2312,77 +3105,135 @@ function stopDrawing() {
 
 
 /* =========================================================
-   Undo 상태
+   HISTORY
 ========================================================= */
 
 function saveState() {
 
+    /*
+       동일한 상태가 연속으로
+       쌓이는 것을 방지
+    */
+
+    const state =
+        canvas.toDataURL(
+            "image/png"
+        );
+
+
+    if (
+        undoStack.length > 0 &&
+        undoStack[
+            undoStack.length - 1
+        ] === state
+    ) {
+
+        return;
+    }
+
+
     undoStack.push(
-        canvas.toDataURL("image/png")
+        state
     );
 
-    if (undoStack.length > 40) {
+
+    if (
+        undoStack.length > 35
+    ) {
+
         undoStack.shift();
     }
 
-    redoStack = [];
+
+    redoStack =
+        [];
 
     updateHistoryButtons();
 }
 
 
 /* =========================================================
-   Undo
+   UNDO
 ========================================================= */
 
 function undo() {
 
-    if (undoStack.length === 0) {
+    if (
+        undoStack.length === 0
+    ) {
+
         return;
     }
 
+
     redoStack.push(
-        canvas.toDataURL("image/png")
+        canvas.toDataURL(
+            "image/png"
+        )
     );
+
 
     const state =
         undoStack.pop();
 
-    restoreImage(state);
+
+    restoreImage(
+        state
+    );
+
 
     updateHistoryButtons();
 
     scheduleSave();
+
+    showToast(
+        "실행 취소"
+    );
 }
 
 
 /* =========================================================
-   Redo
+   REDO
 ========================================================= */
 
 function redo() {
 
-    if (redoStack.length === 0) {
+    if (
+        redoStack.length === 0
+    ) {
+
         return;
     }
 
+
     undoStack.push(
-        canvas.toDataURL("image/png")
+        canvas.toDataURL(
+            "image/png"
+        )
     );
+
 
     const state =
         redoStack.pop();
 
-    restoreImage(state);
+
+    restoreImage(
+        state
+    );
+
 
     updateHistoryButtons();
 
     scheduleSave();
+
+    showToast(
+        "다시 실행"
+    );
 }
 
 
 /* =========================================================
-   이미지 복구
+   RESTORE IMAGE
 ========================================================= */
 
 function restoreImage(src) {
@@ -2390,33 +3241,38 @@ function restoreImage(src) {
     const img =
         new Image();
 
+
     img.onload = () => {
 
-        const rect =
-            canvas.getBoundingClientRect();
+        const size =
+            getCanvasCSSSize();
+
 
         ctx.clearRect(
             0,
             0,
-            rect.width,
-            rect.height
+            size.width,
+            size.height
         );
+
 
         ctx.drawImage(
             img,
             0,
             0,
-            rect.width,
-            rect.height
+            size.width,
+            size.height
         );
     };
 
-    img.src = src;
+
+    img.src =
+        src;
 }
 
 
 /* =========================================================
-   Undo 버튼
+   HISTORY BUTTONS
 ========================================================= */
 
 function updateHistoryButtons() {
@@ -2426,6 +3282,7 @@ function updateHistoryButtons() {
         .disabled =
         undoStack.length === 0;
 
+
     document
         .getElementById("redoTool")
         .disabled =
@@ -2434,7 +3291,7 @@ function updateHistoryButtons() {
 
 
 /* =========================================================
-   전체 삭제
+   CLEAR
 ========================================================= */
 
 function clearCanvas() {
@@ -2444,22 +3301,29 @@ function clearCanvas() {
             "이 페이지의 필기를 모두 지울까요?"
         )
     ) {
+
         return;
     }
 
+
     saveState();
 
-    const rect =
-        canvas.getBoundingClientRect();
+
+    const size =
+        getCanvasCSSSize();
+
 
     ctx.clearRect(
         0,
         0,
-        rect.width,
-        rect.height
+        size.width,
+        size.height
     );
 
-    redoStack = [];
+
+    redoStack =
+        [];
+
 
     updateHistoryButtons();
 
@@ -2472,7 +3336,326 @@ function clearCanvas() {
 
 
 /* =========================================================
-   자동 저장
+   TOOL
+========================================================= */
+
+function setTool(value) {
+
+    tool =
+        value;
+
+
+    document
+        .getElementById(
+            "penTool"
+        )
+        .classList.toggle(
+            "active",
+            value === "pen"
+        );
+
+
+    document
+        .getElementById(
+            "eraserTool"
+        )
+        .classList.toggle(
+            "active",
+            value === "eraser"
+        );
+
+
+    canvas.style.cursor =
+        value === "pen"
+            ? "crosshair"
+            : "cell";
+
+
+    closePopover();
+}
+
+
+/* =========================================================
+   POPOVER
+========================================================= */
+
+function togglePopover() {
+
+    document
+        .getElementById(
+            "popover"
+        )
+        .classList.toggle(
+            "show"
+        );
+}
+
+
+function closePopover() {
+
+    document
+        .getElementById(
+            "popover"
+        )
+        .classList.remove(
+            "show"
+        );
+}
+
+
+/* =========================================================
+   PEN SIZE
+========================================================= */
+
+const sizeRange =
+    document.getElementById(
+        "sizeRange"
+    );
+
+
+sizeRange.addEventListener(
+    "input",
+    () => {
+
+        size =
+            Number(
+                sizeRange.value
+            );
+
+
+        updateSizePreview();
+
+        setTool(
+            "pen"
+        );
+
+        scheduleSave();
+    }
+);
+
+
+function updateSizePreview() {
+
+    const dot =
+        document.getElementById(
+            "sizeDot"
+        );
+
+
+    const diameter =
+        Math.min(
+            26,
+            Math.max(
+                3,
+                size * 1.65
+            )
+        );
+
+
+    dot.style.width =
+        diameter + "px";
+
+    dot.style.height =
+        diameter + "px";
+}
+
+
+updateSizePreview();
+
+
+/* =========================================================
+   COLORS
+========================================================= */
+
+document
+    .querySelectorAll(
+        ".color-btn"
+    )
+    .forEach(
+        button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    color =
+                        button.dataset.color;
+
+
+                    document
+                        .getElementById(
+                            "currentColor"
+                        )
+                        .style.background =
+                        color;
+
+
+                    document
+                        .querySelectorAll(
+                            ".color-btn"
+                        )
+                        .forEach(
+                            b => {
+
+                                b.classList
+                                    .remove(
+                                        "active"
+                                    );
+                            }
+                        );
+
+
+                    button.classList.add(
+                        "active"
+                    );
+
+
+                    setTool(
+                        "pen"
+                    );
+
+
+                    scheduleSave();
+                }
+            );
+        }
+    );
+
+
+/* =========================================================
+   PAPER
+========================================================= */
+
+function setPaper(type) {
+
+    paper.classList.remove(
+        "lines",
+        "grid"
+    );
+
+
+    if (
+        type === "lines"
+    ) {
+
+        paper.classList.add(
+            "lines"
+        );
+    }
+
+
+    if (
+        type === "grid"
+    ) {
+
+        paper.classList.add(
+            "grid"
+        );
+    }
+
+
+    document
+        .querySelectorAll(
+            ".paper-option"
+        )
+        .forEach(
+            button => {
+
+                button.classList.toggle(
+                    "active",
+                    button.dataset.paper ===
+                    type
+                );
+            }
+        );
+}
+
+
+/* =========================================================
+   ZOOM
+========================================================= */
+
+function applyZoom() {
+
+    paper.style.transform =
+        `translate3d(
+            ${panX}px,
+            ${panY}px,
+            0
+        ) scale(${zoom})`;
+
+
+    updateZoomText();
+}
+
+
+function updateZoomText() {
+
+    document
+        .getElementById(
+            "zoomValue"
+        )
+        .textContent =
+        Math.round(
+            zoom * 100
+        ) + "%";
+}
+
+
+function setZoom(value) {
+
+    zoom =
+        Math.max(
+            MIN_ZOOM,
+            Math.min(
+                MAX_ZOOM,
+                value
+            )
+        );
+
+
+    applyZoom();
+}
+
+
+function zoomIn() {
+
+    setZoom(
+        zoom + .25
+    );
+}
+
+
+function zoomOut() {
+
+    setZoom(
+        zoom - .25
+    );
+}
+
+
+function resetZoom() {
+
+    zoom =
+        1;
+
+    panX =
+        0;
+
+    panY =
+        0;
+
+
+    applyZoom();
+
+    showToast(
+        "100%"
+    );
+}
+
+
+/* =========================================================
+   AUTOSAVE
 ========================================================= */
 
 function scheduleSave() {
@@ -2482,112 +3665,148 @@ function scheduleSave() {
             "saveIndicator"
         );
 
+
     indicator.textContent =
         "저장 중...";
 
-    clearTimeout(saveTimer);
+
+    clearTimeout(
+        saveTimer
+    );
+
 
     saveTimer =
-        setTimeout(() => {
+        setTimeout(
+            () => {
 
-            localStorage.setItem(
-                "paperNote",
-                canvas.toDataURL("image/png")
-            );
+                localStorage.setItem(
+                    "paperNote",
+                    canvas.toDataURL(
+                        "image/png"
+                    )
+                );
 
-            localStorage.setItem(
-                "paperNoteColor",
-                color
-            );
 
-            localStorage.setItem(
-                "paperNoteSize",
-                size
-            );
+                localStorage.setItem(
+                    "paperNoteColor",
+                    color
+                );
 
-            indicator.textContent =
-                "자동 저장됨";
 
-        }, 450);
+                localStorage.setItem(
+                    "paperNoteSize",
+                    String(size)
+                );
+
+
+                indicator.textContent =
+                    "자동 저장됨";
+
+            },
+            500
+        );
 }
 
 
 /* =========================================================
-   내보내기 캔버스
+   EXPORT CANVAS
 ========================================================= */
 
 function createExportCanvas() {
 
-    const out =
+    const output =
         document.createElement(
             "canvas"
         );
 
-    out.width =
+
+    output.width =
         canvas.width;
 
-    out.height =
+    output.height =
         canvas.height;
 
-    const outCtx =
-        out.getContext("2d");
 
-    outCtx.fillStyle =
+    const outputCtx =
+        output.getContext(
+            "2d"
+        );
+
+
+    /*
+       PNG 저장 시
+       흰색 배경
+    */
+
+    outputCtx.fillStyle =
         "#ffffff";
 
-    outCtx.fillRect(
+
+    outputCtx.fillRect(
         0,
         0,
-        out.width,
-        out.height
+        output.width,
+        output.height
     );
 
-    outCtx.drawImage(
+
+    outputCtx.drawImage(
         canvas,
         0,
         0
     );
 
-    return out;
+
+    return output;
 }
 
 
 /* =========================================================
-   PNG 저장
+   SAVE PNG
 ========================================================= */
 
 function saveNote() {
 
-    const out =
+    const output =
         createExportCanvas();
+
 
     const link =
         document.createElement(
             "a"
         );
 
-    const date =
+
+    const now =
         new Date();
+
+
+    const date =
+        now.getFullYear() +
+        "-" +
+        String(
+            now.getMonth() + 1
+        ).padStart(2, "0") +
+        "-" +
+        String(
+            now.getDate()
+        ).padStart(2, "0");
+
 
     link.download =
         "PaperNote_" +
-        date.getFullYear() +
-        "-" +
-        String(
-            date.getMonth() + 1
-        ).padStart(2, "0") +
-        "-" +
-        String(
-            date.getDate()
-        ).padStart(2, "0") +
+        date +
         ".png";
 
+
     link.href =
-        out.toDataURL(
+        output.toDataURL(
             "image/png"
         );
 
+
     link.click();
+
 
     showToast(
         "필기를 저장했습니다"
@@ -2596,20 +3815,27 @@ function saveNote() {
 
 
 /* =========================================================
-   공유
+   SHARE
 ========================================================= */
 
 async function shareNote() {
 
-    const out =
+    const output =
         createExportCanvas();
 
-    out.toBlob(
+
+    output.toBlob(
         async blob => {
 
             if (!blob) {
+
+                showToast(
+                    "공유할 수 없습니다"
+                );
+
                 return;
             }
+
 
             const file =
                 new File(
@@ -2620,6 +3846,12 @@ async function shareNote() {
                             "image/png"
                     }
                 );
+
+
+            /*
+               Android / iPadOS 등
+               Web Share API
+            */
 
             if (
                 navigator.share &&
@@ -2643,12 +3875,13 @@ async function shareNote() {
 
                         files:
                             [file]
-
                     });
+
 
                     showToast(
                         "공유했습니다"
                     );
+
 
                     return;
 
@@ -2658,31 +3891,59 @@ async function shareNote() {
                         error.name ===
                         "AbortError"
                     ) {
+
                         return;
                     }
                 }
             }
+
+
+            /*
+               Web Share를 지원하지 않는
+               브라우저에서는 PNG 다운로드
+            */
+
+            const url =
+                URL.createObjectURL(
+                    blob
+                );
+
 
             const link =
                 document.createElement(
                     "a"
                 );
 
+
+            link.href =
+                url;
+
             link.download =
                 "PaperNote.png";
 
-            link.href =
-                URL.createObjectURL(
-                    blob
-                );
+
+            document.body.appendChild(
+                link
+            );
+
 
             link.click();
 
-            setTimeout(() => {
-                URL.revokeObjectURL(
-                    link.href
-                );
-            }, 1000);
+
+            link.remove();
+
+
+            setTimeout(
+                () => {
+
+                    URL.revokeObjectURL(
+                        url
+                    );
+
+                },
+                1000
+            );
+
 
             showToast(
                 "PNG로 저장했습니다"
@@ -2695,190 +3956,7 @@ async function shareNote() {
 
 
 /* =========================================================
-   도구
-========================================================= */
-
-function setTool(value) {
-
-    tool = value;
-
-    document
-        .getElementById("penTool")
-        .classList.toggle(
-            "active",
-            value === "pen"
-        );
-
-    document
-        .getElementById("eraserTool")
-        .classList.toggle(
-            "active",
-            value === "eraser"
-        );
-
-    canvas.style.cursor =
-        value === "pen"
-            ? "crosshair"
-            : "cell";
-
-    closePopover();
-}
-
-
-/* =========================================================
-   팝업
-========================================================= */
-
-function togglePopover() {
-
-    document
-        .getElementById("popover")
-        .classList.toggle(
-            "show"
-        );
-}
-
-
-function closePopover() {
-
-    document
-        .getElementById("popover")
-        .classList.remove(
-            "show"
-        );
-}
-
-
-/* =========================================================
-   펜 굵기
-========================================================= */
-
-document
-    .getElementById("sizeRange")
-    .addEventListener(
-        "input",
-        e => {
-
-            size =
-                Number(
-                    e.target.value
-                );
-
-            const dot =
-                document.getElementById(
-                    "sizeDot"
-                );
-
-            const value =
-                Math.min(
-                    25,
-                    Math.max(
-                        3,
-                        size * 1.6
-                    )
-                );
-
-            dot.style.width =
-                value + "px";
-
-            dot.style.height =
-                value + "px";
-
-            setTool("pen");
-
-            scheduleSave();
-        }
-    );
-
-
-/* =========================================================
-   색상
-========================================================= */
-
-document
-    .querySelectorAll(".color-btn")
-    .forEach(button => {
-
-        button.addEventListener(
-            "click",
-            () => {
-
-                color =
-                    button.dataset.color;
-
-                document
-                    .getElementById(
-                        "currentColor"
-                    )
-                    .style.background =
-                    color;
-
-                document
-                    .querySelectorAll(
-                        ".color-btn"
-                    )
-                    .forEach(
-                        b =>
-                            b.classList
-                                .remove(
-                                    "active"
-                                )
-                    );
-
-                button.classList.add(
-                    "active"
-                );
-
-                setTool("pen");
-
-                scheduleSave();
-            }
-        );
-    });
-
-
-/* =========================================================
-   용지
-========================================================= */
-
-function setPaper(type) {
-
-    paper.classList.remove(
-        "lines",
-        "grid"
-    );
-
-    if (type === "lines") {
-
-        paper.classList.add(
-            "lines"
-        );
-    }
-
-    if (type === "grid") {
-
-        paper.classList.add(
-            "grid"
-        );
-    }
-
-    document
-        .querySelectorAll(
-            ".paper-option"
-        )
-        .forEach(button => {
-
-            button.classList.toggle(
-                "active",
-                button.dataset.paper ===
-                type
-            );
-        });
-}
-
-
-/* =========================================================
-   다크 모드
+   DARK MODE
 ========================================================= */
 
 function toggleDark() {
@@ -2886,6 +3964,7 @@ function toggleDark() {
     document.body.classList.toggle(
         "dark"
     );
+
 
     localStorage.setItem(
         "paperNoteDark",
@@ -2896,20 +3975,8 @@ function toggleDark() {
 }
 
 
-if (
-    localStorage.getItem(
-        "paperNoteDark"
-    ) === "true"
-) {
-
-    document.body.classList.add(
-        "dark"
-    );
-}
-
-
 /* =========================================================
-   저장된 노트
+   LOAD SAVED NOTE
 ========================================================= */
 
 function loadNote() {
@@ -2919,45 +3986,58 @@ function loadNote() {
             "paperNote"
         );
 
+
     if (saved) {
 
         const img =
             new Image();
 
-        img.onload = () => {
 
-            const rect =
-                canvas.getBoundingClientRect();
+        img.onload =
+            () => {
 
-            ctx.clearRect(
-                0,
-                0,
-                rect.width,
-                rect.height
-            );
+                const size =
+                    getCanvasCSSSize();
 
-            ctx.drawImage(
-                img,
-                0,
-                0,
-                rect.width,
-                rect.height
-            );
-        };
 
-        img.src = saved;
+                ctx.clearRect(
+                    0,
+                    0,
+                    size.width,
+                    size.height
+                );
+
+
+                ctx.drawImage(
+                    img,
+                    0,
+                    0,
+                    size.width,
+                    size.height
+                );
+            };
+
+
+        img.src =
+            saved;
     }
 
+
+    /*
+       색상
+    */
 
     const savedColor =
         localStorage.getItem(
             "paperNoteColor"
         );
 
+
     if (savedColor) {
 
         color =
             savedColor;
+
 
         document
             .getElementById(
@@ -2966,25 +4046,33 @@ function loadNote() {
             .style.background =
             color;
 
+
         document
             .querySelectorAll(
                 ".color-btn"
             )
-            .forEach(button => {
+            .forEach(
+                button => {
 
-                button.classList.toggle(
-                    "active",
-                    button.dataset.color ===
-                    color
-                );
-            });
+                    button.classList.toggle(
+                        "active",
+                        button.dataset.color ===
+                        color
+                    );
+                }
+            );
     }
 
+
+    /*
+       굵기
+    */
 
     const savedSize =
         localStorage.getItem(
             "paperNoteSize"
         );
+
 
     if (savedSize) {
 
@@ -2993,41 +4081,23 @@ function loadNote() {
                 savedSize
             );
 
-        document
-            .getElementById(
-                "sizeRange"
-            )
-            .value =
+
+        sizeRange.value =
             size;
 
-        const dot =
-            document.getElementById(
-                "sizeDot"
-            );
 
-        const value =
-            Math.min(
-                25,
-                Math.max(
-                    3,
-                    size * 1.6
-                )
-            );
-
-        dot.style.width =
-            value + "px";
-
-        dot.style.height =
-            value + "px";
+        updateSizePreview();
     }
 }
 
 
 /* =========================================================
-   토스트
+   TOAST
 ========================================================= */
 
-let toastTimer;
+let toastTimer =
+    null;
+
 
 function showToast(message) {
 
@@ -3036,16 +4106,20 @@ function showToast(message) {
             "toast"
         );
 
+
     toast.textContent =
         message;
+
 
     toast.classList.add(
         "show"
     );
 
+
     clearTimeout(
         toastTimer
     );
+
 
     toastTimer =
         setTimeout(
@@ -3062,7 +4136,7 @@ function showToast(message) {
 
 
 /* =========================================================
-   팝업 외부 클릭
+   OUTSIDE POPOVER
 ========================================================= */
 
 document.addEventListener(
@@ -3074,14 +4148,17 @@ document.addEventListener(
                 "popover"
             );
 
+
         const settings =
             document.getElementById(
                 "settingsTool"
             );
 
+
         if (
-            popover &&
-            settings &&
+            popover.classList.contains(
+                "show"
+            ) &&
             !popover.contains(
                 e.target
             ) &&
@@ -3097,7 +4174,7 @@ document.addEventListener(
 
 
 /* =========================================================
-   키보드 단축키
+   KEYBOARD SHORTCUT
 ========================================================= */
 
 document.addEventListener(
@@ -3109,24 +4186,38 @@ document.addEventListener(
             e.metaKey;
 
 
+        /*
+           Undo
+        */
+
         if (
             command &&
-            e.key.toLowerCase() === "z"
+            e.key.toLowerCase() ===
+            "z"
         ) {
 
             e.preventDefault();
 
+
             if (e.shiftKey) {
+
                 redo();
+
             } else {
+
                 undo();
             }
         }
 
 
+        /*
+           Redo
+        */
+
         if (
             command &&
-            e.key.toLowerCase() === "y"
+            e.key.toLowerCase() ===
+            "y"
         ) {
 
             e.preventDefault();
@@ -3135,9 +4226,14 @@ document.addEventListener(
         }
 
 
+        /*
+           Save
+        */
+
         if (
             command &&
-            e.key.toLowerCase() === "s"
+            e.key.toLowerCase() ===
+            "s"
         ) {
 
             e.preventDefault();
@@ -3149,18 +4245,23 @@ document.addEventListener(
 
 
 /* =========================================================
-   초기화
+   INITIALIZE
 ========================================================= */
 
-setTimeout(() => {
+setTimeout(
+    () => {
 
-    loadNote();
+        loadNote();
 
-    updateHistoryButtons();
+        updateHistoryButtons();
 
-    applyZoom();
+        updateSizePreview();
 
-}, 100);
+        applyZoom();
+
+    },
+    100
+);
 
 </script>
 
