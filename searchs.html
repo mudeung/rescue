@@ -93,7 +93,7 @@ header::after {
 
 
 /* =========================================================
-   MAP CONTAINER
+   MAP
    ========================================================= */
 
 #container {
@@ -117,6 +117,95 @@ header::after {
     height: 100%;
 
     background: #06101d;
+}
+
+
+/* =========================================================
+   STATUS PANEL
+   ========================================================= */
+
+#statusBar {
+
+    position: fixed;
+
+    top: 62px;
+    left: 10px;
+    right: 10px;
+
+    z-index: 850;
+
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+
+    gap: 8px;
+
+    pointer-events: none;
+
+}
+
+.status-item {
+
+    padding: 6px 9px;
+
+    border-radius: 8px;
+
+    background:
+        rgba(3,15,27,.88);
+
+    border:
+        1px solid
+        rgba(0,255,157,.3);
+
+    color:
+        rgba(180,220,210,.75);
+
+    font-size: 9px;
+
+    white-space: nowrap;
+
+    box-shadow:
+        0 3px 12px
+        rgba(0,0,0,.35);
+
+    backdrop-filter:
+        blur(8px);
+
+    -webkit-backdrop-filter:
+        blur(8px);
+
+}
+
+.status-item.on {
+
+    color: #00ff9d;
+
+    border-color:
+        rgba(0,255,157,.65);
+
+    box-shadow:
+        0 0 12px
+        rgba(0,255,157,.12);
+
+}
+
+.status-item.warn {
+
+    color: #ffb347;
+
+    border-color:
+        rgba(255,179,71,.55);
+
+}
+
+.status-item.off {
+
+    color: #ff5757;
+
+    border-color:
+        rgba(255,80,80,.5);
+
 }
 
 
@@ -162,22 +251,28 @@ header::after {
         0 10px 35px rgba(0,0,0,.55),
         0 0 25px rgba(0,255,157,.08);
 
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter:
+        blur(14px);
+
+    -webkit-backdrop-filter:
+        blur(14px);
 }
 
 
 /* =========================================================
-   NAME INPUT
+   NAME
    ========================================================= */
 
 #name {
-    grid-column: 1 / -1;
+
+    grid-column:
+        1 / -1;
 
     width: 100%;
     height: 46px;
 
-    padding: 0 14px;
+    padding:
+        0 14px;
 
     border:
         1px solid
@@ -195,17 +290,21 @@ header::after {
     font-family: monospace;
 
     font-size: 15px;
+
     font-weight: bold;
 
     text-align: center;
 }
 
 #name::placeholder {
-    color: rgba(0,255,157,.45);
+    color:
+        rgba(0,255,157,.45);
 }
 
 #name:focus {
-    border-color: #00ff9d;
+
+    border-color:
+        #00ff9d;
 
     box-shadow:
         0 0 12px
@@ -218,6 +317,7 @@ header::after {
    ========================================================= */
 
 button {
+
     min-height: 48px;
 
     border:
@@ -238,6 +338,7 @@ button {
     font-family: monospace;
 
     font-size: 12px;
+
     font-weight: bold;
 
     cursor: pointer;
@@ -249,7 +350,9 @@ button {
 }
 
 button:active {
-    transform: scale(.94);
+
+    transform:
+        scale(.94);
 
     background:
         rgba(0,255,157,.18);
@@ -260,8 +363,11 @@ button:active {
 }
 
 button:disabled {
+
     opacity: .35;
-    cursor: not-allowed;
+
+    cursor:
+        not-allowed;
 }
 
 
@@ -270,11 +376,14 @@ button:disabled {
    ========================================================= */
 
 #startBtn {
-    grid-column: span 2;
+
+    grid-column:
+        span 2;
 
     height: 48px;
 
-    color: #00150d;
+    color:
+        #00150d;
 
     background:
         linear-gradient(
@@ -283,7 +392,8 @@ button:disabled {
             #00d986
         );
 
-    border-color: #00ff9d;
+    border-color:
+        #00ff9d;
 
     font-size: 14px;
 
@@ -293,7 +403,9 @@ button:disabled {
 }
 
 #startBtn:disabled {
-    color: #7b9a8d;
+
+    color:
+        #7b9a8d;
 
     background:
         rgba(0,255,157,.12);
@@ -301,7 +413,8 @@ button:disabled {
     border-color:
         rgba(0,255,157,.25);
 
-    box-shadow: none;
+    box-shadow:
+        none;
 }
 
 
@@ -310,7 +423,8 @@ button:disabled {
    ========================================================= */
 
 button[onclick="goMyLocation()"] {
-    grid-column: span 2;
+    grid-column:
+        span 2;
 }
 
 
@@ -319,9 +433,12 @@ button[onclick="goMyLocation()"] {
    ========================================================= */
 
 button[onclick="shareLocation()"] {
-    grid-column: span 2;
 
-    color: #55c8ff;
+    grid-column:
+        span 2;
+
+    color:
+        #55c8ff;
 
     border-color:
         rgba(60,190,255,.55);
@@ -340,9 +457,12 @@ button[onclick="shareLocation()"] {
    ========================================================= */
 
 button[onclick="sendSOS()"] {
-    grid-column: span 2;
 
-    color: #ff5757;
+    grid-column:
+        span 2;
+
+    color:
+        #ff5757;
 
     border-color:
         rgba(255,70,70,.75);
@@ -360,6 +480,7 @@ button[onclick="sendSOS()"] {
 }
 
 button[onclick="sendSOS()"]:active {
+
     background:
         rgba(255,40,40,.25);
 
@@ -374,9 +495,12 @@ button[onclick="sendSOS()"]:active {
    ========================================================= */
 
 button[onclick="stopTracking()"] {
-    grid-column: span 2;
 
-    color: #ffb347;
+    grid-column:
+        span 2;
+
+    color:
+        #ffb347;
 
     border-color:
         rgba(255,179,71,.45);
@@ -388,9 +512,12 @@ button[onclick="stopTracking()"] {
    ========================================================= */
 
 button[onclick="loadAllHistory()"] {
-    grid-column: span 2;
 
-    color: #d0a7ff;
+    grid-column:
+        span 2;
+
+    color:
+        #d0a7ff;
 
     border-color:
         rgba(180,120,255,.5);
@@ -409,60 +536,77 @@ button[onclick="loadAllHistory()"] {
    ========================================================= */
 
 .name-label {
+
     background:
         rgba(0,20,16,.94);
 
-    color: #00ff9d;
+    color:
+        #00ff9d;
 
     border:
         1px solid
         rgba(0,255,157,.7);
 
-    padding: 5px 9px;
+    padding:
+        5px 9px;
 
-    border-radius: 8px;
+    border-radius:
+        8px;
 
-    font-size: 11px;
-    font-weight: bold;
+    font-size:
+        11px;
 
-    white-space: nowrap;
+    font-weight:
+        bold;
+
+    white-space:
+        nowrap;
 
     box-shadow:
         0 3px 12px
         rgba(0,0,0,.35);
 
-    backdrop-filter: blur(6px);
+    backdrop-filter:
+        blur(6px);
 }
 
 
 /* =========================================================
-   CLICK COORDINATE WINDOW
+   COORDINATE WINDOW
    ========================================================= */
 
 .coordinate-window {
 
-    position: relative;
+    position:
+        relative;
 
-    min-width: 190px;
+    min-width:
+        190px;
 
-    padding: 13px 38px 12px 12px;
+    padding:
+        13px 38px 12px 12px;
 
     background:
         rgba(4,14,27,.97);
 
-    color: #00ff9d;
+    color:
+        #00ff9d;
 
     border:
         1px solid
         #00ff9d;
 
-    border-radius: 12px;
+    border-radius:
+        12px;
 
-    font-family: monospace;
+    font-family:
+        monospace;
 
-    font-size: 12px;
+    font-size:
+        12px;
 
-    line-height: 1.7;
+    line-height:
+        1.7;
 
     box-shadow:
         0 5px 25px
@@ -471,71 +615,68 @@ button[onclick="loadAllHistory()"] {
 
 
 /* =========================================================
-   COORDINATE CLOSE BUTTON
+   CLOSE
    ========================================================= */
 
 .coordinate-close {
 
-    position: absolute;
+    position:
+        absolute;
 
-    top: 5px;
-    right: 5px;
+    top:
+        5px;
 
-    width: 28px;
-    height: 28px;
+    right:
+        5px;
 
-    min-height: 28px;
+    width:
+        28px;
 
-    padding: 0;
-    margin: 0;
+    height:
+        28px;
+
+    min-height:
+        28px;
+
+    padding:
+        0;
+
+    margin:
+        0;
 
     border:
         1px solid
         rgba(255,80,80,.75);
 
-    border-radius: 7px;
+    border-radius:
+        7px;
 
     background:
         rgba(80,10,15,.95);
 
-    color: #ff5757;
+    color:
+        #ff5757;
 
-    font-family: monospace;
+    font-family:
+        monospace;
 
-    font-size: 16px;
-    font-weight: bold;
+    font-size:
+        16px;
 
-    line-height: 25px;
+    font-weight:
+        bold;
 
-    text-align: center;
+    line-height:
+        25px;
 
-    cursor: pointer;
+    text-align:
+        center;
 
-    z-index: 10;
+    cursor:
+        pointer;
 
-    box-shadow:
-        0 0 8px
-        rgba(255,0,0,.15);
-}
-
-.coordinate-close:hover {
-
-    background:
-        rgba(255,50,50,.25);
-
-    color: #ff7777;
-}
-
-.coordinate-close:active {
-
-    transform: scale(.88);
-
-    background:
-        rgba(255,50,50,.4);
-
-    box-shadow:
-        0 0 15px
-        rgba(255,0,0,.35);
+    z-index:
+        10;
 }
 
 
@@ -545,13 +686,17 @@ button[onclick="loadAllHistory()"] {
 
 .coordinate-title {
 
-    color: #55c8ff;
+    color:
+        #55c8ff;
 
-    font-size: 12px;
+    font-size:
+        12px;
 
-    font-weight: bold;
+    font-weight:
+        bold;
 
-    margin-bottom: 5px;
+    margin-bottom:
+        5px;
 }
 
 
@@ -561,9 +706,11 @@ button[onclick="loadAllHistory()"] {
 
 .coordinate-value {
 
-    color: #00ff9d;
+    color:
+        #00ff9d;
 
-    word-break: break-all;
+    word-break:
+        break-all;
 }
 
 
@@ -573,11 +720,14 @@ button[onclick="loadAllHistory()"] {
 
 .coordinate-marker {
 
-    width: 26px;
+    width:
+        26px;
 
-    height: 26px;
+    height:
+        26px;
 
-    border-radius: 50%;
+    border-radius:
+        50%;
 
     background:
         rgba(255,40,40,.2);
@@ -602,12 +752,29 @@ button[onclick="loadAllHistory()"] {
 @media (max-width:380px) {
 
     header {
-        font-size: 12px;
+        font-size:
+            12px;
+    }
+
+    #statusBar {
+        gap:
+            4px;
+    }
+
+    .status-item {
+        padding:
+            5px 6px;
+        font-size:
+            8px;
     }
 
     #panel {
-        left: 7px;
-        right: 7px;
+
+        left:
+            7px;
+
+        right:
+            7px;
 
         bottom:
             calc(
@@ -615,30 +782,46 @@ button[onclick="loadAllHistory()"] {
                 env(safe-area-inset-bottom)
             );
 
-        padding: 8px;
+        padding:
+            8px;
 
-        gap: 5px;
+        gap:
+            5px;
 
-        border-radius: 15px;
+        border-radius:
+            15px;
     }
 
     #name {
-        height: 43px;
-        font-size: 13px;
+
+        height:
+            43px;
+
+        font-size:
+            13px;
     }
 
     button {
-        min-height: 44px;
-        font-size: 10px;
+
+        min-height:
+            44px;
+
+        font-size:
+            10px;
     }
 
     #startBtn {
-        font-size: 12px;
+        font-size:
+            12px;
     }
 
     .coordinate-window {
-        min-width: 175px;
-        font-size: 11px;
+
+        min-width:
+            175px;
+
+        font-size:
+            11px;
     }
 
 }
@@ -654,33 +837,54 @@ and
 (max-height:600px) {
 
     header {
-        height: 42px;
+        height:
+            42px;
     }
 
     #container {
-        top: 42px;
-        height: calc(100dvh - 42px);
+
+        top:
+            42px;
+
+        height:
+            calc(100dvh - 42px);
+    }
+
+    #statusBar {
+
+        top:
+            50px;
     }
 
     #panel {
-        left: auto;
-        right: 10px;
-        bottom: 10px;
 
-        width: 310px;
+        left:
+            auto;
+
+        right:
+            10px;
+
+        bottom:
+            10px;
+
+        width:
+            310px;
 
         grid-template-columns:
             repeat(2,1fr);
 
-        padding: 8px;
+        padding:
+            8px;
     }
 
     #name {
-        height: 40px;
+        height:
+            40px;
     }
 
     button {
-        min-height: 42px;
+        min-height:
+            42px;
     }
 
 }
@@ -693,10 +897,18 @@ and
 @media (min-width:768px) {
 
     #panel {
-        left: 15px;
-        right: auto;
-        bottom: 15px;
-        width: 330px;
+
+        left:
+            15px;
+
+        right:
+            auto;
+
+        bottom:
+            15px;
+
+        width:
+            330px;
     }
 
 }
@@ -709,6 +921,7 @@ and
 @supports (padding:max(0px)) {
 
     #panel {
+
         bottom:
             max(
                 10px,
@@ -727,10 +940,38 @@ and
 
 
 <header>
-
 🛰 SEARCH AND RESCUE AI MAP
-
 </header>
+
+
+<!-- =======================================================
+     STATUS
+     ======================================================= -->
+
+<div id="statusBar">
+
+    <div
+        id="gpsStatus"
+        class="status-item off"
+    >
+        📍 GPS OFF
+    </div>
+
+    <div
+        id="wakeStatus"
+        class="status-item off"
+    >
+        🔒 화면방지 OFF
+    </div>
+
+    <div
+        id="saveStatus"
+        class="status-item on"
+    >
+        💾 저장 0
+    </div>
+
+</div>
 
 
 <div id="container">
@@ -810,9 +1051,8 @@ const API_URL =
 "https://script.google.com/macros/s/AKfycbyem5fAs2XGxNy6wrHO3s68CmJyHy7GI31IBKdiz49KtN3sfikYdfmpP07-3dWqna2R/exec";
 
 
-
 // =========================================================
-// DEVICE
+// DEVICE ID
 // =========================================================
 
 let DEVICE_ID =
@@ -835,7 +1075,6 @@ if(!DEVICE_ID){
 }
 
 
-
 // =========================================================
 // STATE
 // =========================================================
@@ -856,11 +1095,17 @@ let endTime = "";
 
 let previousPos = null;
 
-let directionMarker = null;
-
 let centerInterval = null;
 
 let wakeLock = null;
+
+let wakeLockRetryTimer = null;
+
+let isTracking = false;
+
+let gpsLastUpdate = 0;
+
+let isSendingQueue = false;
 
 
 // =========================================================
@@ -879,7 +1124,7 @@ const historyLabels = [];
 
 
 // =========================================================
-// CLICK COORDINATE OBJECTS
+// CLICK OBJECTS
 // =========================================================
 
 let clickMarker = null;
@@ -888,7 +1133,7 @@ let clickOverlay = null;
 
 
 // =========================================================
-// INPUT
+// DOM
 // =========================================================
 
 const nameInput =
@@ -905,6 +1150,26 @@ const startBtn =
     );
 
 
+const gpsStatus =
+
+    document.getElementById(
+        "gpsStatus"
+    );
+
+
+const wakeStatus =
+
+    document.getElementById(
+        "wakeStatus"
+    );
+
+
+const saveStatus =
+
+    document.getElementById(
+        "saveStatus"
+    );
+
 
 // =========================================================
 // NAME INPUT
@@ -917,13 +1182,11 @@ nameInput.addEventListener(
     () => {
 
         startBtn.disabled =
-
             nameInput.value.trim() === "";
 
     }
 
 );
-
 
 
 // =========================================================
@@ -932,7 +1195,8 @@ nameInput.addEventListener(
 
 function getNowTime(){
 
-    const d = new Date();
+    const d =
+        new Date();
 
     return (
 
@@ -983,6 +1247,631 @@ function getNowTime(){
 }
 
 
+// =========================================================
+// STATUS
+// =========================================================
+
+function setStatus(
+    element,
+    text,
+    mode
+){
+
+    element.textContent =
+        text;
+
+    element.classList.remove(
+        "on",
+        "off",
+        "warn"
+    );
+
+    element.classList.add(
+        mode
+    );
+
+}
+
+
+// =========================================================
+// INDEXED DB
+// =========================================================
+
+const DB_NAME =
+    "SEARCH_RESCUE_GPS_DB";
+
+const DB_VERSION =
+    1;
+
+const STORE_NAME =
+    "gps_records";
+
+let db = null;
+
+
+// =========================================================
+// OPEN DB
+// =========================================================
+
+function openDatabase(){
+
+    return new Promise(
+        (resolve,reject) => {
+
+            if(db){
+
+                resolve(db);
+
+                return;
+
+            }
+
+
+            if(!window.indexedDB){
+
+                reject(
+                    new Error(
+                        "IndexedDB not supported"
+                    )
+                );
+
+                return;
+
+            }
+
+
+            const request =
+                indexedDB.open(
+                    DB_NAME,
+                    DB_VERSION
+                );
+
+
+            request.onupgradeneeded =
+                function(event){
+
+                    const database =
+                        event.target.result;
+
+
+                    if(
+                        !database.objectStoreNames
+                        .contains(STORE_NAME)
+                    ){
+
+                        const store =
+                            database.createObjectStore(
+                                STORE_NAME,
+                                {
+                                    keyPath:
+                                        "id",
+                                    autoIncrement:
+                                        true
+                                }
+                            );
+
+
+                        store.createIndex(
+                            "sent",
+                            "sent",
+                            {
+                                unique:
+                                    false
+                            }
+                        );
+
+                    }
+
+                };
+
+
+            request.onsuccess =
+                function(event){
+
+                    db =
+                        event.target.result;
+
+                    resolve(db);
+
+                };
+
+
+            request.onerror =
+                function(){
+
+                    reject(
+                        request.error
+                    );
+
+                };
+
+        }
+    );
+
+}
+
+
+// =========================================================
+// SAVE GPS LOCALLY
+// =========================================================
+
+async function saveGPSLocal(data){
+
+    try{
+
+        const database =
+            await openDatabase();
+
+
+        return new Promise(
+            (resolve,reject) => {
+
+                const tx =
+                    database.transaction(
+                        STORE_NAME,
+                        "readwrite"
+                    );
+
+
+                const store =
+                    tx.objectStore(
+                        STORE_NAME
+                    );
+
+
+                store.add({
+
+                    ...data,
+
+                    savedAt:
+                        Date.now(),
+
+                    sent:
+                        false
+
+                });
+
+
+                tx.oncomplete =
+                    function(){
+
+                        updatePendingCount();
+
+                        resolve();
+
+                    };
+
+
+                tx.onerror =
+                    function(){
+
+                        reject(
+                            tx.error
+                        );
+
+                    };
+
+            }
+        );
+
+    }
+
+    catch(error){
+
+        console.log(
+            "LOCAL SAVE ERROR",
+            error
+        );
+
+    }
+
+}
+
+
+// =========================================================
+// GET PENDING
+// =========================================================
+
+async function getPendingRecords(){
+
+    try{
+
+        const database =
+            await openDatabase();
+
+
+        return new Promise(
+            (resolve,reject) => {
+
+                const tx =
+                    database.transaction(
+                        STORE_NAME,
+                        "readonly"
+                    );
+
+
+                const store =
+                    tx.objectStore(
+                        STORE_NAME
+                    );
+
+
+                const request =
+                    store.getAll();
+
+
+                request.onsuccess =
+                    function(){
+
+                        const result =
+                            request.result
+                            .filter(
+                                x =>
+                                    x.sent === false
+                            );
+
+                        resolve(result);
+
+                    };
+
+
+                request.onerror =
+                    function(){
+
+                        reject(
+                            request.error
+                        );
+
+                    };
+
+            }
+        );
+
+    }
+
+    catch(error){
+
+        console.log(
+            "GET PENDING ERROR",
+            error
+        );
+
+        return [];
+
+    }
+
+}
+
+
+// =========================================================
+// MARK SENT
+// =========================================================
+
+async function markRecordSent(id){
+
+    try{
+
+        const database =
+            await openDatabase();
+
+
+        return new Promise(
+            (resolve,reject) => {
+
+                const tx =
+                    database.transaction(
+                        STORE_NAME,
+                        "readwrite"
+                    );
+
+
+                const store =
+                    tx.objectStore(
+                        STORE_NAME
+                    );
+
+
+                const request =
+                    store.get(id);
+
+
+                request.onsuccess =
+                    function(){
+
+                        const record =
+                            request.result;
+
+
+                        if(record){
+
+                            record.sent =
+                                true;
+
+
+                            record.sentAt =
+                                Date.now();
+
+
+                            store.put(
+                                record
+                            );
+
+                        }
+
+                    };
+
+
+                tx.oncomplete =
+                    function(){
+
+                        resolve();
+
+                    };
+
+
+                tx.onerror =
+                    function(){
+
+                        reject(
+                            tx.error
+                        );
+
+                    };
+
+            }
+        );
+
+    }
+
+    catch(error){
+
+        console.log(
+            "MARK SENT ERROR",
+            error
+        );
+
+    }
+
+}
+
+
+// =========================================================
+// PENDING COUNT
+// =========================================================
+
+async function getPendingCount(){
+
+    const records =
+        await getPendingRecords();
+
+    return records.length;
+
+}
+
+
+// =========================================================
+// UPDATE SAVE STATUS
+// =========================================================
+
+async function updatePendingCount(){
+
+    const count =
+        await getPendingCount();
+
+
+    if(count === 0){
+
+        setStatus(
+            saveStatus,
+            "💾 저장 0",
+            "on"
+        );
+
+    }
+
+    else{
+
+        setStatus(
+            saveStatus,
+            "💾 저장대기 " + count,
+            "warn"
+        );
+
+    }
+
+}
+
+
+// =========================================================
+// SEND ONE RECORD
+// =========================================================
+
+async function sendRecord(record){
+
+    const payload = {
+
+        name:
+            record.name,
+
+        device:
+            record.device,
+
+        lat:
+            record.lat,
+
+        lng:
+            record.lng,
+
+        accuracy:
+            record.accuracy,
+
+        speed:
+            record.speed,
+
+        status:
+            record.status,
+
+        startTime:
+            record.startTime || "",
+
+        endTime:
+            record.endTime || "",
+
+        recordedAt:
+            record.recordedAt || "",
+
+        localSavedAt:
+            record.savedAt || ""
+
+    };
+
+
+    const response =
+        await fetch(
+
+            API_URL,
+
+            {
+
+                method:
+                    "POST",
+
+                headers: {
+
+                    "Content-Type":
+                        "text/plain"
+
+                },
+
+                body:
+                    JSON.stringify(
+                        payload
+                    )
+
+            }
+
+        );
+
+
+    if(!response.ok){
+
+        throw new Error(
+            "HTTP " +
+            response.status
+        );
+
+    }
+
+}
+
+
+// =========================================================
+// SEND PENDING QUEUE
+// =========================================================
+
+async function sendPendingQueue(){
+
+    if(isSendingQueue)
+        return;
+
+
+    if(!navigator.onLine)
+        return;
+
+
+    isSendingQueue =
+        true;
+
+
+    try{
+
+        const records =
+            await getPendingRecords();
+
+
+        if(
+            records.length === 0
+        ){
+
+            await updatePendingCount();
+
+            return;
+
+        }
+
+
+        for(
+            const record of records
+        ){
+
+            try{
+
+                await sendRecord(
+                    record
+                );
+
+
+                await markRecordSent(
+                    record.id
+                );
+
+            }
+
+            catch(error){
+
+                console.log(
+                    "QUEUE SEND ERROR",
+                    error
+                );
+
+                break;
+
+            }
+
+        }
+
+    }
+
+    finally{
+
+        isSendingQueue =
+            false;
+
+        await updatePendingCount();
+
+    }
+
+}
+
+
+// =========================================================
+// SAVE + SEND
+// =========================================================
+
+async function saveAndSend(data){
+
+    // 항상 휴대폰 IndexedDB에 먼저 저장
+
+    await saveGPSLocal(
+        data
+    );
+
+
+    // 인터넷이 없으면 여기서 종료
+
+    if(!navigator.onLine){
+
+        return;
+
+    }
+
+
+    // 저장된 큐를 전송
+
+    await sendPendingQueue();
+
+}
+
 
 // =========================================================
 // MAP
@@ -992,7 +1881,9 @@ const map =
 
 new kakao.maps.Map(
 
-    document.getElementById("map"),
+    document.getElementById(
+        "map"
+    ),
 
     {
 
@@ -1003,7 +1894,8 @@ new kakao.maps.Map(
                 126.9883
             ),
 
-        level: 5
+        level:
+            5
 
     }
 
@@ -1011,30 +1903,31 @@ new kakao.maps.Map(
 
 
 // =========================================================
-// CLEAR CLICKED LOCATION
-// 좌표창 + 빨간 좌표 마커 동시 삭제
+// CLEAR CLICKED
 // =========================================================
 
 function clearClickedLocation(){
 
-    // 좌표 정보창 삭제
-
     if(clickOverlay){
 
-        clickOverlay.setMap(null);
+        clickOverlay.setMap(
+            null
+        );
 
-        clickOverlay = null;
+        clickOverlay =
+            null;
 
     }
 
 
-    // 빨간 좌표 마커 삭제
-
     if(clickMarker){
 
-        clickMarker.setMap(null);
+        clickMarker.setMap(
+            null
+        );
 
-        clickMarker = null;
+        clickMarker =
+            null;
 
     }
 
@@ -1042,8 +1935,7 @@ function clearClickedLocation(){
 
 
 // =========================================================
-// MAP CLICK → COORDINATE
-// 지도 클릭 시 좌표창 표시
+// MAP CLICK
 // =========================================================
 
 kakao.maps.event.addListener(
@@ -1068,16 +1960,8 @@ kakao.maps.event.addListener(
             lng.toFixed(6);
 
 
-        // -------------------------------------------------
-        // 기존 좌표창 / 좌표마커 제거
-        // -------------------------------------------------
-
         clearClickedLocation();
 
-
-        // -------------------------------------------------
-        // 빨간 좌표 마커
-        // -------------------------------------------------
 
         clickMarker =
 
@@ -1093,10 +1977,10 @@ kakao.maps.event.addListener(
                     '<div class="coordinate-marker"></div>',
 
                 yAnchor:
-                    0.5,
+                    .5,
 
                 xAnchor:
-                    0.5,
+                    .5,
 
                 zIndex:
                     999
@@ -1104,13 +1988,10 @@ kakao.maps.event.addListener(
             });
 
 
-        // -------------------------------------------------
-        // 좌표 정보창 DOM 생성
-        // -------------------------------------------------
-
         const infoContent =
-
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
 
 
         infoContent.className =
@@ -1126,9 +2007,7 @@ kakao.maps.event.addListener(
             >✕</button>
 
             <div class="coordinate-title">
-
                 📍 SELECTED LOCATION
-
             </div>
 
             <div class="coordinate-value">
@@ -1146,12 +2025,7 @@ kakao.maps.event.addListener(
         `;
 
 
-        // -------------------------------------------------
-        // ✕ 버튼
-        // -------------------------------------------------
-
         const closeButton =
-
             infoContent.querySelector(
                 ".coordinate-close"
             );
@@ -1163,17 +2037,9 @@ kakao.maps.event.addListener(
 
             function(event){
 
-                /*
-                 * 버튼 클릭이 지도 클릭으로 전달되는 것을
-                 * 최대한 방지
-                 */
-
                 event.preventDefault();
 
                 event.stopPropagation();
-
-
-                // 좌표창 + 빨간 마커 삭제
 
                 clearClickedLocation();
 
@@ -1181,10 +2047,6 @@ kakao.maps.event.addListener(
 
         );
 
-
-        // -------------------------------------------------
-        // 좌표 정보창 생성
-        // -------------------------------------------------
 
         clickOverlay =
 
@@ -1203,7 +2065,7 @@ kakao.maps.event.addListener(
                     1.2,
 
                 xAnchor:
-                    0.5,
+                    .5,
 
                 zIndex:
                     1000
@@ -1215,10 +2077,8 @@ kakao.maps.event.addListener(
 );
 
 
-
 // =========================================================
-// COORDINATE OVERLAY TOUCH EVENT
-// 모바일에서 ✕ 버튼 터치 안정화
+// TOUCH CLOSE
 // =========================================================
 
 document.addEventListener(
@@ -1250,12 +2110,15 @@ document.addEventListener(
 );
 
 
-
 // =========================================================
 // WAKE LOCK
 // =========================================================
 
 async function requestWakeLock(){
+
+    if(!isTracking)
+        return;
+
 
     try{
 
@@ -1263,9 +2126,21 @@ async function requestWakeLock(){
             !("wakeLock" in navigator)
         ){
 
-            console.log(
-                "Wake Lock API 미지원"
+            setStatus(
+                wakeStatus,
+                "🔒 미지원",
+                "warn"
             );
+
+            return;
+
+        }
+
+
+        if(
+            document.visibilityState !==
+            "visible"
+        ){
 
             return;
 
@@ -1274,20 +2149,32 @@ async function requestWakeLock(){
 
         if(wakeLock){
 
+            setStatus(
+                wakeStatus,
+                "🔒 화면방지 ON",
+                "on"
+            );
+
             return;
 
         }
 
 
         wakeLock =
-
             await navigator.wakeLock.request(
                 "screen"
             );
 
 
+        setStatus(
+            wakeStatus,
+            "🔒 화면방지 ON",
+            "on"
+        );
+
+
         console.log(
-            "🔒 화면 꺼짐 방지 ON"
+            "🔒 Wake Lock ON"
         );
 
 
@@ -1298,10 +2185,26 @@ async function requestWakeLock(){
             () => {
 
                 console.log(
-                    "🔓 Wake Lock 해제"
+                    "Wake Lock released"
                 );
 
-                wakeLock = null;
+
+                wakeLock =
+                    null;
+
+
+                if(isTracking){
+
+                    setStatus(
+                        wakeStatus,
+                        "🔒 재연결 중",
+                        "warn"
+                    );
+
+
+                    scheduleWakeLockRetry();
+
+                }
 
             }
 
@@ -1312,14 +2215,58 @@ async function requestWakeLock(){
     catch(error){
 
         console.log(
-            "Wake Lock 오류:",
+            "Wake Lock ERROR",
             error
         );
+
+
+        setStatus(
+            wakeStatus,
+            "🔒 OFF",
+            "warn"
+        );
+
+
+        scheduleWakeLockRetry();
 
     }
 
 }
 
+
+// =========================================================
+// WAKE LOCK RETRY
+// =========================================================
+
+function scheduleWakeLockRetry(){
+
+    if(wakeLockRetryTimer)
+        return;
+
+
+    wakeLockRetryTimer =
+
+        setTimeout(
+
+            async () => {
+
+                wakeLockRetryTimer =
+                    null;
+
+
+                if(isTracking){
+
+                    await requestWakeLock();
+
+                }
+
+            },
+
+            3000
+
+        );
+
+}
 
 
 // =========================================================
@@ -1334,11 +2281,8 @@ async function releaseWakeLock(){
 
             await wakeLock.release();
 
-            wakeLock = null;
-
-            console.log(
-                "🔓 화면 꺼짐 방지 OFF"
-            );
+            wakeLock =
+                null;
 
         }
 
@@ -1347,269 +2291,197 @@ async function releaseWakeLock(){
     catch(error){
 
         console.log(
-            "Wake Lock 해제 오류:",
+            "WAKE RELEASE ERROR",
             error
         );
 
     }
 
-}
 
+    if(wakeLockRetryTimer){
 
+        clearTimeout(
+            wakeLockRetryTimer
+        );
 
-// =========================================================
-// SCREEN RETURN
-// =========================================================
-
-document.addEventListener(
-
-    "visibilitychange",
-
-    async () => {
-
-        if(
-            document.visibilityState ===
-            "visible"
-        ){
-
-            if(myName){
-
-                await requestWakeLock();
-
-
-                if(lastPos){
-
-                    map.setCenter(
-
-                        new kakao.maps.LatLng(
-
-                            lastPos.lat,
-
-                            lastPos.lng
-
-                        )
-
-                    );
-
-                }
-
-            }
-
-        }
+        wakeLockRetryTimer =
+            null;
 
     }
 
-);
 
-
-
-// =========================================================
-// NATIONAL PARK
-// =========================================================
-
-function loadNationalParks(){
-
-    fetch(
-        "national_parks.geojson"
-    )
-
-    .then(
-        r => r.json()
-    )
-
-    .then(
-        data => {
-
-            data.features.forEach(
-
-                feature => {
-
-                    const geometry =
-                        feature.geometry;
-
-
-                    if(
-                        geometry.type ===
-                        "Polygon"
-                    ){
-
-                        drawPark(
-                            geometry.coordinates[0],
-                            feature
-                        );
-
-                    }
-
-
-                    if(
-                        geometry.type ===
-                        "MultiPolygon"
-                    ){
-
-                        geometry.coordinates
-                        .forEach(
-
-                            poly => {
-
-                                drawPark(
-                                    poly[0],
-                                    feature
-                                );
-
-                            }
-
-                        );
-
-                    }
-
-                }
-
-            );
-
-        }
-
-    )
-
-    .catch(
-
-        e => {
-
-            console.log(
-                "국립공원 로딩 오류",
-                e
-            );
-
-        }
-
+    setStatus(
+        wakeStatus,
+        "🔒 화면방지 OFF",
+        "off"
     );
 
 }
 
 
+// =========================================================
+// GPS SUCCESS
+// =========================================================
+
+async function handleGPSPosition(pos){
+
+    gpsLastUpdate =
+        Date.now();
+
+
+    setStatus(
+        gpsStatus,
+        "📍 GPS ON",
+        "on"
+    );
+
+
+    const newPosition = {
+
+        name:
+            myName,
+
+        device:
+            DEVICE_ID,
+
+        lat:
+            pos.coords.latitude,
+
+        lng:
+            pos.coords.longitude,
+
+        accuracy:
+            pos.coords.accuracy,
+
+        speed:
+            pos.coords.speed,
+
+        heading:
+            pos.coords.heading,
+
+        status:
+            "normal",
+
+        startTime:
+            startTime,
+
+        endTime:
+            endTime,
+
+        recordedAt:
+            getNowTime()
+
+    };
+
+
+    lastPos =
+        newPosition;
+
+
+    map.setCenter(
+
+        new kakao.maps.LatLng(
+
+            lastPos.lat,
+
+            lastPos.lng
+
+        )
+
+    );
+
+
+    // GPS 데이터를 휴대폰에 먼저 저장
+
+    await saveAndSend(
+        newPosition
+    );
+
+}
+
 
 // =========================================================
-// DRAW PARK
+// GPS ERROR
 // =========================================================
 
-function drawPark(
-    coords,
-    feature
-){
+function handleGPSError(err){
 
-    const path =
+    console.log(
+        "GPS ERROR",
+        err
+    );
 
-        coords.map(
 
-            c =>
+    setStatus(
+        gpsStatus,
+        "📍 GPS 오류",
+        "warn"
+    );
 
-                new kakao.maps.LatLng(
-                    c[1],
-                    c[0]
-                )
+}
+
+
+// =========================================================
+// START GPS WATCH
+// =========================================================
+
+function startGPSWatch(){
+
+    if(
+        !navigator.geolocation
+    ){
+
+        alert(
+            "이 기기는 GPS 위치 기능을 지원하지 않습니다."
+        );
+
+        return false;
+
+    }
+
+
+    if(
+        watchId !== null
+    ){
+
+        navigator.geolocation
+        .clearWatch(
+            watchId
+        );
+
+        watchId =
+            null;
+
+    }
+
+
+    watchId =
+
+        navigator.geolocation.watchPosition(
+
+            handleGPSPosition,
+
+            handleGPSError,
+
+            {
+
+                enableHighAccuracy:
+                    true,
+
+                maximumAge:
+                    1000,
+
+                timeout:
+                    15000
+
+            }
 
         );
 
 
-    const polygon =
-
-        new kakao.maps.Polygon({
-
-            map:
-                map,
-
-            path:
-                path,
-
-            strokeWeight:
-                2,
-
-            strokeColor:
-                "#00ffff",
-
-            strokeOpacity:
-                .8,
-
-            fillColor:
-                "#00ffff",
-
-            fillOpacity:
-                .08
-
-        });
-
-
-    kakao.maps.event.addListener(
-
-        polygon,
-
-        "click",
-
-        function(e){
-
-            const name =
-
-                feature.properties.name ||
-
-                "국립공원";
-
-
-            const info =
-
-                `<div style="
-                    background:#07101f;
-                    color:#00ff9d;
-                    padding:10px;
-                    border:1px solid #00ff9d;
-                    border-radius:8px;
-                    font-family:monospace">
-
-                    🏔 ${name}
-
-                    <br><br>
-
-                    📍 LAT :
-                    ${e.latLng
-                        .getLat()
-                        .toFixed(6)}
-
-                    <br>
-
-                    📍 LNG :
-                    ${e.latLng
-                        .getLng()
-                        .toFixed(6)}
-
-                </div>`;
-
-
-            const iw =
-
-                new kakao.maps.InfoWindow({
-
-                    content:
-                        info
-
-                });
-
-
-            iw.setPosition(
-                e.latLng
-            );
-
-
-            iw.open(
-                map
-            );
-
-        }
-
-    );
+    return true;
 
 }
-
-
-loadNationalParks();
-
 
 
 // =========================================================
@@ -1646,6 +2518,10 @@ async function start(){
     }
 
 
+    isTracking =
+        true;
+
+
     startTime =
         getNowTime();
 
@@ -1658,98 +2534,70 @@ async function start(){
         true;
 
 
+    setStatus(
+        gpsStatus,
+        "📍 GPS 시작",
+        "warn"
+    );
+
+
     await requestWakeLock();
 
 
-    watchId =
-
-        navigator.geolocation.watchPosition(
-
-            pos => {
-
-                lastPos = {
-
-                    name:
-                        myName,
-
-                    device:
-                        DEVICE_ID,
-
-                    lat:
-                        pos.coords.latitude,
-
-                    lng:
-                        pos.coords.longitude,
-
-                    accuracy:
-                        pos.coords.accuracy,
-
-                    speed:
-                        pos.coords.speed,
-
-                    status:
-                        "normal"
-
-                };
+    const gpsStarted =
+        startGPSWatch();
 
 
-                map.setCenter(
+    if(!gpsStarted){
 
-                    new kakao.maps.LatLng(
+        isTracking =
+            false;
 
-                        lastPos.lat,
+        nameInput.disabled =
+            false;
 
-                        lastPos.lng
+        return;
 
-                    )
-
-                );
-
-            },
+    }
 
 
-            err => {
-
-                console.log(
-                    "GPS ERROR",
-                    err
-                );
-
-
-                alert(
-                    "GPS 오류: " +
-                    err.message
-                );
-
-            },
-
-
-            {
-
-                enableHighAccuracy:
-                    true,
-
-                maximumAge:
-                    1000,
-
-                timeout:
-                    10000
-
-            }
-
-        );
-
+    // 5초마다 현재 위치 전송
 
     intervalSend =
 
         setInterval(
 
-            sendData,
+            async () => {
+
+                if(lastPos){
+
+                    const record = {
+
+                        ...lastPos,
+
+                        status:
+                            "normal",
+
+                        recordedAt:
+                            getNowTime()
+
+                    };
+
+
+                    await saveAndSend(
+                        record
+                    );
+
+                }
+
+            },
 
             5000
 
         );
 
+
+    // 실시간 다른 구조대 위치
 
     intervalLoad =
 
@@ -1765,90 +2613,68 @@ async function start(){
     startMobileCenter();
 
 
-    sendData();
+    // 기존 대기 데이터가 있다면 전송
+
+    await sendPendingQueue();
+
+
+    // 즉시 GPS 요청
+
+    navigator.geolocation
+    .getCurrentPosition(
+
+        handleGPSPosition,
+
+        handleGPSError,
+
+        {
+
+            enableHighAccuracy:
+                true,
+
+            maximumAge:
+                0,
+
+            timeout:
+                15000
+
+        }
+
+    );
+
 
     loadLive();
 
 }
 
 
-
 // =========================================================
-// SEND DATA
+// SEND DATA DIRECT
 // =========================================================
 
-function sendData(){
+async function sendData(){
 
     if(!lastPos)
         return;
 
 
-    fetch(
+    await saveAndSend({
 
-        API_URL,
+        ...lastPos,
 
-        {
+        status:
+            "normal",
 
-            method:
-                "POST",
+        recordedAt:
+            getNowTime()
 
-            headers: {
-
-                "Content-Type":
-                    "text/plain"
-
-            },
-
-            body:
-
-                JSON.stringify({
-
-                    ...lastPos,
-
-                    startTime:
-                        startTime,
-
-                    endTime:
-                        endTime
-
-                })
-
-        }
-
-    )
-
-    .then(
-
-        () => {
-
-            console.log(
-                "📡 위치 전송",
-                getNowTime()
-            );
-
-        }
-
-    )
-
-    .catch(
-
-        err => {
-
-            console.log(
-                "SEND ERROR",
-                err
-            );
-
-        }
-
-    );
+    });
 
 }
 
 
-
 // =========================================================
-// LOAD LIVE
+// LIVE
 // =========================================================
 
 function loadLive(){
@@ -1856,10 +2682,13 @@ function loadLive(){
     fetch(
 
         API_URL +
-
         "?live=1&t=" +
+        Date.now(),
 
-        Date.now()
+        {
+            cache:
+                "no-store"
+        }
 
     )
 
@@ -1871,7 +2700,9 @@ function loadLive(){
 
         data => {
 
-            renderLive(data);
+            renderLive(
+                data
+            );
 
         }
 
@@ -1891,7 +2722,6 @@ function loadLive(){
     );
 
 }
-
 
 
 // =========================================================
@@ -1922,7 +2752,6 @@ function renderLive(data){
 
             const lat =
                 Number(p.lat);
-
 
             const lng =
                 Number(p.lng);
@@ -2054,7 +2883,6 @@ function renderLive(data){
 }
 
 
-
 // =========================================================
 // MY LOCATION
 // =========================================================
@@ -2087,12 +2915,11 @@ function goMyLocation(){
 }
 
 
-
 // =========================================================
 // SOS
 // =========================================================
 
-function sendSOS(){
+async function sendSOS(){
 
     if(!lastPos){
 
@@ -2116,57 +2943,18 @@ function sendSOS(){
             startTime,
 
         endTime:
-            endTime
+            endTime,
+
+        recordedAt:
+            getNowTime()
 
     };
 
 
-    fetch(
+    // 먼저 휴대폰에 저장
 
-        API_URL,
-
-        {
-
-            method:
-                "POST",
-
-            headers: {
-
-                "Content-Type":
-                    "text/plain"
-
-            },
-
-            body:
-                JSON.stringify(data)
-
-        }
-
-    )
-
-    .then(
-
-        () => {
-
-            console.log(
-                "🚨 SOS 전송 완료"
-            );
-
-        }
-
-    )
-
-    .catch(
-
-        err => {
-
-            console.log(
-                "SOS ERROR",
-                err
-            );
-
-        }
-
+    await saveAndSend(
+        data
     );
 
 
@@ -2177,12 +2965,11 @@ function sendSOS(){
 }
 
 
-
 // =========================================================
 // SHARE
 // =========================================================
 
-function shareLocation(){
+async function shareLocation(){
 
     if(!lastPos){
 
@@ -2217,36 +3004,17 @@ ${lastPos.lng}
 ${mapURL}`;
 
 
-    fetch(
+    await saveAndSend({
 
-        API_URL,
+        ...lastPos,
 
-        {
+        status:
+            "SHARE",
 
-            method:
-                "POST",
+        recordedAt:
+            getNowTime()
 
-            headers: {
-
-                "Content-Type":
-                    "text/plain"
-
-            },
-
-            body:
-
-                JSON.stringify({
-
-                    ...lastPos,
-
-                    status:
-                        "SHARE"
-
-                })
-
-        }
-
-    );
+    });
 
 
     if(
@@ -2264,7 +3032,7 @@ ${mapURL}`;
         })
 
         .catch(
-            console.log
+            () => {}
         );
 
     }
@@ -2279,7 +3047,6 @@ ${mapURL}`;
     }
 
 }
-
 
 
 // =========================================================
@@ -2298,7 +3065,10 @@ function startMobileCenter(){
 
             () => {
 
-                if(lastPos){
+                if(
+                    lastPos &&
+                    isTracking
+                ){
 
                     map.setCenter(
 
@@ -2323,12 +3093,22 @@ function startMobileCenter(){
 }
 
 
-
 // =========================================================
 // STOP
 // =========================================================
 
 async function stopTracking(){
+
+    if(!isTracking){
+
+        alert(
+            "현재 추적 중이 아닙니다."
+        );
+
+        return;
+
+    }
+
 
     endTime =
         getNowTime();
@@ -2336,44 +3116,29 @@ async function stopTracking(){
 
     if(lastPos){
 
-        fetch(
+        await saveAndSend({
 
-            API_URL,
+            ...lastPos,
 
-            {
+            status:
+                "STOP",
 
-                method:
-                    "POST",
+            startTime:
+                startTime,
 
-                headers: {
+            endTime:
+                endTime,
 
-                    "Content-Type":
-                        "text/plain"
+            recordedAt:
+                endTime
 
-                },
-
-                body:
-
-                    JSON.stringify({
-
-                        ...lastPos,
-
-                        status:
-                            "STOP",
-
-                        startTime:
-                            startTime,
-
-                        endTime:
-                            endTime
-
-                    })
-
-            }
-
-        );
+        });
 
     }
+
+
+    isTracking =
+        false;
 
 
     if(
@@ -2385,51 +3150,87 @@ async function stopTracking(){
             watchId
         );
 
-        watchId = null;
+        watchId =
+            null;
 
     }
 
 
-    clearInterval(
-        intervalSend
-    );
+    if(intervalSend){
 
-    clearInterval(
-        intervalLoad
-    );
+        clearInterval(
+            intervalSend
+        );
 
-    clearInterval(
-        centerInterval
-    );
+        intervalSend =
+            null;
+
+    }
 
 
-    intervalSend = null;
+    if(intervalLoad){
 
-    intervalLoad = null;
+        clearInterval(
+            intervalLoad
+        );
 
-    centerInterval = null;
+        intervalLoad =
+            null;
+
+    }
+
+
+    if(centerInterval){
+
+        clearInterval(
+            centerInterval
+        );
+
+        centerInterval =
+            null;
+
+    }
+
+
+    await sendPendingQueue();
 
 
     await releaseWakeLock();
 
 
-    lastPos = null;
+    lastPos =
+        null;
 
-    previousPos = null;
+    previousPos =
+        null;
 
-    myName = "";
+    myName =
+        "";
 
-    startTime = "";
+    startTime =
+        "";
 
-    endTime = "";
+    endTime =
+        "";
 
+
+    setStatus(
+        gpsStatus,
+        "📍 GPS OFF",
+        "off"
+    );
+
+
+    // 마커 삭제
 
     Object.values(markers)
     .forEach(
 
         marker => {
 
-            marker.setMap(null);
+            marker.setMap(
+                null
+            );
 
         }
 
@@ -2453,7 +3254,9 @@ async function stopTracking(){
 
         label => {
 
-            label.setMap(null);
+            label.setMap(
+                null
+            );
 
         }
 
@@ -2484,12 +3287,395 @@ async function stopTracking(){
         true;
 
 
+    await updatePendingCount();
+
+
     alert(
         "⛔ STOP 완료"
     );
 
 }
 
+
+// =========================================================
+// BACKGROUND / RETURN
+// =========================================================
+
+async function resumeTracking(){
+
+    if(!isTracking)
+        return;
+
+
+    console.log(
+        "🔄 GPS 추적 복귀"
+    );
+
+
+    // Wake Lock 재요청
+
+    await requestWakeLock();
+
+
+    // 현재 위치 즉시 재요청
+
+    if(
+        navigator.geolocation
+    ){
+
+        navigator.geolocation
+        .getCurrentPosition(
+
+            handleGPSPosition,
+
+            handleGPSError,
+
+            {
+
+                enableHighAccuracy:
+                    true,
+
+                maximumAge:
+                    0,
+
+                timeout:
+                    15000
+
+            }
+
+        );
+
+    }
+
+
+    // 서버 대기 기록 재전송
+
+    await sendPendingQueue();
+
+
+    // 다른 구조대 위치 즉시 갱신
+
+    loadLive();
+
+}
+
+
+// =========================================================
+// VISIBILITY
+// =========================================================
+
+document.addEventListener(
+
+    "visibilitychange",
+
+    async () => {
+
+        if(
+            document.visibilityState ===
+            "visible"
+        ){
+
+            await resumeTracking();
+
+        }
+
+    }
+
+);
+
+
+// =========================================================
+// PAGE SHOW
+// =========================================================
+
+window.addEventListener(
+
+    "pageshow",
+
+    async () => {
+
+        await resumeTracking();
+
+    }
+
+);
+
+
+// =========================================================
+// FOCUS
+// =========================================================
+
+window.addEventListener(
+
+    "focus",
+
+    async () => {
+
+        await resumeTracking();
+
+    }
+
+);
+
+
+// =========================================================
+// ONLINE
+// =========================================================
+
+window.addEventListener(
+
+    "online",
+
+    async () => {
+
+        console.log(
+            "🌐 INTERNET ONLINE"
+        );
+
+
+        await sendPendingQueue();
+
+
+        if(isTracking){
+
+            await requestWakeLock();
+
+        }
+
+    }
+
+);
+
+
+// =========================================================
+// OFFLINE
+// =========================================================
+
+window.addEventListener(
+
+    "offline",
+
+    () => {
+
+        console.log(
+            "📴 INTERNET OFFLINE"
+        );
+
+
+        setStatus(
+            saveStatus,
+            "💾 오프라인 저장",
+            "warn"
+        );
+
+    }
+
+);
+
+
+// =========================================================
+// NATIONAL PARK
+// =========================================================
+
+function loadNationalParks(){
+
+    fetch(
+        "national_parks.geojson"
+    )
+
+    .then(
+        r => r.json()
+    )
+
+    .then(
+
+        data => {
+
+            data.features.forEach(
+
+                feature => {
+
+                    const geometry =
+                        feature.geometry;
+
+
+                    if(
+                        geometry.type ===
+                        "Polygon"
+                    ){
+
+                        drawPark(
+                            geometry.coordinates[0],
+                            feature
+                        );
+
+                    }
+
+
+                    if(
+                        geometry.type ===
+                        "MultiPolygon"
+                    ){
+
+                        geometry.coordinates
+                        .forEach(
+
+                            poly => {
+
+                                drawPark(
+                                    poly[0],
+                                    feature
+                                );
+
+                            }
+
+                        );
+
+                    }
+
+                }
+
+            );
+
+        }
+
+    )
+
+    .catch(
+
+        e => {
+
+            console.log(
+                "국립공원 로딩 오류",
+                e
+            );
+
+        }
+
+    );
+
+}
+
+
+// =========================================================
+// DRAW PARK
+// =========================================================
+
+function drawPark(
+    coords,
+    feature
+){
+
+    const path =
+
+        coords.map(
+
+            c =>
+
+                new kakao.maps.LatLng(
+                    c[1],
+                    c[0]
+                )
+
+        );
+
+
+    const polygon =
+
+        new kakao.maps.Polygon({
+
+            map:
+                map,
+
+            path:
+                path,
+
+            strokeWeight:
+                2,
+
+            strokeColor:
+                "#00ffff",
+
+            strokeOpacity:
+                .8,
+
+            fillColor:
+                "#00ffff",
+
+            fillOpacity:
+                .08
+
+        });
+
+
+    kakao.maps.event.addListener(
+
+        polygon,
+
+        "click",
+
+        function(e){
+
+            const name =
+
+                feature.properties.name ||
+
+                "국립공원";
+
+
+            const info =
+
+                `<div style="
+                    background:#07101f;
+                    color:#00ff9d;
+                    padding:10px;
+                    border:1px solid #00ff9d;
+                    border-radius:8px;
+                    font-family:monospace">
+
+                    🏔 ${name}
+
+                    <br><br>
+
+                    📍 LAT :
+                    ${e.latLng
+                        .getLat()
+                        .toFixed(6)}
+
+                    <br>
+
+                    📍 LNG :
+                    ${e.latLng
+                        .getLng()
+                        .toFixed(6)}
+
+                </div>`;
+
+
+            const iw =
+
+                new kakao.maps.InfoWindow({
+
+                    content:
+                        info
+
+                });
+
+
+            iw.setPosition(
+                e.latLng
+            );
+
+
+            iw.open(
+                map
+            );
+
+        }
+
+    );
+
+}
 
 
 // =========================================================
@@ -2504,10 +3690,13 @@ function loadAllHistory(){
     fetch(
 
         API_URL +
-
         "?history=all&t=" +
+        Date.now(),
 
-        Date.now()
+        {
+            cache:
+                "no-store"
+        }
 
     )
 
@@ -2519,7 +3708,9 @@ function loadAllHistory(){
 
         data => {
 
-            showHistory(data);
+            showHistory(
+                data
+            );
 
         }
 
@@ -2541,7 +3732,6 @@ function loadAllHistory(){
 }
 
 
-
 // =========================================================
 // HISTORY CLEAR
 // =========================================================
@@ -2553,14 +3743,17 @@ function clearHistory(){
 
         m => {
 
-            m.setMap(null);
+            m.setMap(
+                null
+            );
 
         }
 
     );
 
 
-    historyMarkers.length = 0;
+    historyMarkers.length =
+        0;
 
 
     historyLines
@@ -2568,14 +3761,17 @@ function clearHistory(){
 
         line => {
 
-            line.setMap(null);
+            line.setMap(
+                null
+            );
 
         }
 
     );
 
 
-    historyLines.length = 0;
+    historyLines.length =
+        0;
 
 
     historyLabels
@@ -2583,17 +3779,19 @@ function clearHistory(){
 
         label => {
 
-            label.setMap(null);
+            label.setMap(
+                null
+            );
 
         }
 
     );
 
 
-    historyLabels.length = 0;
+    historyLabels.length =
+        0;
 
 }
-
 
 
 // =========================================================
@@ -2625,7 +3823,6 @@ function showHistory(data){
             const lat =
                 Number(d.lat);
 
-
             const lng =
                 Number(d.lng);
 
@@ -2637,9 +3834,12 @@ function showHistory(data){
                 return;
 
 
-            if(!grouped[d.name]){
+            if(
+                !grouped[d.name]
+            ){
 
-                grouped[d.name] = [];
+                grouped[d.name] =
+                    [];
 
             }
 
@@ -2649,7 +3849,6 @@ function showHistory(data){
                 new kakao.maps.LatLng(
 
                     lat,
-
                     lng
 
                 )
@@ -2662,7 +3861,6 @@ function showHistory(data){
 
 
     let bounds =
-
         new kakao.maps.LatLngBounds();
 
 
@@ -2684,7 +3882,9 @@ function showHistory(data){
 
             p => {
 
-                bounds.extend(p);
+                bounds.extend(
+                    p
+                );
 
             }
 
@@ -2827,72 +4027,146 @@ function showHistory(data){
 }
 
 
-
 // =========================================================
-// INITIAL LIVE LOAD
-// =========================================================
-
-loadLive();
-
-
-// =========================================================
-// MOBILE CENTER READY
+// INITIALIZE
 // =========================================================
 
-startMobileCenter();
+(async function init(){
+
+    try{
+
+        await openDatabase();
+
+        await updatePendingCount();
+
+    }
+
+    catch(error){
+
+        console.log(
+            "DB INIT ERROR",
+            error
+        );
+
+    }
+
+
+    loadNationalParks();
+
+    loadLive();
+
+    // 온라인 상태라면 기존 기록 전송
+
+    if(navigator.onLine){
+
+        sendPendingQueue();
+
+    }
+
+})();
+
+
+// =========================================================
+// RIGHT CLICK / DEV TOOLS
+// =========================================================
+
+document.addEventListener(
+
+    "contextmenu",
+
+    function(e){
+
+        e.preventDefault();
+
+        return false;
+
+    }
+
+);
+
+
+document.addEventListener(
+
+    "keydown",
+
+    function(e){
+
+        if(e.key === "F12"){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+
+        if(
+            e.ctrlKey &&
+            e.key.toLowerCase() === "u"
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+
+        if(
+            e.ctrlKey &&
+            e.shiftKey &&
+            e.key.toLowerCase() === "i"
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+
+        if(
+            e.ctrlKey &&
+            e.shiftKey &&
+            e.key.toLowerCase() === "j"
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+
+        if(
+            e.ctrlKey &&
+            e.shiftKey &&
+            e.key.toLowerCase() === "c"
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+
+        if(
+            e.ctrlKey &&
+            e.key.toLowerCase() === "s"
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+    }
+
+);
 
 </script>
 
-<script>
-/* =========================
-   우클릭 및 개발자도구 단축키 방지
-   ========================= */
-
-document.addEventListener('contextmenu', function(e) {
-    e.preventDefault();
-    return false;
-});
-
-document.addEventListener('keydown', function(e) {
-
-    // F12
-    if (e.key === 'F12') {
-        e.preventDefault();
-        return false;
-    }
-
-    // Ctrl + U (페이지 소스 보기)
-    if (e.ctrlKey && e.key.toLowerCase() === 'u') {
-        e.preventDefault();
-        return false;
-    }
-
-    // Ctrl + Shift + I (개발자 도구)
-    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'i') {
-        e.preventDefault();
-        return false;
-    }
-
-    // Ctrl + Shift + J (콘솔)
-    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'j') {
-        e.preventDefault();
-        return false;
-    }
-
-    // Ctrl + Shift + C (요소 선택)
-    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'c') {
-        e.preventDefault();
-        return false;
-    }
-
-    // Ctrl + S (페이지 저장)
-    if (e.ctrlKey && e.key.toLowerCase() === 's') {
-        e.preventDefault();
-        return false;
-    }
-});
-</script>
-
-    
 </body>
 </html>
