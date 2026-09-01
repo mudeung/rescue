@@ -3,11 +3,13 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
 <title>🆘 사고좌표 입력</title>
 
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
 
 <style>
+
 :root{
   --primary:#16a34a;
   --primary-dark:#15803d;
@@ -19,8 +21,11 @@
   --shadow:0 10px 25px rgba(0,0,0,.08);
 }
 
-/* 🌙 다크모드 */
+
+/* ================= 다크모드 ================= */
+
 @media (prefers-color-scheme: dark){
+
   :root{
     --bg:#020617;
     --card:#0f172a;
@@ -29,237 +34,424 @@
     --border:#1e293b;
     --shadow:0 10px 25px rgba(0,0,0,.4);
   }
+
 }
+
+
+/* ================= 기본 ================= */
 
 *{
   box-sizing:border-box;
 }
 
+html,
 body{
   margin:0;
+  width:100%;
+  min-height:100%;
+}
+
+body{
+
   font-family:
     "Pretendard",
     "Apple SD Gothic Neo",
     sans-serif;
+
   background:var(--bg);
+
   color:var(--text);
-  padding:18px;
-  padding-bottom:110px;
+
+  padding:14px;
+
+  padding-bottom:105px;
+
 }
+
 
 /* ================= HEADER ================= */
 
 .header{
+
   text-align:center;
-  margin-bottom:20px;
+
+  margin-bottom:16px;
+
 }
 
 .badge{
+
   display:inline-block;
+
   background:rgba(22,163,74,.12);
+
   color:var(--primary);
+
   padding:7px 13px;
+
   border-radius:999px;
+
   font-size:.85rem;
+
   font-weight:700;
-  margin-bottom:9px;
+
+  margin-bottom:8px;
+
 }
 
 .title{
-  font-size:1.8rem;
+
+  font-size:1.7rem;
+
   margin:0;
+
   font-weight:900;
+
 }
 
 .subtitle{
-  margin-top:7px;
+
+  margin-top:6px;
+
   color:var(--sub);
-  font-size:.95rem;
+
+  font-size:.92rem;
+
 }
 
 
 /* ================= CARD ================= */
 
 .card{
+
   background:var(--card);
+
   border:1px solid var(--border);
-  border-radius:22px;
-  padding:18px;
-  margin-bottom:16px;
+
+  border-radius:21px;
+
+  padding:15px;
+
+  margin-bottom:15px;
+
   box-shadow:var(--shadow);
+
 }
 
 
-/* ================= INPUT & BUTTON ================= */
+/* ================= 입력창 / 버튼 ================= */
 
 .ui-control{
+
   width:100%;
-  height:52px;
-  border-radius:16px;
-  font-size:1rem;
-  padding:0 16px;
-  margin-top:10px;
+
+  height:50px;
+
+  border-radius:15px;
+
+  font-size:.98rem;
+
+  padding:0 15px;
+
+  margin-top:9px;
+
   font-weight:700;
+
   outline:none;
+
 }
 
 input.ui-control{
+
   border:2px solid var(--border);
+
   background:transparent;
+
   color:var(--text);
+
+}
+
+input.ui-control::placeholder{
+
+  color:var(--sub);
+
+  opacity:.8;
+
 }
 
 input.ui-control:focus{
+
   border-color:var(--primary);
+
 }
 
 button.ui-control{
+
   border:none;
-  background:linear-gradient(
-    135deg,
-    var(--primary),
-    var(--primary-dark)
-  );
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--primary),
+      var(--primary-dark)
+    );
+
   color:white;
+
   cursor:pointer;
-  transition:.2s;
+
+  transition:.15s;
+
 }
 
 button.ui-control:active{
+
   transform:scale(.98);
+
+}
+
+button.ui-control:disabled{
+
+  opacity:.7;
+
+  cursor:wait;
+
 }
 
 
-/* ================= INFO BOX ================= */
+/* ================= 정보박스 ================= */
 
 .info-box{
+
   background:rgba(22,163,74,.08);
+
   border:1px solid rgba(22,163,74,.2);
-  border-radius:18px;
-  padding:14px;
+
+  border-radius:17px;
+
+  padding:12px;
+
   text-align:center;
-  margin-top:12px;
+
+  margin-top:10px;
+
 }
 
 .coord{
-  font-size:1.15rem;
+
+  font-size:1.1rem;
+
   font-weight:800;
-  letter-spacing:.3px;
+
+  letter-spacing:.2px;
+
 }
 
 .distance{
-  font-size:1.1rem;
+
+  font-size:1.08rem;
+
   font-weight:800;
+
   color:var(--primary);
+
 }
 
 
-/* ================= GUIDE ================= */
-
-.guide{
-  margin-top:16px;
-  line-height:1.8;
-  color:var(--sub);
-  font-size:.95rem;
-}
-
-
-/* ================= MAP ================= */
-
-#mapComparison{
-  width:100%;
-  height:480px;
-  border-radius:22px;
-  overflow:hidden;
-  margin-top:18px;
-  border:1px solid var(--border);
-}
-
-
-/* ================= BOTTOM ================= */
-
-.bottom-fixed{
-  position:fixed;
-  left:0;
-  right:0;
-  bottom:0;
-  padding:10px 16px 16px;
-  background:rgba(255,255,255,.9);
-  backdrop-filter:blur(12px);
-  border-top:1px solid var(--border);
-}
-
-@media (prefers-color-scheme: dark){
-  .bottom-fixed{
-    background:rgba(2,6,23,.92);
-  }
-}
-
-
-/* ================= SECTION TITLE ================= */
+/* ================= 섹션 제목 ================= */
 
 .section-title{
-  font-size:1.05rem;
+
+  font-size:1.04rem;
+
   font-weight:800;
-  margin-bottom:5px;
+
+  margin-bottom:2px;
+
 }
 
 
-/* ================= MOBILE ================= */
+/* ================= 지도 ================= */
+
+#mapComparison{
+
+  width:100%;
+
+  /*
+    화면 높이의 65%를 사용
+    기기마다 자동으로 크기 조절
+  */
+
+  height:65vh;
+
+  /*
+    너무 작은 지도 방지
+  */
+
+  min-height:500px;
+
+  /*
+    너무 커지는 것 방지
+  */
+
+  max-height:750px;
+
+  border-radius:21px;
+
+  overflow:hidden;
+
+  margin-top:17px;
+
+  border:1px solid var(--border);
+
+}
+
+
+/* ================= 하단 버튼 ================= */
+
+.bottom-fixed{
+
+  position:fixed;
+
+  left:0;
+
+  right:0;
+
+  bottom:0;
+
+  padding:9px 14px 15px;
+
+  background:rgba(255,255,255,.92);
+
+  backdrop-filter:blur(12px);
+
+  border-top:1px solid var(--border);
+
+  z-index:1000;
+
+}
+
+
+@media (prefers-color-scheme: dark){
+
+  .bottom-fixed{
+
+    background:rgba(2,6,23,.94);
+
+  }
+
+}
+
+
+/* ================= 모바일 ================= */
 
 @media (max-width:600px){
 
   body{
-    padding:14px;
-    padding-bottom:105px;
+
+    padding:11px;
+
+    padding-bottom:103px;
+
   }
+
+
+  .header{
+
+    margin-bottom:13px;
+
+  }
+
 
   .title{
-    font-size:1.65rem;
+
+    font-size:1.55rem;
+
   }
+
+
+  .subtitle{
+
+    font-size:.88rem;
+
+  }
+
 
   .card{
-    padding:16px;
-    border-radius:20px;
+
+    padding:14px;
+
+    border-radius:19px;
+
   }
 
-  /* 입력창 */
+
   .ui-control{
-    height:50px;
-    font-size:.98rem;
+
+    height:49px;
+
+    font-size:.95rem;
+
   }
 
-  /* 지도는 크게 */
+
+  /*
+    모바일에서도 지도 크게
+  */
+
   #mapComparison{
-    height:480px;
-    border-radius:20px;
+
+    height:65vh;
+
+    min-height:500px;
+
+    max-height:750px;
+
+    border-radius:19px;
+
   }
+
 
   .coord{
-    font-size:1.05rem;
+
+    font-size:1.03rem;
+
   }
 
+
   .distance{
-    font-size:1.05rem;
+
+    font-size:1.02rem;
+
   }
+
 }
 
 
-/* ================= SMALL PHONE ================= */
+/* ================= 작은 휴대폰 ================= */
 
 @media (max-width:380px){
 
   #mapComparison{
-    height:430px;
+
+    height:62vh;
+
+    min-height:450px;
+
   }
 
+
   .title{
-    font-size:1.5rem;
+
+    font-size:1.45rem;
+
   }
 
 }
+
 </style>
 </head>
+
 
 <body>
 
@@ -287,17 +479,29 @@ button.ui-control:active{
 
 <div class="card">
 
-  <button id="getLocation" class="ui-control">
+  <button
+    id="getLocation"
+    class="ui-control"
+  >
     📍 내 위치 확인
   </button>
 
+
   <div class="info-box">
 
-    <div style="margin-bottom:6px; font-weight:700;">
+    <div
+      style="
+        margin-bottom:5px;
+        font-weight:700;
+      "
+    >
       현재 좌표
     </div>
 
-    <div class="coord" id="coord">
+    <div
+      class="coord"
+      id="coord"
+    >
       위치 미확인
     </div>
 
@@ -306,7 +510,7 @@ button.ui-control:active{
 </div>
 
 
-<!-- ================= 대상 위치 ================= -->
+<!-- ================= 요구조자 위치 ================= -->
 
 <div class="card">
 
@@ -336,8 +540,9 @@ button.ui-control:active{
 
 
   <button
-    onclick="showLocations()"
+    id="showMapButton"
     class="ui-control"
+    onclick="showLocations()"
   >
     📍 지도에서 확인
   </button>
@@ -355,14 +560,14 @@ button.ui-control:active{
   </div>
 
 
-  <!-- 지도 -->
+  <!-- ================= 지도 ================= -->
 
   <div id="mapComparison"></div>
 
 </div>
 
 
-<!-- ================= 하단 버튼 ================= -->
+<!-- ================= 하단 길찾기 ================= -->
 
 <div class="bottom-fixed">
 
@@ -378,105 +583,167 @@ button.ui-control:active{
 
 <script>
 
-let currentLat;
-let currentLng;
+/* ================= 변수 ================= */
 
-let targetLat;
-let targetLng;
+let currentLat = null;
+let currentLng = null;
+
+let targetLat = null;
+let targetLng = null;
 
 
 /* ================= 현재 위치 ================= */
 
-getLocation.onclick = () => {
+document
+  .getElementById("getLocation")
+  .addEventListener("click", function(){
 
-  if (!navigator.geolocation) {
+    if(!navigator.geolocation){
 
-    alert("이 기기에서는 위치 정보를 사용할 수 없습니다.");
+      alert(
+        "이 기기에서는 위치 정보를 사용할 수 없습니다."
+      );
 
-    return;
+      return;
 
-  }
-
-
-  navigator.geolocation.getCurrentPosition(
-
-    (pos) => {
-
-      currentLat = pos.coords.latitude;
-      currentLng = pos.coords.longitude;
-
-
-      coord.textContent =
-        `${currentLat.toFixed(6)} / ${currentLng.toFixed(6)}`;
-
-    },
-
-
-    (error) => {
-
-      alert("위치 정보를 가져올 수 없습니다.");
-
-    },
-
-    {
-      enableHighAccuracy:true,
-      timeout:10000,
-      maximumAge:0
     }
 
-  );
 
-};
+    const button = this;
 
+    button.textContent =
+      "📍 현재 위치 확인 중...";
 
-/* ================= 길찾기 ================= */
-
-kakaoRoute.onclick = () => {
-
-  if (
-    targetLat === undefined ||
-    targetLng === undefined
-  ){
-
-    alert("대상 위치를 먼저 확인하세요.");
-
-    return;
-
-  }
+    button.disabled = true;
 
 
-  location.href =
-    `kakaomap://route?ep=${targetLat},${targetLng}&by=FOOT`;
+    navigator.geolocation.getCurrentPosition(
 
-};
+      function(pos){
+
+        currentLat =
+          pos.coords.latitude;
+
+        currentLng =
+          pos.coords.longitude;
+
+
+        document
+          .getElementById("coord")
+          .textContent =
+          `${currentLat.toFixed(6)} / ${currentLng.toFixed(6)}`;
+
+
+        button.textContent =
+          "✅ 현재 위치 확인 완료";
+
+        button.disabled = false;
+
+      },
+
+
+      function(error){
+
+        let message =
+          "위치 정보를 가져올 수 없습니다.";
+
+
+        if(error.code === 1){
+
+          message =
+            "위치 정보 사용 권한이 거부되었습니다.";
+
+        }
+        else if(error.code === 2){
+
+          message =
+            "현재 위치를 확인할 수 없습니다.";
+
+        }
+        else if(error.code === 3){
+
+          message =
+            "위치 확인 시간이 초과되었습니다.";
+
+        }
+
+
+        alert(message);
+
+
+        button.textContent =
+          "📍 내 위치 확인";
+
+        button.disabled = false;
+
+      },
+
+
+      {
+
+        enableHighAccuracy:true,
+
+        timeout:15000,
+
+        maximumAge:0
+
+      }
+
+    );
+
+});
 
 
 /* ================= 지도 표시 ================= */
 
 function showLocations(){
 
-  targetLat =
-    parseFloat(
-      document.getElementById("otherLatitude").value
+  const latInput =
+    document.getElementById(
+      "otherLatitude"
     );
+
+
+  const lngInput =
+    document.getElementById(
+      "otherLongitude"
+    );
+
+
+  targetLat =
+    parseFloat(latInput.value);
 
 
   targetLng =
-    parseFloat(
-      document.getElementById("otherLongitude").value
+    parseFloat(lngInput.value);
+
+
+  /* 현재 위치 확인 */
+
+  if(
+    currentLat === null ||
+    currentLng === null
+  ){
+
+    alert(
+      "먼저 '내 위치 확인'을 눌러 현재 위치를 확인하세요."
     );
 
+    return;
 
-  /* 좌표 확인 */
+  }
 
-  if (
-    currentLat === undefined ||
-    currentLng === undefined ||
+
+  /* 대상 좌표 확인 */
+
+  if(
     isNaN(targetLat) ||
     isNaN(targetLng)
   ){
 
-    alert("내 위치 확인 후 요구조자 좌표를 정확히 입력하세요.");
+    alert(
+      "요구조자의 위도와 경도를 정확하게 입력하세요."
+    );
 
     return;
 
@@ -485,12 +752,14 @@ function showLocations(){
 
   /* 위도 범위 */
 
-  if (
+  if(
     targetLat < -90 ||
     targetLat > 90
   ){
 
-    alert("위도는 -90 ~ 90 사이로 입력하세요.");
+    alert(
+      "위도는 -90 ~ 90 사이로 입력하세요."
+    );
 
     return;
 
@@ -499,12 +768,30 @@ function showLocations(){
 
   /* 경도 범위 */
 
-  if (
+  if(
     targetLng < -180 ||
     targetLng > 180
   ){
 
-    alert("경도는 -180 ~ 180 사이로 입력하세요.");
+    alert(
+      "경도는 -180 ~ 180 사이로 입력하세요."
+    );
+
+    return;
+
+  }
+
+
+  /* 카카오맵 API 확인 */
+
+  if(
+    typeof kakao === "undefined" ||
+    !kakao.maps
+  ){
+
+    alert(
+      "카카오맵을 불러오지 못했습니다."
+    );
 
     return;
 
@@ -512,36 +799,19 @@ function showLocations(){
 
 
   const mapContainer =
-    document.getElementById("mapComparison");
+    document.getElementById(
+      "mapComparison"
+    );
 
 
-  /* 기존 지도 영역 초기화 */
+  /* 기존 지도 초기화 */
 
   mapContainer.innerHTML = "";
 
 
-  /* 지도 생성 */
-
-  const map =
-    new kakao.maps.Map(
-      mapContainer,
-      {
-
-        center:
-          new kakao.maps.LatLng(
-            targetLat,
-            targetLng
-          ),
-
-        level:6
-
-      }
-    );
-
-
   /* 현재 위치 */
 
-  const myPos =
+  const myPosition =
     new kakao.maps.LatLng(
       currentLat,
       currentLng
@@ -550,34 +820,54 @@ function showLocations(){
 
   /* 요구조자 위치 */
 
-  const targetPos =
+  const targetPosition =
     new kakao.maps.LatLng(
       targetLat,
       targetLng
     );
 
 
-  /* 현재 위치 마커 */
+  /* 지도 생성 */
+
+  const map =
+    new kakao.maps.Map(
+
+      mapContainer,
+
+      {
+
+        center:targetPosition,
+
+        level:6
+
+      }
+
+    );
+
+
+  /* ================= 현재 위치 마커 ================= */
 
   new kakao.maps.Marker({
 
-    position:myPos,
+    position:myPosition,
+
     map:map
 
   });
 
 
-  /* 요구조자 위치 마커 */
+  /* ================= 요구조자 마커 ================= */
 
   new kakao.maps.Marker({
 
-    position:targetPos,
+    position:targetPosition,
+
     map:map
 
   });
 
 
-  /* 두 위치를 연결하는 선 */
+  /* ================= 연결선 ================= */
 
   const polyline =
     new kakao.maps.Polyline({
@@ -585,45 +875,53 @@ function showLocations(){
       map:map,
 
       path:[
-        myPos,
-        targetPos
+        myPosition,
+        targetPosition
       ],
 
       strokeWeight:4,
 
       strokeColor:"#16a34a",
 
-      strokeOpacity:0.9,
+      strokeOpacity:.9,
 
       strokeStyle:"solid"
 
     });
 
 
-  /* 직선거리 */
+  /* ================= 거리 ================= */
 
   const distance =
     polyline.getLength();
 
 
-  distanceInfo.textContent =
+  document
+    .getElementById("distanceInfo")
+    .textContent =
     `직선거리 ${(distance / 1000).toFixed(2)} km`;
 
 
-  /* 두 지점이 모두 보이도록 지도 범위 조정 */
+  /* ================= 두 위치 모두 표시 ================= */
 
   const bounds =
     new kakao.maps.LatLngBounds();
 
-  bounds.extend(myPos);
-  bounds.extend(targetPos);
+
+  bounds.extend(myPosition);
+
+  bounds.extend(targetPosition);
+
 
   map.setBounds(bounds);
 
 
-  /* 너무 확대되는 것을 방지 */
+  /*
+    너무 가까운 경우
+    지나치게 확대되지 않도록 조정
+  */
 
-  setTimeout(() => {
+  setTimeout(function(){
 
     if(map.getLevel() < 4){
 
@@ -636,29 +934,53 @@ function showLocations(){
 }
 
 
-/* =========================
-   우클릭 및 개발자도구 단축키 방지
-   ========================= */
+/* ================= 카카오맵 길찾기 ================= */
+
+document
+  .getElementById("kakaoRoute")
+  .addEventListener("click", function(){
+
+    if(
+      targetLat === null ||
+      targetLng === null
+    ){
+
+      alert(
+        "먼저 요구조자 위치를 지도에서 확인하세요."
+      );
+
+      return;
+
+    }
+
+
+    location.href =
+      `kakaomap://route?ep=${targetLat},${targetLng}&by=FOOT`;
+
+});
+
+
+/* ================= 우클릭 방지 ================= */
 
 document.addEventListener(
-  'contextmenu',
+  "contextmenu",
   function(e){
 
     e.preventDefault();
-
-    return false;
 
   }
 );
 
 
+/* ================= 단축키 방지 ================= */
+
 document.addEventListener(
-  'keydown',
+  "keydown",
   function(e){
 
     /* F12 */
 
-    if(e.key === 'F12'){
+    if(e.key === "F12"){
 
       e.preventDefault();
 
@@ -671,7 +993,7 @@ document.addEventListener(
 
     if(
       e.ctrlKey &&
-      e.key.toLowerCase() === 'u'
+      e.key.toLowerCase() === "u"
     ){
 
       e.preventDefault();
@@ -686,7 +1008,7 @@ document.addEventListener(
     if(
       e.ctrlKey &&
       e.shiftKey &&
-      e.key.toLowerCase() === 'i'
+      e.key.toLowerCase() === "i"
     ){
 
       e.preventDefault();
@@ -701,7 +1023,7 @@ document.addEventListener(
     if(
       e.ctrlKey &&
       e.shiftKey &&
-      e.key.toLowerCase() === 'j'
+      e.key.toLowerCase() === "j"
     ){
 
       e.preventDefault();
@@ -716,7 +1038,7 @@ document.addEventListener(
     if(
       e.ctrlKey &&
       e.shiftKey &&
-      e.key.toLowerCase() === 'c'
+      e.key.toLowerCase() === "c"
     ){
 
       e.preventDefault();
@@ -730,7 +1052,7 @@ document.addEventListener(
 
     if(
       e.ctrlKey &&
-      e.key.toLowerCase() === 's'
+      e.key.toLowerCase() === "s"
     ){
 
       e.preventDefault();
@@ -743,6 +1065,7 @@ document.addEventListener(
 );
 
 </script>
+
 
 </body>
 </html>
