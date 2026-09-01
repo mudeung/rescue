@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
 
 <meta charset="utf-8">
@@ -78,14 +78,14 @@ header {
 }
 
 header::after {
-    content: "● ONLINE";
+    content: "● GPS LOCAL SAVE";
 
     position: absolute;
 
     right: 12px;
     bottom: 8px;
 
-    font-size: 9px;
+    font-size: 8px;
 
     color: #00ff9d;
     opacity: .75;
@@ -121,7 +121,7 @@ header::after {
 
 
 /* =========================================================
-   STATUS PANEL
+   STATUS
    ========================================================= */
 
 #statusBar {
@@ -142,7 +142,6 @@ header::after {
     gap: 8px;
 
     pointer-events: none;
-
 }
 
 .status-item {
@@ -174,7 +173,6 @@ header::after {
 
     -webkit-backdrop-filter:
         blur(8px);
-
 }
 
 .status-item.on {
@@ -187,7 +185,6 @@ header::after {
     box-shadow:
         0 0 12px
         rgba(0,255,157,.12);
-
 }
 
 .status-item.warn {
@@ -196,7 +193,6 @@ header::after {
 
     border-color:
         rgba(255,179,71,.55);
-
 }
 
 .status-item.off {
@@ -205,7 +201,6 @@ header::after {
 
     border-color:
         rgba(255,80,80,.5);
-
 }
 
 
@@ -214,6 +209,7 @@ header::after {
    ========================================================= */
 
 #panel {
+
     position: fixed;
 
     left: 10px;
@@ -429,10 +425,10 @@ button[onclick="goMyLocation()"] {
 
 
 /* =========================================================
-   SHARE
+   SAVE LOCATION
    ========================================================= */
 
-button[onclick="shareLocation()"] {
+button[onclick="saveCurrentLocation()"] {
 
     grid-column:
         span 2;
@@ -1003,9 +999,9 @@ START
 
 
 <button
-    onclick="shareLocation()"
+    onclick="saveCurrentLocation()"
 >
-📡 위치 공유
+📍 위치 저장
 </button>
 
 
@@ -1043,7 +1039,7 @@ START
 
 
 // =========================================================
-// API
+// GOOGLE APPS SCRIPT API
 // =========================================================
 
 const API_URL =
@@ -1093,8 +1089,6 @@ let startTime = "";
 
 let endTime = "";
 
-let previousPos = null;
-
 let centerInterval = null;
 
 let wakeLock = null;
@@ -1106,6 +1100,8 @@ let isTracking = false;
 let gpsLastUpdate = 0;
 
 let isSendingQueue = false;
+
+let saveLock = false;
 
 
 // =========================================================
@@ -1290,7 +1286,7 @@ let db = null;
 
 
 // =========================================================
-// OPEN DB
+// OPEN DATABASE
 // =========================================================
 
 function openDatabase(){
@@ -1360,6 +1356,26 @@ function openDatabase(){
                             }
                         );
 
+
+                        store.createIndex(
+                            "recordedAt",
+                            "recordedAt",
+                            {
+                                unique:
+                                    false
+                            }
+                        );
+
+
+                        store.createIndex(
+                            "device",
+                            "device",
+                            {
+                                unique:
+                                    false
+                            }
+                        );
+
                     }
 
                 };
@@ -1370,6 +1386,17 @@ function openDatabase(){
 
                     db =
                         event.target.result;
+
+
+                    db.onversionchange =
+                        function(){
+
+                            db.close();
+
+                            db = null;
+
+                        };
+
 
                     resolve(db);
 
@@ -1419,25 +1446,74 @@ async function saveGPSLocal(data){
                     );
 
 
-                store.add({
+                const record = {
 
-                    ...data,
+                    name:
+                        data.name || "",
+
+                    device:
+                        data.device || DEVICE_ID,
+
+                    lat:
+                        Number(data.lat),
+
+                    lng:
+                        Number(data.lng),
+
+                    accuracy:
+                        data.accuracy ?? null,
+
+                    speed:
+                        data.speed ?? null,
+
+                    heading:
+                        data.heading ?? null,
+
+                    status:
+                        data.status || "normal",
+
+                    startTime:
+                        data.startTime || "",
+
+                    endTime:
+                        data.endTime || "",
+
+                    recordedAt:
+                        data.recordedAt ||
+                        getNowTime(),
 
                     savedAt:
                         Date.now(),
 
                     sent:
-                        false
+                        false,
 
-                });
+                    sentAt:
+                        null
+
+                };
 
 
-                tx.oncomplete =
+                const request =
+                    store.add(record);
+
+
+                request.onsuccess =
                     function(){
 
-                        updatePendingCount();
+                        resolve(
+                            request.result
+                        );
 
-                        resolve();
+                    };
+
+
+                request.onerror =
+                    function(){
+
+                        reject(
+                            request.error
+                        );
 
                     };
 
@@ -1462,6 +1538,8 @@ async function saveGPSLocal(data){
             "LOCAL SAVE ERROR",
             error
         );
+
+        throw error;
 
     }
 
@@ -1508,7 +1586,13 @@ async function getPendingRecords(){
                             .filter(
                                 x =>
                                     x.sent === false
+                            )
+                            .sort(
+                                (a,b) =>
+                                    a.savedAt -
+                                    b.savedAt
                             );
+
 
                         resolve(result);
 
@@ -1544,7 +1628,7 @@ async function getPendingRecords(){
 
 
 // =========================================================
-// MARK SENT
+// MARK RECORD SENT
 // =========================================================
 
 async function markRecordSent(id){
@@ -1673,7 +1757,7 @@ async function updatePendingCount(){
 
         setStatus(
             saveStatus,
-            "💾 저장대기 " + count,
+            "💾 전송대기 " + count,
             "warn"
         );
 
@@ -1683,7 +1767,7 @@ async function updatePendingCount(){
 
 
 // =========================================================
-// SEND ONE RECORD
+// SEND ONE RECORD TO GOOGLE SHEET
 // =========================================================
 
 async function sendRecord(record){
@@ -1707,6 +1791,9 @@ async function sendRecord(record){
 
         speed:
             record.speed,
+
+        heading:
+            record.heading,
 
         status:
             record.status,
@@ -1739,7 +1826,7 @@ async function sendRecord(record){
                 headers: {
 
                     "Content-Type":
-                        "text/plain"
+                        "text/plain;charset=utf-8"
 
                 },
 
@@ -1761,6 +1848,9 @@ async function sendRecord(record){
         );
 
     }
+
+
+    return true;
 
 }
 
@@ -1815,6 +1905,9 @@ async function sendPendingQueue(){
                     record.id
                 );
 
+
+                await updatePendingCount();
+
             }
 
             catch(error){
@@ -1850,25 +1943,55 @@ async function sendPendingQueue(){
 
 async function saveAndSend(data){
 
-    // 항상 휴대폰 IndexedDB에 먼저 저장
+    /*
+       핵심:
 
-    await saveGPSLocal(
-        data
-    );
+       1. 무조건 휴대폰 IndexedDB 먼저 저장
+       2. 인터넷이 있으면 Google Sheet 전송
+       3. 인터넷이 없으면 IndexedDB에 대기
+    */
 
 
-    // 인터넷이 없으면 여기서 종료
+    let localId = null;
 
-    if(!navigator.onLine){
 
-        return;
+    try{
+
+        localId =
+            await saveGPSLocal(
+                data
+            );
+
+    }
+
+    catch(error){
+
+        alert(
+            "⚠️ 휴대폰 저장에 실패했습니다."
+        );
+
+        console.log(
+            error
+        );
+
+        return false;
 
     }
 
 
-    // 저장된 큐를 전송
+    await updatePendingCount();
 
-    await sendPendingQueue();
+
+    if(
+        navigator.onLine
+    ){
+
+        await sendPendingQueue();
+
+    }
+
+
+    return localId;
 
 }
 
@@ -2173,21 +2296,11 @@ async function requestWakeLock(){
         );
 
 
-        console.log(
-            "🔒 Wake Lock ON"
-        );
-
-
         wakeLock.addEventListener(
 
             "release",
 
             () => {
-
-                console.log(
-                    "Wake Lock released"
-                );
-
 
                 wakeLock =
                     null;
@@ -2391,7 +2504,10 @@ async function handleGPSPosition(pos){
     );
 
 
-    // GPS 데이터를 휴대폰에 먼저 저장
+    /*
+       GPS 자동 기록도
+       휴대폰 IndexedDB에 먼저 저장
+    */
 
     await saveAndSend(
         newPosition
@@ -2561,7 +2677,9 @@ async function start(){
     }
 
 
-    // 5초마다 현재 위치 전송
+    /*
+       5초마다 현재 GPS 위치 저장
+    */
 
     intervalSend =
 
@@ -2597,7 +2715,10 @@ async function start(){
         );
 
 
-    // 실시간 다른 구조대 위치
+    /*
+       Google Sheet의 다른 구조대 위치
+       실시간 조회
+    */
 
     intervalLoad =
 
@@ -2613,12 +2734,16 @@ async function start(){
     startMobileCenter();
 
 
-    // 기존 대기 데이터가 있다면 전송
+    /*
+       기존 IndexedDB 대기 데이터 전송
+    */
 
     await sendPendingQueue();
 
 
-    // 즉시 GPS 요청
+    /*
+       즉시 GPS 요청
+    */
 
     navigator.geolocation
     .getCurrentPosition(
@@ -2649,26 +2774,199 @@ async function start(){
 
 
 // =========================================================
-// SEND DATA DIRECT
+// MANUAL LOCATION SAVE
 // =========================================================
 
-async function sendData(){
+async function saveCurrentLocation(){
 
-    if(!lastPos)
+    /*
+       마지막 GPS가 있으면 바로 저장
+    */
+
+    if(lastPos){
+
+        const data = {
+
+            ...lastPos,
+
+            name:
+                myName ||
+                lastPos.name,
+
+            status:
+                "SAVE",
+
+            startTime:
+                startTime,
+
+            endTime:
+                endTime,
+
+            recordedAt:
+                getNowTime()
+
+        };
+
+
+        await saveAndSend(
+            data
+        );
+
+
+        if(navigator.onLine){
+
+            alert(
+                "📍 위치 저장 완료\nGoogle Sheet 전송을 시도했습니다."
+            );
+
+        }
+
+        else{
+
+            alert(
+                "📍 휴대폰에 저장 완료\n현재 오프라인이라 전송 대기 중입니다."
+            );
+
+        }
+
+
         return;
 
+    }
 
-    await saveAndSend({
 
-        ...lastPos,
+    /*
+       마지막 GPS가 없다면
+       현재 GPS를 새로 요청
+    */
 
-        status:
-            "normal",
+    if(
+        !navigator.geolocation
+    ){
 
-        recordedAt:
-            getNowTime()
+        alert(
+            "GPS를 사용할 수 없습니다."
+        );
 
-    });
+        return;
+
+    }
+
+
+    setStatus(
+        gpsStatus,
+        "📍 위치 확인 중",
+        "warn"
+    );
+
+
+    navigator.geolocation
+    .getCurrentPosition(
+
+        async function(pos){
+
+            const data = {
+
+                name:
+                    myName ||
+                    nameInput.value.trim(),
+
+                device:
+                    DEVICE_ID,
+
+                lat:
+                    pos.coords.latitude,
+
+                lng:
+                    pos.coords.longitude,
+
+                accuracy:
+                    pos.coords.accuracy,
+
+                speed:
+                    pos.coords.speed,
+
+                heading:
+                    pos.coords.heading,
+
+                status:
+                    "SAVE",
+
+                startTime:
+                    startTime,
+
+                endTime:
+                    endTime,
+
+                recordedAt:
+                    getNowTime()
+
+            };
+
+
+            lastPos =
+                data;
+
+
+            map.setCenter(
+
+                new kakao.maps.LatLng(
+
+                    data.lat,
+
+                    data.lng
+
+                )
+
+            );
+
+
+            await saveAndSend(
+                data
+            );
+
+
+            setStatus(
+                gpsStatus,
+                "📍 GPS ON",
+                "on"
+            );
+
+
+            if(navigator.onLine){
+
+                alert(
+                    "📍 현재 위치 저장 완료"
+                );
+
+            }
+
+            else{
+
+                alert(
+                    "📍 휴대폰에 저장 완료\n오프라인 전송 대기 중"
+                );
+
+            }
+
+        },
+
+        handleGPSError,
+
+        {
+
+            enableHighAccuracy:
+                true,
+
+            maximumAge:
+                0,
+
+            timeout:
+                15000
+
+        }
+
+    );
 
 }
 
@@ -2678,6 +2976,10 @@ async function sendData(){
 // =========================================================
 
 function loadLive(){
+
+    if(!navigator.onLine)
+        return;
+
 
     fetch(
 
@@ -2693,16 +2995,29 @@ function loadLive(){
     )
 
     .then(
-        r => r.json()
+        r => {
+
+            if(!r.ok)
+                throw new Error(
+                    "HTTP " + r.status
+                );
+
+            return r.json();
+
+        }
     )
 
     .then(
 
         data => {
 
-            renderLive(
-                data
-            );
+            if(Array.isArray(data)){
+
+                renderLive(
+                    data
+                );
+
+            }
 
         }
 
@@ -2854,28 +3169,6 @@ function renderLive(data){
 
             }
 
-            else if(
-                p.status === "SHARE"
-            ){
-
-                markers[key]
-                .setImage(
-
-                    new kakao.maps.MarkerImage(
-
-                        "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
-
-                        new kakao.maps.Size(
-                            32,
-                            45
-                        )
-
-                    )
-
-                );
-
-            }
-
         }
 
     );
@@ -2951,100 +3244,14 @@ async function sendSOS(){
     };
 
 
-    // 먼저 휴대폰에 저장
-
     await saveAndSend(
         data
     );
 
 
     alert(
-        "🚨 SOS 전송 완료"
+        "🚨 SOS 기록 저장 및 전송 완료"
     );
-
-}
-
-
-// =========================================================
-// SHARE
-// =========================================================
-
-async function shareLocation(){
-
-    if(!lastPos){
-
-        alert(
-            "현재 위치 없음"
-        );
-
-        return;
-
-    }
-
-
-    const mapURL =
-
-        `https://map.kakao.com/link/map/${lastPos.lat},${lastPos.lng}`;
-
-
-    const message =
-
-`📡 구조대 위치 공유
-
-UNIT :
-${lastPos.name}
-
-LAT :
-${lastPos.lat}
-
-LNG :
-${lastPos.lng}
-
-지도 :
-${mapURL}`;
-
-
-    await saveAndSend({
-
-        ...lastPos,
-
-        status:
-            "SHARE",
-
-        recordedAt:
-            getNowTime()
-
-    });
-
-
-    if(
-        navigator.share
-    ){
-
-        navigator.share({
-
-            title:
-                "구조대 위치",
-
-            text:
-                message
-
-        })
-
-        .catch(
-            () => {}
-        );
-
-    }
-
-    else{
-
-        prompt(
-            "복사하세요",
-            message
-        );
-
-    }
 
 }
 
@@ -3201,9 +3408,6 @@ async function stopTracking(){
     lastPos =
         null;
 
-    previousPos =
-        null;
-
     myName =
         "";
 
@@ -3221,7 +3425,9 @@ async function stopTracking(){
     );
 
 
-    // 마커 삭제
+    /*
+       실시간 구조대 마커 제거
+    */
 
     Object.values(markers)
     .forEach(
@@ -3312,12 +3518,16 @@ async function resumeTracking(){
     );
 
 
-    // Wake Lock 재요청
+    /*
+       화면 복귀 즉시 Wake Lock 재요청
+    */
 
     await requestWakeLock();
 
 
-    // 현재 위치 즉시 재요청
+    /*
+       현재 위치 즉시 재요청
+    */
 
     if(
         navigator.geolocation
@@ -3348,12 +3558,17 @@ async function resumeTracking(){
     }
 
 
-    // 서버 대기 기록 재전송
+    /*
+       휴대폰 IndexedDB에 쌓인
+       미전송 기록 Google Sheet 전송
+    */
 
     await sendPendingQueue();
 
 
-    // 다른 구조대 위치 즉시 갱신
+    /*
+       다른 구조대 위치 갱신
+    */
 
     loadLive();
 
@@ -3433,6 +3648,13 @@ window.addEventListener(
         );
 
 
+        setStatus(
+            saveStatus,
+            "💾 전송 중",
+            "warn"
+        );
+
+
         await sendPendingQueue();
 
 
@@ -3455,17 +3677,26 @@ window.addEventListener(
 
     "offline",
 
-    () => {
+    async () => {
 
         console.log(
             "📴 INTERNET OFFLINE"
         );
 
 
+        const count =
+            await getPendingCount();
+
+
         setStatus(
+
             saveStatus,
-            "💾 오프라인 저장",
+
+            "💾 오프라인 저장 " +
+            count,
+
             "warn"
+
         );
 
     }
@@ -3687,6 +3918,17 @@ function loadAllHistory(){
     clearHistory();
 
 
+    if(!navigator.onLine){
+
+        alert(
+            "📴 현재 오프라인입니다.\n전체 기록은 Google Sheet에서 조회합니다."
+        );
+
+        return;
+
+    }
+
+
     fetch(
 
         API_URL +
@@ -3701,7 +3943,22 @@ function loadAllHistory(){
     )
 
     .then(
-        r => r.json()
+
+        r => {
+
+            if(!r.ok){
+
+                throw new Error(
+                    "HTTP " +
+                    r.status
+                );
+
+            }
+
+            return r.json();
+
+        }
+
     )
 
     .then(
@@ -3723,6 +3980,11 @@ function loadAllHistory(){
             console.log(
                 "HISTORY ERROR",
                 err
+            );
+
+
+            alert(
+                "전체 기록을 불러오지 못했습니다."
             );
 
         }
@@ -3800,6 +4062,19 @@ function clearHistory(){
 
 function showHistory(data){
 
+    if(
+        !Array.isArray(data)
+    ){
+
+        alert(
+            "기록 데이터 형식이 올바르지 않습니다."
+        );
+
+        return;
+
+    }
+
+
     const grouped = {};
 
 
@@ -3834,17 +4109,22 @@ function showHistory(data){
                 return;
 
 
+            const name =
+                d.name ||
+                "UNKNOWN";
+
+
             if(
-                !grouped[d.name]
+                !grouped[name]
             ){
 
-                grouped[d.name] =
+                grouped[name] =
                     [];
 
             }
 
 
-            grouped[d.name].push(
+            grouped[name].push(
 
                 new kakao.maps.LatLng(
 
@@ -4015,7 +4295,8 @@ function showHistory(data){
 
 
     if(
-        data.length > 0
+        data.length > 0 &&
+        grouped
     ){
 
         map.setBounds(
@@ -4048,6 +4329,12 @@ function showHistory(data){
             error
         );
 
+        setStatus(
+            saveStatus,
+            "💾 저장 오류",
+            "off"
+        );
+
     }
 
 
@@ -4055,11 +4342,15 @@ function showHistory(data){
 
     loadLive();
 
-    // 온라인 상태라면 기존 기록 전송
+
+    /*
+       앱 시작 시 IndexedDB에 남아 있는
+       미전송 GPS 기록 자동 전송
+    */
 
     if(navigator.onLine){
 
-        sendPendingQueue();
+        await sendPendingQueue();
 
     }
 
@@ -4067,7 +4358,7 @@ function showHistory(data){
 
 
 // =========================================================
-// RIGHT CLICK / DEV TOOLS
+// PREVENT CONTEXT MENU
 // =========================================================
 
 document.addEventListener(
@@ -4084,6 +4375,10 @@ document.addEventListener(
 
 );
 
+
+// =========================================================
+// KEYBOARD PROTECTION
+// =========================================================
 
 document.addEventListener(
 
