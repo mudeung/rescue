@@ -1,233 +1,1015 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
-<meta charset="UTF-8">
-<title>🆘 무등산 산악사고 구조요청</title>
 
-<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
-<meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet">
-  
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
+    <meta charset="UTF-8">
 
-<style>
-body { margin:0; font-family: Arial, sans-serif; background:#f5f5f5; }
-header { background:#b71c1c; color:white; padding:14px; text-align:center; font-size:20px; }
-#map { width:100%; height:450px; }
-section { padding:15px; }
-button {
-  width:90%; padding:14px; font-size:18px;
-  background:#d32f2f; color:white;
-  border:none; border-radius:6px;
-}
-.info { background:white; padding:12px; border-radius:6px; margin-bottom:10px; }
-.small { font-size:14px; color:#555; padding:0 15px; }
-.consent-box { padding:0 15px; margin-top:10px; }
-.consent-title {
-  font-size:14px; font-weight:bold;
-  background:#f2f2f2; padding:10px;
-  border-radius:6px; cursor:pointer;
-}
-.consent-detail {
-  display:none; font-size:13px;
-  margin-top:8px; padding:10px;
-  background:#fafafa; border-radius:6px;
-  line-height:1.6;
-}
-</style>
+    <title>🆘 무등산 산악사고 구조요청</title>
 
-<script>
-function toggleConsent() {
-  const d = document.getElementById("consentDetail");
-  d.style.display =
-    (d.style.display === "none" || d.style.display === "")
-    ? "block" : "none";
-}
-</script>
+    <meta
+        name="robots"
+        content="noindex, nofollow, noarchive, nosnippet"
+    >
+
+    <meta
+        name="googlebot"
+        content="noindex, nofollow, noarchive, nosnippet"
+    >
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+
+    <!-- =====================================================
+         카카오맵 SDK
+    ====================================================== -->
+
+    <script
+        src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services">
+    </script>
+
+
+    <!-- =====================================================
+         STYLE
+    ====================================================== -->
+
+    <style>
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+        }
+
+
+        header {
+            background: #b71c1c;
+            color: white;
+            padding: 14px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+
+        #map {
+            width: 100%;
+            height: 450px;
+        }
+
+
+        section {
+            padding: 15px;
+        }
+
+
+        button {
+            width: 90%;
+            padding: 14px;
+            font-size: 18px;
+            background: #d32f2f;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+
+        button:hover {
+            background: #b71c1c;
+        }
+
+
+        .info {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+
+        .small {
+            font-size: 14px;
+            color: #555;
+            padding: 0 15px;
+            line-height: 1.6;
+        }
+
+
+        /* =====================================================
+           위치정보 동의 안내
+        ====================================================== */
+
+        .consent-box {
+            padding: 0 15px;
+            margin-top: 10px;
+        }
+
+
+        .consent-title {
+            font-size: 14px;
+            font-weight: bold;
+            background: #f2f2f2;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+
+        .consent-detail {
+            display: none;
+            font-size: 13px;
+            margin-top: 8px;
+            padding: 10px;
+            background: #fafafa;
+            border-radius: 6px;
+            line-height: 1.6;
+        }
+
+
+        /* =====================================================
+           주소 표시
+        ====================================================== */
+
+        .address-box {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f1f8e9;
+            border-left: 4px solid #43a047;
+            border-radius: 5px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+
+        .address-title {
+            font-weight: bold;
+            color: #2e7d32;
+        }
+
+
+        /* =====================================================
+           전송 상태
+        ====================================================== */
+
+        #sendStatus {
+            margin-top: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #1565c0;
+        }
+
+
+        /* 모바일 */
+        @media (max-width: 768px) {
+
+            #map {
+                height: 400px;
+            }
+
+            header {
+                font-size: 18px;
+            }
+
+        }
+
+    </style>
+
+
+    <!-- =====================================================
+         동의내용 열기/닫기
+    ====================================================== -->
+
+    <script>
+
+        function toggleConsent() {
+
+            const detail =
+                document.getElementById(
+                    "consentDetail"
+                );
+
+
+            detail.style.display =
+                (
+                    detail.style.display === "none" ||
+                    detail.style.display === ""
+                )
+                    ? "block"
+                    : "none";
+
+        }
+
+    </script>
+
 </head>
+
 
 <body>
 
-<header>🆘 무등산 산악사고 구조요청</header>
 
-<div class="consent-box">
-  <div class="consent-title" onclick="toggleConsent()">
-    구조요청 위치정보 수집·이용 안내(세부내용 클릭)
-  </div>
-  <div class="consent-detail" id="consentDetail">
-    <b>산악사고 등 긴급상황 발생 시 구조·구급 요청을 목적으로 운영됩니다.</b>구조 요청 과정에서 <b>GPS 위치정보, 휴대전화 번호, 구조요청 시간</b>을 수집하며, 수집된 정보는 <b>신속한 구조·구급 활동 수행을 위한 용도에 한하여 사용</b>됩니다. 해당 정보는 구조·구급 목적 외 다른 용도로는 사용되지 않으며, 관련 법령에 따라 적절한 보안 조치를 통해 관리됩니다.<br><br>
-    <b>[문자 전송]</b> 버튼을 눌러 전송한 경우 위 위치정보 수집·이용에 동의한 것으로 간주됩니다.
-  </div>
-</div>
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
 
-<!-- 달콩이 이미지 -->
-<img src="https://mudeung.github.io/rescue/logogomir1.png"
-     alt="달콩이 이미지"
-     style="display:block; margin:0 auto;">
-  
-<section class="info">
-  <div id="gpsInfo">📍 내위치 좌표 확인 중...</div>
-  <br>
-  <button onclick="sendSMSAndCall()">✉️ 내위치 보내기 클릭</button>
-</section>
-
-<div class="small">
-※ 생명보호를 위한 구조·구급 목적의 내위치 문자전송<br>
-※ <b>국립공원특수구조대·119산악구조대</b>에 연결됩니다.
-</div>
-
-<br>
-<div id="map"></div>
-
-<script>
-let map, userMarker;
-let currentLat = null, currentLng = null;
+    <header>
+        🆘 무등산 산악사고 구조요청
+    </header>
 
 
-const RESCUE_NUMBER = [
-  "01080020860", "01066650113", "01035000320", "01031901187", "01088601187"
-];
+    <!-- =====================================================
+         위치정보 수집·이용 안내
+    ====================================================== -->
 
-const GOOGLE_SHEET_API = "https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
-                
+    <div class="consent-box">
 
-// 지도 초기화
-function initMap(lat = 35.131295, lng = 126.948047) {
-  map = new kakao.maps.Map(document.getElementById("map"), {
-    center: new kakao.maps.LatLng(lat, lng),
-    level: 3
-  });
-  userMarker = new kakao.maps.Marker({ map });
-}
-initMap();
+        <div
+            class="consent-title"
+            onclick="toggleConsent()"
+        >
 
-// GPS 추적
-if (navigator.geolocation) {
-  navigator.geolocation.watchPosition(
-    pos => {
+            구조요청 위치정보 수집·이용 안내
+            (세부내용 클릭)
 
-      currentLat = pos.coords.latitude;
-      currentLng = pos.coords.longitude;
+        </div>
 
-      const lat = Number(currentLat.toFixed(6));
-      const lng = Number(currentLng.toFixed(6));
 
-      const loc = new kakao.maps.LatLng(lat, lng);
-      map.setCenter(loc);
-      userMarker.setPosition(loc);
+        <div
+            class="consent-detail"
+            id="consentDetail"
+        >
 
-      document.getElementById("gpsInfo").innerHTML = `
-        📍 <b>내위치 좌표</b><br>
-        위도: ${lat}<br>
-        경도: ${lng}
-      `;
-    },
-    () => {
-      document.getElementById("gpsInfo").innerHTML =
-        "📍 위치 확인 실패: 위치 권한을 허용해주세요.";
-    },
-    {
-      enableHighAccuracy: true,
-      maximumAge: 1000,
-      timeout: 10000
-    }
-  );
-}
+            <b>
+                산악사고 등 긴급상황 발생 시
+                구조·구급 요청을 목적으로 운영됩니다.
+            </b>
 
-// 문자 전송 + 시트 저장
-function sendSMSAndCall() {
+            구조 요청 과정에서
+            <b>
+                GPS 위치정보, 휴대전화 번호,
+                구조요청 시간
+            </b>
+            을 수집하며,
 
-  if (currentLat === null || currentLng === null) {
-    alert("현재 위치를 확인할 수 없습니다.");
-    return;
-  }
+            수집된 정보는
+            <b>
+                신속한 구조·구급 활동 수행을 위한
+                용도에 한하여 사용
+            </b>
+            됩니다.
 
-  const lat = Number(currentLat.toFixed(6));
-  const lng = Number(currentLng.toFixed(6));
+            해당 정보는 구조·구급 목적 외
+            다른 용도로는 사용되지 않으며,
+            관련 법령에 따라 적절한 보안 조치를 통해
+            관리됩니다.
 
-  const kakaoMapURL =
-    `https://map.kakao.com/link/map/${lat},${lng}`;
+            <br><br>
 
-fetch(GOOGLE_SHEET_API, {
-  method: "POST",
-  mode: "no-cors",   // ★ 중요
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    lat,
-    lng,
-    kakaoMapURL,
-    condition: "-"
-  })
-});
+            <b>[내위치 보내기]</b>
+            버튼을 눌러 전송한 경우
+            위 위치정보 수집·이용에 동의한 것으로
+            간주됩니다.
 
-  const smsText =
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         로고
+    ====================================================== -->
+
+    <img
+        src="https://mudeung.github.io/rescue/logogomir1.png"
+        alt="달콩이 이미지"
+        style="
+            display:block;
+            margin:0 auto;
+            max-width:100%;
+        "
+    >
+
+
+    <!-- =====================================================
+         GPS 정보
+    ====================================================== -->
+
+    <section class="info">
+
+        <div id="gpsInfo">
+
+            📍 내위치 좌표 확인 중...
+
+        </div>
+
+
+        <!-- 주소 -->
+
+        <div
+            id="addressInfo"
+            class="address-box"
+            style="display:none;"
+        >
+
+            <div class="address-title">
+                🏠 현재 위치 주소
+            </div>
+
+            <div id="addressText">
+                주소 확인 중...
+            </div>
+
+        </div>
+
+
+        <br>
+
+
+        <!-- 위치 보내기 -->
+
+        <button
+            onclick="sendSMSAndCall()"
+        >
+
+            ✉️ 내위치 보내기 클릭
+
+        </button>
+
+
+        <div id="sendStatus"></div>
+
+    </section>
+
+
+    <!-- =====================================================
+         안내문
+    ====================================================== -->
+
+    <div class="small">
+
+        ※ 생명보호를 위한 구조·구급 목적의 내위치 문자전송
+        <br>
+
+        ※ <b>국립공원특수구조대·119산악구조대</b>에 연결됩니다.
+
+    </div>
+
+
+    <br>
+
+
+    <!-- =====================================================
+         지도
+    ====================================================== -->
+
+    <div id="map"></div>
+
+
+    <!-- =====================================================
+         JAVASCRIPT
+    ====================================================== -->
+
+    <script>
+
+
+        /* =====================================================
+           전역 변수
+        ====================================================== */
+
+        let map;
+
+        let userMarker;
+
+        let currentLat = null;
+
+        let currentLng = null;
+
+        let currentAddress = "주소 확인 중";
+
+
+        /* =====================================================
+           구조대 연락처
+        ====================================================== */
+
+        const RESCUE_NUMBER = [
+
+            "01080020860",
+            "01066650113",
+            "01035000320",
+            "01031901187",
+            "01088601187"
+
+        ];
+
+
+        /* =====================================================
+           구글시트 API
+        ====================================================== */
+
+        const GOOGLE_SHEET_API =
+            "https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
+
+
+        /* =====================================================
+           카카오 주소 검색 서비스
+        ====================================================== */
+
+        let geocoder;
+
+
+        /* =====================================================
+           지도 초기화
+        ====================================================== */
+
+        function initMap(
+
+            lat = 35.131295,
+
+            lng = 126.948047
+
+        ) {
+
+            map =
+                new kakao.maps.Map(
+
+                    document.getElementById("map"),
+
+                    {
+
+                        center:
+                            new kakao.maps.LatLng(
+                                lat,
+                                lng
+                            ),
+
+                        level: 3
+
+                    }
+
+                );
+
+
+            userMarker =
+                new kakao.maps.Marker({
+
+                    map: map,
+
+                    position:
+                        new kakao.maps.LatLng(
+                            lat,
+                            lng
+                        )
+
+                });
+
+
+            /* 주소 변환 객체 */
+
+            geocoder =
+                new kakao.maps.services.Geocoder();
+
+        }
+
+
+        initMap();
+
+
+        /* =====================================================
+           GPS 위치 → 주소 변환
+        ====================================================== */
+
+        function getAddressFromGPS(
+            lat,
+            lng
+        ) {
+
+            if (!geocoder) {
+
+                currentAddress =
+                    "주소 검색 서비스를 사용할 수 없습니다.";
+
+                return;
+
+            }
+
+
+            geocoder.coord2Address(
+
+                lng,
+                lat,
+
+                function(result, status) {
+
+
+                    if (
+                        status ===
+                        kakao.maps.services.Status.OK
+                    ) {
+
+
+                        let address = "";
+
+
+                        /*
+                           지번주소가 있으면 사용
+                        */
+
+                        if (
+                            result[0] &&
+                            result[0].address
+                        ) {
+
+                            address =
+                                result[0].address.address_name;
+
+                        }
+
+
+                        /*
+                           도로명주소가 있으면 우선 사용
+                        */
+
+                        if (
+                            result[0] &&
+                            result[0].road_address
+                        ) {
+
+                            address =
+                                result[0]
+                                    .road_address
+                                    .address_name;
+
+                        }
+
+
+                        currentAddress =
+                            address ||
+                            "주소를 확인할 수 없습니다.";
+
+
+                    }
+
+                    else {
+
+                        currentAddress =
+                            "주소를 확인할 수 없습니다.";
+
+                    }
+
+
+                    /*
+                       화면에 주소 표시
+                    */
+
+                    document.getElementById(
+                        "addressInfo"
+                    ).style.display =
+                        "block";
+
+
+                    document.getElementById(
+                        "addressText"
+                    ).innerText =
+                        currentAddress;
+
+                }
+
+            );
+
+        }
+
+
+        /* =====================================================
+           GPS 추적
+        ====================================================== */
+
+        if (
+            navigator.geolocation
+        ) {
+
+
+            navigator.geolocation.watchPosition(
+
+                pos => {
+
+
+                    currentLat =
+                        pos.coords.latitude;
+
+
+                    currentLng =
+                        pos.coords.longitude;
+
+
+                    const lat =
+                        Number(
+                            currentLat.toFixed(6)
+                        );
+
+
+                    const lng =
+                        Number(
+                            currentLng.toFixed(6)
+                        );
+
+
+                    const loc =
+                        new kakao.maps.LatLng(
+                            lat,
+                            lng
+                        );
+
+
+                    /*
+                       지도 이동
+                    */
+
+                    map.setCenter(
+                        loc
+                    );
+
+
+                    /*
+                       내 위치 마커
+                    */
+
+                    userMarker.setPosition(
+                        loc
+                    );
+
+
+                    /*
+                       좌표 표시
+                    */
+
+                    document.getElementById(
+                        "gpsInfo"
+                    ).innerHTML = `
+
+                        📍 <b>내위치 좌표</b>
+                        <br>
+
+                        위도:
+                        ${lat}
+
+                        <br>
+
+                        경도:
+                        ${lng}
+
+                    `;
+
+
+                    /*
+                       GPS 좌표 → 주소 변환
+                    */
+
+                    getAddressFromGPS(
+                        lat,
+                        lng
+                    );
+
+                },
+
+
+                error => {
+
+                    console.error(
+                        error
+                    );
+
+
+                    document.getElementById(
+                        "gpsInfo"
+                    ).innerHTML =
+
+                        "📍 위치 확인 실패: " +
+                        "위치 권한을 허용해주세요.";
+
+                },
+
+
+                {
+
+                    enableHighAccuracy: true,
+
+                    maximumAge: 1000,
+
+                    timeout: 10000
+
+                }
+
+            );
+
+        }
+
+
+        /* =====================================================
+           문자 전송 + 구글시트 저장
+        ====================================================== */
+
+        function sendSMSAndCall() {
+
+
+            /*
+               위치 확인
+            */
+
+            if (
+                currentLat === null ||
+                currentLng === null
+            ) {
+
+                alert(
+                    "현재 위치를 확인할 수 없습니다."
+                );
+
+                return;
+
+            }
+
+
+            const lat =
+                Number(
+                    currentLat.toFixed(6)
+                );
+
+
+            const lng =
+                Number(
+                    currentLng.toFixed(6)
+                );
+
+
+            /*
+               주소가 아직 변환 중인 경우
+            */
+
+            if (
+                currentAddress ===
+                "주소 확인 중"
+            ) {
+
+                alert(
+                    "현재 위치의 주소를 확인하는 중입니다.\n잠시 후 다시 눌러주세요."
+                );
+
+                return;
+
+            }
+
+
+            /*
+               카카오맵 URL
+            */
+
+            const kakaoMapURL =
+                `https://map.kakao.com/link/map/${lat},${lng}`;
+
+
+            /*
+               내용
+            */
+
+            const condition =
+                "위치공유 시스템 전송";
+
+
+            /* =================================================
+               구글시트 저장
+            ================================================== */
+
+            fetch(
+
+                GOOGLE_SHEET_API,
+
+                {
+
+                    method: "POST",
+
+                    mode: "no-cors",
+
+                    headers: {
+
+                        "Content-Type":
+                            "application/json"
+
+                    },
+
+                    body:
+
+                        JSON.stringify({
+
+                            lat: lat,
+
+                            lng: lng,
+
+                            address:
+                                currentAddress,
+
+                            kakaoMapURL:
+                                kakaoMapURL,
+
+                            condition:
+                                condition
+
+                        })
+
+                }
+
+            );
+
+
+            /* =================================================
+               문자 내용
+            ================================================== */
+
+            const smsText =
+
 `🚨 [산악구조요청]
-📍 위도: ${lat}
-📍 경도: ${lng}
-🗺 카카오맵: ${kakaoMapURL}
+
+📝 내용:
+${condition}
+
+🏠 주소:
+${currentAddress}
+
+📍 위도:
+${lat}
+
+📍 경도:
+${lng}
+
+🗺 카카오맵:
+${kakaoMapURL}
 `;
 
-  if (/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
-    location.href =
-      `sms:${RESCUE_NUMBER}?body=${encodeURIComponent(smsText)}`;
-  } else {
-    alert("모바일에서만 문자 전송이 가능합니다.\n\n" + smsText);
-  }
-}
-</script>
 
-<script>
-/* =========================
-   우클릭 및 개발자도구 단축키 방지
-   ========================= */
+            /*
+               전송 상태 표시
+            */
 
-document.addEventListener('contextmenu', function(e) {
-    e.preventDefault();
-    return false;
-});
+            document.getElementById(
+                "sendStatus"
+            ).innerHTML =
 
-document.addEventListener('keydown', function(e) {
+                "✅ 위치공유 시스템 전송 준비 완료";
 
-    // F12
-    if (e.key === 'F12') {
-        e.preventDefault();
-        return false;
-    }
 
-    // Ctrl + U (페이지 소스 보기)
-    if (e.ctrlKey && e.key.toLowerCase() === 'u') {
-        e.preventDefault();
-        return false;
-    }
+            /* =================================================
+               모바일 문자 전송
+            ================================================== */
 
-    // Ctrl + Shift + I (개발자 도구)
-    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'i') {
-        e.preventDefault();
-        return false;
-    }
+            if (
+                /Mobi|Android|iPhone/i
+                    .test(
+                        navigator.userAgent
+                    )
+            ) {
 
-    // Ctrl + Shift + J (콘솔)
-    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'j') {
-        e.preventDefault();
-        return false;
-    }
+                location.href =
 
-    // Ctrl + Shift + C (요소 선택)
-    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'c') {
-        e.preventDefault();
-        return false;
-    }
+                    `sms:${RESCUE_NUMBER}?body=` +
 
-    // Ctrl + S (페이지 저장)
-    if (e.ctrlKey && e.key.toLowerCase() === 's') {
-        e.preventDefault();
-        return false;
-    }
-});
-</script>
+                    encodeURIComponent(
+                        smsText
+                    );
 
-  
+            }
+
+            else {
+
+                alert(
+
+                    "모바일에서만 문자 전송이 가능합니다.\n\n" +
+                    smsText
+
+                );
+
+            }
+
+        }
+
+    </script>
+
+
+    <!-- =====================================================
+         우클릭 및 개발자도구 단축키 방지
+    ====================================================== -->
+
+    <script>
+
+        document.addEventListener(
+            "contextmenu",
+            function(e) {
+
+                e.preventDefault();
+
+                return false;
+
+            }
+        );
+
+
+        document.addEventListener(
+            "keydown",
+            function(e) {
+
+
+                /* F12 */
+
+                if (
+                    e.key === "F12"
+                ) {
+
+                    e.preventDefault();
+
+                    return false;
+
+                }
+
+
+                /* Ctrl + U */
+
+                if (
+                    e.ctrlKey &&
+                    e.key.toLowerCase() === "u"
+                ) {
+
+                    e.preventDefault();
+
+                    return false;
+
+                }
+
+
+                /* Ctrl + Shift + I */
+
+                if (
+                    e.ctrlKey &&
+                    e.shiftKey &&
+                    e.key.toLowerCase() === "i"
+                ) {
+
+                    e.preventDefault();
+
+                    return false;
+
+                }
+
+
+                /* Ctrl + Shift + J */
+
+                if (
+                    e.ctrlKey &&
+                    e.shiftKey &&
+                    e.key.toLowerCase() === "j"
+                ) {
+
+                    e.preventDefault();
+
+                    return false;
+
+                }
+
+
+                /* Ctrl + Shift + C */
+
+                if (
+                    e.ctrlKey &&
+                    e.shiftKey &&
+                    e.key.toLowerCase() === "c"
+                ) {
+
+                    e.preventDefault();
+
+                    return false;
+
+                }
+
+
+                /* Ctrl + S */
+
+                if (
+                    e.ctrlKey &&
+                    e.key.toLowerCase() === "s"
+                ) {
+
+                    e.preventDefault();
+
+                    return false;
+
+                }
+
+            }
+        );
+
+    </script>
+
+
 </body>
+
 </html>
