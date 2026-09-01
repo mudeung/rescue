@@ -33,10 +33,15 @@
 
 
     <!-- =====================================================
-         STYLE
+         CSS
     ====================================================== -->
 
     <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
 
         body {
             margin: 0;
@@ -44,6 +49,10 @@
             background: #f5f5f5;
         }
 
+
+        /* =====================================================
+           헤더
+        ====================================================== */
 
         header {
             background: #b71c1c;
@@ -55,16 +64,99 @@
         }
 
 
+        /* =====================================================
+           지도
+        ====================================================== */
+
         #map {
             width: 100%;
             height: 450px;
         }
 
 
+        /* =====================================================
+           기본 영역
+        ====================================================== */
+
         section {
             padding: 15px;
         }
 
+
+        /* =====================================================
+           정보 카드
+        ====================================================== */
+
+        .info {
+            background: white;
+            padding: 14px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+        }
+
+
+        /* =====================================================
+           GPS 정보
+        ====================================================== */
+
+        #gpsInfo {
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+
+        .gps-title {
+            font-weight: bold;
+            color: #1565c0;
+        }
+
+
+        /* =====================================================
+           내용 표시
+        ====================================================== */
+
+        .content-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: #fff3e0;
+            border-left: 4px solid #ef6c00;
+            border-radius: 5px;
+            color: #e65100;
+            font-weight: bold;
+        }
+
+
+        /* =====================================================
+           주소 표시
+        ====================================================== */
+
+        .address-box {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f1f8e9;
+            border-left: 4px solid #43a047;
+            border-radius: 5px;
+            line-height: 1.6;
+        }
+
+
+        .address-title {
+            color: #2e7d32;
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+
+        #addressText {
+            color: #333;
+            font-size: 14px;
+        }
+
+
+        /* =====================================================
+           버튼
+        ====================================================== */
 
         button {
             width: 90%;
@@ -83,24 +175,37 @@
         }
 
 
-        .info {
-            background: white;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 10px;
+        button:active {
+            transform: scale(0.98);
         }
 
+
+        /* =====================================================
+           전송 상태
+        ====================================================== */
+
+        #sendStatus {
+            margin-top: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #1565c0;
+        }
+
+
+        /* =====================================================
+           안내문
+        ====================================================== */
 
         .small {
             font-size: 14px;
             color: #555;
             padding: 0 15px;
-            line-height: 1.6;
+            line-height: 1.7;
         }
 
 
         /* =====================================================
-           위치정보 동의 안내
+           동의 안내
         ====================================================== */
 
         .consent-box {
@@ -131,47 +236,23 @@
 
 
         /* =====================================================
-           주소 표시
+           모바일
         ====================================================== */
 
-        .address-box {
-            margin-top: 10px;
-            padding: 10px;
-            background: #f1f8e9;
-            border-left: 4px solid #43a047;
-            border-radius: 5px;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-
-        .address-title {
-            font-weight: bold;
-            color: #2e7d32;
-        }
-
-
-        /* =====================================================
-           전송 상태
-        ====================================================== */
-
-        #sendStatus {
-            margin-top: 10px;
-            font-size: 14px;
-            font-weight: bold;
-            color: #1565c0;
-        }
-
-
-        /* 모바일 */
         @media (max-width: 768px) {
+
+            header {
+                font-size: 18px;
+            }
+
 
             #map {
                 height: 400px;
             }
 
-            header {
-                font-size: 18px;
+
+            button {
+                width: 100%;
             }
 
         }
@@ -193,13 +274,18 @@
                 );
 
 
-            detail.style.display =
-                (
-                    detail.style.display === "none" ||
-                    detail.style.display === ""
-                )
-                    ? "block"
-                    : "none";
+            if (
+                detail.style.display === "none" ||
+                detail.style.display === ""
+            ) {
+
+                detail.style.display = "block";
+
+            } else {
+
+                detail.style.display = "none";
+
+            }
 
         }
 
@@ -297,49 +383,79 @@
          GPS 정보
     ====================================================== -->
 
-    <section class="info">
+    <section>
 
-        <div id="gpsInfo">
-
-            📍 내위치 좌표 확인 중...
-
-        </div>
+        <div class="info">
 
 
-        <!-- 주소 -->
+            <!-- GPS 좌표 -->
 
-        <div
-            id="addressInfo"
-            class="address-box"
-            style="display:none;"
-        >
+            <div id="gpsInfo">
 
-            <div class="address-title">
-                🏠 현재 위치 주소
+                📍 <b>내위치 좌표 확인 중...</b>
+
             </div>
 
-            <div id="addressText">
-                주소 확인 중...
+
+            <!-- =================================================
+                 내용 - 항상 고정 표시
+            ================================================== -->
+
+            <div class="content-info">
+
+                📝 내용:
+                <b>위치공유 시스템 전송</b>
+
             </div>
 
+
+            <!-- =================================================
+                 주소
+            ================================================== -->
+
+            <div
+                id="addressInfo"
+                class="address-box"
+            >
+
+                <div class="address-title">
+
+                    🏠 현재 위치 주소
+
+                </div>
+
+
+                <div id="addressText">
+
+                    주소 확인 중...
+
+                </div>
+
+            </div>
+
+
+            <br>
+
+
+            <!-- =================================================
+                 위치 보내기 버튼
+            ================================================== -->
+
+            <button
+                onclick="sendSMSAndCall()"
+            >
+
+                ✉️ 내위치 보내기 클릭
+
+            </button>
+
+
+            <!-- 전송 상태 -->
+
+            <div id="sendStatus"></div>
+
+
         </div>
-
-
-        <br>
-
-
-        <!-- 위치 보내기 -->
-
-        <button
-            onclick="sendSMSAndCall()"
-        >
-
-            ✉️ 내위치 보내기 클릭
-
-        </button>
-
-
-        <div id="sendStatus"></div>
 
     </section>
 
@@ -387,11 +503,13 @@
 
         let currentLng = null;
 
-        let currentAddress = "주소 확인 중";
+        let currentAddress = "주소 확인 중...";
+
+        let geocoder;
 
 
         /* =====================================================
-           구조대 연락처
+           문자 수신 구조대 번호
         ====================================================== */
 
         const RESCUE_NUMBER = [
@@ -414,10 +532,11 @@
 
 
         /* =====================================================
-           카카오 주소 검색 서비스
+           고정 내용
         ====================================================== */
 
-        let geocoder;
+        const FIXED_CONTENT =
+            "위치공유 시스템 전송";
 
 
         /* =====================================================
@@ -432,6 +551,14 @@
 
         ) {
 
+
+            const center =
+                new kakao.maps.LatLng(
+                    lat,
+                    lng
+                );
+
+
             map =
                 new kakao.maps.Map(
 
@@ -439,11 +566,7 @@
 
                     {
 
-                        center:
-                            new kakao.maps.LatLng(
-                                lat,
-                                lng
-                            ),
+                        center: center,
 
                         level: 3
 
@@ -452,16 +575,14 @@
                 );
 
 
+            /* 현재 위치 마커 */
+
             userMarker =
                 new kakao.maps.Marker({
 
                     map: map,
 
-                    position:
-                        new kakao.maps.LatLng(
-                            lat,
-                            lng
-                        )
+                    position: center
 
                 });
 
@@ -478,7 +599,7 @@
 
 
         /* =====================================================
-           GPS 위치 → 주소 변환
+           GPS 좌표 → 주소 변환
         ====================================================== */
 
         function getAddressFromGPS(
@@ -486,10 +607,16 @@
             lng
         ) {
 
+
             if (!geocoder) {
 
                 currentAddress =
                     "주소 검색 서비스를 사용할 수 없습니다.";
+
+                document.getElementById(
+                    "addressText"
+                ).innerText =
+                    currentAddress;
 
                 return;
 
@@ -499,10 +626,13 @@
             geocoder.coord2Address(
 
                 lng,
+
                 lat,
 
                 function(result, status) {
 
+
+                    /* 주소 검색 성공 */
 
                     if (
                         status ===
@@ -514,22 +644,7 @@
 
 
                         /*
-                           지번주소가 있으면 사용
-                        */
-
-                        if (
-                            result[0] &&
-                            result[0].address
-                        ) {
-
-                            address =
-                                result[0].address.address_name;
-
-                        }
-
-
-                        /*
-                           도로명주소가 있으면 우선 사용
+                           도로명주소 우선
                         */
 
                         if (
@@ -545,10 +660,28 @@
                         }
 
 
+                        /*
+                           도로명주소가 없으면
+                           지번주소 사용
+                        */
+
+                        if (
+                            !address &&
+                            result[0] &&
+                            result[0].address
+                        ) {
+
+                            address =
+                                result[0]
+                                    .address
+                                    .address_name;
+
+                        }
+
+
                         currentAddress =
                             address ||
                             "주소를 확인할 수 없습니다.";
-
 
                     }
 
@@ -561,14 +694,8 @@
 
 
                     /*
-                       화면에 주소 표시
+                       화면 주소 갱신
                     */
-
-                    document.getElementById(
-                        "addressInfo"
-                    ).style.display =
-                        "block";
-
 
                     document.getElementById(
                         "addressText"
@@ -593,8 +720,12 @@
 
             navigator.geolocation.watchPosition(
 
-                pos => {
+                function(pos) {
 
+
+                    /* -----------------------------------------
+                       현재 좌표
+                    ----------------------------------------- */
 
                     currentLat =
                         pos.coords.latitude;
@@ -616,6 +747,10 @@
                         );
 
 
+                    /* -----------------------------------------
+                       카카오맵 좌표
+                    ----------------------------------------- */
+
                     const loc =
                         new kakao.maps.LatLng(
                             lat,
@@ -623,33 +758,37 @@
                         );
 
 
-                    /*
+                    /* -----------------------------------------
                        지도 이동
-                    */
+                    ----------------------------------------- */
 
                     map.setCenter(
                         loc
                     );
 
 
-                    /*
-                       내 위치 마커
-                    */
+                    /* -----------------------------------------
+                       현재 위치 마커 이동
+                    ----------------------------------------- */
 
                     userMarker.setPosition(
                         loc
                     );
 
 
-                    /*
-                       좌표 표시
-                    */
+                    /* -----------------------------------------
+                       화면 GPS 정보
+                    ----------------------------------------- */
 
                     document.getElementById(
                         "gpsInfo"
                     ).innerHTML = `
 
-                        📍 <b>내위치 좌표</b>
+                        📍
+                        <span class="gps-title">
+                            내위치 좌표
+                        </span>
+
                         <br>
 
                         위도:
@@ -663,9 +802,9 @@
                     `;
 
 
-                    /*
-                       GPS 좌표 → 주소 변환
-                    */
+                    /* -----------------------------------------
+                       주소 변환
+                    ----------------------------------------- */
 
                     getAddressFromGPS(
                         lat,
@@ -675,19 +814,35 @@
                 },
 
 
-                error => {
+                function(error) {
+
 
                     console.error(
+                        "GPS 오류:",
                         error
                     );
 
 
                     document.getElementById(
                         "gpsInfo"
-                    ).innerHTML =
+                    ).innerHTML = `
 
-                        "📍 위치 확인 실패: " +
-                        "위치 권한을 허용해주세요.";
+                        📍
+                        <b>
+                            위치 확인 실패
+                        </b>
+
+                        <br>
+
+                        위치 권한을 허용해주세요.
+
+                    `;
+
+
+                    document.getElementById(
+                        "addressText"
+                    ).innerText =
+                        "현재 위치를 확인할 수 없습니다.";
 
                 },
 
@@ -706,6 +861,16 @@
 
         }
 
+        else {
+
+            document.getElementById(
+                "gpsInfo"
+            ).innerHTML =
+
+                "📍 이 기기에서는 GPS를 사용할 수 없습니다.";
+
+        }
+
 
         /* =====================================================
            문자 전송 + 구글시트 저장
@@ -714,9 +879,9 @@
         function sendSMSAndCall() {
 
 
-            /*
-               위치 확인
-            */
+            /* -----------------------------------------
+               GPS 확인
+            ----------------------------------------- */
 
             if (
                 currentLat === null ||
@@ -732,6 +897,10 @@
             }
 
 
+            /* -----------------------------------------
+               좌표
+            ----------------------------------------- */
+
             const lat =
                 Number(
                     currentLat.toFixed(6)
@@ -744,13 +913,13 @@
                 );
 
 
-            /*
-               주소가 아직 변환 중인 경우
-            */
+            /* -----------------------------------------
+               주소가 아직 검색 중인 경우
+            ----------------------------------------- */
 
             if (
                 currentAddress ===
-                "주소 확인 중"
+                "주소 확인 중..."
             ) {
 
                 alert(
@@ -762,25 +931,17 @@
             }
 
 
-            /*
+            /* -----------------------------------------
                카카오맵 URL
-            */
+            ----------------------------------------- */
 
             const kakaoMapURL =
                 `https://map.kakao.com/link/map/${lat},${lng}`;
 
 
-            /*
-               내용
-            */
-
-            const condition =
-                "위치공유 시스템 전송";
-
-
-            /* =================================================
+            /* -----------------------------------------
                구글시트 저장
-            ================================================== */
+            ----------------------------------------- */
 
             fetch(
 
@@ -814,25 +975,32 @@
                                 kakaoMapURL,
 
                             condition:
-                                condition
+                                FIXED_CONTENT
 
                         })
 
                 }
 
+            )
+            .catch(
+                error =>
+                    console.error(
+                        "시트 전송 오류:",
+                        error
+                    )
             );
 
 
-            /* =================================================
+            /* -----------------------------------------
                문자 내용
-            ================================================== */
+            ----------------------------------------- */
 
             const smsText =
 
 `🚨 [산악구조요청]
 
 📝 내용:
-${condition}
+${FIXED_CONTENT}
 
 🏠 주소:
 ${currentAddress}
@@ -848,9 +1016,9 @@ ${kakaoMapURL}
 `;
 
 
-            /*
-               전송 상태 표시
-            */
+            /* -----------------------------------------
+               화면 전송 상태
+            ----------------------------------------- */
 
             document.getElementById(
                 "sendStatus"
@@ -859,9 +1027,9 @@ ${kakaoMapURL}
                 "✅ 위치공유 시스템 전송 준비 완료";
 
 
-            /* =================================================
-               모바일 문자 전송
-            ================================================== */
+            /* -----------------------------------------
+               모바일 문자
+            ----------------------------------------- */
 
             if (
                 /Mobi|Android|iPhone/i
@@ -869,6 +1037,7 @@ ${kakaoMapURL}
                         navigator.userAgent
                     )
             ) {
+
 
                 location.href =
 
@@ -878,9 +1047,11 @@ ${kakaoMapURL}
                         smsText
                     );
 
+
             }
 
             else {
+
 
                 alert(
 
