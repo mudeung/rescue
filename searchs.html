@@ -1101,8 +1101,6 @@ let gpsLastUpdate = 0;
 
 let isSendingQueue = false;
 
-let saveLock = false;
-
 
 // =========================================================
 // GPS AUTO SAVE INTERVAL
@@ -2448,11 +2446,9 @@ async function handleGPSPosition(pos){
 
 
     /*
-       GPS 추적 자체는 계속 유지한다.
-
-       단,
-       STOP 이후에는
-       자동 기록을 절대 저장하지 않는다.
+       ★ 중요 ★
+       STOP 이후에는 GPS 위치 자체는 계속 받지만
+       기록은 절대 하지 않는다.
     */
 
     if(!isTracking){
@@ -2505,8 +2501,8 @@ async function handleGPSPosition(pos){
 
 
     /*
-       지도는 GPS가 들어올 때마다
-       현재 위치로 이동
+       추적 중에는 지도 중심을
+       현재 GPS 위치로 이동
     */
 
     if(isTracking){
@@ -2569,8 +2565,7 @@ function startGPSWatch(){
 
 
     /*
-       기존 watch가 있으면
-       먼저 제거
+       기존 watch가 있으면 제거
     */
 
     if(
@@ -2589,7 +2584,7 @@ function startGPSWatch(){
 
 
     /*
-       GPS 위치 추적은 계속 유지
+       GPS 위치 추적 시작
     */
 
     watchId =
@@ -2655,6 +2650,10 @@ async function start(){
     }
 
 
+    /*
+       ★ 새로운 기록 세션 시작
+    */
+
     isTracking =
         true;
 
@@ -2666,6 +2665,11 @@ async function start(){
     endTime =
         "";
 
+
+    /*
+       새로운 START에서는
+       이전 세션의 이름/상태를 사용한다.
+    */
 
     nameInput.disabled =
         true;
@@ -2687,10 +2691,6 @@ async function start(){
 
     /*
        GPS watch 시작
-
-       중요:
-       GPS 추적은 계속되고
-       실제 저장은 아래 20초 타이머에서만 한다.
     */
 
     const gpsStarted =
@@ -2705,14 +2705,16 @@ async function start(){
         nameInput.disabled =
             false;
 
+        startBtn.disabled =
+            false;
+
         return;
 
     }
 
 
     /*
-       20초마다 현재 위치를
-       실제 기록으로 저장
+       기존 자동 저장 타이머 제거
     */
 
     if(intervalSend){
@@ -2724,6 +2726,10 @@ async function start(){
     }
 
 
+    /*
+       20초마다 GPS 기록
+    */
+
     intervalSend =
 
         setInterval(
@@ -2731,8 +2737,7 @@ async function start(){
             async () => {
 
                 /*
-                   STOP 이후 타이머 콜백이
-                   남아 있어도 저장하지 않음
+                   ★ STOP 이후 절대 저장하지 않음
                 */
 
                 if(!isTracking)
@@ -2777,8 +2782,7 @@ async function start(){
 
 
     /*
-       다른 구조대 위치
-       3초마다 조회
+       기존 실시간 조회 타이머 제거
     */
 
     if(intervalLoad){
@@ -2789,6 +2793,11 @@ async function start(){
 
     }
 
+
+    /*
+       다른 구조대 위치
+       3초마다 조회
+    */
 
     intervalLoad =
 
@@ -2850,8 +2859,7 @@ async function start(){
 async function saveCurrentLocation(){
 
     /*
-       마지막 GPS가 있으면
-       즉시 별도 저장
+       마지막 GPS가 있으면 즉시 저장
     */
 
     if(lastPos){
@@ -2978,17 +2986,9 @@ async function saveCurrentLocation(){
             };
 
 
-            /*
-               마지막 GPS 위치도 갱신
-            */
-
             lastPos =
                 data;
 
-
-            /*
-               지도 이동
-            */
 
             map.setCenter(
 
@@ -3002,11 +3002,6 @@ async function saveCurrentLocation(){
 
             );
 
-
-            /*
-               자동 20초 기록과 관계없이
-               즉시 별도 저장
-            */
 
             await saveAndSend(
                 data
@@ -3311,8 +3306,7 @@ async function sendSOS(){
 
 
     /*
-       현재 위치가 없으면
-       GPS를 즉시 요청
+       현재 위치가 없으면 GPS 즉시 요청
     */
 
     if(!position){
@@ -3421,8 +3415,7 @@ async function sendSOS(){
 
 
     /*
-       SOS는 현재 추적 상태와 관계없이
-       즉시 별도 기록
+       SOS 별도 기록
     */
 
     const data = {
@@ -3533,13 +3526,14 @@ async function stopTracking(){
 
 
     /*
-       ★ 가장 중요 ★
+       =====================================================
+       ★★★★★ STOP 핵심 ★★★★★
+       =====================================================
 
-       STOP 버튼을 누르는 즉시
-       기록 허용 상태를 false로 변경한다.
+       반드시 가장 먼저 false로 변경한다.
 
-       이후 GPS callback이 늦게 들어와도
-       자동 저장하지 않는다.
+       GPS callback이나 20초 timer가 동시에 실행되더라도
+       STOP 이후 자동 GPS 기록이 생성되지 않는다.
     */
 
     isTracking =
@@ -3547,7 +3541,7 @@ async function stopTracking(){
 
 
     /*
-       종료 시간만 메모리에 기록
+       ★ STOP 버튼을 누른 정확한 시간을 종료시간으로 확정
     */
 
     endTime =
@@ -3555,7 +3549,95 @@ async function stopTracking(){
 
 
     /*
-       20초 자동 저장 타이머 즉시 중지
+       =====================================================
+       ★ STOP 종료 기록 저장
+       =====================================================
+
+       마지막 GPS 위치가 있는 경우
+       status = END 로 별도 1회 저장한다.
+
+       Google Sheet에는:
+
+       startTime = START 시간
+       endTime   = STOP 시간
+       
+       이 함께 들어간다.
+    */
+
+    if(lastPos){
+
+        const endRecord = {
+
+            ...lastPos,
+
+            name:
+                myName ||
+                lastPos.name ||
+                nameInput.value.trim(),
+
+            device:
+                DEVICE_ID,
+
+            lat:
+                Number(lastPos.lat),
+
+            lng:
+                Number(lastPos.lng),
+
+            accuracy:
+                lastPos.accuracy,
+
+            speed:
+                lastPos.speed,
+
+            heading:
+                lastPos.heading,
+
+            status:
+                "END",
+
+            startTime:
+                startTime,
+
+            endTime:
+                endTime,
+
+            recordedAt:
+                endTime
+
+        };
+
+
+        try{
+
+            await saveAndSend(
+                endRecord
+            );
+
+
+            console.log(
+                "✅ STOP END RECORD SAVED",
+                endRecord
+            );
+
+        }
+
+        catch(error){
+
+            console.log(
+                "STOP END RECORD ERROR",
+                error
+            );
+
+        }
+
+    }
+
+
+    /*
+       =====================================================
+       자동 20초 기록 타이머 중지
+       =====================================================
     */
 
     if(intervalSend){
@@ -3571,7 +3653,9 @@ async function stopTracking(){
 
 
     /*
+       =====================================================
        실시간 구조대 조회 중지
+       =====================================================
     */
 
     if(intervalLoad){
@@ -3587,7 +3671,9 @@ async function stopTracking(){
 
 
     /*
-       자동 중앙 이동 중지
+       =====================================================
+       지도 자동 중앙 이동 중지
+       =====================================================
     */
 
     if(centerInterval){
@@ -3603,34 +3689,42 @@ async function stopTracking(){
 
 
     /*
-       ★ GPS watch는 제거하지 않는다 ★
-
-       GPS 위치 추적 자체는 계속 유지한다.
-
-       따라서 watchPosition은 살아있지만
-       handleGPSPosition()에서
-       isTracking === false이면
-       기록하지 않는다.
-    */
-
-
-    /*
+       =====================================================
        Wake Lock 해제
+       =====================================================
     */
 
     await releaseWakeLock();
 
 
     /*
-       기존 IndexedDB 대기 기록 전송
+       =====================================================
+       기존 IndexedDB 미전송 기록 전송
+       =====================================================
     */
 
     await sendPendingQueue();
 
 
     /*
-       GPS 상태는 OFF가 아니라
-       "추적 유지 / 기록 정지" 상태로 표시
+       =====================================================
+       ★ GPS watchPosition은 제거하지 않는다 ★
+
+       GPS 추적 자체는 계속 유지한다.
+
+       단, handleGPSPosition()에서:
+
+           if(!isTracking){
+               return;
+           }
+
+       하기 때문에 STOP 이후 GPS 자동 기록은 없다.
+       =====================================================
+    */
+
+
+    /*
+       GPS 상태 표시
     */
 
     setStatus(
@@ -3697,10 +3791,7 @@ async function stopTracking(){
 
 
     /*
-       입력창 활성화
-
-       다음 START를 위해
-       이름을 유지하지 않고 초기화
+       다음 START를 위해 입력창 활성화
     */
 
     nameInput.disabled =
@@ -3716,20 +3807,41 @@ async function stopTracking(){
 
 
     /*
-       lastPos는 삭제하지 않는다.
+       마지막 위치는 삭제하지 않는다.
+       GPS watch는 계속 살아있기 때문에
+       STOP 이후에도 현재 위치 자체는 갱신된다.
 
-       GPS watch가 계속 살아있기 때문에
-       STOP 후에도 위치 자체는 갱신된다.
-
-       단, 자동 기록은 하지 않는다.
+       하지만 자동 기록은 하지 않는다.
     */
 
 
     await updatePendingCount();
 
 
+    /*
+       ★ 종료 시간 표시
+    */
+
     alert(
-        "⛔ STOP 완료\nGPS 추적은 유지되고 GPS 기록만 중지되었습니다."
+
+        "⛔ STOP 완료\n\n" +
+
+        "GPS 자동 기록이 중지되었습니다.\n\n" +
+
+        "START TIME\n" +
+
+        startTime +
+
+        "\n\n" +
+
+        "END TIME\n" +
+
+        endTime +
+
+        "\n\n" +
+
+        "마지막 위치에 END 기록이 저장되었습니다."
+
     );
 
 }
@@ -3742,10 +3854,7 @@ async function stopTracking(){
 async function resumeTracking(){
 
     /*
-       STOP 상태에서도
-       GPS watch 자체는 유지한다.
-
-       단, 기록은 하지 않는다.
+       STOP 상태에서는 아무 작업도 하지 않는다.
     */
 
     if(!isTracking){
