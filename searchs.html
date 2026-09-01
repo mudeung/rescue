@@ -1105,6 +1105,13 @@ let saveLock = false;
 
 
 // =========================================================
+// GPS AUTO SAVE INTERVAL
+// =========================================================
+
+const GPS_SAVE_INTERVAL = 20000;
+
+
+// =========================================================
 // MAP OBJECTS
 // =========================================================
 
@@ -1767,7 +1774,7 @@ async function updatePendingCount(){
 
 
 // =========================================================
-// SEND ONE RECORD TO GOOGLE SHEET
+// SEND ONE RECORD
 // =========================================================
 
 async function sendRecord(record){
@@ -1942,15 +1949,6 @@ async function sendPendingQueue(){
 // =========================================================
 
 async function saveAndSend(data){
-
-    /*
-       핵심:
-
-       1. 무조건 휴대폰 IndexedDB 먼저 저장
-       2. 인터넷이 있으면 Google Sheet 전송
-       3. 인터넷이 없으면 IndexedDB에 대기
-    */
-
 
     let localId = null;
 
@@ -2449,6 +2447,21 @@ async function handleGPSPosition(pos){
     );
 
 
+    /*
+       GPS 추적 자체는 계속 유지한다.
+
+       단,
+       STOP 이후에는
+       자동 기록을 절대 저장하지 않는다.
+    */
+
+    if(!isTracking){
+
+        return;
+
+    }
+
+
     const newPosition = {
 
         name:
@@ -2479,7 +2492,7 @@ async function handleGPSPosition(pos){
             startTime,
 
         endTime:
-            endTime,
+            "",
 
         recordedAt:
             getNowTime()
@@ -2491,27 +2504,26 @@ async function handleGPSPosition(pos){
         newPosition;
 
 
-    map.setCenter(
-
-        new kakao.maps.LatLng(
-
-            lastPos.lat,
-
-            lastPos.lng
-
-        )
-
-    );
-
-
     /*
-       GPS 자동 기록도
-       휴대폰 IndexedDB에 먼저 저장
+       지도는 GPS가 들어올 때마다
+       현재 위치로 이동
     */
 
-    await saveAndSend(
-        newPosition
-    );
+    if(isTracking){
+
+        map.setCenter(
+
+            new kakao.maps.LatLng(
+
+                lastPos.lat,
+
+                lastPos.lng
+
+            )
+
+        );
+
+    }
 
 }
 
@@ -2556,6 +2568,11 @@ function startGPSWatch(){
     }
 
 
+    /*
+       기존 watch가 있으면
+       먼저 제거
+    */
+
     if(
         watchId !== null
     ){
@@ -2570,6 +2587,10 @@ function startGPSWatch(){
 
     }
 
+
+    /*
+       GPS 위치 추적은 계속 유지
+    */
 
     watchId =
 
@@ -2642,6 +2663,10 @@ async function start(){
         getNowTime();
 
 
+    endTime =
+        "";
+
+
     nameInput.disabled =
         true;
 
@@ -2659,6 +2684,14 @@ async function start(){
 
     await requestWakeLock();
 
+
+    /*
+       GPS watch 시작
+
+       중요:
+       GPS 추적은 계속되고
+       실제 저장은 아래 20초 타이머에서만 한다.
+    */
 
     const gpsStarted =
         startGPSWatch();
@@ -2678,8 +2711,18 @@ async function start(){
 
 
     /*
-       5초마다 현재 GPS 위치 저장
+       20초마다 현재 위치를
+       실제 기록으로 저장
     */
+
+    if(intervalSend){
+
+        clearInterval(
+            intervalSend
+        );
+
+    }
+
 
     intervalSend =
 
@@ -2687,38 +2730,65 @@ async function start(){
 
             async () => {
 
-                if(lastPos){
+                /*
+                   STOP 이후 타이머 콜백이
+                   남아 있어도 저장하지 않음
+                */
 
-                    const record = {
-
-                        ...lastPos,
-
-                        status:
-                            "normal",
-
-                        recordedAt:
-                            getNowTime()
-
-                    };
+                if(!isTracking)
+                    return;
 
 
-                    await saveAndSend(
-                        record
-                    );
+                if(!lastPos)
+                    return;
 
-                }
+
+                const record = {
+
+                    ...lastPos,
+
+                    name:
+                        myName,
+
+                    status:
+                        "normal",
+
+                    startTime:
+                        startTime,
+
+                    endTime:
+                        "",
+
+                    recordedAt:
+                        getNowTime()
+
+                };
+
+
+                await saveAndSend(
+                    record
+                );
 
             },
 
-            5000
+            GPS_SAVE_INTERVAL
 
         );
 
 
     /*
-       Google Sheet의 다른 구조대 위치
-       실시간 조회
+       다른 구조대 위치
+       3초마다 조회
     */
+
+    if(intervalLoad){
+
+        clearInterval(
+            intervalLoad
+        );
+
+    }
+
 
     intervalLoad =
 
@@ -2735,14 +2805,14 @@ async function start(){
 
 
     /*
-       기존 IndexedDB 대기 데이터 전송
+       기존 IndexedDB 미전송 기록 전송
     */
 
     await sendPendingQueue();
 
 
     /*
-       즉시 GPS 요청
+       즉시 GPS 위치 요청
     */
 
     navigator.geolocation
@@ -2780,7 +2850,8 @@ async function start(){
 async function saveCurrentLocation(){
 
     /*
-       마지막 GPS가 있으면 바로 저장
+       마지막 GPS가 있으면
+       즉시 별도 저장
     */
 
     if(lastPos){
@@ -2793,6 +2864,9 @@ async function saveCurrentLocation(){
                 myName ||
                 lastPos.name,
 
+            device:
+                DEVICE_ID,
+
             status:
                 "SAVE",
 
@@ -2800,7 +2874,7 @@ async function saveCurrentLocation(){
                 startTime,
 
             endTime:
-                endTime,
+                "",
 
             recordedAt:
                 getNowTime()
@@ -2837,7 +2911,7 @@ async function saveCurrentLocation(){
 
     /*
        마지막 GPS가 없다면
-       현재 GPS를 새로 요청
+       현재 위치를 즉시 요청
     */
 
     if(
@@ -2896,7 +2970,7 @@ async function saveCurrentLocation(){
                     startTime,
 
                 endTime:
-                    endTime,
+                    "",
 
                 recordedAt:
                     getNowTime()
@@ -2904,9 +2978,17 @@ async function saveCurrentLocation(){
             };
 
 
+            /*
+               마지막 GPS 위치도 갱신
+            */
+
             lastPos =
                 data;
 
+
+            /*
+               지도 이동
+            */
 
             map.setCenter(
 
@@ -2920,6 +3002,11 @@ async function saveCurrentLocation(){
 
             );
 
+
+            /*
+               자동 20초 기록과 관계없이
+               즉시 별도 저장
+            */
 
             await saveAndSend(
                 data
@@ -3214,20 +3301,141 @@ function goMyLocation(){
 
 async function sendSOS(){
 
-    if(!lastPos){
+    /*
+       SOS는 자동 20초 기록과 무관하게
+       누르는 즉시 별도 저장
+    */
 
-        alert(
-            "현재 위치 없음"
+    let position =
+        lastPos;
+
+
+    /*
+       현재 위치가 없으면
+       GPS를 즉시 요청
+    */
+
+    if(!position){
+
+        if(
+            !navigator.geolocation
+        ){
+
+            alert(
+                "현재 위치 없음"
+            );
+
+            return;
+
+        }
+
+
+        setStatus(
+            gpsStatus,
+            "📍 SOS 위치 확인 중",
+            "warn"
         );
 
-        return;
+
+        try{
+
+            const pos =
+                await new Promise(
+                    (resolve,reject) => {
+
+                        navigator.geolocation
+                        .getCurrentPosition(
+
+                            resolve,
+
+                            reject,
+
+                            {
+
+                                enableHighAccuracy:
+                                    true,
+
+                                maximumAge:
+                                    0,
+
+                                timeout:
+                                    15000
+
+                            }
+
+                        );
+
+                    }
+                );
+
+
+            position = {
+
+                name:
+                    myName ||
+                    nameInput.value.trim(),
+
+                device:
+                    DEVICE_ID,
+
+                lat:
+                    pos.coords.latitude,
+
+                lng:
+                    pos.coords.longitude,
+
+                accuracy:
+                    pos.coords.accuracy,
+
+                speed:
+                    pos.coords.speed,
+
+                heading:
+                    pos.coords.heading
+
+            };
+
+
+            lastPos =
+                position;
+
+        }
+
+        catch(error){
+
+            console.log(
+                "SOS GPS ERROR",
+                error
+            );
+
+
+            alert(
+                "🚨 현재 위치를 확인할 수 없습니다."
+            );
+
+            return;
+
+        }
 
     }
 
 
+    /*
+       SOS는 현재 추적 상태와 관계없이
+       즉시 별도 기록
+    */
+
     const data = {
 
-        ...lastPos,
+        ...position,
+
+        name:
+            myName ||
+            position.name ||
+            nameInput.value.trim(),
+
+        device:
+            DEVICE_ID,
 
         status:
             "SOS",
@@ -3236,7 +3444,7 @@ async function sendSOS(){
             startTime,
 
         endTime:
-            endTime,
+            "",
 
         recordedAt:
             getNowTime()
@@ -3246,6 +3454,13 @@ async function sendSOS(){
 
     await saveAndSend(
         data
+    );
+
+
+    setStatus(
+        gpsStatus,
+        "📍 GPS ON",
+        "on"
     );
 
 
@@ -3309,7 +3524,7 @@ async function stopTracking(){
     if(!isTracking){
 
         alert(
-            "현재 추적 중이 아닙니다."
+            "현재 기록 중이 아닙니다."
         );
 
         return;
@@ -3317,51 +3532,31 @@ async function stopTracking(){
     }
 
 
-    endTime =
-        getNowTime();
+    /*
+       ★ 가장 중요 ★
 
+       STOP 버튼을 누르는 즉시
+       기록 허용 상태를 false로 변경한다.
 
-    if(lastPos){
-
-        await saveAndSend({
-
-            ...lastPos,
-
-            status:
-                "STOP",
-
-            startTime:
-                startTime,
-
-            endTime:
-                endTime,
-
-            recordedAt:
-                endTime
-
-        });
-
-    }
-
+       이후 GPS callback이 늦게 들어와도
+       자동 저장하지 않는다.
+    */
 
     isTracking =
         false;
 
 
-    if(
-        watchId !== null
-    ){
+    /*
+       종료 시간만 메모리에 기록
+    */
 
-        navigator.geolocation
-        .clearWatch(
-            watchId
-        );
+    endTime =
+        getNowTime();
 
-        watchId =
-            null;
 
-    }
-
+    /*
+       20초 자동 저장 타이머 즉시 중지
+    */
 
     if(intervalSend){
 
@@ -3375,6 +3570,10 @@ async function stopTracking(){
     }
 
 
+    /*
+       실시간 구조대 조회 중지
+    */
+
     if(intervalLoad){
 
         clearInterval(
@@ -3386,6 +3585,10 @@ async function stopTracking(){
 
     }
 
+
+    /*
+       자동 중앙 이동 중지
+    */
 
     if(centerInterval){
 
@@ -3399,29 +3602,41 @@ async function stopTracking(){
     }
 
 
-    await sendPendingQueue();
+    /*
+       ★ GPS watch는 제거하지 않는다 ★
 
+       GPS 위치 추적 자체는 계속 유지한다.
+
+       따라서 watchPosition은 살아있지만
+       handleGPSPosition()에서
+       isTracking === false이면
+       기록하지 않는다.
+    */
+
+
+    /*
+       Wake Lock 해제
+    */
 
     await releaseWakeLock();
 
 
-    lastPos =
-        null;
+    /*
+       기존 IndexedDB 대기 기록 전송
+    */
 
-    myName =
-        "";
+    await sendPendingQueue();
 
-    startTime =
-        "";
 
-    endTime =
-        "";
-
+    /*
+       GPS 상태는 OFF가 아니라
+       "추적 유지 / 기록 정지" 상태로 표시
+    */
 
     setStatus(
         gpsStatus,
-        "📍 GPS OFF",
-        "off"
+        "📍 GPS 추적 / 기록 OFF",
+        "warn"
     );
 
 
@@ -3446,9 +3661,9 @@ async function stopTracking(){
     Object.keys(markers)
     .forEach(
 
-        k => {
+        key => {
 
-            delete markers[k];
+            delete markers[key];
 
         }
 
@@ -3472,14 +3687,21 @@ async function stopTracking(){
     Object.keys(labels)
     .forEach(
 
-        k => {
+        key => {
 
-            delete labels[k];
+            delete labels[key];
 
         }
 
     );
 
+
+    /*
+       입력창 활성화
+
+       다음 START를 위해
+       이름을 유지하지 않고 초기화
+    */
 
     nameInput.disabled =
         false;
@@ -3493,11 +3715,21 @@ async function stopTracking(){
         true;
 
 
+    /*
+       lastPos는 삭제하지 않는다.
+
+       GPS watch가 계속 살아있기 때문에
+       STOP 후에도 위치 자체는 갱신된다.
+
+       단, 자동 기록은 하지 않는다.
+    */
+
+
     await updatePendingCount();
 
 
     alert(
-        "⛔ STOP 완료"
+        "⛔ STOP 완료\nGPS 추적은 유지되고 GPS 기록만 중지되었습니다."
     );
 
 }
@@ -3509,8 +3741,18 @@ async function stopTracking(){
 
 async function resumeTracking(){
 
-    if(!isTracking)
+    /*
+       STOP 상태에서도
+       GPS watch 자체는 유지한다.
+
+       단, 기록은 하지 않는다.
+    */
+
+    if(!isTracking){
+
         return;
+
+    }
 
 
     console.log(
@@ -3526,7 +3768,7 @@ async function resumeTracking(){
 
 
     /*
-       현재 위치 즉시 재요청
+       현재 위치 즉시 요청
     */
 
     if(
@@ -3559,8 +3801,7 @@ async function resumeTracking(){
 
 
     /*
-       휴대폰 IndexedDB에 쌓인
-       미전송 기록 Google Sheet 전송
+       IndexedDB 미전송 기록 전송
     */
 
     await sendPendingQueue();
