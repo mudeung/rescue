@@ -200,6 +200,13 @@ font-weight:bold;
 box-shadow:0 0 6px #888;
 }
 
+/* 사고 지도 핀 */
+
+.custom-accident-pin{
+background:transparent !important;
+border:none !important;
+}
+
 /* 마우스 좌표 */
 
 .mouse-coords{
@@ -384,11 +391,13 @@ MOUSE COORDINATES
 ================================
 */
 
-const coordControl = L.control({
+const coordControl =
+L.control({
 position:"bottomleft"
 });
 
-coordControl.onAdd = function(){
+coordControl.onAdd =
+function(){
 
 this._div =
 L.DomUtil.create(
@@ -488,25 +497,17 @@ LAYERS
 ================================
 */
 
-// 구조대 마커
-
 const rescueLayer =
 L.layerGroup()
 .addTo(map);
-
-// SOS 위치
 
 const sosLayer =
 L.layerGroup()
 .addTo(map);
 
-// 사고 신고
-
 const accidentLayer =
 L.layerGroup()
 .addTo(map);
-
-// 이동경로
 
 const historyLayer =
 L.layerGroup()
@@ -609,7 +610,6 @@ GPS API
 const GPS_API_URL =
 "https://script.google.com/macros/s/AKfcybyem5fAs2XGxNy6wrHO3s68CmJy7GI31IBKdiz49KtN3sfikYdfmpP07-3dWqna2R/exec";
 
-
 let DEVICE_ID =
 localStorage.getItem("DEVICE_ID");
 
@@ -702,6 +702,8 @@ return;
 
 startTime =
 getNowTime();
+
+endTime="";
 
 nameInput.disabled=true;
 
@@ -1332,6 +1334,69 @@ caseList.innerHTML =
 
 /*
 ================================
+ACCIDENT PIN
+================================
+*/
+
+function createAccidentIcon(
+color,
+symbol
+){
+
+return L.divIcon({
+
+className:
+"custom-accident-pin",
+
+html:`
+
+<div style="
+width:38px;
+height:38px;
+background:${color};
+border:3px solid white;
+border-radius:50% 50% 50% 0;
+transform:rotate(-45deg);
+box-shadow:
+0 2px 8px rgba(0,0,0,.7),
+0 0 8px ${color};
+display:flex;
+align-items:center;
+justify-content:center;
+">
+
+<div style="
+transform:rotate(45deg);
+color:white;
+font-size:17px;
+font-weight:bold;
+line-height:1;
+">
+
+${symbol}
+
+</div>
+
+</div>
+
+`,
+
+iconSize:
+[38,38],
+
+iconAnchor:
+[19,38],
+
+popupAnchor:
+[0,-38]
+
+});
+
+}
+
+
+/*
+================================
 ACCIDENT RENDER
 ================================
 */
@@ -1370,9 +1435,7 @@ div.className =
 
 
 /*
-================================
 완료시간 저장
-================================
 */
 
 if(item.finishTime){
@@ -1581,7 +1644,9 @@ caseList.appendChild(div);
 
 
 /*
+================================
 3분 경과 체크
+================================
 */
 
 checkOverdue(
@@ -1596,17 +1661,27 @@ div
 ================================
 */
 
+const lat =
+Number(item.lat);
+
+const lng =
+Number(item.lng);
+
 if(
-item.lat &&
-item.lng
+Number.isFinite(lat)
+&&
+Number.isFinite(lng)
 ){
 
 let pinColor =
-"red";
+"#ff0000";
+
+let pinSymbol =
+"🚨";
 
 
 /*
-상태별 핀 색상
+현장도착
 */
 
 if(
@@ -1614,50 +1689,54 @@ item.status==="현장도착"
 ){
 
 pinColor =
-"orange";
+"#ff9800";
+
+pinSymbol =
+"🚑";
 
 }
+
+
+/*
+사고처리완료
+*/
 
 if(
 item.status==="사고처리완료"
 ){
 
 pinColor =
-"gray";
+"#777777";
+
+pinSymbol =
+"☑";
 
 }
 
 
 /*
-지도 핀
+Leaflet 직접 생성 핀
 */
+
+const accidentIcon =
+createAccidentIcon(
+pinColor,
+pinSymbol
+);
+
 
 const marker =
 L.marker(
 
 [
-Number(item.lat),
-Number(item.lng)
+lat,
+lng
 ],
 
 {
 
 icon:
-L.icon({
-
-iconUrl:
-`https://maps.google.com/mapfiles/ms/icons/${pinColor}-dot.png`,
-
-iconSize:
-[32,32],
-
-iconAnchor:
-[16,32],
-
-popupAnchor:
-[0,-32]
-
-})
+accidentIcon
 
 }
 
@@ -1665,7 +1744,9 @@ popupAnchor:
 
 
 /*
+================================
 지도 팝업 상태
+================================
 */
 
 let statusHTML = "";
@@ -1681,7 +1762,7 @@ statusHTML = `
 display:inline-block;
 padding:5px 10px;
 background:#666;
-color:white;
+color:#fff;
 border:1px solid #aaa;
 border-radius:5px;
 font-weight:bold;
@@ -1745,7 +1826,9 @@ margin-bottom:8px;
 
 
 /*
+================================
 팝업
+================================
 */
 
 marker.bindPopup(
@@ -1770,8 +1853,21 @@ ${item.address||"주소없음"}
 
 <br>
 
+📞 전화 :
+${item.phone||"없음"}
+
+<br>
+
 📝 내용 :
 ${item.symptom||"내용없음"}
+
+<br><br>
+
+⏱ 경과시간 :
+${getElapsedTime(
+item.time,
+item.finishTime || null
+)}
 
 <br><br>
 
@@ -1790,8 +1886,6 @@ ${item.lng}
 marker.addTo(
 accidentLayer
 );
-
-}
 
 });
 
@@ -1879,9 +1973,7 @@ if(
 !alertedOverdueIds.has(item.id)
 ){
 
-alertedOverdueIds.add(
-item.id
-);
+alertedOverdueIds.add(item.id);
 
 const sound =
 document.getElementById(
@@ -1965,6 +2057,9 @@ if(
 )
 return;
 
+const finishTime =
+new Date().toISOString();
+
 await fetch(
 
 ACCIDENT_API_URL,
@@ -1987,7 +2082,7 @@ action:"finish",
 
 id:id,
 
-finishTime:new Date().toISOString()
+finishTime:finishTime
 
 })
 
@@ -2042,16 +2137,16 @@ card.querySelector(
 if(!time)
 return;
 
-const t =
+const start =
 time.dataset.time;
 
-if(!t)
+if(!start)
 return;
 
 
 /*
 완료시간이 있으면
-완료시간에서 타이머 정지
+완료시간에서 정지
 */
 
 const finishTime =
@@ -2061,7 +2156,7 @@ time.innerHTML =
 "⏱ "
 +
 getElapsedTime(
-t,
+start,
 finishTime
 );
 
@@ -2105,7 +2200,7 @@ document.addEventListener(
 "keydown",
 function(e){
 
-// F12
+/* F12 */
 
 if(e.key==="F12"){
 
@@ -2116,7 +2211,7 @@ return false;
 }
 
 
-// Ctrl + U
+/* Ctrl + U */
 
 if(
 e.ctrlKey
@@ -2131,7 +2226,7 @@ return false;
 }
 
 
-// Ctrl + Shift + I
+/* Ctrl + Shift + I */
 
 if(
 e.ctrlKey
@@ -2148,7 +2243,7 @@ return false;
 }
 
 
-// Ctrl + Shift + J
+/* Ctrl + Shift + J */
 
 if(
 e.ctrlKey
@@ -2165,7 +2260,7 @@ return false;
 }
 
 
-// Ctrl + Shift + C
+/* Ctrl + Shift + C */
 
 if(
 e.ctrlKey
@@ -2182,7 +2277,7 @@ return false;
 }
 
 
-// Ctrl + S
+/* Ctrl + S */
 
 if(
 e.ctrlKey
