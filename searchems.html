@@ -103,8 +103,8 @@ font-size:14px;
 
 .case-card.done{
 opacity:.7;
-border:2px solid #00cc66;
-box-shadow:0 0 10px #00cc66;
+border:2px solid #777;
+box-shadow:0 0 10px #777;
 }
 
 .case-card.arrived{
@@ -200,7 +200,11 @@ font-weight:bold;
 box-shadow:0 0 6px #888;
 }
 
-/* 사고 지도 핀 */
+/*
+================================
+사고 핀
+================================
+*/
 
 .custom-accident-pin{
 background:transparent !important;
@@ -391,13 +395,11 @@ MOUSE COORDINATES
 ================================
 */
 
-const coordControl =
-L.control({
+const coordControl = L.control({
 position:"bottomleft"
 });
 
-coordControl.onAdd =
-function(){
+coordControl.onAdd = function(){
 
 this._div =
 L.DomUtil.create(
@@ -609,6 +611,7 @@ GPS API
 
 const GPS_API_URL =
 "https://script.google.com/macros/s/AKfcybyem5fAs2XGxNy6wrHO3s68CmJy7GI31IBKdiz49KtN3sfikYdfmpP07-3dWqna2R/exec";
+
 
 let DEVICE_ID =
 localStorage.getItem("DEVICE_ID");
@@ -1334,7 +1337,7 @@ caseList.innerHTML =
 
 /*
 ================================
-ACCIDENT PIN
+ACCIDENT PIN ICON
 ================================
 */
 
@@ -1351,25 +1354,16 @@ className:
 html:`
 
 <div style="
-width:38px;
-height:38px;
+width:34px;
+height:34px;
 background:${color};
 border:3px solid white;
-border-radius:50% 50% 50% 0;
-transform:rotate(-45deg);
-box-shadow:
-0 2px 8px rgba(0,0,0,.7),
-0 0 8px ${color};
+border-radius:50%;
+box-shadow:0 2px 8px rgba(0,0,0,.7);
 display:flex;
 align-items:center;
 justify-content:center;
-">
-
-<div style="
-transform:rotate(45deg);
-color:white;
-font-size:17px;
-font-weight:bold;
+font-size:16px;
 line-height:1;
 ">
 
@@ -1377,18 +1371,16 @@ ${symbol}
 
 </div>
 
-</div>
-
 `,
 
 iconSize:
-[38,38],
+[34,34],
 
 iconAnchor:
-[19,38],
+[17,17],
 
 popupAnchor:
-[0,-38]
+[0,-22]
 
 });
 
@@ -1715,7 +1707,7 @@ pinSymbol =
 
 
 /*
-Leaflet 직접 생성 핀
+Leaflet 직접 핀 생성
 */
 
 const accidentIcon =
@@ -1723,7 +1715,6 @@ createAccidentIcon(
 pinColor,
 pinSymbol
 );
-
 
 const marker =
 L.marker(
@@ -1734,10 +1725,8 @@ lng
 ],
 
 {
-
 icon:
 accidentIcon
-
 }
 
 );
@@ -1864,10 +1853,17 @@ ${item.symptom||"내용없음"}
 <br><br>
 
 ⏱ 경과시간 :
+<span class="popup-elapsed"
+data-start="${item.time}"
+data-finish="${item.finishTime || ""}"
+>
+
 ${getElapsedTime(
 item.time,
 item.finishTime || null
 )}
+
+</span>
 
 <br><br>
 
@@ -1886,6 +1882,8 @@ ${item.lng}
 marker.addTo(
 accidentLayer
 );
+
+}
 
 });
 
@@ -1973,7 +1971,9 @@ if(
 !alertedOverdueIds.has(item.id)
 ){
 
-alertedOverdueIds.add(item.id);
+alertedOverdueIds.add(
+item.id
+);
 
 const sound =
 document.getElementById(
@@ -2057,8 +2057,14 @@ if(
 )
 return;
 
+
+/*
+완료 버튼을 누른 정확한 시간
+*/
+
 const finishTime =
 new Date().toISOString();
+
 
 await fetch(
 
@@ -2159,6 +2165,37 @@ getElapsedTime(
 start,
 finishTime
 );
+
+});
+
+
+/*
+================================
+열려 있는 팝업의 타이머도 갱신
+================================
+*/
+
+document
+.querySelectorAll(
+".popup-elapsed"
+)
+.forEach(el=>{
+
+const start =
+el.dataset.start;
+
+const finish =
+el.dataset.finish || null;
+
+if(start){
+
+el.innerHTML =
+getElapsedTime(
+start,
+finish
+);
+
+}
 
 });
 
