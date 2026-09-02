@@ -192,10 +192,12 @@ font-weight:bold;
 display:inline-block;
 margin:6px 0;
 padding:4px 10px;
-background:#00a854;
+background:#666;
 color:white;
+border:1px solid #aaa;
 border-radius:5px;
 font-weight:bold;
+box-shadow:0 0 6px #888;
 }
 
 /* 마우스 좌표 */
@@ -605,7 +607,7 @@ GPS API
 */
 
 const GPS_API_URL =
-"https://script.google.com/macros/s/AKfycbyem5fAs2XGxNy6wrHO3s68CmJyHy7GI31IBKdiz49KtN3sfikYdfmpP07-3dWqna2R/exec";
+"https://script.google.com/macros/s/AKfcybyem5fAs2XGxNy6wrHO3s68CmJy7GI31IBKdiz49KtN3sfikYdfmpP07-3dWqna2R/exec";
 
 
 let DEVICE_ID =
@@ -1270,8 +1272,11 @@ new Date(endTime)
 new Date();
 
 const diff =
+Math.max(
+0,
 Math.floor(
 (end-start)/1000
+)
 );
 
 const m =
@@ -1365,6 +1370,20 @@ div.className =
 
 
 /*
+================================
+완료시간 저장
+================================
+*/
+
+if(item.finishTime){
+
+div.dataset.finishTime =
+item.finishTime;
+
+}
+
+
+/*
 상태별 카드 색상
 */
 
@@ -1413,7 +1432,7 @@ data-time="${item.time}"
 ${
 getElapsedTime(
 item.time,
-item.finishTime
+item.finishTime || null
 )
 }
 
@@ -1430,7 +1449,7 @@ item.status==="사고처리완료"
 `
 <div class="status-done">
 
-✅ 사고처리완료
+☑ 사고처리완료
 
 </div>
 `
@@ -1604,7 +1623,7 @@ item.status==="사고처리완료"
 ){
 
 pinColor =
-"green";
+"gray";
 
 }
 
@@ -1661,14 +1680,16 @@ statusHTML = `
 <div style="
 display:inline-block;
 padding:5px 10px;
-background:#00a854;
+background:#666;
 color:white;
+border:1px solid #aaa;
 border-radius:5px;
 font-weight:bold;
 margin-bottom:8px;
+box-shadow:0 0 6px #888;
 ">
 
-✅ 사고처리완료
+☑ 사고처리완료
 
 </div>
 
@@ -1966,8 +1987,7 @@ action:"finish",
 
 id:id,
 
-finishTime:
-new Date().toISOString()
+finishTime:new Date().toISOString()
 
 })
 
@@ -1998,6 +2018,12 @@ loadAccidents();
 );
 
 
+/*
+================================
+TIMER UPDATE
+================================
+*/
+
 setInterval(
 
 ()=>{
@@ -2019,14 +2045,25 @@ return;
 const t =
 time.dataset.time;
 
-if(t){
+if(!t)
+return;
+
+
+/*
+완료시간이 있으면
+완료시간에서 타이머 정지
+*/
+
+const finishTime =
+card.dataset.finishTime || null;
 
 time.innerHTML =
 "⏱ "
 +
-getElapsedTime(t);
-
-}
+getElapsedTime(
+t,
+finishTime
+);
 
 });
 
@@ -2167,4 +2204,3 @@ return false;
 </body>
 
 </html>
-
