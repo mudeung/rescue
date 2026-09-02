@@ -255,12 +255,34 @@ async function loadData(){
       alerted.add(item.id);
     }
 
-    const marker = new kakao.maps.Marker({
-      map: map,
-      position: new kakao.maps.LatLng(item.lat,item.lng),
-      title: item.type
-    });
-    markers.push(marker);
+const markerColor = item.status === "사고처리완료" ? "#777777" : "#e53935";
+
+const markerSvg = `
+<svg xmlns="http://www.w3.org/2000/svg" width="40" height="50" viewBox="0 0 40 50">
+  <path d="M20 1C9.5 1 1 9.5 1 20c0 14 19 29 19 29s19-15 19-29C39 9.5 30.5 1 20 1z"
+        fill="${markerColor}"
+        stroke="#ffffff"
+        stroke-width="2"/>
+  <circle cx="20" cy="20" r="7" fill="#ffffff"/>
+</svg>`;
+
+const markerImage = new kakao.maps.MarkerImage(
+  "data:image/svg+xml;charset=utf-8," + encodeURIComponent(markerSvg),
+  new kakao.maps.Size(40, 50),
+  {
+    offset: new kakao.maps.Point(20, 50)
+  }
+);
+
+const marker = new kakao.maps.Marker({
+  map: map,
+  position: new kakao.maps.LatLng(item.lat, item.lng),
+  title: item.type,
+  image: markerImage
+});
+
+markers.push(marker);
+
 
     const div=document.createElement("div");
     div.className="card"+(item.status==="사고처리완료"?" done":"");
