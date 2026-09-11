@@ -3372,100 +3372,132 @@ async function updateAccidentStatus(
 
 
     if(!confirm(message)){
+
         return;
+
     }
 
 
     try{
 
-        const now =
-            getNowTime();
+        let payload;
 
 
-        const payload = {
-
-            action:
-                "update",
-
-            id:
-                caseId,
-
-            caseId:
-                caseId,
-
-            status:
-                status,
-
-            updatedAt:
-                now
-
-        };
-
+        /* ==========================================
+           현장 도착
+           Apps Script → action: complete
+        ========================================== */
 
         if(status === "ARRIVED"){
 
-            payload.arrivedAt =
-                now;
+            payload = {
+
+                action: "complete",
+
+                id: caseId
+
+            };
 
         }
 
 
-        if(status === "DONE"){
+        /* ==========================================
+           구조 완료
+           Apps Script → action: finish
+        ========================================== */
 
-            payload.endTime =
-                now;
+        else if(status === "DONE"){
 
-            payload.completedAt =
-                now;
+            payload = {
+
+                action: "finish",
+
+                id: caseId
+
+            };
 
         }
 
 
-       const response = await fetch(
-    ACCIDENT_API_URL,
-    {
-        method: "POST",
-        headers: {
-            "Content-Type": "text/plain;charset=utf-8"
-        },
-        body: JSON.stringify(payload)
-    }
-);
+        else{
 
-if (!response.ok) {
-    throw new Error(
-        "HTTP " + response.status
-    );
-}
+            alert(
+                "올바르지 않은 상태입니다."
+            );
 
-const result = await response.text();
+            return;
 
-console.log(
-    "상태 변경 서버 응답:",
-    result
-);
+        }
 
 
+        console.log(
+            "상태 변경 요청:",
+            payload
+        );
 
-        alert(
 
-            status === "ARRIVED"
+        await fetch(
 
-            ?
+            ACCIDENT_API_URL,
 
-            "🚓 현장 도착 처리되었습니다."
+            {
 
-            :
+                method: "POST",
 
-            "✅ 구조 완료 처리되었습니다."
+                mode: "no-cors",
+
+                headers: {
+
+                    "Content-Type":
+                        "text/plain;charset=utf-8"
+
+                },
+
+                body:
+                    JSON.stringify(
+                        payload
+                    )
+
+            }
 
         );
 
+
+        /*
+         * no-cors에서는 서버 응답을 읽을 수 없으므로
+         * 잠시 후 목록을 다시 조회합니다.
+         */
+
+        if(status === "ARRIVED"){
+
+            alert(
+                "🚓 현장 도착 처리 요청이 전송되었습니다."
+            );
+
+        }
+        else if(status === "DONE"){
+
+            alert(
+                "✅ 구조 완료 처리 요청이 전송되었습니다."
+            );
+
+        }
+
+
+        /*
+         * Apps Script에서 Sheet를 수정할 시간을 준 뒤
+         * 최신 목록을 다시 가져옵니다.
+         */
 
         setTimeout(
-            loadAccidents,
-            500
+            function(){
+
+                loadAccidents();
+
+            },
+            800
         );
+
 
     }
 
@@ -3477,12 +3509,14 @@ console.log(
         );
 
         alert(
-            "사고 상태 변경 중 오류가 발생했습니다."
+            "사고 상태 변경 중 오류가 발생했습니다.\n\n" +
+            err.message
         );
 
     }
 
 }
+
 
 
 /* =====================================================
