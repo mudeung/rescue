@@ -3421,29 +3421,30 @@ async function updateAccidentStatus(
         }
 
 
-        await fetch(
+       const response = await fetch(
+    ACCIDENT_API_URL,
+    {
+        method: "POST",
+        headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+        },
+        body: JSON.stringify(payload)
+    }
+);
 
-            ACCIDENT_API_URL,
+if (!response.ok) {
+    throw new Error(
+        "HTTP " + response.status
+    );
+}
 
-            {
+const result = await response.text();
 
-                method:"POST",
+console.log(
+    "상태 변경 서버 응답:",
+    result
+);
 
-                mode:"no-cors",
-
-                headers:{
-                    "Content-Type":
-                        "text/plain;charset=utf-8"
-                },
-
-                body:
-                    JSON.stringify(
-                        payload
-                    )
-
-            }
-
-        );
 
 
         alert(
