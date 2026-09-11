@@ -775,6 +775,7 @@ button:disabled{
         </div>
 
 
+          
         <img
             class="logo"
             src="https://emtcsh.github.io/logo19_192.png"
@@ -2014,70 +2015,62 @@ async function sendData(
             lng;
 
 
-        const response =
-            await fetch(
+await fetch(
 
-                ACCIDENT_API_URL,
+    ACCIDENT_API_URL,
 
-                {
+    {
 
-                    method:"POST",
+        method:"POST",
 
-                    headers:{
+        mode:"no-cors",
 
-                        "Content-Type":
-                            "text/plain;charset=utf-8"
+        headers:{
 
-                    },
+            "Content-Type":
+                "text/plain;charset=utf-8"
 
-                    body:
-                        JSON.stringify({
+        },
 
-                            action:
-                                "create",
+        body:
+            JSON.stringify({
 
-                            lat:
-                                lat,
+                action:
+                    "create",
 
-                            lng:
-                                lng,
+                lat:
+                    lat,
 
-                            address:
-                                addressEl.value,
+                lng:
+                    lng,
 
-                            symptom:
-                                conditionEl.value,
+                address:
+                    addressEl.value,
 
-                            phone:
-                                phoneEl.value,
+                symptom:
+                    conditionEl.value,
 
-                            type:
-                                selectedType,
+                phone:
+                    phoneEl.value,
 
-                            kakaoMapURL:
-                                kakaoMapURL,
+                type:
+                    selectedType,
 
-                            createdAt:
-                                getNowTime(),
+                kakaoMapURL:
+                    kakaoMapURL,
 
-                            status:
-                                "RECEIVED"
+                createdAt:
+                    getNowTime(),
 
-                        })
+                status:
+                    "RECEIVED"
 
-                }
+            })
 
-            );
+    }
 
+);
 
-        if(!response.ok){
-
-            throw new Error(
-                "HTTP " +
-                response.status
-            );
-
-        }
 
 
         alert(
@@ -2531,16 +2524,6 @@ function loadAccidents(){
     .then(
 
         function(response){
-
-            if(!response.ok){
-
-                throw new Error(
-                    "HTTP " +
-                    response.status
-                );
-
-            }
-
 
             return response.json();
 
@@ -4086,43 +4069,32 @@ async function updateAccidentStatus(
         }
 
 
-        const response =
-            await fetch(
+await fetch(
 
-                ACCIDENT_API_URL,
+    ACCIDENT_API_URL,
 
-                {
+    {
 
-                    method:"POST",
+        method:"POST",
 
-                    headers:{
+        mode:"no-cors",
 
-                        "Content-Type":
-                            "text/plain;charset=utf-8"
+        headers:{
 
-                    },
+            "Content-Type":
+                "text/plain;charset=utf-8"
 
-                    body:
-                        JSON.stringify(
-                            payload
-                        )
+        },
 
-                }
+        body:
+            JSON.stringify(
+                payload
+            )
 
-            );
+    }
 
+);
 
-        if(
-            !response.ok
-        ){
-
-            throw new Error(
-                "HTTP "
-                +
-                response.status
-            );
-
-        }
 
 
         alert(
