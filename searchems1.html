@@ -2646,7 +2646,46 @@ function loadAccidents(){
 
 }
 
+/*
+================================
+ACCIDENT LOAD
+================================
+*/
 
+async function loadAccidents(){
+
+try{
+
+const res =
+await fetch(
+
+ACCIDENT_API_URL
++
+"?action=list"
+
+);
+
+const data =
+await res.json();
+
+checkNewAccident(data);
+
+renderAccidents(data);
+
+}
+
+catch(e){
+
+console.log(e);
+
+caseList.innerHTML =
+"신고 서버 연결 실패";
+
+}
+
+}
+
+      
 /* =====================================================
    RENDER ACCIDENTS
 ====================================================== */
