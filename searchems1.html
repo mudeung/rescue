@@ -1018,47 +1018,41 @@ function checkPassword(){
 
     const input =
         document
-        .getElementById(
-            "passwordInput"
-        )
+        .getElementById("passwordInput")
         .value
         .trim();
 
-
     const error =
         document
-        .getElementById(
-            "loginError"
-        );
+        .getElementById("loginError");
 
 
-    if(
-        input === ACCESS_PASSWORD
-    ){
+    if(input === ACCESS_PASSWORD){
 
         sessionStorage.setItem(
             "authorized",
             "true"
         );
 
-
         document
-        .getElementById(
-            "loginOverlay"
-        )
-        .style.display =
-            "none";
+        .getElementById("loginOverlay")
+        .style.display = "none";
 
+        error.innerText = "";
 
-        error.innerText =
-            "";
+        console.log(
+            "✅ SYSTEM LOGIN SUCCESS"
+        );
 
     }
-
     else{
 
         error.innerText =
             "❌ 비밀번호가 올바르지 않습니다.";
+
+        console.log(
+            "❌ LOGIN FAILED"
+        );
 
     }
 
@@ -1067,11 +1061,15 @@ function checkPassword(){
 
 function initLogin(){
 
+    const overlay =
+        document.getElementById(
+            "loginOverlay"
+        );
+
     const input =
         document.getElementById(
             "passwordInput"
         );
-
 
     const button =
         document.getElementById(
@@ -1079,51 +1077,50 @@ function initLogin(){
         );
 
 
-    const authorized =
-        sessionStorage.getItem(
-            "authorized"
+    if(!overlay || !input || !button){
+
+        console.error(
+            "❌ 로그인 DOM을 찾을 수 없습니다."
         );
 
+        return;
+
+    }
+
+
+    /*
+     * 기존 로그인 상태 확인
+     */
 
     if(
-        authorized === "true"
+        sessionStorage.getItem(
+            "authorized"
+        ) === "true"
     ){
 
-        document
-        .getElementById(
-            "loginOverlay"
-        )
-        .style.display =
+        overlay.style.display =
             "none";
 
     }
-
     else{
 
-        document
-        .getElementById(
-            "loginOverlay"
-        )
-        .style.display =
+        overlay.style.display =
             "flex";
-
-        setTimeout(
-            function(){
-
-                input.focus();
-
-            },
-            100
-        );
 
     }
 
 
-    button.addEventListener(
-        "click",
-        checkPassword
-    );
+    /*
+     * 로그인 버튼
+     */
 
+    button.onclick =
+        checkPassword;
+
+
+    /*
+     * Enter 로그인
+     */
 
     input.addEventListener(
         "keydown",
@@ -1141,6 +1138,47 @@ function initLogin(){
 
         }
     );
+
+
+    /*
+     * 비밀번호 입력창 자동 포커스
+     */
+
+    if(
+        overlay.style.display !== "none"
+    ){
+
+        setTimeout(
+            function(){
+
+                input.focus();
+
+            },
+            100
+        );
+
+    }
+
+}
+
+
+/*
+ * 반드시 실행
+ */
+
+if(
+    document.readyState === "loading"
+){
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        initLogin
+    );
+
+}
+else{
+
+    initLogin();
 
 }
 
@@ -3448,8 +3486,11 @@ function renderAccidents(
                         "주소",
                         "location",
                         "장소"
+                          ]
+);
 
-                          /* =====================================================
+
+/* =====================================================
    RENDER ACCIDENTS
 ====================================================== */
 
