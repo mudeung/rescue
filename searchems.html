@@ -3570,6 +3570,41 @@ function startAccidentAutoRefresh(){
 
 }
 
+// ================= HISTORY LOAD =================
+
+
+function loadAllHistory(){
+
+
+    fetch(
+
+        API_URL
+        +
+        "?history=1&t="
+        +
+        Date.now()
+
+    )
+
+
+    .then(
+
+        r=>r.json()
+
+    )
+
+
+    .then(
+
+        showHistoryMap
+
+    );
+
+
+
+}
+
+      
 
 /* =====================================================
    INITIAL LOAD
