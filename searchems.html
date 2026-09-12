@@ -654,9 +654,6 @@ button:disabled{
             🚨 SOS 긴급전송
         </button>
 
-        <button onclick="loadAllHistory()">
-            📦 전체 기록
-        </button>
           
         <!-- =================================================
              ACCIDENT REPORT
@@ -3570,41 +3567,7 @@ function startAccidentAutoRefresh(){
 
 }
 
-// ================= HISTORY LOAD =================
 
-
-function loadAllHistory(){
-
-
-    fetch(
-
-        API_URL
-        +
-        "?history=1&t="
-        +
-        Date.now()
-
-    )
-
-
-    .then(
-
-        r=>r.json()
-
-    )
-
-
-    .then(
-
-        showHistoryMap
-
-    );
-
-
-
-}
-
-      
 
 /* =====================================================
    INITIAL LOAD
