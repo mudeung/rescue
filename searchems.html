@@ -2895,6 +2895,55 @@ function renderAccidents(
 
             }
 
+/* =====================================================
+   EDIT / DELETE BUTTON
+====================================================== */
+
+const manageButtons =
+
+    `
+    <div style="
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:5px;
+        margin-top:6px;
+    ">
+
+        <button
+            onclick="
+                editAccident(
+                    '${escapeAttribute(id)}'
+                )
+            "
+            style="
+                background:#174a70;
+                color:white;
+                border:1px solid #2196f3;
+                margin:0;
+            "
+        >
+            ✏ 신고 수정
+        </button>
+
+        <button
+            onclick="
+                deleteAccident(
+                    '${escapeAttribute(id)}'
+                )
+            "
+            style="
+                background:#700000;
+                color:white;
+                border:1px solid #ff3333;
+                margin:0;
+            "
+        >
+            🗑 신고 삭제
+        </button>
+
+    </div>
+    `;              
+              
 
             /* MAP BUTTON */
 
@@ -3115,11 +3164,14 @@ function renderAccidents(
                     }
 
 
-                    ${mapButton}
+                   ${mapButton}
 
-                    ${actionButtons}
+${actionButtons}
 
-                </div>
+${manageButtons}
+
+</div>
+
                 `;
 
 
@@ -3282,7 +3334,669 @@ function focusAccident(
 
 }
 
+/* =====================================================
+   EDIT ACCIDENT
+====================================================== */
 
+async function editAccident(caseId){
+
+    if(!caseId){
+
+        alert("사고 ID가 없습니다.");
+
+        return;
+
+    }
+
+
+    try{
+
+        const response =
+            await fetch(
+                ACCIDENT_API_URL +
+                "?action=list&t=" +
+                Date.now(),
+                {
+                    cache:"no-store"
+                }
+            );
+
+
+        if(!response.ok){
+
+            throw new Error(
+                "HTTP " + response.status
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        let rows = data;
+
+
+        if(
+            data &&
+            Array.isArray(data.data)
+        ){
+
+            rows = data.data;
+
+        }
+        else if(
+            data &&
+            Array.isArray(data.items)
+        ){
+
+            rows = data.items;
+
+        }
+        else if(
+            data &&
+            Array.isArray(data.rows)
+        ){
+
+            rows = data.rows;
+
+        }
+
+
+        if(!Array.isArray(rows)){
+
+            rows = [];
+
+        }
+
+
+        let item = null;
+
+
+        rows.forEach(
+            function(row,index){
+
+                const id =
+                    getAccidentId(
+                        row,
+                        index
+                    );
+
+                if(
+                    String(id) ===
+                    String(caseId)
+                ){
+
+                    item = row;
+
+                }
+
+            }
+        );
+
+
+        if(!item){
+
+            alert(
+                "수정할 신고 내용을 찾을 수 없습니다."
+            );
+
+            return;
+
+        }
+
+
+        const type =
+            getAccidentField(
+                item,
+                [
+                    "type",
+                    "accidentType",
+                    "신고유형",
+                    "유형"
+                ]
+            );
+
+
+        const symptom =
+            getAccidentField(
+                item,
+                [
+                    "symptom",
+                    "condition",
+                    "description",
+                    "상황",
+                    "내용"
+                ]
+            );
+
+
+        const phone =
+            getAccidentField(
+                item,
+                [
+                    "phone",
+                    "tel",
+                    "telephone",
+                    "연락처"
+                ]
+            );
+
+
+        const address =
+            getAccidentField(
+                item,
+                [
+                    "address",
+                    "주소",
+                    "location",
+                    "장소"
+                ]
+            );
+
+
+        const lat =
+            getAccidentField(
+                item,
+                [
+                    "lat",
+                    "latitude",
+                    "위도"
+                ]
+            );
+
+
+        const lng =
+            getAccidentField(
+                item,
+                [
+                    "lng",
+                    "longitude",
+                    "경도"
+                ]
+            );
+
+
+        /* 기존 신고 내용을 입력창으로 가져오기 */
+
+        conditionEl.value =
+            symptom || "";
+
+        phoneEl.value =
+            phone || "";
+
+        addressEl.value =
+            address || "";
+
+        latEl.value =
+            lat || "";
+
+        lngEl.value =
+            lng || "";
+
+
+        /* 신고 유형 선택 */
+
+        selectedType =
+            type || "";
+
+
+        document
+        .querySelectorAll(
+            ".type-btn"
+        )
+        .forEach(
+            function(btn){
+
+                btn.classList.remove(
+                    "active"
+                );
+
+
+                if(
+                    btn.dataset.type ===
+                    selectedType
+                ){
+
+                    btn.classList.add(
+                        "active"
+                    );
+
+                }
+
+            }
+        );
+
+
+        /* 지도 이동 */
+
+        const editLat =
+            Number(lat);
+
+        const editLng =
+            Number(lng);
+
+
+        if(
+            Number.isFinite(editLat) &&
+            Number.isFinite(editLng)
+        ){
+
+            map.setView(
+                [editLat,editLng],
+                17
+            );
+
+
+            setReportPreview(
+                editLat,
+                editLng
+            );
+
+        }
+
+
+        /* 수정 확인 */
+
+        const confirmed =
+            confirm(
+                "✏ 신고 내용을 수정하시겠습니까?\n\n" +
+                "수정 후 현재 입력된 내용을 저장합니다."
+            );
+
+
+        if(!confirmed){
+
+            return;
+
+        }
+
+
+        await updateAccident(
+            caseId
+        );
+
+    }
+
+    catch(err){
+
+        console.error(
+            "신고 수정 오류:",
+            err
+        );
+
+
+        alert(
+            "신고 내용을 불러오는 중 오류가 발생했습니다."
+        );
+
+    }
+
+}
+
+/* =====================================================
+   UPDATE ACCIDENT
+====================================================== */
+
+async function updateAccident(caseId){
+
+    const condition =
+        conditionEl.value.trim();
+
+    const phone =
+        phoneEl.value.trim();
+
+    const address =
+        addressEl.value.trim();
+
+    const lat =
+        latEl.value.trim();
+
+    const lng =
+        lngEl.value.trim();
+
+
+    if(!caseId){
+
+        alert("사고 ID가 없습니다.");
+
+        return;
+
+    }
+
+
+    if(!selectedType){
+
+        alert("신고 유형을 선택하세요.");
+
+        return;
+
+    }
+
+
+    if(!condition){
+
+        alert("상황을 입력하세요.");
+
+        return;
+
+    }
+
+
+    if(!phone){
+
+        alert("연락처를 입력하세요.");
+
+        return;
+
+    }
+
+
+    if(!address){
+
+        alert("주소를 입력하세요.");
+
+        return;
+
+    }
+
+
+    if(!lat || !lng){
+
+        alert(
+            "위도와 경도를 확인하세요."
+        );
+
+        return;
+
+    }
+
+
+    const phonePattern =
+        /^[0-9\-]{9,13}$/;
+
+
+    if(
+        !phonePattern.test(phone)
+    ){
+
+        alert(
+            "연락처 형식이 올바르지 않습니다."
+        );
+
+        return;
+
+    }
+
+
+    const latNumber =
+        Number(lat);
+
+    const lngNumber =
+        Number(lng);
+
+
+    if(
+        !Number.isFinite(latNumber) ||
+        !Number.isFinite(lngNumber)
+    ){
+
+        alert(
+            "위도 또는 경도가 올바르지 않습니다."
+        );
+
+        return;
+
+    }
+
+
+    const kakaoMapURL =
+        "https://map.kakao.com/link/map/" +
+        latNumber +
+        "," +
+        lngNumber;
+
+
+    const payload = {
+
+        action:
+            "update",
+
+        id:
+            caseId,
+
+        type:
+            selectedType,
+
+        symptom:
+            condition,
+
+        phone:
+            phone,
+
+        address:
+            address,
+
+        lat:
+            latNumber,
+
+        lng:
+            lngNumber,
+
+        kakaoMapURL:
+            kakaoMapURL
+
+    };
+
+
+    try{
+
+        const button =
+            document.getElementById(
+                "submitReportBtn"
+            );
+
+
+        button.disabled = true;
+
+
+        await fetch(
+
+            ACCIDENT_API_URL,
+
+            {
+
+                method:"POST",
+
+                mode:"no-cors",
+
+                headers:{
+                    "Content-Type":
+                        "text/plain;charset=utf-8"
+                },
+
+                body:
+                    JSON.stringify(
+                        payload
+                    )
+
+            }
+
+        );
+
+
+        alert(
+            "✏ 신고 내용이 수정되었습니다."
+        );
+
+
+        resetReportForm();
+
+
+        setTimeout(
+            function(){
+
+                loadAccidents();
+
+            },
+            800
+        );
+
+    }
+
+    catch(err){
+
+        console.error(
+            "신고 수정 오류:",
+            err
+        );
+
+
+        alert(
+            "신고 수정 중 오류가 발생했습니다."
+        );
+
+    }
+
+    finally{
+
+        const button =
+            document.getElementById(
+                "submitReportBtn"
+            );
+
+
+        button.disabled = false;
+
+    }
+
+}
+
+/* =====================================================
+   DELETE ACCIDENT
+====================================================== */
+
+async function deleteAccident(caseId){
+
+    if(!caseId){
+
+        alert(
+            "사고 ID가 없습니다."
+        );
+
+        return;
+
+    }
+
+
+    const confirmed =
+        confirm(
+
+            "⚠ 신고 내용을 삭제하시겠습니까?\n\n" +
+
+            "삭제된 신고는 사고 목록에서 제거됩니다.\n" +
+
+            "이 작업은 되돌릴 수 없습니다."
+
+        );
+
+
+    if(!confirmed){
+
+        return;
+
+    }
+
+
+    const doubleConfirmed =
+        confirm(
+
+            "정말 삭제하시겠습니까?\n\n" +
+
+            "삭제하려면 [확인]을 눌러주세요."
+
+        );
+
+
+    if(!doubleConfirmed){
+
+        return;
+
+    }
+
+
+    try{
+
+        const payload = {
+
+            action:
+                "delete",
+
+            id:
+                caseId
+
+        };
+
+
+        await fetch(
+
+            ACCIDENT_API_URL,
+
+            {
+
+                method:"POST",
+
+                mode:"no-cors",
+
+                headers:{
+                    "Content-Type":
+                        "text/plain;charset=utf-8"
+                },
+
+                body:
+                    JSON.stringify(
+                        payload
+                    )
+
+            }
+
+        );
+
+
+        alert(
+            "🗑 신고가 삭제되었습니다."
+        );
+
+
+        setTimeout(
+            function(){
+
+                loadAccidents();
+
+            },
+            800
+        );
+
+    }
+
+    catch(err){
+
+        console.error(
+            "신고 삭제 오류:",
+            err
+        );
+
+
+        alert(
+            "신고 삭제 중 오류가 발생했습니다."
+        );
+
+    }
+
+}
+
+      
 /* =====================================================
    ALERT SOUND
 ====================================================== */
