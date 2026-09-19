@@ -164,6 +164,7 @@ header{
 ====================================================== */
 
 .password-modal{
+
     display:none;
 
     position:fixed;
@@ -174,9 +175,9 @@ header{
     width:100%;
     height:100%;
 
-    background:rgba(0,0,0,0.75);
+    background:rgba(0,0,0,0.80);
 
-    z-index:99999;
+    z-index:999999;
 
     align-items:center;
     justify-content:center;
@@ -188,17 +189,20 @@ header{
 
 
 .password-modal.show{
-    display:flex;
+
+    display:flex !important;
+
 }
 
 
 .password-box{
+
     width:100%;
     max-width:380px;
 
     background:#222;
 
-    border:1px solid #555;
+    border:2px solid #c62828;
 
     border-radius:10px;
 
@@ -207,21 +211,26 @@ header{
     box-sizing:border-box;
 
     box-shadow:
-        0 10px 40px rgba(0,0,0,0.7);
+        0 10px 40px rgba(0,0,0,0.8);
+
 }
 
 
 .password-title{
+
     font-size:20px;
+
     font-weight:bold;
 
     margin-bottom:10px;
 
     color:#fff;
+
 }
 
 
 .password-description{
+
     font-size:14px;
 
     color:#bbb;
@@ -229,10 +238,14 @@ header{
     line-height:1.5;
 
     margin-bottom:15px;
+
 }
 
 
 .password-input{
+
+    display:block;
+
     width:100%;
 
     box-sizing:border-box;
@@ -250,27 +263,33 @@ header{
     font-size:16px;
 
     outline:none;
+
 }
 
 
 .password-input:focus{
+
     border-color:#ff5252;
 
     box-shadow:
         0 0 0 2px rgba(255,82,82,0.2);
+
 }
 
 
 .password-buttons{
+
     display:flex;
 
     gap:8px;
 
     margin-top:15px;
+
 }
 
 
 .password-confirm{
+
     flex:1;
 
     background:#c62828;
@@ -279,7 +298,7 @@ header{
 
     border:none;
 
-    padding:11px;
+    padding:12px;
 
     border-radius:6px;
 
@@ -288,15 +307,28 @@ header{
     font-weight:bold;
 
     font-size:14px;
+
 }
 
 
 .password-confirm:hover{
+
     background:#e53935;
+
+}
+
+
+.password-confirm:disabled{
+
+    background:#666;
+
+    cursor:not-allowed;
+
 }
 
 
 .password-cancel{
+
     flex:1;
 
     background:#555;
@@ -305,7 +337,7 @@ header{
 
     border:none;
 
-    padding:11px;
+    padding:12px;
 
     border-radius:6px;
 
@@ -314,11 +346,14 @@ header{
     font-weight:bold;
 
     font-size:14px;
+
 }
 
 
 .password-cancel:hover{
+
     background:#666;
+
 }
 
 
@@ -329,26 +364,35 @@ header{
 @keyframes blinkEmergency{
 
     0%{
+
         box-shadow:
             0 0 5px #ff1744;
+
     }
 
     50%{
+
         box-shadow:
             0 0 25px #ff1744,
             0 0 40px #ff1744;
+
     }
 
     100%{
+
         box-shadow:
             0 0 5px #ff1744;
+
     }
 
 }
 
+
 .card.blink{
+
     animation:
         blinkEmergency 1s infinite;
+
 }
 
 
@@ -357,27 +401,46 @@ header{
 ====================================================== */
 
 .status{
+
     display:inline-block;
+
     padding:5px 9px;
+
     border-radius:5px;
+
     font-size:13px;
+
     font-weight:bold;
+
     margin-bottom:7px;
+
 }
+
 
 .status.received{
+
     background:#d50000;
+
     color:#fff;
+
 }
+
 
 .status.arrived{
+
     background:#ef6c00;
+
     color:#fff;
+
 }
 
+
 .status.done{
+
     background:#777;
+
     color:#fff;
+
 }
 
 
@@ -388,22 +451,36 @@ header{
 @media(max-width:600px){
 
     header{
+
         font-size:18px;
+
         padding:13px;
+
     }
+
 
     .container{
+
         padding:10px;
+
     }
+
 
     #map{
+
         height:65vh;
+
         min-height:400px;
+
         max-height:none;
+
     }
 
+
     .password-box{
+
         max-width:100%;
+
     }
 
 }
@@ -486,7 +563,7 @@ header{
 
 
 <!-- =====================================================
-     삭제 비밀번호 입력창
+     관리자 비밀번호 입력 모달
 ====================================================== -->
 
 <div
@@ -494,9 +571,17 @@ header{
     class="password-modal"
 >
 
-    <div class="password-box">
+    <div
+        class="password-box"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="passwordTitle"
+    >
 
-        <div class="password-title">
+        <div
+            id="passwordTitle"
+            class="password-title"
+        >
 
             🔐 관리자 인증
 
@@ -515,7 +600,7 @@ header{
             class="password-input"
             type="password"
             placeholder="관리자 비밀번호"
-            autocomplete="current-password"
+            autocomplete="off"
         >
 
 
@@ -597,11 +682,13 @@ const API_URL =
 
 
 const listArea =
-    document.getElementById("listArea");
+    document.getElementById(
+        "listArea"
+    );
 
 
 /* =====================================================
-   비밀번호 모달
+   비밀번호 모달 요소
 ====================================================== */
 
 const passwordModal =
@@ -628,7 +715,9 @@ const passwordConfirmBtn =
     );
 
 
-/* 현재 삭제하려는 신고 ID */
+/* =====================================================
+   현재 삭제 대상 ID
+====================================================== */
 
 let pendingDeleteId =
     null;
@@ -640,8 +729,19 @@ let pendingDeleteId =
 
 function openPasswordModal(id){
 
+    if(!id){
+
+        alert(
+            "삭제할 신고 ID가 없습니다."
+        );
+
+        return;
+
+    }
+
+
     pendingDeleteId =
-        id;
+        String(id);
 
 
     deletePasswordInput.value =
@@ -653,9 +753,13 @@ function openPasswordModal(id){
     );
 
 
+    document.body.style.overflow =
+        "hidden";
+
+
     setTimeout(
 
-        () => {
+        function(){
 
             deletePasswordInput.focus();
 
@@ -679,6 +783,10 @@ function closePasswordModal(){
     );
 
 
+    document.body.style.overflow =
+        "";
+
+
     deletePasswordInput.value =
         "";
 
@@ -690,7 +798,18 @@ function closePasswordModal(){
 
 
 /* =====================================================
-   취소 버튼
+   삭제 버튼
+====================================================== */
+
+function deleteCase(id){
+
+    openPasswordModal(id);
+
+}
+
+
+/* =====================================================
+   취소
 ====================================================== */
 
 passwordCancelBtn.addEventListener(
@@ -707,7 +826,7 @@ passwordCancelBtn.addEventListener(
 
 
 /* =====================================================
-   모달 바깥 클릭 → 닫기
+   모달 바깥 클릭
 ====================================================== */
 
 passwordModal.addEventListener(
@@ -731,7 +850,7 @@ passwordModal.addEventListener(
 
 
 /* =====================================================
-   Enter → 삭제 진행
+   키보드
 ====================================================== */
 
 deletePasswordInput.addEventListener(
@@ -767,7 +886,7 @@ deletePasswordInput.addEventListener(
 
 
 /* =====================================================
-   삭제 진행 버튼
+   삭제 진행
 ====================================================== */
 
 passwordConfirmBtn.addEventListener(
@@ -781,6 +900,7 @@ passwordConfirmBtn.addEventListener(
 
 
         if(
+            !password ||
             !password.trim()
         ){
 
@@ -801,7 +921,7 @@ passwordConfirmBtn.addEventListener(
         ){
 
             alert(
-                "삭제할 신고를 찾을 수 없습니다."
+                "삭제할 신고 ID를 찾을 수 없습니다."
             );
 
             closePasswordModal();
@@ -815,13 +935,13 @@ passwordConfirmBtn.addEventListener(
             pendingDeleteId;
 
 
-        /* 비밀번호 입력창 닫기 */
+        /* 입력창 닫기 */
 
         closePasswordModal();
 
 
         /* =================================================
-           최종 삭제 확인
+           최종 확인
         ================================================== */
 
         if(
@@ -845,6 +965,10 @@ passwordConfirmBtn.addEventListener(
                 true;
 
 
+            passwordConfirmBtn.innerText =
+                "삭제 확인 중...";
+
+
             const response =
                 await fetch(
 
@@ -855,8 +979,10 @@ passwordConfirmBtn.addEventListener(
                         method:"POST",
 
                         headers:{
+
                             "Content-Type":
                                 "text/plain;charset=utf-8"
+
                         },
 
                         body:
@@ -873,9 +999,21 @@ passwordConfirmBtn.addEventListener(
 
                             })
 
-                        }
+                    }
 
-                    );
+                );
+
+
+            if(
+                !response.ok
+            ){
+
+                throw new Error(
+                    "서버 응답 오류: " +
+                    response.status
+                );
+
+            }
 
 
             const result =
@@ -901,7 +1039,8 @@ passwordConfirmBtn.addEventListener(
                 alert(
 
                     result.message ||
-                    "❌ 비밀번호가 올바르지 않거나 삭제할 수 없습니다."
+
+                    "❌ 삭제할 수 없습니다."
 
                 );
 
@@ -911,7 +1050,11 @@ passwordConfirmBtn.addEventListener(
 
         catch(err){
 
-            console.error(err);
+            console.error(
+                "삭제 오류:",
+                err
+            );
+
 
             alert(
                 "❌ 삭제 처리 중 오류가 발생했습니다."
@@ -923,6 +1066,10 @@ passwordConfirmBtn.addEventListener(
 
             passwordConfirmBtn.disabled =
                 false;
+
+
+            passwordConfirmBtn.innerText =
+                "🗑 삭제 진행";
 
         }
 
@@ -938,11 +1085,14 @@ passwordConfirmBtn.addEventListener(
 let knownIds =
     new Set();
 
+
 let alertedOverdueIds =
     new Set();
 
+
 let overdueIntervals =
     new Map();
+
 
 let firstLoad =
     true;
@@ -963,10 +1113,15 @@ function normalizeStatus(status){
 
 
     if(
+
         value === "DONE" ||
+
         value === "완료" ||
+
         value === "처리완료" ||
+
         value === "사고처리완료"
+
     ){
 
         return "DONE";
@@ -975,9 +1130,13 @@ function normalizeStatus(status){
 
 
     if(
+
         value === "ARRIVED" ||
+
         value === "도착" ||
+
         value === "현장도착"
+
     ){
 
         return "ARRIVED";
@@ -991,45 +1150,15 @@ function normalizeStatus(status){
 
 
 /* =====================================================
-   상태 한글 표시
-====================================================== */
-
-function getStatusText(status){
-
-    const normalized =
-        normalizeStatus(status);
-
-
-    if(
-        normalized === "DONE"
-    ){
-
-        return "⚪ 사고처리완료";
-
-    }
-
-
-    if(
-        normalized === "ARRIVED"
-    ){
-
-        return "🟠 현장도착";
-
-    }
-
-
-    return "🔴 사고 접수";
-
-}
-
-
-/* =====================================================
-   경과시간 계산
+   경과시간
 ====================================================== */
 
 function getElapsedTime(
+
     startTime,
+
     endTime = null
+
 ){
 
     if(!startTime){
@@ -1041,6 +1170,7 @@ function getElapsedTime(
 
     const start =
         new Date(startTime);
+
 
     const end =
         endTime
@@ -1063,12 +1193,17 @@ function getElapsedTime(
 
     const diff =
         Math.max(
+
             0,
+
             Math.floor(
+
                 (
                     end - start
                 ) / 1000
+
             )
+
         );
 
 
@@ -1080,9 +1215,11 @@ function getElapsedTime(
 
     const m =
         Math.floor(
+
             (
                 diff % 3600
             ) / 60
+
         );
 
 
@@ -1090,7 +1227,9 @@ function getElapsedTime(
         diff % 60;
 
 
-    if(h > 0){
+    if(
+        h > 0
+    ){
 
         return `${h}시간 ${m}분 ${s}초 경과`;
 
@@ -1103,7 +1242,7 @@ function getElapsedTime(
 
 
 /* =====================================================
-   상태별 마커 색상
+   마커 색상
 ====================================================== */
 
 function getMarkerColor(status){
@@ -1136,7 +1275,7 @@ function getMarkerColor(status){
 
 
 /* =====================================================
-   원형 마커 이미지
+   마커 이미지
 ====================================================== */
 
 function createMarkerImage(status){
@@ -1205,9 +1344,13 @@ function createMarkerImage(status){
 ====================================================== */
 
 function createInfoWindow(
+
     item,
+
     lat,
+
     lng
+
 ){
 
     const normalized =
@@ -1218,6 +1361,7 @@ function createInfoWindow(
 
     let statusColor =
         "#e53935";
+
 
     let statusText =
         "🔴 사고 접수";
@@ -1415,9 +1559,7 @@ function createInfoWindow(
 
                 <a
 
-                    href="
-                    https://map.kakao.com/link/map/구조요청 위치,${lat},${lng}
-                    "
+                    href="https://map.kakao.com/link/map/구조요청 위치,${lat},${lng}"
 
                     target="_blank"
 
@@ -1433,7 +1575,6 @@ function createInfoWindow(
                 </a>
 
             </div>
-
 
         </div>
 
@@ -1454,12 +1595,15 @@ function createInfoWindow(
 
 
 /* =====================================================
-   3분 초과 응급환자 체크
+   3분 초과 응급환자
 ====================================================== */
 
 function checkOverdue(
+
     item,
+
     div
+
 ){
 
     if(
@@ -1546,9 +1690,11 @@ function checkOverdue(
                             interval
                         );
 
+
                         overdueIntervals.delete(
                             item.id
                         );
+
 
                         return;
 
@@ -1631,8 +1777,10 @@ async function completeCase(id){
                 method:"POST",
 
                 headers:{
+
                     "Content-Type":
                         "text/plain;charset=utf-8"
+
                 },
 
                 body:
@@ -1646,9 +1794,9 @@ async function completeCase(id){
 
                     })
 
-                }
+            }
 
-            );
+        );
 
 
         loadData();
@@ -1657,7 +1805,10 @@ async function completeCase(id){
 
     catch(err){
 
-        console.error(err);
+        console.error(
+            err
+        );
+
 
         alert(
             "현장도착 처리 중 오류가 발생했습니다."
@@ -1696,8 +1847,10 @@ async function finishCase(id){
                 method:"POST",
 
                 headers:{
+
                     "Content-Type":
                         "text/plain;charset=utf-8"
+
                 },
 
                 body:
@@ -1711,9 +1864,9 @@ async function finishCase(id){
 
                     })
 
-                }
+            }
 
-            );
+        );
 
 
         loadData();
@@ -1722,7 +1875,10 @@ async function finishCase(id){
 
     catch(err){
 
-        console.error(err);
+        console.error(
+            err
+        );
+
 
         alert(
             "사고처리 완료 중 오류가 발생했습니다."
@@ -1734,23 +1890,7 @@ async function finishCase(id){
 
 
 /* =====================================================
-   신고 삭제
-====================================================== */
-
-function deleteCase(id){
-
-    /*
-     * 기존 prompt() 대신
-     * 화면 중앙의 관리자 비밀번호 입력창을 표시합니다.
-     */
-
-    openPasswordModal(id);
-
-}
-
-
-/* =====================================================
-   신고 목록 불러오기
+   신고 목록
 ====================================================== */
 
 async function loadData(){
@@ -1823,7 +1963,7 @@ async function loadData(){
                 item => {
 
                     knownIds.add(
-                        item.id
+                        String(item.id)
                     );
 
                 }
@@ -1842,14 +1982,20 @@ async function loadData(){
 
                 item => {
 
+                    const itemId =
+                        String(
+                            item.id
+                        );
+
+
                     if(
                         !knownIds.has(
-                            item.id
+                            itemId
                         )
                     ){
 
                         knownIds.add(
-                            item.id
+                            itemId
                         );
 
 
@@ -1883,7 +2029,7 @@ async function loadData(){
 
 
         /* =================================================
-           최신 신고순 정렬
+           최신 신고순
         ================================================== */
 
         data.sort(
@@ -1902,7 +2048,7 @@ async function loadData(){
 
 
         /* =================================================
-           신고 데이터 처리
+           신고 데이터
         ================================================== */
 
         data.forEach(
@@ -1914,10 +2060,6 @@ async function loadData(){
                         item.status
                     );
 
-
-                /* =========================================
-                   신고 카드
-                ========================================= */
 
                 const div =
                     document.createElement(
@@ -1963,7 +2105,7 @@ async function loadData(){
 
 
                 /* =========================================
-                   상태 HTML
+                   상태
                 ========================================= */
 
                 let statusHTML =
@@ -2051,7 +2193,7 @@ async function loadData(){
 
 
                 /* =========================================
-                   사고처리 완료 시간
+                   완료 시간
                 ========================================= */
 
                 let finishHTML =
@@ -2082,17 +2224,16 @@ async function loadData(){
 
 
                 /* =========================================
-                   처리 버튼
+                   버튼
                 ========================================= */
 
                 let buttonHTML =
                     "";
 
 
-                /* ===============================
-                   사고처리 완료
-                   → 삭제 버튼 표시
-                ================================ */
+                /* =========================================
+                   완료 → 삭제
+                ========================================= */
 
                 if(
                     normalizedStatus ===
@@ -2122,9 +2263,6 @@ async function loadData(){
 
                             type="button"
 
-                            onclick="
-                                deleteCase('${item.id}')
-                            "
                         >
 
                             🗑 신고 삭제
@@ -2136,10 +2274,9 @@ async function loadData(){
                 }
 
 
-                /* ===============================
-                   현장도착
-                   → 사고처리 완료 버튼
-                ================================ */
+                /* =========================================
+                   현장도착 → 사고처리 완료
+                ========================================= */
 
                 else if(
                     normalizedStatus ===
@@ -2154,9 +2291,6 @@ async function loadData(){
 
                             type="button"
 
-                            onclick="
-                                finishCase('${item.id}')
-                            "
                         >
 
                             ✅ 사고처리 완료
@@ -2168,10 +2302,9 @@ async function loadData(){
                 }
 
 
-                /* ===============================
-                   사고 접수
-                   → 현장도착 버튼
-                ================================ */
+                /* =========================================
+                   접수 → 현장도착
+                ========================================= */
 
                 else{
 
@@ -2183,9 +2316,6 @@ async function loadData(){
 
                             type="button"
 
-                            onclick="
-                                completeCase('${item.id}')
-                            "
                         >
 
                             🚑 구조대원 현장도착
@@ -2198,7 +2328,7 @@ async function loadData(){
 
 
                 /* =========================================
-                   카드 내용
+                   카드
                 ========================================= */
 
                 div.innerHTML = `
@@ -2294,11 +2424,10 @@ async function loadData(){
 
                         class="maplink"
 
-                        href="
-                        https://map.kakao.com/link/map/구조요청 위치,${item.lat},${item.lng}
-                        "
+                        href="https://map.kakao.com/link/map/구조요청 위치,${item.lat},${item.lng}"
 
                         target="_blank"
+
                     >
 
                         📍 지도보기
@@ -2320,7 +2449,81 @@ async function loadData(){
 
 
                 /* =========================================
-                   3분 초과 확인
+                   버튼 이벤트 직접 연결
+                   ※ inline onclick 사용하지 않음
+                ========================================= */
+
+                const deleteButton =
+                    div.querySelector(
+                        ".delete-btn"
+                    );
+
+
+                if(
+                    deleteButton
+                ){
+
+                    deleteButton.addEventListener(
+
+                        "click",
+
+                        function(){
+
+                            openPasswordModal(
+                                item.id
+                            );
+
+                        }
+
+                    );
+
+                }
+
+
+                const completeButton =
+                    div.querySelector(
+                        ".complete-btn"
+                    );
+
+
+                if(
+                    completeButton
+                ){
+
+                    completeButton.addEventListener(
+
+                        "click",
+
+                        function(){
+
+                            if(
+                                normalizedStatus ===
+                                "ARRIVED"
+                            ){
+
+                                finishCase(
+                                    item.id
+                                );
+
+                            }
+
+                            else{
+
+                                completeCase(
+                                    item.id
+                                );
+
+                            }
+
+                        }
+
+                    );
+
+                }
+
+
+                /* =========================================
+                   3분 초과
                 ========================================= */
 
                 checkOverdue(
@@ -2351,8 +2554,10 @@ async function loadData(){
 
 
                     if(
+
                         Number.isFinite(lat) &&
                         Number.isFinite(lng)
+
                     ){
 
                         const position =
@@ -2392,15 +2597,15 @@ async function loadData(){
                         );
 
 
-                        /* =================================
-                           마커 클릭 팝업
-                        ================================= */
-
                         const infoWindow =
                             createInfoWindow(
+
                                 item,
+
                                 lat,
+
                                 lng
+
                             );
 
 
@@ -2431,7 +2636,7 @@ async function loadData(){
 
 
         /* =================================================
-           마커 전체가 보이도록 지도 범위 조정
+           지도 범위
         ================================================== */
 
         if(
@@ -2466,6 +2671,7 @@ async function loadData(){
     catch(err){
 
         console.error(
+            "데이터 로딩 오류:",
             err
         );
 
@@ -2479,14 +2685,14 @@ async function loadData(){
 
 
 /* =====================================================
-   최초 데이터 로딩
+   최초 로딩
 ====================================================== */
 
 loadData();
 
 
 /* =====================================================
-   10초마다 신고 목록 갱신
+   10초마다 갱신
 ====================================================== */
 
 setInterval(
@@ -2504,7 +2710,7 @@ setInterval(
 
 setInterval(
 
-    () => {
+    function(){
 
         document
         .querySelectorAll(
@@ -2512,7 +2718,7 @@ setInterval(
         )
         .forEach(
 
-            card => {
+            function(card){
 
                 const elapsedEl =
                     card.querySelector(
@@ -2565,13 +2771,8 @@ setInterval(
 );
 
 
-</script>
-
-
-<script>
-
 /* =====================================================
-   우클릭 및 개발자도구 단축키 방지
+   우클릭 방지
 ====================================================== */
 
 document.addEventListener(
@@ -2588,6 +2789,10 @@ document.addEventListener(
 
 );
 
+
+/* =====================================================
+   개발자도구 단축키 방지
+====================================================== */
 
 document.addEventListener(
 
@@ -2611,8 +2816,11 @@ document.addEventListener(
         /* Ctrl + U */
 
         if(
+
             e.ctrlKey &&
+
             e.key.toLowerCase() === "u"
+
         ){
 
             e.preventDefault();
@@ -2625,9 +2833,13 @@ document.addEventListener(
         /* Ctrl + Shift + I */
 
         if(
+
             e.ctrlKey &&
+
             e.shiftKey &&
+
             e.key.toLowerCase() === "i"
+
         ){
 
             e.preventDefault();
@@ -2640,9 +2852,13 @@ document.addEventListener(
         /* Ctrl + Shift + J */
 
         if(
+
             e.ctrlKey &&
+
             e.shiftKey &&
+
             e.key.toLowerCase() === "j"
+
         ){
 
             e.preventDefault();
@@ -2655,9 +2871,13 @@ document.addEventListener(
         /* Ctrl + Shift + C */
 
         if(
+
             e.ctrlKey &&
+
             e.shiftKey &&
+
             e.key.toLowerCase() === "c"
+
         ){
 
             e.preventDefault();
@@ -2670,8 +2890,11 @@ document.addEventListener(
         /* Ctrl + S */
 
         if(
+
             e.ctrlKey &&
+
             e.key.toLowerCase() === "s"
+
         ){
 
             e.preventDefault();
@@ -2691,19 +2914,3 @@ document.addEventListener(
 
 </html>
 ```
-
-### 변경된 부분
-
-기존의
-
-```javascript
-prompt("🔐 관리자 비밀번호를 입력하세요.")
-```
-
-방식을 제거하고, **화면 중앙에 실제 비밀번호 입력창**이 나타나도록 변경했습니다.
-
-삭제 버튼 → **🔐 관리자 인증 창** → 비밀번호 입력 → **🗑 삭제 진행** → 최종 삭제 확인 → Apps Script에서 비밀번호 검증 순서입니다.
-
-또한 **Enter 키로 삭제 진행**, **Esc 키로 취소**, 모달 바깥 클릭으로 취소도 가능합니다.
-
-주의할 점은 **HTML에 관리자 비밀번호를 직접 넣지 않았습니다.** 실제 비밀번호 비교는 기존처럼 Google Apps Script의 `DELETE_PASSWORD`에서 처리해야 합니다.
