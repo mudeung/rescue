@@ -226,7 +226,7 @@ header{
 }
 
 /* =========================
-   버튼
+   버튼 및 지도링크 스타일
 ========================= */
 
 .button-area{
@@ -236,17 +236,27 @@ header{
   margin-top:15px;
 }
 
-button{
+button, .maplink{
   border:none;
   padding:9px 13px;
   border-radius:5px;
   color:#fff;
   cursor:pointer;
   font-weight:bold;
+  font-size:13px;
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
 }
 
-button:hover{
+button:hover, .maplink:hover{
   opacity:0.85;
+}
+
+.maplink{
+  background:#fee500;
+  color:#191919;
 }
 
 .btn-close{
@@ -853,7 +863,7 @@ function renderModalButtons(item){
   let html = "";
 
 
-  /* 지도 */
+  /* 내부 지도 위치 이동 */
 
   if(
     Number.isFinite(
@@ -870,15 +880,29 @@ function renderModalButtons(item){
         class="btn-map"
         onclick="moveToMarker('${escapeJs(item.id)}')"
       >
-        📍 지도보기
+        📍 지도 위치보기
       </button>
+
+    `;
+
+    /* 외부 카카오맵 바로가기 <a> 링크 추가 */
+    html += `
+
+      <a
+        class="maplink"
+        href="https://map.kakao.com/link/map/구조요청 위치,${item.lat},${item.lng}"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        📍 지도보기
+      </a>
 
     `;
 
   }
 
 
-  /* 카카오맵 */
+  /* 별도 저장된 KakaoMap URL이 있을 경우 */
 
   if(item.kakaoMapURL){
 
