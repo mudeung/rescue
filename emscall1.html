@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="ko">
 
@@ -159,6 +160,169 @@ header{
 
 
 /* =====================================================
+   비밀번호 입력 모달
+====================================================== */
+
+.password-modal{
+    display:none;
+
+    position:fixed;
+
+    top:0;
+    left:0;
+
+    width:100%;
+    height:100%;
+
+    background:rgba(0,0,0,0.75);
+
+    z-index:99999;
+
+    align-items:center;
+    justify-content:center;
+
+    padding:15px;
+
+    box-sizing:border-box;
+}
+
+
+.password-modal.show{
+    display:flex;
+}
+
+
+.password-box{
+    width:100%;
+    max-width:380px;
+
+    background:#222;
+
+    border:1px solid #555;
+
+    border-radius:10px;
+
+    padding:22px;
+
+    box-sizing:border-box;
+
+    box-shadow:
+        0 10px 40px rgba(0,0,0,0.7);
+}
+
+
+.password-title{
+    font-size:20px;
+    font-weight:bold;
+
+    margin-bottom:10px;
+
+    color:#fff;
+}
+
+
+.password-description{
+    font-size:14px;
+
+    color:#bbb;
+
+    line-height:1.5;
+
+    margin-bottom:15px;
+}
+
+
+.password-input{
+    width:100%;
+
+    box-sizing:border-box;
+
+    padding:13px;
+
+    background:#111;
+
+    color:#fff;
+
+    border:1px solid #666;
+
+    border-radius:6px;
+
+    font-size:16px;
+
+    outline:none;
+}
+
+
+.password-input:focus{
+    border-color:#ff5252;
+
+    box-shadow:
+        0 0 0 2px rgba(255,82,82,0.2);
+}
+
+
+.password-buttons{
+    display:flex;
+
+    gap:8px;
+
+    margin-top:15px;
+}
+
+
+.password-confirm{
+    flex:1;
+
+    background:#c62828;
+
+    color:#fff;
+
+    border:none;
+
+    padding:11px;
+
+    border-radius:6px;
+
+    cursor:pointer;
+
+    font-weight:bold;
+
+    font-size:14px;
+}
+
+
+.password-confirm:hover{
+    background:#e53935;
+}
+
+
+.password-cancel{
+    flex:1;
+
+    background:#555;
+
+    color:#fff;
+
+    border:none;
+
+    padding:11px;
+
+    border-radius:6px;
+
+    cursor:pointer;
+
+    font-weight:bold;
+
+    font-size:14px;
+}
+
+
+.password-cancel:hover{
+    background:#666;
+}
+
+
+/* =====================================================
    3분 초과 응급환자 깜빡임
 ====================================================== */
 
@@ -236,6 +400,10 @@ header{
         height:65vh;
         min-height:400px;
         max-height:none;
+    }
+
+    .password-box{
+        max-width:100%;
     }
 
 }
@@ -317,6 +485,70 @@ header{
 <br>
 
 
+<!-- =====================================================
+     삭제 비밀번호 입력창
+====================================================== -->
+
+<div
+    id="passwordModal"
+    class="password-modal"
+>
+
+    <div class="password-box">
+
+        <div class="password-title">
+
+            🔐 관리자 인증
+
+        </div>
+
+
+        <div class="password-description">
+
+            신고를 삭제하려면 관리자 비밀번호를 입력하세요.
+
+        </div>
+
+
+        <input
+            id="deletePasswordInput"
+            class="password-input"
+            type="password"
+            placeholder="관리자 비밀번호"
+            autocomplete="current-password"
+        >
+
+
+        <div class="password-buttons">
+
+            <button
+                id="passwordCancelBtn"
+                class="password-cancel"
+                type="button"
+            >
+
+                취소
+
+            </button>
+
+
+            <button
+                id="passwordConfirmBtn"
+                class="password-confirm"
+                type="button"
+            >
+
+                🗑 삭제 진행
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
 <script>
 
 
@@ -366,6 +598,337 @@ const API_URL =
 
 const listArea =
     document.getElementById("listArea");
+
+
+/* =====================================================
+   비밀번호 모달
+====================================================== */
+
+const passwordModal =
+    document.getElementById(
+        "passwordModal"
+    );
+
+
+const deletePasswordInput =
+    document.getElementById(
+        "deletePasswordInput"
+    );
+
+
+const passwordCancelBtn =
+    document.getElementById(
+        "passwordCancelBtn"
+    );
+
+
+const passwordConfirmBtn =
+    document.getElementById(
+        "passwordConfirmBtn"
+    );
+
+
+/* 현재 삭제하려는 신고 ID */
+
+let pendingDeleteId =
+    null;
+
+
+/* =====================================================
+   비밀번호 입력창 열기
+====================================================== */
+
+function openPasswordModal(id){
+
+    pendingDeleteId =
+        id;
+
+
+    deletePasswordInput.value =
+        "";
+
+
+    passwordModal.classList.add(
+        "show"
+    );
+
+
+    setTimeout(
+
+        () => {
+
+            deletePasswordInput.focus();
+
+        },
+
+        100
+
+    );
+
+}
+
+
+/* =====================================================
+   비밀번호 입력창 닫기
+====================================================== */
+
+function closePasswordModal(){
+
+    passwordModal.classList.remove(
+        "show"
+    );
+
+
+    deletePasswordInput.value =
+        "";
+
+
+    pendingDeleteId =
+        null;
+
+}
+
+
+/* =====================================================
+   취소 버튼
+====================================================== */
+
+passwordCancelBtn.addEventListener(
+
+    "click",
+
+    function(){
+
+        closePasswordModal();
+
+    }
+
+);
+
+
+/* =====================================================
+   모달 바깥 클릭 → 닫기
+====================================================== */
+
+passwordModal.addEventListener(
+
+    "click",
+
+    function(e){
+
+        if(
+            e.target ===
+            passwordModal
+        ){
+
+            closePasswordModal();
+
+        }
+
+    }
+
+);
+
+
+/* =====================================================
+   Enter → 삭제 진행
+====================================================== */
+
+deletePasswordInput.addEventListener(
+
+    "keydown",
+
+    function(e){
+
+        if(
+            e.key === "Enter"
+        ){
+
+            e.preventDefault();
+
+            passwordConfirmBtn.click();
+
+        }
+
+
+        if(
+            e.key === "Escape"
+        ){
+
+            e.preventDefault();
+
+            closePasswordModal();
+
+        }
+
+    }
+
+);
+
+
+/* =====================================================
+   삭제 진행 버튼
+====================================================== */
+
+passwordConfirmBtn.addEventListener(
+
+    "click",
+
+    async function(){
+
+        const password =
+            deletePasswordInput.value;
+
+
+        if(
+            !password.trim()
+        ){
+
+            alert(
+                "🔐 관리자 비밀번호를 입력하세요."
+            );
+
+
+            deletePasswordInput.focus();
+
+            return;
+
+        }
+
+
+        if(
+            !pendingDeleteId
+        ){
+
+            alert(
+                "삭제할 신고를 찾을 수 없습니다."
+            );
+
+            closePasswordModal();
+
+            return;
+
+        }
+
+
+        const id =
+            pendingDeleteId;
+
+
+        /* 비밀번호 입력창 닫기 */
+
+        closePasswordModal();
+
+
+        /* =================================================
+           최종 삭제 확인
+        ================================================== */
+
+        if(
+            !confirm(
+
+                "⚠️ 정말 이 신고를 삭제하시겠습니까?\n\n" +
+
+                "삭제한 신고는 복구할 수 없습니다."
+
+            )
+        ){
+
+            return;
+
+        }
+
+
+        try{
+
+            passwordConfirmBtn.disabled =
+                true;
+
+
+            const response =
+                await fetch(
+
+                    API_URL,
+
+                    {
+
+                        method:"POST",
+
+                        headers:{
+                            "Content-Type":
+                                "text/plain;charset=utf-8"
+                        },
+
+                        body:
+                            JSON.stringify({
+
+                                action:
+                                    "delete",
+
+                                id:
+                                    id,
+
+                                password:
+                                    password
+
+                            })
+
+                        }
+
+                    );
+
+
+            const result =
+                await response.json();
+
+
+            if(
+                result.result ===
+                "success"
+            ){
+
+                alert(
+                    "✅ 신고가 삭제되었습니다."
+                );
+
+
+                loadData();
+
+            }
+
+            else{
+
+                alert(
+
+                    result.message ||
+                    "❌ 비밀번호가 올바르지 않거나 삭제할 수 없습니다."
+
+                );
+
+            }
+
+        }
+
+        catch(err){
+
+            console.error(err);
+
+            alert(
+                "❌ 삭제 처리 중 오류가 발생했습니다."
+            );
+
+        }
+
+        finally{
+
+            passwordConfirmBtn.disabled =
+                false;
+
+        }
+
+    }
+
+);
 
 
 /* =====================================================
@@ -899,8 +1462,6 @@ function checkOverdue(
     div
 ){
 
-    /* 응급환자만 */
-
     if(
         item.type !==
         "응급환자"
@@ -916,8 +1477,6 @@ function checkOverdue(
             item.status
         );
 
-
-    /* 사고처리 완료 */
 
     if(
         normalized ===
@@ -956,8 +1515,6 @@ function checkOverdue(
         );
 
 
-        /* 이미 알림 시작 */
-
         if(
             alertedOverdueIds.has(
                 item.id
@@ -973,8 +1530,6 @@ function checkOverdue(
             item.id
         );
 
-
-        /* 30초마다 알림 */
 
         const interval =
             setInterval(
@@ -1027,8 +1582,6 @@ function checkOverdue(
             interval
         );
 
-
-        /* 즉시 1회 알림 */
 
         const alertSound =
             document.getElementById(
@@ -1182,150 +1735,16 @@ async function finishCase(id){
 
 /* =====================================================
    신고 삭제
- *
- * 비밀번호는 HTML에 저장하지 않습니다.
- * Apps Script의 DELETE_PASSWORD와 비교합니다.
 ====================================================== */
 
-async function deleteCase(id){
+function deleteCase(id){
 
-    /* ============================
-       비밀번호 입력
-    ============================ */
+    /*
+     * 기존 prompt() 대신
+     * 화면 중앙의 관리자 비밀번호 입력창을 표시합니다.
+     */
 
-    const password =
-        prompt(
-            "🔐 관리자 비밀번호를 입력하세요."
-        );
-
-
-    /* 취소 */
-
-    if(
-        password === null
-    ){
-
-        return;
-
-    }
-
-
-    /* 빈 비밀번호 */
-
-    if(
-        !password.trim()
-    ){
-
-        alert(
-            "비밀번호를 입력하세요."
-        );
-
-        return;
-
-    }
-
-
-    /* ============================
-       삭제 확인
-    ============================ */
-
-    if(
-        !confirm(
-
-            "⚠️ 정말 이 신고를 삭제하시겠습니까?\n\n" +
-
-            "삭제한 신고는 복구할 수 없습니다."
-
-        )
-    ){
-
-        return;
-
-    }
-
-
-    try{
-
-        const response =
-            await fetch(
-
-                API_URL,
-
-                {
-
-                    method:"POST",
-
-                    headers:{
-                        "Content-Type":
-                            "text/plain;charset=utf-8"
-                    },
-
-                    body:
-                        JSON.stringify({
-
-                            action:
-                                "delete",
-
-                            id:
-                                id,
-
-                            password:
-                                password
-
-                        })
-
-                }
-
-            );
-
-
-        const result =
-            await response.json();
-
-
-        /* ============================
-           삭제 성공
-        ============================ */
-
-        if(
-            result.result ===
-            "success"
-        ){
-
-            alert(
-                "✅ 신고가 삭제되었습니다."
-            );
-
-
-            loadData();
-
-            return;
-
-        }
-
-
-        /* ============================
-           삭제 실패
-        ============================ */
-
-        alert(
-
-            result.message ||
-            "삭제할 수 없습니다."
-
-        );
-
-    }
-
-    catch(err){
-
-        console.error(err);
-
-        alert(
-            "삭제 처리 중 오류가 발생했습니다."
-        );
-
-    }
+    openPasswordModal(id);
 
 }
 
@@ -1701,6 +2120,8 @@ async function loadData(){
 
                             class="delete-btn"
 
+                            type="button"
+
                             onclick="
                                 deleteCase('${item.id}')
                             "
@@ -1731,6 +2152,8 @@ async function loadData(){
 
                             class="complete-btn"
 
+                            type="button"
+
                             onclick="
                                 finishCase('${item.id}')
                             "
@@ -1757,6 +2180,8 @@ async function loadData(){
                         <button
 
                             class="complete-btn"
+
+                            type="button"
 
                             onclick="
                                 completeCase('${item.id}')
@@ -2265,3 +2690,20 @@ document.addEventListener(
 </body>
 
 </html>
+```
+
+### 변경된 부분
+
+기존의
+
+```javascript
+prompt("🔐 관리자 비밀번호를 입력하세요.")
+```
+
+방식을 제거하고, **화면 중앙에 실제 비밀번호 입력창**이 나타나도록 변경했습니다.
+
+삭제 버튼 → **🔐 관리자 인증 창** → 비밀번호 입력 → **🗑 삭제 진행** → 최종 삭제 확인 → Apps Script에서 비밀번호 검증 순서입니다.
+
+또한 **Enter 키로 삭제 진행**, **Esc 키로 취소**, 모달 바깥 클릭으로 취소도 가능합니다.
+
+주의할 점은 **HTML에 관리자 비밀번호를 직접 넣지 않았습니다.** 실제 비밀번호 비교는 기존처럼 Google Apps Script의 `DELETE_PASSWORD`에서 처리해야 합니다.
