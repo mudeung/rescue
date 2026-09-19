@@ -15,9 +15,9 @@
 
 <style>
 
-/* =====================================================
-   기본
-====================================================== */
+*{
+    box-sizing:border-box;
+}
 
 body{
     margin:0;
@@ -36,12 +36,9 @@ header{
 
 .container{
     padding:15px;
+    max-width:1200px;
+    margin:auto;
 }
-
-
-/* =====================================================
-   입력 박스
-====================================================== */
 
 .form-box{
     background:#222;
@@ -53,11 +50,11 @@ header{
 input,
 textarea{
     width:100%;
-    padding:8px;
+    padding:10px;
     margin-bottom:8px;
     border-radius:6px;
     border:none;
-    box-sizing:border-box;
+    outline:none;
 }
 
 textarea{
@@ -65,29 +62,27 @@ textarea{
     resize:vertical;
 }
 
-
-/* =====================================================
-   버튼
-====================================================== */
-
 button{
-    padding:8px 12px;
+    padding:9px 12px;
     background:#e53935;
     color:#fff;
     border:none;
-    border-radius:4px;
+    border-radius:5px;
     cursor:pointer;
     font-weight:bold;
 }
 
 button:hover{
-    opacity:0.85;
+    opacity:.85;
+}
+
+button:disabled{
+    opacity:.5;
+    cursor:not-allowed;
 }
 
 
-/* =====================================================
-   지도
-====================================================== */
+/* 지도 */
 
 #map{
     width:100%;
@@ -100,9 +95,7 @@ button:hover{
 }
 
 
-/* =====================================================
-   신고 유형 버튼
-====================================================== */
+/* 신고 유형 */
 
 .type-grid{
     display:grid;
@@ -115,8 +108,6 @@ button:hover{
     padding:12px;
     border-radius:8px;
     font-weight:bold;
-    cursor:pointer;
-    color:#fff;
 }
 
 .type-btn.active{
@@ -141,9 +132,7 @@ button:hover{
 }
 
 
-/* =====================================================
-   신고 카드
-====================================================== */
+/* 신고 카드 */
 
 .card{
     background:#1e1e1e;
@@ -153,14 +142,54 @@ button:hover{
 }
 
 .card.done{
-    opacity:0.6;
+    opacity:.6;
     background:#2b2b2b;
 }
 
 
-/* =====================================================
-   지도 링크
-====================================================== */
+/* 상태 */
+
+.status{
+    display:inline-block;
+    padding:5px 9px;
+    margin:5px 0 8px 0;
+    border-radius:5px;
+    font-size:13px;
+    font-weight:bold;
+}
+
+.status.received{
+    background:#d50000;
+}
+
+.status.arrived{
+    background:#ef6c00;
+}
+
+.status.done{
+    background:#777;
+}
+
+
+/* 버튼 */
+
+.case-btn{
+    margin-top:8px;
+    background:#2e7d32;
+}
+
+.finish-btn{
+    margin-top:8px;
+    background:#616161;
+}
+
+.delete-btn{
+    margin-top:8px;
+    background:#b71c1c;
+}
+
+
+/* 링크 */
 
 .maplink{
     color:#4fc3f7;
@@ -174,9 +203,7 @@ button:hover{
 }
 
 
-/* =====================================================
-   좌표
-====================================================== */
+/* 좌표 */
 
 .coord{
     color:#aaa;
@@ -186,53 +213,18 @@ button:hover{
 }
 
 
-/* =====================================================
-   상태
-====================================================== */
+/* 로딩 */
 
-.status{
-    display:inline-block;
-    padding:5px 9px;
-    margin:5px 0 8px 0;
-    border-radius:5px;
-    font-size:13px;
+#loading{
+    display:none;
+    text-align:center;
+    padding:15px;
+    color:#ffcc00;
     font-weight:bold;
 }
 
-.status.received{
-    background:#d50000;
-    color:#fff;
-}
 
-.status.done{
-    background:#777;
-    color:#fff;
-}
-
-.status.arrived{
-    background:#ef6c00;
-    color:#fff;
-}
-
-
-/* =====================================================
-   현장도착 / 완료 버튼
-====================================================== */
-
-.case-btn{
-    margin-top:8px;
-    background:#2e7d32;
-}
-
-.finish-btn{
-    margin-top:8px;
-    background:#616161;
-}
-
-
-/* =====================================================
-   모바일
-====================================================== */
+/* 모바일 */
 
 @media(max-width:600px){
 
@@ -260,42 +252,34 @@ button:hover{
 <body>
 
 
-<!-- =====================================================
-     비밀번호 잠금
-====================================================== -->
+<!-- ==============================
+     로그인
+================================ -->
 
 <div
     id="loginOverlay"
     style="
         position:fixed;
-        top:0;
-        left:0;
-        width:100%;
-        height:100%;
+        inset:0;
         background:#000;
         display:flex;
         justify-content:center;
         align-items:center;
         z-index:9999;
         flex-direction:column;
+        padding:20px;
     "
 >
 
-    <h2 style="margin-bottom:20px;">
-        🔐 무등산특수구조팀 신고접수 접속인증
+    <h2>
+        🔐 무등산특수구조팀 신고접수
     </h2>
 
     <input
         type="password"
         id="passwordInput"
         placeholder="비밀번호 입력"
-        style="
-            width:250px;
-            padding:10px;
-            border-radius:6px;
-            border:none;
-            margin-bottom:10px;
-        "
+        style="width:250px;"
     >
 
     <button onclick="checkPassword()">
@@ -304,15 +288,11 @@ button:hover{
 
     <p
         id="loginError"
-        style="color:red;margin-top:10px;"
+        style="color:#ff5252;"
     ></p>
 
 </div>
 
-
-<!-- =====================================================
-     HEADER
-====================================================== -->
 
 <header>
     🆘 무등산특수구조팀 신고접수
@@ -322,16 +302,16 @@ button:hover{
 <div class="container">
 
 
-    <!-- =================================================
+    <!-- ==============================
          지도
-    ================================================== -->
+    =============================== -->
 
     <div id="map"></div>
 
 
-    <!-- =================================================
-         신고 입력
-    ================================================== -->
+    <!-- ==============================
+         입력
+    =============================== -->
 
     <div class="form-box">
 
@@ -398,40 +378,40 @@ button:hover{
         >
 
 
-        <button onclick="submitData()">
+        <button
+            id="submitBtn"
+            onclick="submitData()"
+        >
             🆘 신고접수
         </button>
 
     </div>
 
 
-    <!-- =================================================
-         로고
-    ================================================== -->
+    <div id="loading">
+        ⏳ 데이터를 불러오는 중입니다...
+    </div>
+
+
+    <!-- 로고 -->
 
     <img
         src="https://mudeung.github.io/rescue/logogomir1.png"
         alt="달콩이 이미지"
         style="
             display:block;
-            margin:0 auto;
+            margin:0 auto 15px auto;
             max-width:100%;
         "
     >
 
 
-    <!-- =================================================
-         신고 목록
-    ================================================== -->
+    <!-- 신고 목록 -->
 
     <div id="listArea"></div>
 
 </div>
 
-
-<!-- =====================================================
-     알림음
-====================================================== -->
 
 <audio id="alertSound">
 
@@ -447,11 +427,87 @@ button:hover{
 
 
 /* =====================================================
-   비밀번호
-====================================================== */
+   설정
+===================================================== */
+
+
+/*
+ * Google Apps Script 웹앱 주소
+ *
+ * 현재 사용 중인 배포 URL
+ */
+
+const API_URL =
+    "https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
+
+
+/*
+ * 화면 접속 비밀번호
+ *
+ * 주의:
+ * 이 값은 HTML에 들어가기 때문에
+ * 실제 보안용 비밀번호로 사용하면 안 됩니다.
+ */
 
 const ACCESS_PASSWORD = "knps";
 
+
+/* =====================================================
+   변수
+===================================================== */
+
+let map = null;
+
+let geocoder = null;
+
+let previewMarker = null;
+
+let markers = [];
+
+let selectedType = "";
+
+
+/*
+ * 새 신고 알림용
+ */
+
+let knownIds = new Set();
+
+let firstLoad = true;
+
+
+/* =====================================================
+   DOM
+===================================================== */
+
+const conditionEl =
+    document.getElementById("condition");
+
+const phoneEl =
+    document.getElementById("phone");
+
+const addressEl =
+    document.getElementById("address");
+
+const latEl =
+    document.getElementById("lat");
+
+const lngEl =
+    document.getElementById("lng");
+
+const listArea =
+    document.getElementById("listArea");
+
+const loadingEl =
+    document.getElementById("loading");
+
+const submitBtn =
+    document.getElementById("submitBtn");
+
+
+/* =====================================================
+   로그인
+===================================================== */
 
 function checkPassword(){
 
@@ -466,11 +522,15 @@ function checkPassword(){
         );
 
 
-    if(input === ACCESS_PASSWORD){
+    if(
+        input === ACCESS_PASSWORD
+    ){
 
         document.getElementById(
             "loginOverlay"
-        ).style.display = "none";
+        ).style.display =
+            "none";
+
 
         sessionStorage.setItem(
             "authorized",
@@ -478,7 +538,6 @@ function checkPassword(){
         );
 
     }
-
     else{
 
         error.innerText =
@@ -488,6 +547,32 @@ function checkPassword(){
 
 }
 
+
+/*
+ * Enter 키
+ */
+
+document
+.getElementById("passwordInput")
+.addEventListener(
+    "keydown",
+    function(e){
+
+        if(
+            e.key === "Enter"
+        ){
+
+            checkPassword();
+
+        }
+
+    }
+);
+
+
+/*
+ * 로그인 상태
+ */
 
 window.addEventListener(
     "load",
@@ -501,7 +586,8 @@ window.addEventListener(
 
             document.getElementById(
                 "loginOverlay"
-            ).style.display = "none";
+            ).style.display =
+                "none";
 
         }
 
@@ -510,75 +596,15 @@ window.addEventListener(
 
 
 /* =====================================================
-   API
-====================================================== */
-
-const API_URL =
-    "https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
-
-
-/* =====================================================
-   변수
-====================================================== */
-
-let map;
-let geocoder;
-let previewMarker;
-
-let markers = [];
-
-let selectedType = "";
-
-let alerted = new Set();
-
-
-/* =====================================================
-   DOM
-====================================================== */
-
-const conditionEl =
-    document.getElementById(
-        "condition"
-    );
-
-const phoneEl =
-    document.getElementById(
-        "phone"
-    );
-
-const addressEl =
-    document.getElementById(
-        "address"
-    );
-
-const latEl =
-    document.getElementById(
-        "lat"
-    );
-
-const lngEl =
-    document.getElementById(
-        "lng"
-    );
-
-const listArea =
-    document.getElementById(
-        "listArea"
-    );
-
-
-/* =====================================================
    지도 초기화
-====================================================== */
+===================================================== */
 
 function initMap(){
 
     map =
         new kakao.maps.Map(
 
-            document.getElementById(
-                "map"
-            ),
+            document.getElementById("map"),
 
             {
 
@@ -602,45 +628,49 @@ function initMap(){
 
 
 /* =====================================================
-   신고 유형 선택
-====================================================== */
+   신고 유형
+===================================================== */
 
 document
 .querySelectorAll(".type-btn")
 .forEach(
+    function(btn){
 
-    btn => {
+        btn.addEventListener(
+            "click",
+            function(){
 
-        btn.onclick = () => {
+                document
+                .querySelectorAll(".type-btn")
+                .forEach(
+                    function(b){
 
-            document
-            .querySelectorAll(".type-btn")
-            .forEach(
-                b =>
-                    b.classList.remove(
-                        "active"
-                    )
-            );
+                        b.classList.remove(
+                            "active"
+                        );
 
-
-            btn.classList.add(
-                "active"
-            );
+                    }
+                );
 
 
-            selectedType =
-                btn.dataset.type;
+                btn.classList.add(
+                    "active"
+                );
 
-        };
+
+                selectedType =
+                    btn.dataset.type;
+
+            }
+        );
 
     }
-
 );
 
 
 /* =====================================================
    주소 → 좌표
-====================================================== */
+===================================================== */
 
 addressEl.addEventListener(
     "change",
@@ -655,14 +685,17 @@ addressEl.addEventListener(
         }
 
 
+        if(!geocoder){
+            alert("지도 초기화 중입니다.");
+            return;
+        }
+
+
         geocoder.addressSearch(
 
             address,
 
-            function(
-                result,
-                status
-            ){
+            function(result,status){
 
                 if(
                     status ===
@@ -670,21 +703,21 @@ addressEl.addEventListener(
                 ){
 
                     const lat =
-                        parseFloat(
+                        Number(
                             result[0].y
                         );
 
                     const lng =
-                        parseFloat(
+                        Number(
                             result[0].x
                         );
 
 
                     latEl.value =
-                        lat;
+                        lat.toFixed(6);
 
                     lngEl.value =
-                        lng;
+                        lng.toFixed(6);
 
 
                     const pos =
@@ -703,9 +736,7 @@ addressEl.addEventListener(
                     );
 
 
-                    if(
-                        previewMarker
-                    ){
+                    if(previewMarker){
 
                         previewMarker.setMap(
                             null
@@ -724,11 +755,10 @@ addressEl.addEventListener(
                         });
 
                 }
-
                 else{
 
                     alert(
-                        "주소 검색 실패"
+                        "주소를 찾을 수 없습니다."
                     );
 
                 }
@@ -743,9 +773,9 @@ addressEl.addEventListener(
 
 /* =====================================================
    신고 접수
-====================================================== */
+===================================================== */
 
-function submitData(){
+async function submitData(){
 
     const condition =
         conditionEl.value.trim();
@@ -757,16 +787,20 @@ function submitData(){
         addressEl.value.trim();
 
     const lat =
-        latEl.value.trim();
+        Number(
+            latEl.value
+        );
 
     const lng =
-        lngEl.value.trim();
+        Number(
+            lngEl.value
+        );
 
 
     if(!selectedType){
 
         alert(
-            "신고 유형 선택 필수"
+            "🚨 신고 유형을 선택해주세요."
         );
 
         return;
@@ -777,8 +811,10 @@ function submitData(){
     if(!condition){
 
         alert(
-            "상황 입력 필수"
+            "📝 상황을 입력해주세요."
         );
+
+        conditionEl.focus();
 
         return;
 
@@ -788,8 +824,10 @@ function submitData(){
     if(!phone){
 
         alert(
-            "연락처 입력 필수"
+            "📞 연락처를 입력해주세요."
         );
+
+        phoneEl.focus();
 
         return;
 
@@ -799,7 +837,23 @@ function submitData(){
     if(!address){
 
         alert(
-            "주소 입력 필수"
+            "🏠 주소를 입력해주세요."
+        );
+
+        addressEl.focus();
+
+        return;
+
+    }
+
+
+    if(
+        !Number.isFinite(lat) ||
+        !Number.isFinite(lng)
+    ){
+
+        alert(
+            "📍 주소 검색으로 위치를 확인해주세요."
         );
 
         return;
@@ -807,10 +861,15 @@ function submitData(){
     }
 
 
-    if(!lat || !lng){
+    if(
+        lat < -90 ||
+        lat > 90 ||
+        lng < -180 ||
+        lng > 180
+    ){
 
         alert(
-            "주소 검색 또는 위치 입력 필요"
+            "📍 GPS 좌표가 올바르지 않습니다."
         );
 
         return;
@@ -823,13 +882,11 @@ function submitData(){
 
 
     if(
-        !phonePattern.test(
-            phone
-        )
+        !phonePattern.test(phone)
     ){
 
         alert(
-            "연락처 형식 오류"
+            "📞 연락처 형식이 올바르지 않습니다."
         );
 
         return;
@@ -837,29 +894,106 @@ function submitData(){
     }
 
 
-    sendData(
-        parseFloat(lat),
-        parseFloat(lng)
-    );
+    submitBtn.disabled =
+        true;
+
+    submitBtn.innerText =
+        "⏳ 접수 중...";
+
+
+    try{
+
+        const result =
+            await postData({
+
+                lat:lat,
+
+                lng:lng,
+
+                address:address,
+
+                symptom:condition,
+
+                phone:phone,
+
+                type:selectedType,
+
+                kakaoMapURL:
+                    `https://map.kakao.com/link/map/구조요청 위치,${lat},${lng}`
+
+            });
+
+
+        if(
+            result.result === "success"
+        ){
+
+            alert(
+                "🆘 신고가 정상적으로 접수되었습니다."
+            );
+
+
+            clearForm();
+
+            await loadData();
+
+        }
+        else if(
+            result.result === "blocked"
+        ){
+
+            alert(
+                "⚠️ " +
+                (
+                    result.message ||
+                    "동일 위치의 중복 신고입니다."
+                )
+            );
+
+        }
+        else{
+
+            alert(
+                "❌ 신고 접수 실패\n" +
+                (
+                    result.message ||
+                    "알 수 없는 오류"
+                )
+            );
+
+        }
+
+    }
+    catch(err){
+
+        console.error(err);
+
+        alert(
+            "❌ 신고 접수 중 오류가 발생했습니다.\n" +
+            err.message
+        );
+
+    }
+    finally{
+
+        submitBtn.disabled =
+            false;
+
+        submitBtn.innerText =
+            "🆘 신고접수";
+
+    }
 
 }
 
 
 /* =====================================================
-   데이터 전송
-====================================================== */
+   POST 공통 함수
+===================================================== */
 
-async function sendData(
-    lat,
-    lng
-){
+async function postData(data){
 
-    try{
-
-        const kakaoMapURL =
-            `https://map.kakao.com/link/map/${lat},${lng}`;
-
-
+    const response =
         await fetch(
 
             API_URL,
@@ -874,82 +1008,67 @@ async function sendData(
                 },
 
                 body:
-                    JSON.stringify({
-
-                        lat:lat,
-
-                        lng:lng,
-
-                        address:
-                            addressEl.value,
-
-                        symptom:
-                            conditionEl.value,
-
-                        phone:
-                            phoneEl.value,
-
-                        type:
-                            selectedType,
-
-                        kakaoMapURL:
-                            kakaoMapURL
-
-                    })
+                    JSON.stringify(data)
 
             }
 
         );
 
 
-        conditionEl.value = "";
+    if(!response.ok){
 
-        phoneEl.value = "";
-
-        addressEl.value = "";
-
-        latEl.value = "";
-
-        lngEl.value = "";
-
-
-        selectedType = "";
-
-
-        document
-        .querySelectorAll(".type-btn")
-        .forEach(
-            b =>
-                b.classList.remove(
-                    "active"
-                )
+        throw new Error(
+            "서버 응답 오류: " +
+            response.status
         );
-
-
-        if(
-            previewMarker
-        ){
-
-            previewMarker.setMap(
-                null
-            );
-
-            previewMarker = null;
-
-        }
-
-
-        loadData();
 
     }
 
-    catch(err){
 
-        console.error(err);
+    return await response.json();
 
-        alert(
-            "신고 접수 중 오류가 발생했습니다."
+}
+
+
+/* =====================================================
+   입력 초기화
+===================================================== */
+
+function clearForm(){
+
+    conditionEl.value = "";
+
+    phoneEl.value = "";
+
+    addressEl.value = "";
+
+    latEl.value = "";
+
+    lngEl.value = "";
+
+    selectedType = "";
+
+
+    document
+    .querySelectorAll(".type-btn")
+    .forEach(
+        function(btn){
+
+            btn.classList.remove(
+                "active"
+            );
+
+        }
+    );
+
+
+    if(previewMarker){
+
+        previewMarker.setMap(
+            null
         );
+
+        previewMarker = null;
 
     }
 
@@ -958,13 +1077,13 @@ async function sendData(
 
 /* =====================================================
    현장도착
-====================================================== */
+===================================================== */
 
 async function completeCase(id){
 
     if(
         !confirm(
-            "구조대원이 현장에 도착했습니까?"
+            "🚑 구조대원이 현장에 도착했습니까?"
         )
     ){
 
@@ -975,47 +1094,46 @@ async function completeCase(id){
 
     try{
 
-        await fetch(
+        const result =
+            await postData({
 
-            API_URL,
+                action:"complete",
 
-            {
+                id:id
 
-                method:"POST",
-
-                headers:{
-                    "Content-Type":
-                        "text/plain;charset=utf-8"
-                },
-
-                body:
-                    JSON.stringify({
-
-                        action:"complete",
-
-                        id:id,
-
-                        completeTime:
-                            new Date()
-                            .toISOString()
-
-                    })
-
-            }
-
-        );
+            });
 
 
-        loadData();
+        if(
+            result.result === "success"
+        ){
+
+            alert(
+                "🚑 현장도착 처리되었습니다."
+            );
+
+            await loadData();
+
+        }
+        else{
+
+            alert(
+                "❌ 현장도착 처리 실패\n" +
+                (
+                    result.message ||
+                    ""
+                )
+            );
+
+        }
 
     }
-
     catch(err){
 
         console.error(err);
 
         alert(
-            "현장도착 처리 중 오류가 발생했습니다."
+            "❌ 현장도착 처리 중 오류가 발생했습니다."
         );
 
     }
@@ -1025,13 +1143,13 @@ async function completeCase(id){
 
 /* =====================================================
    사고처리 완료
-====================================================== */
+===================================================== */
 
 async function finishCase(id){
 
     if(
         !confirm(
-            "사고처리를 완료하시겠습니까?"
+            "⚪ 사고처리를 완료하시겠습니까?"
         )
     ){
 
@@ -1042,47 +1160,46 @@ async function finishCase(id){
 
     try{
 
-        await fetch(
+        const result =
+            await postData({
 
-            API_URL,
+                action:"finish",
 
-            {
+                id:id
 
-                method:"POST",
-
-                headers:{
-                    "Content-Type":
-                        "text/plain;charset=utf-8"
-                },
-
-                body:
-                    JSON.stringify({
-
-                        action:"finish",
-
-                        id:id,
-
-                        finishTime:
-                            new Date()
-                            .toISOString()
-
-                    })
-
-            }
-
-        );
+            });
 
 
-        loadData();
+        if(
+            result.result === "success"
+        ){
+
+            alert(
+                "⚪ 사고처리가 완료되었습니다."
+            );
+
+            await loadData();
+
+        }
+        else{
+
+            alert(
+                "❌ 사고처리 완료 실패\n" +
+                (
+                    result.message ||
+                    ""
+                )
+            );
+
+        }
 
     }
-
     catch(err){
 
         console.error(err);
 
         alert(
-            "사고처리 완료 중 오류가 발생했습니다."
+            "❌ 사고처리 완료 중 오류가 발생했습니다."
         );
 
     }
@@ -1091,25 +1208,19 @@ async function finishCase(id){
 
 
 /* =====================================================
-   상태별 마커 색상
-====================================================== */
+   상태 색상
+===================================================== */
 
-function getMarkerColor(
-    status
-){
+function getMarkerColor(status){
 
-    if(
-        status === "사고처리완료"
-    ){
+    if(status === "DONE"){
 
-        return "#777777";
+        return "#777";
 
     }
 
 
-    if(
-        status === "현장도착"
-    ){
+    if(status === "ARRIVED"){
 
         return "#fb8c00";
 
@@ -1122,20 +1233,16 @@ function getMarkerColor(
 
 
 /* =====================================================
-   원형 마커
-====================================================== */
+   마커 이미지
+===================================================== */
 
-function createMarkerImage(
-    status
-){
+function createMarkerImage(status){
 
     const color =
-        getMarkerColor(
-            status
-        );
+        getMarkerColor(status);
 
 
-    const markerSvg = `
+    const svg = `
 
         <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -1149,7 +1256,7 @@ function createMarkerImage(
                 cy="20"
                 r="18"
                 fill="${color}"
-                stroke="#ffffff"
+                stroke="#fff"
                 stroke-width="3"
             />
 
@@ -1157,7 +1264,7 @@ function createMarkerImage(
                 cx="20"
                 cy="20"
                 r="7"
-                fill="#ffffff"
+                fill="#fff"
             />
 
         </svg>
@@ -1168,9 +1275,7 @@ function createMarkerImage(
     return new kakao.maps.MarkerImage(
 
         "data:image/svg+xml;charset=utf-8," +
-        encodeURIComponent(
-            markerSvg
-        ),
+        encodeURIComponent(svg),
 
         new kakao.maps.Size(
             40,
@@ -1193,8 +1298,67 @@ function createMarkerImage(
 
 
 /* =====================================================
+   상태 표시
+===================================================== */
+
+function getStatusHTML(status){
+
+    if(status === "DONE"){
+
+        return `
+            <div class="status done">
+                ⚪ 사고처리완료
+            </div>
+        `;
+
+    }
+
+
+    if(status === "ARRIVED"){
+
+        return `
+            <div class="status arrived">
+                🟠 현장도착
+            </div>
+        `;
+
+    }
+
+
+    return `
+        <div class="status received">
+            🔴 사고 접수
+        </div>
+    `;
+
+}
+
+
+/* =====================================================
+   날짜 표시
+===================================================== */
+
+function formatDate(value){
+
+    if(!value){
+        return "";
+    }
+
+
+    /*
+     * Apps Script에서
+     * yyyy-MM-dd HH:mm:ss 형태로 반환하므로
+     * 그대로 표시하는 것이 안전함
+     */
+
+    return String(value);
+
+}
+
+
+/* =====================================================
    지도 팝업
-====================================================== */
+===================================================== */
 
 function createInfoWindow(
     item,
@@ -1202,40 +1366,36 @@ function createInfoWindow(
     lng
 ){
 
-    let statusColor =
-        "#e53935";
-
     let statusText =
         "🔴 사고 접수";
 
+    let statusColor =
+        "#e53935";
 
-    if(
-        item.status === "현장도착"
-    ){
 
-        statusColor =
-            "#fb8c00";
+    if(item.status === "ARRIVED"){
 
         statusText =
             "🟠 현장도착";
 
+        statusColor =
+            "#fb8c00";
+
     }
 
 
-    if(
-        item.status === "사고처리완료"
-    ){
-
-        statusColor =
-            "#777777";
+    if(item.status === "DONE"){
 
         statusText =
             "⚪ 사고처리완료";
 
+        statusColor =
+            "#777";
+
     }
 
 
-    const infoContent = `
+    const content = `
 
         <div style="
             padding:12px;
@@ -1264,9 +1424,7 @@ function createInfoWindow(
                 font-weight:bold;
                 margin-bottom:8px;
             ">
-
                 ${statusText}
-
             </div>
 
 
@@ -1274,55 +1432,41 @@ function createInfoWindow(
 
 
             🚨 <b>신고유형</b><br>
-
-            ${item.type || "미입력"}
+            ${escapeHTML(item.type || "미입력")}
 
 
             <br><br>
 
 
             🕒 <b>접수시간</b><br>
-
-            ${
-                item.time
-                ?
-                new Date(
-                    item.time
-                ).toLocaleString()
-                :
-                ""
-            }
+            ${escapeHTML(formatDate(item.time))}
 
 
             <br><br>
 
 
             📝 <b>상황</b><br>
-
-            ${item.symptom || "내용없음"}
+            ${escapeHTML(item.symptom || "내용없음")}
 
 
             <br><br>
 
 
             🏠 <b>주소</b><br>
-
-            ${item.address || "주소없음"}
+            ${escapeHTML(item.address || "주소없음")}
 
 
             <br><br>
 
 
             📞 <b>연락처</b><br>
-
-            ${item.phone || "번호없음"}
+            ${escapeHTML(item.phone || "번호없음")}
 
 
             <br><br>
 
 
             📍 <b>좌표</b><br>
-
             ${lat.toFixed(6)},
             ${lng.toFixed(6)}
 
@@ -1330,50 +1474,36 @@ function createInfoWindow(
             ${
                 item.completeTime
                 ?
-
                 `
+                    <br><br>
 
-                <br><br>
-
-                🚑 <b>현장도착</b><br>
-
-                ${
-                    new Date(
-                        item.completeTime
-                    ).toLocaleString()
-                }
-
+                    🚑 <b>현장도착</b><br>
+                    ${escapeHTML(
+                        formatDate(
+                            item.completeTime
+                        )
+                    )}
                 `
-
                 :
-
                 ""
-
             }
 
 
             ${
                 item.finishTime
                 ?
-
                 `
+                    <br><br>
 
-                <br><br>
-
-                ⚪ <b>사고처리 완료</b><br>
-
-                ${
-                    new Date(
-                        item.finishTime
-                    ).toLocaleString()
-                }
-
+                    ⚪ <b>사고처리 완료</b><br>
+                    ${escapeHTML(
+                        formatDate(
+                            item.finishTime
+                        )
+                    )}
                 `
-
                 :
-
                 ""
-
             }
 
 
@@ -1390,9 +1520,7 @@ function createInfoWindow(
                         font-weight:bold;
                     "
                 >
-
                     📍 카카오맵에서 보기
-
                 </a>
 
             </div>
@@ -1404,11 +1532,9 @@ function createInfoWindow(
 
     return new kakao.maps.InfoWindow({
 
-        content:
-            infoContent,
+        content:content,
 
-        removable:
-            true
+        removable:true
 
     });
 
@@ -1416,500 +1542,219 @@ function createInfoWindow(
 
 
 /* =====================================================
-   목록 + 지도 마커
-====================================================== */
+   HTML 문자 이스케이프
+===================================================== */
+
+function escapeHTML(value){
+
+    return String(value)
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+
+}
+
+
+/* =====================================================
+   데이터 로딩
+===================================================== */
 
 async function loadData(){
 
     try{
 
-        const res =
+        loadingEl.style.display =
+            "block";
+
+
+        const response =
             await fetch(
                 API_URL +
-                "?action=list"
+                "?action=list&t=" +
+                Date.now()
             );
 
 
-        const data =
-            await res.json();
+        if(!response.ok){
 
+            throw new Error(
+                "HTTP " +
+                response.status
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        if(!Array.isArray(data)){
+
+            throw new Error(
+                "서버 데이터 형식이 올바르지 않습니다."
+            );
+
+        }
+
+
+        /*
+         * 최신순
+         */
+
+        data.sort(
+            function(a,b){
+
+                return String(b.time || "")
+                    .localeCompare(
+                        String(a.time || "")
+                    );
+
+            }
+        );
+
+
+        /*
+         * 새 신고 감지
+         */
+
+        const currentIds =
+            new Set(
+                data
+                .map(
+                    function(item){
+                        return String(item.id);
+                    }
+                )
+            );
+
+
+        if(!firstLoad){
+
+            let newReport = false;
+
+
+            data.forEach(
+                function(item){
+
+                    if(
+                        !knownIds.has(
+                            String(item.id)
+                        )
+                    ){
+
+                        newReport = true;
+
+                    }
+
+                }
+            );
+
+
+            if(newReport){
+
+                playAlert();
+
+            }
+
+        }
+
+
+        knownIds =
+            currentIds;
+
+        firstLoad = false;
+
+
+        /*
+         * 목록 초기화
+         */
 
         listArea.innerHTML =
             "";
 
 
-        /* 기존 마커 제거 */
+        /*
+         * 기존 마커 제거
+         */
 
         markers.forEach(
-            m =>
-                m.setMap(null)
+            function(marker){
+
+                marker.setMap(null);
+
+            }
         );
+
 
         markers = [];
 
 
-        /* 신고 없음 */
+        /*
+         * 신고 없음
+         */
 
-        if(
-            !data.length
-        ){
+        if(data.length === 0){
 
-            listArea.innerHTML =
-                "현재 접수된 신고가 없습니다.";
+            listArea.innerHTML = `
+                <div class="card">
+                    현재 접수된 신고가 없습니다.
+                </div>
+            `;
 
             return;
 
         }
 
 
-        /* 최신 신고순 */
-
-        data.sort(
-            (a,b) =>
-                new Date(b.time) -
-                new Date(a.time)
-        );
-
-
-        /* =================================================
-           데이터 처리
-        ================================================= */
+        /*
+         * 신고 생성
+         */
 
         data.forEach(
-            item => {
+            function(item){
 
+                createMapMarker(item);
 
-                /* =============================================
-                   지도 마커
-                ============================================= */
-
-                if(
-                    item.lat &&
-                    item.lng
-                ){
-
-                    const lat =
-                        Number(
-                            item.lat
-                        );
-
-                    const lng =
-                        Number(
-                            item.lng
-                        );
-
-
-                    if(
-                        Number.isFinite(lat) &&
-                        Number.isFinite(lng)
-                    ){
-
-                        const position =
-                            new kakao.maps.LatLng(
-                                lat,
-                                lng
-                            );
-
-
-                        const markerImage =
-                            createMarkerImage(
-                                item.status
-                            );
-
-
-                        const marker =
-                            new kakao.maps.Marker({
-
-                                map:map,
-
-                                position:position,
-
-                                title:
-                                    item.type ||
-                                    "사고 신고",
-
-                                image:
-                                    markerImage
-
-                            });
-
-
-                        markers.push(
-                            marker
-                        );
-
-
-                        /* =====================================
-                           핀 클릭
-                        ===================================== */
-
-                        const infowindow =
-                            createInfoWindow(
-                                item,
-                                lat,
-                                lng
-                            );
-
-
-                        kakao.maps.event.addListener(
-
-                            marker,
-
-                            "click",
-
-                            function(){
-
-                                infowindow.open(
-                                    map,
-                                    marker
-                                );
-
-                            }
-
-                        );
-
-                    }
-
-                }
-
-
-                /* =============================================
-                   사고 카드
-                ============================================= */
-
-                const div =
-                    document.createElement(
-                        "div"
-                    );
-
-
-                div.className =
-                    "card" +
-                    (
-                        item.status ===
-                        "사고처리완료"
-                        ?
-                        " done"
-                        :
-                        ""
-                    );
-
-
-                div.innerHTML = `
-
-                    <div style="
-                        color:#ffcc00;
-                        font-size:14px;
-                        margin-bottom:5px;
-                    ">
-
-                        🕒
-                        ${
-                            item.time
-                            ?
-                            new Date(
-                                item.time
-                            ).toLocaleString()
-                            :
-                            ""
-                        }
-
-                    </div>
-
-
-                    ${
-                        item.status === "사고처리완료"
-
-                        ?
-
-                        `
-
-                        <div class="status done">
-                            ⚪ 사고처리완료
-                        </div>
-
-                        `
-
-                        :
-
-                        item.status === "현장도착"
-
-                        ?
-
-                        `
-
-                        <div class="status arrived">
-                            🟠 현장도착
-                        </div>
-
-                        `
-
-                        :
-
-                        `
-
-                        <div class="status received">
-                            🔴 사고 접수
-                        </div>
-
-                        `
-
-                    }
-
-
-                    ${
-                        item.status === "현장도착" &&
-                        item.completeTime
-
-                        ?
-
-                        `
-
-                        <div style="
-                            color:#ffcc00;
-                            font-size:13px;
-                            margin-bottom:5px;
-                        ">
-
-                            🚑 현장도착:
-                            ${
-                                new Date(
-                                    item.completeTime
-                                ).toLocaleString()
-                            }
-
-                        </div>
-
-                        `
-
-                        :
-
-                        ""
-
-                    }
-
-
-                    ${
-                        item.status === "사고처리완료" &&
-                        item.completeTime
-
-                        ?
-
-                        `
-
-                        <div style="
-                            color:#ffcc00;
-                            font-size:13px;
-                            margin-bottom:5px;
-                        ">
-
-                            🚑 현장도착:
-                            ${
-                                new Date(
-                                    item.completeTime
-                                ).toLocaleString()
-                            }
-
-                        </div>
-
-                        `
-
-                        :
-
-                        ""
-
-                    }
-
-
-                    ${
-                        item.status === "사고처리완료" &&
-                        item.finishTime
-
-                        ?
-
-                        `
-
-                        <div style="
-                            color:#ffcc00;
-                            font-size:13px;
-                            margin-bottom:5px;
-                        ">
-
-                            ⚪ 사고처리 완료:
-                            ${
-                                new Date(
-                                    item.finishTime
-                                ).toLocaleString()
-                            }
-
-                        </div>
-
-                        `
-
-                        :
-
-                        ""
-
-                    }
-
-
-                    🚨 <b>유형:</b>
-                    ${item.type || "미입력"}
-
-                    <br><br>
-
-
-                    🏠 <b>주소:</b>
-                    ${item.address || "주소없음"}
-
-                    <br><br>
-
-
-                    📞 <b>연락처:</b>
-                    ${item.phone || "번호없음"}
-
-                    <br><br>
-
-
-                    📝 <b>상황:</b>
-                    ${item.symptom || "내용없음"}
-
-
-                    <div class="coord">
-
-                        위도:
-                        ${item.lat}
-
-                        /
-
-                        경도:
-                        ${item.lng}
-
-                    </div>
-
-
-                    <a
-                        class="maplink"
-                        href="https://map.kakao.com/link/map/구조요청 위치,${item.lat},${item.lng}"
-                        target="_blank"
-                    >
-
-                        📍 지도보기
-
-                    </a>
-
-
-                    <br>
-
-
-                    ${
-                        item.status === "접수"
-
-                        ?
-
-                        `
-
-                        <button
-                            class="case-btn"
-                            onclick="
-                                completeCase('${item.id}')
-                            "
-                        >
-
-                            🚑 현장도착
-
-                        </button>
-
-                        `
-
-                        :
-
-                        item.status === "현장도착"
-
-                        ?
-
-                        `
-
-                        <button
-                            class="finish-btn"
-                            onclick="
-                                finishCase('${item.id}')
-                            "
-                        >
-
-                            ⚪ 사고처리 완료
-
-                        </button>
-
-                        `
-
-                        :
-
-                        `
-
-                        <span style="
-                            display:inline-block;
-                            margin-top:8px;
-                            color:#aaa;
-                            font-weight:bold;
-                        ">
-
-                            ✔ 처리완료
-
-                        </span>
-
-                        `
-
-                    }
-
-                `;
-
-
-                listArea.appendChild(
-                    div
-                );
+                createCard(item);
 
             }
-
         );
 
 
-        /* =================================================
-           모든 마커가 보이도록 지도 범위 설정
-        ================================================= */
+        /*
+         * 모든 마커 표시
+         */
 
-        if(
-            markers.length > 0
-        ){
-
-            const bounds =
-                new kakao.maps.LatLngBounds();
-
-
-            markers.forEach(
-                marker =>
-                    bounds.extend(
-                        marker.getPosition()
-                    )
-            );
-
-
-            map.setBounds(
-                bounds
-            );
-
-        }
+        fitMapToMarkers();
 
     }
-
     catch(err){
 
-        console.error(
-            err
-        );
+        console.error(err);
 
-        listArea.innerHTML =
-            "구글시트 로딩 실패. 콘솔 확인";
+        listArea.innerHTML = `
+
+            <div class="card">
+
+                ❌ Google Apps Script 데이터를
+                불러오지 못했습니다.
+
+                <br><br>
+
+                ${escapeHTML(err.message)}
+
+            </div>
+
+        `;
+
+    }
+    finally{
+
+        loadingEl.style.display =
+            "none";
 
     }
 
@@ -1917,27 +1762,456 @@ async function loadData(){
 
 
 /* =====================================================
-   실행
-====================================================== */
+   지도 마커 생성
+===================================================== */
 
-initMap();
+function createMapMarker(item){
 
-loadData();
+    const lat =
+        Number(item.lat);
+
+    const lng =
+        Number(item.lng);
+
+
+    if(
+        !Number.isFinite(lat) ||
+        !Number.isFinite(lng)
+    ){
+
+        return;
+
+    }
+
+
+    const position =
+        new kakao.maps.LatLng(
+            lat,
+            lng
+        );
+
+
+    const marker =
+        new kakao.maps.Marker({
+
+            map:map,
+
+            position:position,
+
+            title:
+                item.type ||
+                "사고 신고",
+
+            image:
+                createMarkerImage(
+                    item.status
+                )
+
+        });
+
+
+    markers.push(
+        marker
+    );
+
+
+    const infoWindow =
+        createInfoWindow(
+            item,
+            lat,
+            lng
+        );
+
+
+    kakao.maps.event.addListener(
+
+        marker,
+
+        "click",
+
+        function(){
+
+            infoWindow.open(
+                map,
+                marker
+            );
+
+        }
+
+    );
+
+}
 
 
 /* =====================================================
-   10초마다 갱신
-====================================================== */
+   신고 카드 생성
+===================================================== */
 
-setInterval(
-    loadData,
-    10000
+function createCard(item){
+
+    const div =
+        document.createElement(
+            "div"
+        );
+
+
+    div.className =
+        "card" +
+        (
+            item.status === "DONE"
+            ?
+            " done"
+            :
+            ""
+        );
+
+
+    const status =
+        item.status;
+
+
+    let actionHTML = "";
+
+
+    /*
+     * 접수
+     */
+
+    if(
+        status === "RECEIVED"
+    ){
+
+        actionHTML = `
+
+            <button
+                class="case-btn"
+                onclick="
+                    completeCase('${safeJS(item.id)}')
+                "
+            >
+                🚑 현장도착
+            </button>
+
+        `;
+
+    }
+
+
+    /*
+     * 현장도착
+     */
+
+    else if(
+        status === "ARRIVED"
+    ){
+
+        actionHTML = `
+
+            <button
+                class="finish-btn"
+                onclick="
+                    finishCase('${safeJS(item.id)}')
+                "
+            >
+                ⚪ 사고처리 완료
+            </button>
+
+        `;
+
+    }
+
+
+    /*
+     * 완료
+     */
+
+    else{
+
+        actionHTML = `
+
+            <span style="
+                display:inline-block;
+                margin-top:8px;
+                color:#aaa;
+                font-weight:bold;
+            ">
+                ✔ 처리완료
+            </span>
+
+        `;
+
+    }
+
+
+    div.innerHTML = `
+
+        <div style="
+            color:#ffcc00;
+            font-size:14px;
+            margin-bottom:5px;
+        ">
+
+            🕒
+            ${escapeHTML(
+                formatDate(item.time)
+            )}
+
+        </div>
+
+
+        ${getStatusHTML(status)}
+
+
+        ${
+            item.completeTime
+            ?
+            `
+                <div style="
+                    color:#ffcc00;
+                    font-size:13px;
+                    margin-bottom:5px;
+                ">
+
+                    🚑 현장도착:
+                    ${escapeHTML(
+                        formatDate(
+                            item.completeTime
+                        )
+                    )}
+
+                </div>
+            `
+            :
+            ""
+        }
+
+
+        ${
+            item.finishTime
+            ?
+            `
+                <div style="
+                    color:#ffcc00;
+                    font-size:13px;
+                    margin-bottom:5px;
+                ">
+
+                    ⚪ 사고처리 완료:
+                    ${escapeHTML(
+                        formatDate(
+                            item.finishTime
+                        )
+                    )}
+
+                </div>
+            `
+            :
+            ""
+        }
+
+
+        🚨 <b>유형:</b>
+        ${escapeHTML(
+            item.type || "미입력"
+        )}
+
+        <br><br>
+
+
+        🏠 <b>주소:</b>
+        ${escapeHTML(
+            item.address || "주소없음"
+        )}
+
+        <br><br>
+
+
+        📞 <b>연락처:</b>
+        ${escapeHTML(
+            item.phone || "번호없음"
+        )}
+
+        <br><br>
+
+
+        📝 <b>상황:</b>
+        ${escapeHTML(
+            item.symptom || "내용없음"
+        )}
+
+
+        <div class="coord">
+
+            위도:
+            ${escapeHTML(item.lat)}
+
+            /
+
+            경도:
+            ${escapeHTML(item.lng)}
+
+        </div>
+
+
+        <a
+            class="maplink"
+            href="https://map.kakao.com/link/map/구조요청 위치,${encodeURIComponent(item.lat)},${encodeURIComponent(item.lng)}"
+            target="_blank"
+        >
+            📍 지도보기
+        </a>
+
+
+        <br>
+
+
+        ${actionHTML}
+
+    `;
+
+
+    listArea.appendChild(
+        div
+    );
+
+}
+
+
+/* =====================================================
+   JS 문자열 안전처리
+===================================================== */
+
+function safeJS(value){
+
+    return String(value)
+        .replace(/\\/g,"\\\\")
+        .replace(/'/g,"\\'")
+        .replace(/"/g,'\\"')
+        .replace(/\n/g,"\\n")
+        .replace(/\r/g,"\\r");
+
+}
+
+
+/* =====================================================
+   지도 범위
+===================================================== */
+
+function fitMapToMarkers(){
+
+    if(
+        markers.length === 0
+    ){
+
+        return;
+
+    }
+
+
+    const bounds =
+        new kakao.maps.LatLngBounds();
+
+
+    markers.forEach(
+        function(marker){
+
+            bounds.extend(
+                marker.getPosition()
+            );
+
+        }
+    );
+
+
+    map.setBounds(
+        bounds
+    );
+
+}
+
+
+/* =====================================================
+   알림음
+===================================================== */
+
+function playAlert(){
+
+    const audio =
+        document.getElementById(
+            "alertSound"
+        );
+
+
+    if(!audio){
+        return;
+    }
+
+
+    audio.currentTime = 0;
+
+
+    audio.play()
+    .catch(
+        function(err){
+
+            /*
+             * 브라우저 자동재생 정책으로
+             * 재생이 차단될 수 있음
+             */
+
+            console.log(
+                "알림음 재생 차단:",
+                err
+            );
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   초기 실행
+===================================================== */
+
+window.addEventListener(
+    "load",
+    function(){
+
+        try{
+
+            initMap();
+
+            loadData();
+
+
+            /*
+             * 10초마다 서버 확인
+             */
+
+            setInterval(
+                loadData,
+                10000
+            );
+
+        }
+        catch(err){
+
+            console.error(err);
+
+            alert(
+                "지도 초기화에 실패했습니다."
+            );
+
+        }
+
+    }
 );
 
 
 /* =====================================================
    우클릭 방지
-====================================================== */
+===================================================== */
 
 document.addEventListener(
     "contextmenu",
@@ -1945,21 +2219,17 @@ document.addEventListener(
 
         e.preventDefault();
 
-        return false;
-
     }
 );
 
 
 /* =====================================================
    개발자도구 단축키 방지
-====================================================== */
+===================================================== */
 
 document.addEventListener(
     "keydown",
     function(e){
-
-        /* F12 */
 
         if(
             e.key === "F12"
@@ -1967,12 +2237,8 @@ document.addEventListener(
 
             e.preventDefault();
 
-            return false;
-
         }
 
-
-        /* Ctrl + U */
 
         if(
             e.ctrlKey &&
@@ -1981,57 +2247,22 @@ document.addEventListener(
 
             e.preventDefault();
 
-            return false;
-
         }
 
-
-        /* Ctrl + Shift + I */
 
         if(
             e.ctrlKey &&
             e.shiftKey &&
-            e.key.toLowerCase() === "i"
+            ["i","j","c"]
+                .includes(
+                    e.key.toLowerCase()
+                )
         ){
 
             e.preventDefault();
 
-            return false;
-
         }
 
-
-        /* Ctrl + Shift + J */
-
-        if(
-            e.ctrlKey &&
-            e.shiftKey &&
-            e.key.toLowerCase() === "j"
-        ){
-
-            e.preventDefault();
-
-            return false;
-
-        }
-
-
-        /* Ctrl + Shift + C */
-
-        if(
-            e.ctrlKey &&
-            e.shiftKey &&
-            e.key.toLowerCase() === "c"
-        ){
-
-            e.preventDefault();
-
-            return false;
-
-        }
-
-
-        /* Ctrl + S */
 
         if(
             e.ctrlKey &&
@@ -2039,8 +2270,6 @@ document.addEventListener(
         ){
 
             e.preventDefault();
-
-            return false;
 
         }
 
