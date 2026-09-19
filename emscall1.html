@@ -52,18 +52,11 @@ header{
 
 #map{
     width:100%;
-
-    /* 지도 크게 */
-
     height:65vh;
-
     min-height:450px;
     max-height:750px;
-
     margin-bottom:15px;
-
     border-radius:6px;
-
     overflow:hidden;
 }
 
@@ -74,19 +67,14 @@ header{
 
 .card{
     background:#1e1e1e;
-
     padding:12px;
-
     margin-bottom:10px;
-
     border-radius:6px;
-
     border:1px solid #333;
 }
 
 .card.done{
     background:#2b2b2b;
-
     opacity:0.6;
 }
 
@@ -97,9 +85,7 @@ header{
 
 .time{
     color:#ffcc00;
-
     font-size:14px;
-
     margin-bottom:4px;
 }
 
@@ -110,11 +96,8 @@ header{
 
 .coord{
     font-size:12px;
-
     color:#aaa;
-
     margin-top:6px;
-
     margin-bottom:6px;
 }
 
@@ -125,11 +108,8 @@ header{
 
 .maplink{
     color:#4fc3f7;
-
     font-size:13px;
-
     text-decoration:none;
-
     font-weight:bold;
 }
 
@@ -144,24 +124,37 @@ header{
 
 .complete-btn{
     background:#2e7d32;
-
     margin-top:8px;
-
     color:#fff;
-
     border:none;
-
     padding:7px 12px;
-
     border-radius:4px;
-
     cursor:pointer;
-
     font-weight:bold;
 }
 
 .complete-btn:hover{
     opacity:0.8;
+}
+
+
+/* =====================================================
+   삭제 버튼
+====================================================== */
+
+.delete-btn{
+    background:#c62828;
+    margin-top:10px;
+    color:#fff;
+    border:none;
+    padding:8px 14px;
+    border-radius:4px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.delete-btn:hover{
+    background:#e53935;
 }
 
 
@@ -190,10 +183,8 @@ header{
 }
 
 .card.blink{
-
     animation:
         blinkEmergency 1s infinite;
-
 }
 
 
@@ -203,15 +194,10 @@ header{
 
 .status{
     display:inline-block;
-
     padding:5px 9px;
-
     border-radius:5px;
-
     font-size:13px;
-
     font-weight:bold;
-
     margin-bottom:7px;
 }
 
@@ -239,7 +225,6 @@ header{
 
     header{
         font-size:18px;
-
         padding:13px;
     }
 
@@ -248,13 +233,9 @@ header{
     }
 
     #map{
-
         height:65vh;
-
         min-height:400px;
-
         max-height:none;
-
     }
 
 }
@@ -353,9 +334,7 @@ function initMap(){
     map =
         new kakao.maps.Map(
 
-            document.getElementById(
-                "map"
-            ),
+            document.getElementById("map"),
 
             {
 
@@ -378,7 +357,7 @@ initMap();
 
 
 /* =====================================================
-   구글 Apps Script API
+   Google Apps Script API
 ====================================================== */
 
 const API_URL =
@@ -386,9 +365,7 @@ const API_URL =
 
 
 const listArea =
-    document.getElementById(
-        "listArea"
-    );
+    document.getElementById("listArea");
 
 
 /* =====================================================
@@ -409,6 +386,81 @@ let firstLoad =
 
 
 /* =====================================================
+   상태 정규화
+====================================================== */
+
+function normalizeStatus(status){
+
+    const value =
+        String(
+            status || ""
+        )
+        .trim()
+        .toUpperCase();
+
+
+    if(
+        value === "DONE" ||
+        value === "완료" ||
+        value === "처리완료" ||
+        value === "사고처리완료"
+    ){
+
+        return "DONE";
+
+    }
+
+
+    if(
+        value === "ARRIVED" ||
+        value === "도착" ||
+        value === "현장도착"
+    ){
+
+        return "ARRIVED";
+
+    }
+
+
+    return "RECEIVED";
+
+}
+
+
+/* =====================================================
+   상태 한글 표시
+====================================================== */
+
+function getStatusText(status){
+
+    const normalized =
+        normalizeStatus(status);
+
+
+    if(
+        normalized === "DONE"
+    ){
+
+        return "⚪ 사고처리완료";
+
+    }
+
+
+    if(
+        normalized === "ARRIVED"
+    ){
+
+        return "🟠 현장도착";
+
+    }
+
+
+    return "🔴 사고 접수";
+
+}
+
+
+/* =====================================================
    경과시간 계산
 ====================================================== */
 
@@ -417,19 +469,33 @@ function getElapsedTime(
     endTime = null
 ){
 
+    if(!startTime){
+
+        return "0분 0초 경과";
+
+    }
+
+
     const start =
-        new Date(
-            startTime
-        );
+        new Date(startTime);
 
     const end =
         endTime
         ?
-        new Date(
-            endTime
-        )
+        new Date(endTime)
         :
         new Date();
+
+
+    if(
+        Number.isNaN(
+            start.getTime()
+        )
+    ){
+
+        return "시간 확인 불가";
+
+    }
 
 
     const diff =
@@ -477,15 +543,14 @@ function getElapsedTime(
    상태별 마커 색상
 ====================================================== */
 
-function getMarkerColor(
-    status
-){
+function getMarkerColor(status){
 
-    /* 사고처리 완료 */
+    const normalized =
+        normalizeStatus(status);
+
 
     if(
-        status ===
-        "사고처리완료"
+        normalized === "DONE"
     ){
 
         return "#777777";
@@ -493,19 +558,14 @@ function getMarkerColor(
     }
 
 
-    /* 현장도착 */
-
     if(
-        status ===
-        "현장도착"
+        normalized === "ARRIVED"
     ){
 
         return "#fb8c00";
 
     }
 
-
-    /* 접수 */
 
     return "#e53935";
 
@@ -516,14 +576,10 @@ function getMarkerColor(
    원형 마커 이미지
 ====================================================== */
 
-function createMarkerImage(
-    status
-){
+function createMarkerImage(status){
 
     const color =
-        getMarkerColor(
-            status
-        );
+        getMarkerColor(status);
 
 
     const svg = `
@@ -535,8 +591,6 @@ function createMarkerImage(
             viewBox="0 0 44 44"
         >
 
-            <!-- 외곽 흰색 테두리 -->
-
             <circle
                 cx="22"
                 cy="22"
@@ -545,9 +599,6 @@ function createMarkerImage(
                 stroke="#ffffff"
                 stroke-width="3"
             />
-
-
-            <!-- 중앙 흰색 원 -->
 
             <circle
                 cx="22"
@@ -564,10 +615,7 @@ function createMarkerImage(
     return new kakao.maps.MarkerImage(
 
         "data:image/svg+xml;charset=utf-8," +
-
-        encodeURIComponent(
-            svg
-        ),
+        encodeURIComponent(svg),
 
         new kakao.maps.Size(
             44,
@@ -599,6 +647,12 @@ function createInfoWindow(
     lng
 ){
 
+    const normalized =
+        normalizeStatus(
+            item.status
+        );
+
+
     let statusColor =
         "#e53935";
 
@@ -607,8 +661,8 @@ function createInfoWindow(
 
 
     if(
-        item.status ===
-        "현장도착"
+        normalized ===
+        "ARRIVED"
     ){
 
         statusColor =
@@ -621,8 +675,8 @@ function createInfoWindow(
 
 
     if(
-        item.status ===
-        "사고처리완료"
+        normalized ===
+        "DONE"
     ){
 
         statusColor =
@@ -645,7 +699,6 @@ function createInfoWindow(
             max-width:300px;
             line-height:1.5;
         ">
-
 
             <div style="
                 font-size:16px;
@@ -858,13 +911,25 @@ function checkOverdue(
     }
 
 
+    const normalized =
+        normalizeStatus(
+            item.status
+        );
+
+
     /* 사고처리 완료 */
 
     if(
-        !item.status ||
-        item.status ===
-        "사고처리완료"
+        normalized ===
+        "DONE"
     ){
+
+        return;
+
+    }
+
+
+    if(!item.time){
 
         return;
 
@@ -876,9 +941,7 @@ function checkOverdue(
 
             (
                 new Date() -
-                new Date(
-                    item.time
-                )
+                new Date(item.time)
             ) / 1000
 
         );
@@ -991,9 +1054,7 @@ function checkOverdue(
    현장도착
 ====================================================== */
 
-async function completeCase(
-    id
-){
+async function completeCase(id){
 
     if(
         !confirm(
@@ -1014,8 +1075,7 @@ async function completeCase(
 
             {
 
-                method:
-                    "POST",
+                method:"POST",
 
                 headers:{
                     "Content-Type":
@@ -1029,17 +1089,13 @@ async function completeCase(
                             "complete",
 
                         id:
-                            id,
-
-                        completeTime:
-                            new Date()
-                            .toISOString()
+                            id
 
                     })
 
-            }
+                }
 
-        );
+            );
 
 
         loadData();
@@ -1048,9 +1104,7 @@ async function completeCase(
 
     catch(err){
 
-        console.error(
-            err
-        );
+        console.error(err);
 
         alert(
             "현장도착 처리 중 오류가 발생했습니다."
@@ -1065,9 +1119,7 @@ async function completeCase(
    사고처리 완료
 ====================================================== */
 
-async function finishCase(
-    id
-){
+async function finishCase(id){
 
     if(
         !confirm(
@@ -1088,8 +1140,7 @@ async function finishCase(
 
             {
 
-                method:
-                    "POST",
+                method:"POST",
 
                 headers:{
                     "Content-Type":
@@ -1103,17 +1154,13 @@ async function finishCase(
                             "finish",
 
                         id:
-                            id,
-
-                        finishTime:
-                            new Date()
-                            .toISOString()
+                            id
 
                     })
 
-            }
+                }
 
-        );
+            );
 
 
         loadData();
@@ -1122,12 +1169,160 @@ async function finishCase(
 
     catch(err){
 
-        console.error(
-            err
-        );
+        console.error(err);
 
         alert(
             "사고처리 완료 중 오류가 발생했습니다."
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   신고 삭제
+ *
+ * 비밀번호는 HTML에 저장하지 않습니다.
+ * Apps Script의 DELETE_PASSWORD와 비교합니다.
+====================================================== */
+
+async function deleteCase(id){
+
+    /* ============================
+       비밀번호 입력
+    ============================ */
+
+    const password =
+        prompt(
+            "🔐 관리자 비밀번호를 입력하세요."
+        );
+
+
+    /* 취소 */
+
+    if(
+        password === null
+    ){
+
+        return;
+
+    }
+
+
+    /* 빈 비밀번호 */
+
+    if(
+        !password.trim()
+    ){
+
+        alert(
+            "비밀번호를 입력하세요."
+        );
+
+        return;
+
+    }
+
+
+    /* ============================
+       삭제 확인
+    ============================ */
+
+    if(
+        !confirm(
+
+            "⚠️ 정말 이 신고를 삭제하시겠습니까?\n\n" +
+
+            "삭제한 신고는 복구할 수 없습니다."
+
+        )
+    ){
+
+        return;
+
+    }
+
+
+    try{
+
+        const response =
+            await fetch(
+
+                API_URL,
+
+                {
+
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":
+                            "text/plain;charset=utf-8"
+                    },
+
+                    body:
+                        JSON.stringify({
+
+                            action:
+                                "delete",
+
+                            id:
+                                id,
+
+                            password:
+                                password
+
+                        })
+
+                }
+
+            );
+
+
+        const result =
+            await response.json();
+
+
+        /* ============================
+           삭제 성공
+        ============================ */
+
+        if(
+            result.result ===
+            "success"
+        ){
+
+            alert(
+                "✅ 신고가 삭제되었습니다."
+            );
+
+
+            loadData();
+
+            return;
+
+        }
+
+
+        /* ============================
+           삭제 실패
+        ============================ */
+
+        alert(
+
+            result.message ||
+            "삭제할 수 없습니다."
+
+        );
+
+    }
+
+    catch(err){
+
+        console.error(err);
+
+        alert(
+            "삭제 처리 중 오류가 발생했습니다."
         );
 
     }
@@ -1295,6 +1490,11 @@ async function loadData(){
 
             item => {
 
+                const normalizedStatus =
+                    normalizeStatus(
+                        item.status
+                    );
+
 
                 /* =========================================
                    신고 카드
@@ -1311,8 +1511,8 @@ async function loadData(){
 
                     (
 
-                        item.status ===
-                        "사고처리완료"
+                        normalizedStatus ===
+                        "DONE"
 
                         ?
 
@@ -1327,7 +1527,7 @@ async function loadData(){
 
                 div.setAttribute(
                     "data-time",
-                    item.time
+                    item.time || ""
                 );
 
 
@@ -1352,8 +1552,8 @@ async function loadData(){
 
 
                 if(
-                    item.status ===
-                    "사고처리완료"
+                    normalizedStatus ===
+                    "DONE"
                 ){
 
                     statusHTML = `
@@ -1369,8 +1569,8 @@ async function loadData(){
                 }
 
                 else if(
-                    item.status ===
-                    "현장도착"
+                    normalizedStatus ===
+                    "ARRIVED"
                 ){
 
                     statusHTML = `
@@ -1470,9 +1670,14 @@ async function loadData(){
                     "";
 
 
+                /* ===============================
+                   사고처리 완료
+                   → 삭제 버튼 표시
+                ================================ */
+
                 if(
-                    item.status ===
-                    "사고처리완료"
+                    normalizedStatus ===
+                    "DONE"
                 ){
 
                     buttonHTML = `
@@ -1488,13 +1693,36 @@ async function loadData(){
 
                         </span>
 
+
+                        <br>
+
+
+                        <button
+
+                            class="delete-btn"
+
+                            onclick="
+                                deleteCase('${item.id}')
+                            "
+                        >
+
+                            🗑 신고 삭제
+
+                        </button>
+
                     `;
 
                 }
 
+
+                /* ===============================
+                   현장도착
+                   → 사고처리 완료 버튼
+                ================================ */
+
                 else if(
-                    item.status ===
-                    "현장도착"
+                    normalizedStatus ===
+                    "ARRIVED"
                 ){
 
                     buttonHTML = `
@@ -1515,6 +1743,12 @@ async function loadData(){
                     `;
 
                 }
+
+
+                /* ===============================
+                   사고 접수
+                   → 현장도착 버튼
+                ================================ */
 
                 else{
 
@@ -1702,8 +1936,6 @@ async function loadData(){
                                 lng
                             );
 
-
-                        /* 상태에 따른 원형 마커 */
 
                         const markerImage =
                             createMarkerImage(
@@ -1937,7 +2169,6 @@ document.addEventListener(
     "keydown",
 
     function(e){
-
 
         /* F12 */
 
