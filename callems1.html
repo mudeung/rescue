@@ -2,416 +2,2457 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
+
 <title>🆘 무등산 산악사고 신고/접수/대응 상황판</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+>
+
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
 
 <style>
-body{margin:0;font-family:Arial;background:#111;color:#fff;}
-header{background:#b71c1c;padding:15px;text-align:center;font-size:20px;}
-.container{padding:15px;}
-#map{width:100%;height:350px;margin-bottom:15px;border-radius:6px;}
 
-.card{background:#1e1e1e;padding:12px;margin-bottom:10px;border-radius:6px;cursor:pointer;}
-.card.done{opacity:0.5;background:#2b2b2b;}
+*{
+  box-sizing:border-box;
+}
 
-.stats{display:flex;gap:10px;margin-bottom:15px;font-size:16px;}
-.stat-box{flex:1;padding:10px;border-radius:6px;background:#222;text-align:center;}
-.stat-box span{font-size:24px;font-weight:bold;display:block;}
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#111;
+  color:#fff;
+}
 
-#filterBox{display:flex;gap:10px;margin-bottom:10px;align-items:center;justify-content:flex-end;}
-#modalOverlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:none;justify-content:center;align-items:center;z-index:9999;}
-#modalContent{background:#222;padding:20px;border-radius:8px;max-width:400px;width:90%;}
-#modalContent h3{margin-top:0;}
-#closeModal{cursor:pointer;background:#e53935;border:none;padding:6px 12px;color:#fff;border-radius:4px;margin-top:10px;}
+header{
+  background:#b71c1c;
+  padding:15px;
+  text-align:center;
+  font-size:20px;
+  font-weight:bold;
+}
 
-#sheetTableContainer{margin-top:20px;}
-#sheetTable th, #sheetTable td{padding:6px;text-align:center;}
-#sheetTable tr:nth-child(even){background:#1a1a1a;}
+.container{
+  padding:15px;
+  max-width:1400px;
+  margin:auto;
+}
+
+#map{
+  width:100%;
+  height:400px;
+  margin-bottom:15px;
+  border-radius:8px;
+  overflow:hidden;
+}
+
+/* =========================
+   통계
+========================= */
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  margin-bottom:15px;
+}
+
+.stat-box{
+  padding:12px;
+  border-radius:6px;
+  background:#222;
+  text-align:center;
+}
+
+.stat-box span{
+  font-size:26px;
+  font-weight:bold;
+  display:block;
+  margin-top:5px;
+}
+
+/* =========================
+   신고 카드
+========================= */
+
+.card{
+  background:#1e1e1e;
+  padding:14px;
+  margin-bottom:10px;
+  border-radius:8px;
+  cursor:pointer;
+  border-left:5px solid #777;
+  transition:0.2s;
+}
+
+.card:hover{
+  background:#292929;
+}
+
+.card.received{
+  border-left-color:#2196f3;
+}
+
+.card.arrived{
+  border-left-color:#ff9800;
+}
+
+.card.done{
+  opacity:0.55;
+  background:#2b2b2b;
+  border-left-color:#4caf50;
+}
+
+.card-title{
+  font-size:17px;
+  font-weight:bold;
+  margin-bottom:7px;
+}
+
+.card-info{
+  font-size:14px;
+  color:#ddd;
+  line-height:1.6;
+}
+
+.status{
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:5px;
+  font-size:12px;
+  font-weight:bold;
+  margin-left:5px;
+}
+
+.status.received{
+  background:#1565c0;
+}
+
+.status.arrived{
+  background:#ef6c00;
+}
+
+.status.done{
+  background:#2e7d32;
+}
+
+/* =========================
+   테이블
+========================= */
+
+#sheetTableContainer{
+  margin-top:20px;
+  overflow-x:auto;
+}
+
+#sheetTable{
+  border-collapse:collapse;
+  min-width:850px;
+}
+
+#sheetTable th,
+#sheetTable td{
+  padding:8px;
+  text-align:center;
+  border:1px solid #444;
+  font-size:13px;
+}
+
+#sheetTable th{
+  background:#333;
+}
+
+#sheetTable tr:nth-child(even){
+  background:#1a1a1a;
+}
+
+#sheetTable tr:hover{
+  background:#333;
+  cursor:pointer;
+}
+
+/* =========================
+   모달
+========================= */
+
+#modalOverlay{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.82);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+  padding:15px;
+}
+
+#modalContent{
+  background:#222;
+  padding:20px;
+  border-radius:10px;
+  max-width:500px;
+  width:100%;
+  max-height:90vh;
+  overflow-y:auto;
+}
+
+#modalContent h3{
+  margin-top:0;
+  border-bottom:1px solid #444;
+  padding-bottom:10px;
+}
+
+.detail-row{
+  margin-bottom:10px;
+  padding:9px;
+  background:#181818;
+  border-radius:5px;
+  line-height:1.5;
+}
+
+.detail-label{
+  color:#aaa;
+  font-size:12px;
+}
+
+.detail-value{
+  font-size:15px;
+  margin-top:2px;
+  word-break:break-all;
+}
+
+/* =========================
+   버튼
+========================= */
+
+.button-area{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:15px;
+}
+
+button{
+  border:none;
+  padding:9px 13px;
+  border-radius:5px;
+  color:#fff;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+button:hover{
+  opacity:0.85;
+}
+
+.btn-close{
+  background:#555;
+}
+
+.btn-arrived{
+  background:#ef6c00;
+}
+
+.btn-finish{
+  background:#2e7d32;
+}
+
+.btn-edit{
+  background:#1976d2;
+}
+
+.btn-delete{
+  background:#c62828;
+}
+
+.btn-map{
+  background:#00897b;
+}
+
+/* =========================
+   입력
+========================= */
+
+.edit-input{
+  width:100%;
+  padding:9px;
+  margin-top:4px;
+  background:#111;
+  color:#fff;
+  border:1px solid #555;
+  border-radius:5px;
+}
+
+textarea.edit-input{
+  min-height:80px;
+  resize:vertical;
+}
+
+/* =========================
+   알림
+========================= */
+
+#toast{
+  position:fixed;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#333;
+  color:#fff;
+  padding:12px 18px;
+  border-radius:7px;
+  z-index:100000;
+  display:none;
+  box-shadow:0 3px 15px rgba(0,0,0,0.5);
+}
+
+/* =========================
+   모바일
+========================= */
+
+@media(max-width:700px){
+
+  header{
+    font-size:17px;
+  }
+
+  .container{
+    padding:10px;
+  }
+
+  #map{
+    height:300px;
+  }
+
+  .stats{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .stat-box{
+    font-size:13px;
+  }
+
+  .stat-box span{
+    font-size:22px;
+  }
+
+}
+
 </style>
 </head>
 
 <body>
 
-
-<header>🆘 무등산 산악사고 신고/접수/대응 상황판</header>
+<header>
+  🆘 무등산 산악사고 신고/접수/대응 상황판
+</header>
 
 <div class="container">
 
-<div class="stats">
-  <div class="stat-box">🚑 응급환자<span id="statEmergency">0</span></div>
-  <div class="stat-box">🚓 구조출동<span id="statDispatch">0</span></div>
-  <div class="stat-box">🆘 조난<span id="statLost">0</span></div>
-  <div class="stat-box">✏ 기타<span id="statOther">0</span></div>
+  <!-- 통계 -->
+
+  <div class="stats">
+
+    <div class="stat-box">
+      🚑 응급환자
+      <span id="statEmergency">0</span>
+    </div>
+
+    <div class="stat-box">
+      🚓 구조출동
+      <span id="statDispatch">0</span>
+    </div>
+
+    <div class="stat-box">
+      🆘 조난
+      <span id="statLost">0</span>
+    </div>
+
+    <div class="stat-box">
+      ✏ 기타
+      <span id="statOther">0</span>
+    </div>
+
+  </div>
+
+
+  <!-- 지도 -->
+
+  <div id="map"></div>
+
+
+  <!-- 신고 목록 -->
+
+  <div id="listArea"></div>
+
+
+  <!-- 시트 형태 -->
+
+  <div id="sheetTableContainer">
+
+    <table
+      id="sheetTable"
+      style="width:100%;color:#fff;"
+    >
+
+      <thead>
+
+        <tr>
+
+          <th>시간</th>
+          <th>유형</th>
+          <th>주소</th>
+          <th>전화</th>
+          <th>증상</th>
+          <th>상태</th>
+
+        </tr>
+
+      </thead>
+
+      <tbody></tbody>
+
+    </table>
+
+  </div>
+
 </div>
 
-<div id="map"></div>
-<div id="listArea"></div>
 
-<div id="sheetTableContainer">
-  <table id="sheetTable" border="1" style="width:100%;color:#fff;">
-    <thead>
-      <tr>
-        <th>시간</th><th>유형</th><th>주소</th><th>전화</th><th>증상</th><th>상태</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
-
-</div>
+<!-- 상세 모달 -->
 
 <div id="modalOverlay">
+
   <div id="modalContent">
-    <h3>상세 정보</h3>
+
+    <h3>🚨 신고 상세정보</h3>
+
     <div id="modalBody"></div>
-    <button onclick="closeModal()">닫기</button>
+
+    <div
+      id="modalButtons"
+      class="button-area"
+    ></div>
+
   </div>
+
 </div>
+
+
+<!-- 수정 모달 -->
+
+<div id="editOverlay">
+
+  <div id="editContent">
+
+  </div>
+
+</div>
+
+
+<div id="toast"></div>
+
 
 <script>
 
+/* =====================================================
+   기본 설정
+===================================================== */
 
-const API_URL="https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
+const API_URL =
+  "https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
 
-let map, markers=[], allData=[];
-let lastDataLength = 0;
 
-window.onload=function(){
+let map = null;
+
+let markers = [];
+
+let allData = [];
+
+let lastIds = new Set();
+
+let currentItem = null;
+
+
+/* =====================================================
+   시작
+===================================================== */
+
+window.onload = function(){
+
   initMap();
+
   loadData();
-  setInterval(loadData,10000);
+
+  setInterval(
+    loadData,
+    10000
+  );
+
 };
 
-/* 시간 */
-function parseKST(dateStr){
-  if(!dateStr) return null;
-  const d = new Date(dateStr);
-  if(isNaN(d)) return null;
-  return d;
-}
 
-function formatTime(date){
-  return date ? date.toLocaleString('ko-KR',{timeZone:'Asia/Seoul'}) : "";
-}
+/* =====================================================
+   날짜 처리
+===================================================== */
 
-/* 지도 */
-function initMap(){
-  map=new kakao.maps.Map(document.getElementById("map"),{
-    center:new kakao.maps.LatLng(35.1345,126.9902),
-    level:6
-  });
-}
+function parseKST(value){
 
-/* 모달 */
-function showModal(item){
-  document.getElementById("modalOverlay").style.display="flex";
-  document.getElementById("modalBody").innerHTML=`
-    🕒 ${formatTime(parseKST(item.time))}<br>
-    🚨 ${item.type}<br>
-    🏠 ${item.address}<br>
-    📞 ${item.phone||''}<br>
-    📝 ${item.symptom||''}<br>
-    상태: ${item.status||''}
-  `;
-}
-
-function closeModal(){
-  document.getElementById("modalOverlay").style.display="none";
-}
-
-/* 통계 */
-function updateStats(data){
-  let emergency=0, dispatch=0, lost=0, other=0;
-
-  data.forEach(item=>{
-    const t = (item.type || "");
-
-    if(t.includes("응급")){
-      emergency++;
-    }
-    else if(t.includes("구조") || t.includes("산악사고")){
-      dispatch++;
-    }
-    else if(t.includes("조난") || t.includes("실종")){
-      lost++;
-    }
-    else{
-      other++;
-    }
-  });
-
-  document.getElementById("statEmergency").innerText = emergency;
-  document.getElementById("statDispatch").innerText = dispatch;
-  document.getElementById("statLost").innerText = lost;
-  document.getElementById("statOther").innerText = other;
-}
-
-/* 🚨 긴급 알림 */
-function triggerAlert(item){
-
-  const msg = `🚨 긴급 접수
-유형: ${item.type}
-주소: ${item.address}
-상태: ${item.status || ""}`;
-
-  // 브라우저 알림
-  if("Notification" in window){
-    if(Notification.permission === "granted"){
-      new Notification("산악사고 긴급", { body: item.type });
-    } else {
-      Notification.requestPermission();
-    }
+  if(!value){
+    return null;
   }
 
-  // 화면 팝업
-  const popup=document.createElement("div");
-  popup.style.position="fixed";
-  popup.style.top="20px";
-  popup.style.right="20px";
-  popup.style.background="#b71c1c";
-  popup.style.color="#fff";
-  popup.style.padding="12px";
-  popup.style.borderRadius="8px";
-  popup.style.zIndex="99999";
-  popup.style.maxWidth="260px";
-  popup.style.boxShadow="0 0 10px rgba(0,0,0,0.5)";
-  popup.style.whiteSpace="pre-line";
+  const d = new Date(value);
 
-  popup.innerText=msg;
+  if(isNaN(d.getTime())){
+    return null;
+  }
 
-  document.body.appendChild(popup);
+  return d;
 
-  setTimeout(()=>popup.remove(),5000);
 }
 
-/* 렌더 */
+
+function formatTime(value){
+
+  const d =
+    parseKST(value);
+
+  if(!d){
+    return "";
+  }
+
+  return d.toLocaleString(
+    "ko-KR",
+    {
+      timeZone:"Asia/Seoul",
+      year:"numeric",
+      month:"2-digit",
+      day:"2-digit",
+      hour:"2-digit",
+      minute:"2-digit",
+      second:"2-digit"
+    }
+  );
+
+}
+
+
+/* =====================================================
+   상태 변환
+===================================================== */
+
+function normalizeStatus(status){
+
+  const value =
+    String(status || "")
+      .trim()
+      .toUpperCase();
+
+  if(
+    value === "DONE" ||
+    value === "완료" ||
+    value === "처리완료" ||
+    value === "사고처리완료"
+  ){
+    return "DONE";
+  }
+
+  if(
+    value === "ARRIVED" ||
+    value === "도착" ||
+    value === "현장도착"
+  ){
+    return "ARRIVED";
+  }
+
+  return "RECEIVED";
+
+}
+
+
+function statusText(status){
+
+  const s =
+    normalizeStatus(status);
+
+  if(s === "DONE"){
+    return "사고처리완료";
+  }
+
+  if(s === "ARRIVED"){
+    return "현장도착";
+  }
+
+  return "접수";
+
+}
+
+
+function statusClass(status){
+
+  const s =
+    normalizeStatus(status);
+
+  if(s === "DONE"){
+    return "done";
+  }
+
+  if(s === "ARRIVED"){
+    return "arrived";
+  }
+
+  return "received";
+
+}
+
+
+/* =====================================================
+   HTML 안전 처리
+===================================================== */
+
+function escapeHtml(value){
+
+  return String(value ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+
+}
+
+
+/* =====================================================
+   지도
+===================================================== */
+
+function initMap(){
+
+  map =
+    new kakao.maps.Map(
+      document.getElementById("map"),
+      {
+        center:
+          new kakao.maps.LatLng(
+            35.1345,
+            126.9902
+          ),
+        level:6
+      }
+    );
+
+}
+
+
+/* =====================================================
+   모달
+===================================================== */
+
+function showModal(item){
+
+  currentItem = item;
+
+  const status =
+    normalizeStatus(item.status);
+
+  const body =
+    document.getElementById(
+      "modalBody"
+    );
+
+  body.innerHTML = `
+
+    <div class="detail-row">
+
+      <div class="detail-label">
+        신고 ID
+      </div>
+
+      <div class="detail-value">
+        ${escapeHtml(item.id)}
+      </div>
+
+    </div>
+
+
+    <div class="detail-row">
+
+      <div class="detail-label">
+        구조요청시간
+      </div>
+
+      <div class="detail-value">
+        ${escapeHtml(
+          formatTime(
+            item.startTime ||
+            item.createdAt ||
+            item.time
+          )
+        )}
+      </div>
+
+    </div>
+
+
+    <div class="detail-row">
+
+      <div class="detail-label">
+        유형
+      </div>
+
+      <div class="detail-value">
+        ${escapeHtml(item.type)}
+      </div>
+
+    </div>
+
+
+    <div class="detail-row">
+
+      <div class="detail-label">
+        주소
+      </div>
+
+      <div class="detail-value">
+        ${escapeHtml(item.address)}
+      </div>
+
+    </div>
+
+
+    <div class="detail-row">
+
+      <div class="detail-label">
+        연락처
+      </div>
+
+      <div class="detail-value">
+        ${escapeHtml(item.phone)}
+      </div>
+
+    </div>
+
+
+    <div class="detail-row">
+
+      <div class="detail-label">
+        증상
+      </div>
+
+      <div class="detail-value">
+        ${escapeHtml(item.symptom)}
+      </div>
+
+    </div>
+
+
+    <div class="detail-row">
+
+      <div class="detail-label">
+        상태
+      </div>
+
+      <div class="detail-value">
+
+        ${statusText(status)}
+
+      </div>
+
+    </div>
+
+
+    ${
+      item.arrivedTime
+      ?
+      `
+      <div class="detail-row">
+
+        <div class="detail-label">
+          현장도착시간
+        </div>
+
+        <div class="detail-value">
+          ${escapeHtml(
+            formatTime(item.arrivedTime)
+          )}
+        </div>
+
+      </div>
+      `
+      :
+      ""
+    }
+
+
+    ${
+      item.finishTime
+      ?
+      `
+      <div class="detail-row">
+
+        <div class="detail-label">
+          완료시간
+        </div>
+
+        <div class="detail-value">
+          ${escapeHtml(
+            formatTime(item.finishTime)
+          )}
+        </div>
+
+      </div>
+      `
+      :
+      ""
+    }
+
+  `;
+
+
+  renderModalButtons(item);
+
+
+  document.getElementById(
+    "modalOverlay"
+  ).style.display = "flex";
+
+}
+
+
+function closeModal(){
+
+  document.getElementById(
+    "modalOverlay"
+  ).style.display = "none";
+
+  currentItem = null;
+
+}
+
+
+/* =====================================================
+   상세 버튼
+===================================================== */
+
+function renderModalButtons(item){
+
+  const area =
+    document.getElementById(
+      "modalButtons"
+    );
+
+  const status =
+    normalizeStatus(item.status);
+
+
+  let html = "";
+
+
+  /* 지도 */
+
+  if(
+    Number.isFinite(
+      Number(item.lat)
+    ) &&
+    Number.isFinite(
+      Number(item.lng)
+    )
+  ){
+
+    html += `
+
+      <button
+        class="btn-map"
+        onclick="moveToMarker('${escapeJs(item.id)}')"
+      >
+        📍 지도보기
+      </button>
+
+    `;
+
+  }
+
+
+  /* 카카오맵 */
+
+  if(item.kakaoMapURL){
+
+    html += `
+
+      <button
+        class="btn-map"
+        onclick="openMapUrl('${escapeJs(item.kakaoMapURL)}')"
+      >
+        🗺 카카오맵
+      </button>
+
+    `;
+
+  }
+
+
+  /* 접수 → 현장도착 */
+
+  if(status === "RECEIVED"){
+
+    html += `
+
+      <button
+        class="btn-arrived"
+        onclick="changeStatus(
+          'complete',
+          '${escapeJs(item.id)}'
+        )"
+      >
+        🚑 현장도착
+      </button>
+
+    `;
+
+  }
+
+
+  /* 현장도착 → 처리완료 */
+
+  if(status === "ARRIVED"){
+
+    html += `
+
+      <button
+        class="btn-finish"
+        onclick="changeStatus(
+          'finish',
+          '${escapeJs(item.id)}'
+        )"
+      >
+        ✅ 사고처리 완료
+      </button>
+
+    `;
+
+  }
+
+
+  /* 수정 */
+
+  if(status !== "DONE"){
+
+    html += `
+
+      <button
+        class="btn-edit"
+        onclick="showEditForm()"
+      >
+        ✏ 수정
+      </button>
+
+    `;
+
+  }
+
+
+  /* 삭제 */
+
+  html += `
+
+    <button
+      class="btn-delete"
+      onclick="deleteAccident('${escapeJs(item.id)}')"
+    >
+      🗑 삭제
+    </button>
+
+  `;
+
+
+  html += `
+
+    <button
+      class="btn-close"
+      onclick="closeModal()"
+    >
+      닫기
+    </button>
+
+  `;
+
+
+  area.innerHTML = html;
+
+}
+
+
+/* =====================================================
+   JavaScript 문자열 안전 처리
+===================================================== */
+
+function escapeJs(value){
+
+  return String(value ?? "")
+    .replace(/\\/g,"\\\\")
+    .replace(/'/g,"\\'")
+    .replace(/"/g,'\\"')
+    .replace(/\n/g,"\\n")
+    .replace(/\r/g,"\\r");
+
+}
+
+
+/* =====================================================
+   지도 이동
+===================================================== */
+
+function moveToMarker(id){
+
+  const item =
+    allData.find(
+      x => String(x.id) === String(id)
+    );
+
+  if(!item){
+    return;
+  }
+
+  const lat =
+    Number(item.lat);
+
+  const lng =
+    Number(item.lng);
+
+  if(
+    !Number.isFinite(lat) ||
+    !Number.isFinite(lng)
+  ){
+    showToast(
+      "GPS 위치정보가 없습니다."
+    );
+
+    return;
+  }
+
+
+  const position =
+    new kakao.maps.LatLng(
+      lat,
+      lng
+    );
+
+
+  map.setCenter(position);
+
+  map.setLevel(3);
+
+  closeModal();
+
+}
+
+
+function openMapUrl(url){
+
+  if(!url){
+    return;
+  }
+
+  window.open(
+    url,
+    "_blank"
+  );
+
+}
+
+
+/* =====================================================
+   통계
+===================================================== */
+
+function updateStats(data){
+
+  let emergency = 0;
+
+  let dispatch = 0;
+
+  let lost = 0;
+
+  let other = 0;
+
+
+  data.forEach(
+    item => {
+
+      const t =
+        String(item.type || "");
+
+
+      if(t.includes("응급")){
+
+        emergency++;
+
+      }
+      else if(
+        t.includes("구조") ||
+        t.includes("산악사고")
+      ){
+
+        dispatch++;
+
+      }
+      else if(
+        t.includes("조난") ||
+        t.includes("실종")
+      ){
+
+        lost++;
+
+      }
+      else{
+
+        other++;
+
+      }
+
+    }
+  );
+
+
+  document.getElementById(
+    "statEmergency"
+  ).innerText =
+    emergency;
+
+
+  document.getElementById(
+    "statDispatch"
+  ).innerText =
+    dispatch;
+
+
+  document.getElementById(
+    "statLost"
+  ).innerText =
+    lost;
+
+
+  document.getElementById(
+    "statOther"
+  ).innerText =
+    other;
+
+}
+
+
+/* =====================================================
+   긴급 알림
+===================================================== */
+
+function triggerAlert(item){
+
+  const msg =
+`🚨 긴급 신고 접수
+
+유형: ${item.type || ""}
+주소: ${item.address || ""}
+상태: ${statusText(item.status)}`;
+
+
+  /* 브라우저 알림 */
+
+  if(
+    "Notification" in window
+  ){
+
+    if(
+      Notification.permission ===
+      "granted"
+    ){
+
+      new Notification(
+        "산악사고 긴급 신고",
+        {
+          body:
+            item.type ||
+            "새로운 신고가 접수되었습니다."
+        }
+      );
+
+    }
+
+  }
+
+
+  /* 화면 팝업 */
+
+  const popup =
+    document.createElement("div");
+
+
+  popup.style.position =
+    "fixed";
+
+  popup.style.top =
+    "20px";
+
+  popup.style.right =
+    "20px";
+
+  popup.style.background =
+    "#b71c1c";
+
+  popup.style.color =
+    "#fff";
+
+  popup.style.padding =
+    "15px";
+
+  popup.style.borderRadius =
+    "8px";
+
+  popup.style.zIndex =
+    "99999";
+
+  popup.style.maxWidth =
+    "300px";
+
+  popup.style.boxShadow =
+    "0 0 15px rgba(0,0,0,0.6)";
+
+  popup.style.whiteSpace =
+    "pre-line";
+
+
+  popup.innerText =
+    msg;
+
+
+  document.body.appendChild(
+    popup
+  );
+
+
+  setTimeout(
+    () => popup.remove(),
+    5000
+  );
+
+}
+
+
+/* =====================================================
+   렌더
+===================================================== */
+
 function renderData(data){
 
-  document.getElementById("listArea").innerHTML="";
+  document.getElementById(
+    "listArea"
+  ).innerHTML = "";
 
-  markers.forEach(m=>m.setMap(null));
-  markers=[];
+
+  markers.forEach(
+    marker =>
+      marker.setMap(null)
+  );
+
+
+  markers = [];
+
 
   updateStats(data);
 
-  let bounds=new kakao.maps.LatLngBounds();
 
-  data.forEach(item=>{
-    const lat=parseFloat(item.lat||item.latitude);
-    const lng=parseFloat(item.lng||item.longitude);
+  const bounds =
+    new kakao.maps.LatLngBounds();
 
-    if(!isNaN(lat)&&!isNaN(lng)){
 
-      let iconUrl;
+  data.forEach(
+    item => {
 
-      const t = (item.type || "");
+      const lat =
+        parseFloat(item.lat);
 
-      if(t.includes("응급")){
-        iconUrl="https://maps.google.com/mapfiles/ms/icons/red-dot.png";
+      const lng =
+        parseFloat(item.lng);
+
+
+      /* =========================
+         마커
+      ========================= */
+
+      if(
+        Number.isFinite(lat) &&
+        Number.isFinite(lng)
+      ){
+
+        let iconUrl;
+
+
+        const t =
+          String(item.type || "");
+
+
+        if(t.includes("응급")){
+
+          iconUrl =
+            "https://maps.google.com/mapfiles/ms/icons/red-dot.png";
+
+        }
+        else if(
+          t.includes("구조") ||
+          t.includes("산악사고")
+        ){
+
+          iconUrl =
+            "https://maps.google.com/mapfiles/ms/icons/blue-dot.png";
+
+        }
+        else if(
+          t.includes("조난") ||
+          t.includes("실종")
+        ){
+
+          iconUrl =
+            "https://maps.google.com/mapfiles/ms/icons/yellow-dot.png";
+
+        }
+        else{
+
+          iconUrl =
+            "https://maps.google.com/mapfiles/ms/icons/green-dot.png";
+
+        }
+
+
+        const marker =
+          new kakao.maps.Marker({
+
+            map:map,
+
+            position:
+              new kakao.maps.LatLng(
+                lat,
+                lng
+              ),
+
+            image:
+              new kakao.maps.MarkerImage(
+                iconUrl,
+                new kakao.maps.Size(
+                  32,
+                  32
+                )
+              )
+
+          });
+
+
+        kakao.maps.event.addListener(
+          marker,
+          "click",
+          () =>
+            showModal(item)
+        );
+
+
+        markers.push(marker);
+
+        bounds.extend(
+          marker.getPosition()
+        );
+
       }
-      else if(t.includes("구조") || t.includes("산악사고")){
-        iconUrl="https://maps.google.com/mapfiles/ms/icons/blue-dot.png";
-      }
-      else if(t.includes("조난") || t.includes("실종")){
-        iconUrl="https://maps.google.com/mapfiles/ms/icons/yellow-dot.png";
-      }
-      else{
-        iconUrl="https://maps.google.com/mapfiles/ms/icons/green-dot.png";
-      }
 
-      const marker=new kakao.maps.Marker({
-        map:map,
-        position:new kakao.maps.LatLng(lat,lng),
-        image:new kakao.maps.MarkerImage(iconUrl,new kakao.maps.Size(32,32))
-      });
 
-      kakao.maps.event.addListener(marker,'click',()=>showModal(item));
+      /* =========================
+         카드
+      ========================= */
 
-      markers.push(marker);
-      bounds.extend(marker.getPosition());
+      const div =
+        document.createElement("div");
+
+
+      div.className =
+        "card " +
+        statusClass(item.status);
+
+
+      const status =
+        normalizeStatus(
+          item.status
+        );
+
+
+      div.innerHTML = `
+
+        <div class="card-title">
+
+          ${escapeHtml(
+            formatTime(
+              item.startTime ||
+              item.createdAt ||
+              item.time
+            )
+          )}
+
+          |
+
+          ${escapeHtml(
+            item.type
+          )}
+
+          <span
+            class="status ${statusClass(status)}"
+          >
+            ${statusText(status)}
+          </span>
+
+        </div>
+
+
+        <div class="card-info">
+
+          🏠
+          ${escapeHtml(
+            item.address
+          )}
+
+          <br>
+
+          📞
+          ${escapeHtml(
+            item.phone
+          )}
+
+          <br>
+
+          📝
+          ${escapeHtml(
+            item.symptom
+          )}
+
+        </div>
+
+      `;
+
+
+      div.onclick =
+        function(){
+
+          showModal(item);
+
+
+          if(
+            Number.isFinite(lat) &&
+            Number.isFinite(lng)
+          ){
+
+            const moveLatLng =
+              new kakao.maps.LatLng(
+                lat,
+                lng
+              );
+
+
+            map.setCenter(
+              moveLatLng
+            );
+
+            map.setLevel(3);
+
+          }
+
+        };
+
+
+      document
+        .getElementById(
+          "listArea"
+        )
+        .appendChild(div);
+
     }
+  );
 
-    const div=document.createElement("div");
-    div.className="card";
-    div.innerText=`${formatTime(parseKST(item.time))} | ${item.type} | ${item.address}`;
-   div.onclick=()=>{
-  showModal(item);
 
-  const lat=parseFloat(item.lat||item.latitude);
-  const lng=parseFloat(item.lng||item.longitude);
+  if(markers.length > 0){
 
-  if(!isNaN(lat)&&!isNaN(lng)){
-    const moveLatLng = new kakao.maps.LatLng(lat, lng);
+    map.setBounds(
+      bounds
+    );
 
-    map.setCenter(moveLatLng);
-    map.setLevel(3); // 🔥 확대 (숫자 작을수록 확대)
   }
-};
 
-    document.getElementById("listArea").appendChild(div);
-  });
-
-  if(markers.length>0) map.setBounds(bounds);
 
   renderTable(data);
+
 }
 
-/* 테이블 */
+
+/* =====================================================
+   테이블
+===================================================== */
+
 function renderTable(data){
-  const tbody=document.querySelector("#sheetTable tbody");
-  tbody.innerHTML="";
 
-  data.forEach(item=>{
-    const tr=document.createElement("tr");
-    tr.innerHTML=`
-      <td>${formatTime(parseKST(item.time))}</td>
-      <td>${item.type}</td>
-      <td>${item.address}</td>
-      <td>${item.phone||''}</td>
-      <td>${item.symptom||''}</td>
-      <td>${item.status||''}</td>
-    `;
-    tbody.appendChild(tr);
-  });
+  const tbody =
+    document.querySelector(
+      "#sheetTable tbody"
+    );
+
+
+  tbody.innerHTML = "";
+
+
+  data.forEach(
+    item => {
+
+      const tr =
+        document.createElement("tr");
+
+
+      tr.innerHTML = `
+
+        <td>
+          ${escapeHtml(
+            formatTime(
+              item.startTime ||
+              item.createdAt ||
+              item.time
+            )
+          )}
+        </td>
+
+        <td>
+          ${escapeHtml(
+            item.type
+          )}
+        </td>
+
+        <td>
+          ${escapeHtml(
+            item.address
+          )}
+        </td>
+
+        <td>
+          ${escapeHtml(
+            item.phone
+          )}
+        </td>
+
+        <td>
+          ${escapeHtml(
+            item.symptom
+          )}
+        </td>
+
+        <td>
+          ${escapeHtml(
+            statusText(item.status)
+          )}
+        </td>
+
+      `;
+
+
+      tr.onclick =
+        () =>
+          showModal(item);
+
+
+      tbody.appendChild(tr);
+
+    }
+  );
+
 }
 
-/* 데이터 로드 + 신규 감지 */
+
+/* =====================================================
+   데이터 조회
+===================================================== */
+
 async function loadData(){
+
   try{
-    const res=await fetch(API_URL+"?action=list");
-    let data=await res.json();
 
-    if(!Array.isArray(data)) data=[];
+    const res =
+      await fetch(
+        API_URL +
+        "?action=list&_=" +
+        Date.now(),
+        {
+          cache:"no-store"
+        }
+      );
 
-    // 🔥 신규 데이터 감지
-    if(lastDataLength > 0 && data.length > lastDataLength){
-      const newItems = data.slice(0, data.length - lastDataLength);
-      newItems.forEach(triggerAlert);
+
+    if(!res.ok){
+
+      throw new Error(
+        "HTTP " + res.status
+      );
+
     }
 
-    lastDataLength = data.length;
 
-    allData=data;
-    renderData(allData);
+    let data =
+      await res.json();
 
-  }catch(e){
-    document.getElementById("listArea").innerText="❌ 데이터 로딩 오류";
+
+    if(!Array.isArray(data)){
+
+      data = [];
+
+    }
+
+
+    /* =========================
+       신규 신고 감지
+    ========================= */
+
+    const newItems = [];
+
+
+    data.forEach(
+      item => {
+
+        const id =
+          String(item.id || "");
+
+
+        if(
+          id &&
+          !lastIds.has(id)
+        ){
+
+          newItems.push(item);
+
+        }
+
+      }
+    );
+
+
+    /*
+     * 최초 로딩에서는
+     * 기존 신고를 긴급알림하지 않음
+     */
+
+    if(lastIds.size > 0){
+
+      newItems.forEach(
+        triggerAlert
+      );
+
+    }
+
+
+    lastIds =
+      new Set(
+        data.map(
+          item =>
+            String(item.id || "")
+        )
+      );
+
+
+    allData =
+      data;
+
+
+    renderData(
+      allData
+    );
+
+
   }
+  catch(error){
+
+    console.error(
+      error
+    );
+
+
+    document.getElementById(
+      "listArea"
+    ).innerHTML = `
+
+      <div class="card">
+
+        ❌ 신고 데이터 로딩 오류
+
+        <br>
+
+        <small>
+          ${escapeHtml(
+            error.message
+          )}
+        </small>
+
+      </div>
+
+    `;
+
+  }
+
 }
+
+
+/* =====================================================
+   상태 변경
+===================================================== */
+
+async function changeStatus(
+  action,
+  id
+){
+
+  if(!id){
+    return;
+  }
+
+
+  let message;
+
+
+  if(action === "complete"){
+
+    message =
+      "현장도착 상태로 변경하시겠습니까?";
+
+  }
+  else if(action === "finish"){
+
+    message =
+      "사고처리 완료로 변경하시겠습니까?";
+
+  }
+  else{
+
+    return;
+
+  }
+
+
+  if(
+    !confirm(message)
+  ){
+
+    return;
+
+  }
+
+
+  try{
+
+    const result =
+      await postData({
+
+        action:
+          action,
+
+        id:
+          id
+
+      });
+
+
+    if(
+      result.result !==
+      "success"
+    ){
+
+      throw new Error(
+        result.message ||
+        "상태 변경에 실패했습니다."
+      );
+
+    }
+
+
+    showToast(
+      "상태가 변경되었습니다."
+    );
+
+
+    closeModal();
+
+    await loadData();
+
+
+  }
+  catch(error){
+
+    alert(
+      "❌ " +
+      error.message
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   수정 화면
+===================================================== */
+
+function showEditForm(){
+
+  if(!currentItem){
+    return;
+  }
+
+
+  const item =
+    currentItem;
+
+
+  const overlay =
+    document.getElementById(
+      "editOverlay"
+    );
+
+
+  overlay.style.display =
+    "flex";
+
+
+  overlay.style.position =
+    "fixed";
+
+
+  overlay.style.top =
+    "0";
+
+  overlay.style.left =
+    "0";
+
+  overlay.style.width =
+    "100%";
+
+  overlay.style.height =
+    "100%";
+
+  overlay.style.background =
+    "rgba(0,0,0,0.85)";
+
+  overlay.style.zIndex =
+    "10000";
+
+  overlay.style.justifyContent =
+    "center";
+
+  overlay.style.alignItems =
+    "center";
+
+
+  overlay.innerHTML = `
+
+    <div
+      id="editBox"
+      style="
+        background:#222;
+        padding:20px;
+        border-radius:10px;
+        width:90%;
+        max-width:500px;
+        max-height:90vh;
+        overflow:auto;
+      "
+    >
+
+      <h3>
+        ✏ 신고 내용 수정
+      </h3>
+
+
+      <label>
+        유형
+      </label>
+
+      <input
+        id="editType"
+        class="edit-input"
+        value="${escapeHtml(
+          item.type
+        )}"
+      >
+
+
+      <br>
+
+
+      <label>
+        주소
+      </label>
+
+      <input
+        id="editAddress"
+        class="edit-input"
+        value="${escapeHtml(
+          item.address
+        )}"
+      >
+
+
+      <br>
+
+
+      <label>
+        연락처
+      </label>
+
+      <input
+        id="editPhone"
+        class="edit-input"
+        value="${escapeHtml(
+          item.phone
+        )}"
+      >
+
+
+      <br>
+
+
+      <label>
+        증상
+      </label>
+
+      <textarea
+        id="editSymptom"
+        class="edit-input"
+      >${escapeHtml(
+        item.symptom
+      )}</textarea>
+
+
+      <br>
+
+
+      <label>
+        위도
+      </label>
+
+      <input
+        id="editLat"
+        class="edit-input"
+        type="number"
+        step="0.000001"
+        value="${escapeHtml(
+          item.lat
+        )}"
+      >
+
+
+      <br>
+
+
+      <label>
+        경도
+      </label>
+
+      <input
+        id="editLng"
+        class="edit-input"
+        type="number"
+        step="0.000001"
+        value="${escapeHtml(
+          item.lng
+        )}"
+      >
+
+
+      <br>
+
+
+      <label>
+        카카오맵 URL
+      </label>
+
+      <input
+        id="editMapUrl"
+        class="edit-input"
+        value="${escapeHtml(
+          item.kakaoMapURL ||
+          item.mapURL ||
+          ""
+        )}"
+      >
+
+
+      <div class="button-area">
+
+        <button
+          class="btn-edit"
+          onclick="saveEdit()"
+        >
+          💾 저장
+        </button>
+
+
+        <button
+          class="btn-close"
+          onclick="closeEditForm()"
+        >
+          취소
+        </button>
+
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+
+/* =====================================================
+   수정 취소
+===================================================== */
+
+function closeEditForm(){
+
+  const overlay =
+    document.getElementById(
+      "editOverlay"
+    );
+
+
+  overlay.style.display =
+    "none";
+
+
+  overlay.innerHTML =
+    "";
+
+}
+
+
+/* =====================================================
+   수정 저장
+===================================================== */
+
+async function saveEdit(){
+
+  if(!currentItem){
+    return;
+  }
+
+
+  const id =
+    currentItem.id;
+
+
+  const data = {
+
+    action:
+      "update",
+
+    id:
+      id,
+
+    type:
+      document.getElementById(
+        "editType"
+      ).value.trim(),
+
+    address:
+      document.getElementById(
+        "editAddress"
+      ).value.trim(),
+
+    phone:
+      document.getElementById(
+        "editPhone"
+      ).value.trim(),
+
+    symptom:
+      document.getElementById(
+        "editSymptom"
+      ).value.trim(),
+
+    lat:
+      Number(
+        document.getElementById(
+          "editLat"
+        ).value
+      ),
+
+    lng:
+      Number(
+        document.getElementById(
+          "editLng"
+        ).value
+      ),
+
+    kakaoMapURL:
+      document.getElementById(
+        "editMapUrl"
+      ).value.trim()
+
+  };
+
+
+  if(
+    !Number.isFinite(data.lat) ||
+    !Number.isFinite(data.lng)
+  ){
+
+    alert(
+      "위도와 경도를 확인해주세요."
+    );
+
+    return;
+
+  }
+
+
+  try{
+
+    const result =
+      await postData(
+        data
+      );
+
+
+    if(
+      result.result !==
+      "success"
+    ){
+
+      throw new Error(
+        result.message ||
+        "수정에 실패했습니다."
+      );
+
+    }
+
+
+    closeEditForm();
+
+    closeModal();
+
+    showToast(
+      "신고 내용이 수정되었습니다."
+    );
+
+
+    await loadData();
+
+
+  }
+  catch(error){
+
+    alert(
+      "❌ " +
+      error.message
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   삭제
+===================================================== */
+
+async function deleteAccident(
+  id
+){
+
+  if(!id){
+    return;
+  }
+
+
+  if(
+    !confirm(
+      "정말 이 신고를 삭제하시겠습니까?"
+    )
+  ){
+
+    return;
+
+  }
+
+
+  try{
+
+    const result =
+      await postData({
+
+        action:
+          "delete",
+
+        id:
+          id
+
+      });
+
+
+    if(
+      result.result !==
+      "success"
+    ){
+
+      throw new Error(
+        result.message ||
+        "삭제에 실패했습니다."
+      );
+
+    }
+
+
+    closeModal();
+
+    showToast(
+      "신고가 삭제되었습니다."
+    );
+
+
+    await loadData();
+
+
+  }
+  catch(error){
+
+    alert(
+      "❌ " +
+      error.message
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   POST 공통
+===================================================== */
+
+async function postData(
+  data
+){
+
+  /*
+   * Apps Script Web App으로
+   * JSON POST
+   */
+
+  const response =
+    await fetch(
+      API_URL,
+      {
+        method:"POST",
+
+        headers:{
+          "Content-Type":
+            "text/plain;charset=utf-8"
+        },
+
+        body:
+          JSON.stringify(data)
+      }
+    );
+
+
+  if(!response.ok){
+
+    throw new Error(
+      "서버 응답 오류: HTTP " +
+      response.status
+    );
+
+  }
+
+
+  return await response.json();
+
+}
+
+
+/* =====================================================
+   Toast
+===================================================== */
+
+function showToast(
+  message
+){
+
+  const toast =
+    document.getElementById(
+      "toast"
+    );
+
+
+  toast.innerText =
+    message;
+
+
+  toast.style.display =
+    "block";
+
+
+  clearTimeout(
+    window.toastTimer
+  );
+
+
+  window.toastTimer =
+    setTimeout(
+      function(){
+
+        toast.style.display =
+          "none";
+
+      },
+      2500
+    );
+
+}
+
+
+/* =====================================================
+   모달 바깥 클릭
+===================================================== */
+
+document.getElementById(
+  "modalOverlay"
+).addEventListener(
+  "click",
+  function(e){
+
+    if(
+      e.target === this
+    ){
+
+      closeModal();
+
+    }
+
+  }
+);
+
 
 /* =====================================================
    우클릭 방지
-====================================================== */
+===================================================== */
 
 document.addEventListener(
-    "contextmenu",
-    function(e){
+  "contextmenu",
+  function(e){
 
-        e.preventDefault();
+    e.preventDefault();
 
-        return false;
+    return false;
 
-    }
+  }
 );
 
 
 /* =====================================================
    개발자도구 단축키 방지
-====================================================== */
+===================================================== */
 
 document.addEventListener(
-    "keydown",
-    function(e){
+  "keydown",
+  function(e){
 
-        /* F12 */
+    /* F12 */
 
-        if(
-            e.key === "F12"
-        ){
+    if(
+      e.key === "F12"
+    ){
 
-            e.preventDefault();
+      e.preventDefault();
 
-            return false;
-
-        }
-
-
-        /* Ctrl + U */
-
-        if(
-            e.ctrlKey &&
-            e.key.toLowerCase() === "u"
-        ){
-
-            e.preventDefault();
-
-            return false;
-
-        }
-
-
-        /* Ctrl + Shift + I */
-
-        if(
-            e.ctrlKey &&
-            e.shiftKey &&
-            e.key.toLowerCase() === "i"
-        ){
-
-            e.preventDefault();
-
-            return false;
-
-        }
-
-
-        /* Ctrl + Shift + J */
-
-        if(
-            e.ctrlKey &&
-            e.shiftKey &&
-            e.key.toLowerCase() === "j"
-        ){
-
-            e.preventDefault();
-
-            return false;
-
-        }
-
-
-        /* Ctrl + Shift + C */
-
-        if(
-            e.ctrlKey &&
-            e.shiftKey &&
-            e.key.toLowerCase() === "c"
-        ){
-
-            e.preventDefault();
-
-            return false;
-
-        }
-
-
-        /* Ctrl + S */
-
-        if(
-            e.ctrlKey &&
-            e.key.toLowerCase() === "s"
-        ){
-
-            e.preventDefault();
-
-            return false;
-
-        }
+      return false;
 
     }
+
+
+    /* Ctrl + U */
+
+    if(
+      e.ctrlKey &&
+      e.key.toLowerCase() === "u"
+    ){
+
+      e.preventDefault();
+
+      return false;
+
+    }
+
+
+    /* Ctrl + Shift + I */
+
+    if(
+      e.ctrlKey &&
+      e.shiftKey &&
+      e.key.toLowerCase() === "i"
+    ){
+
+      e.preventDefault();
+
+      return false;
+
+    }
+
+
+    /* Ctrl + Shift + J */
+
+    if(
+      e.ctrlKey &&
+      e.shiftKey &&
+      e.key.toLowerCase() === "j"
+    ){
+
+      e.preventDefault();
+
+      return false;
+
+    }
+
+
+    /* Ctrl + Shift + C */
+
+    if(
+      e.ctrlKey &&
+      e.shiftKey &&
+      e.key.toLowerCase() === "c"
+    ){
+
+      e.preventDefault();
+
+      return false;
+
+    }
+
+
+    /* Ctrl + S */
+
+    if(
+      e.ctrlKey &&
+      e.key.toLowerCase() === "s"
+    ){
+
+      e.preventDefault();
+
+      return false;
+
+    }
+
+  }
 );
-  
+
 </script>
+
 </body>
 </html>
