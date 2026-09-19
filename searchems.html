@@ -1062,6 +1062,7 @@ document
    SUBMIT
 ===================================================== */
 
+
 async function submitData(){
 
     const condition =
@@ -1078,6 +1079,7 @@ async function submitData(){
 
     const lng =
         Number(lngEl.value);
+
 
     if(!selectedType){
         alert("신고 유형을 선택하세요.");
@@ -1120,12 +1122,14 @@ async function submitData(){
         return;
     }
 
+
     const button =
         document.getElementById(
             "submitReportBtn"
         );
 
     button.disabled = true;
+
 
     try{
 
@@ -1155,14 +1159,26 @@ async function submitData(){
 
         };
 
+
         const result =
             await postAccident(
                 payload
             );
 
+
+        /*
+         * Apps Script는
+         *
+         * result:"success"
+         *
+         * 를 반환하므로
+         * success:true가 아니라
+         * result를 확인해야 합니다.
+         */
+
         if(
             !result ||
-            result.success !== true
+            result.result !== "success"
         ){
 
             throw new Error(
@@ -1173,9 +1189,11 @@ async function submitData(){
 
         }
 
+
         alert(
             "🆘 신고가 접수되었습니다."
         );
+
 
         resetReportForm();
 
@@ -1200,12 +1218,15 @@ async function submitData(){
 
 }
 
+
 document
 .getElementById("submitReportBtn")
 .addEventListener(
     "click",
     submitData
 );
+
+
 
 
 /* =====================================================
@@ -2292,15 +2313,15 @@ async function editAccident(caseId){
             );
 
         lngEl.value =
-            getAccidentField(
-                item,
-                [
-                    "lng",
-                    "longitude",
-                    "위도",
-                    "경도"
-                ]
-            );
+    getAccidentField(
+        item,
+        [
+            "lng",
+            "longitude",
+            "경도"
+        ]
+    );
+
 
         selectedType =
             getAccidentField(
@@ -2379,8 +2400,12 @@ async function editAccident(caseId){
 
 async function updateAccident(caseId){
 
-    const lat=Number(latEl.value);
-    const lng=Number(lngEl.value);
+    const lat =
+        Number(latEl.value);
+
+    const lng =
+        Number(lngEl.value);
+
 
     if(
         !caseId ||
@@ -2397,7 +2422,9 @@ async function updateAccident(caseId){
         );
 
         return;
+
     }
+
 
     try{
 
@@ -2429,21 +2456,32 @@ async function updateAccident(caseId){
 
             });
 
+
+        /*
+         * Apps Script 응답 형식에 맞춤
+         */
+
         if(
             !result ||
-            result.success !== true
+            result.result !== "success"
         ){
 
             throw new Error(
-                result.message ||
+                result &&
+                result.message
+                ?
+                result.message
+                :
                 "수정 실패"
             );
 
         }
 
+
         alert(
             "✏ 신고 내용이 수정되었습니다."
         );
+
 
         resetReportForm();
 
@@ -2468,6 +2506,7 @@ async function updateAccident(caseId){
    DELETE
 ===================================================== */
 
+
 async function deleteAccident(caseId){
 
     if(!caseId){
@@ -2480,23 +2519,36 @@ async function deleteAccident(caseId){
 
     }
 
+
+    /*
+     * 삭제 비밀번호 입력
+     */
+
     const password =
         prompt(
             "🔐 신고 삭제 비밀번호를 입력하세요."
         );
 
+
     if(password === null){
         return;
     }
 
-    if(password !== DELETE_PASSWORD){
+
+    if(password.trim() === ""){
 
         alert(
-            "❌ 비밀번호가 올바르지 않습니다."
+            "❌ 삭제 비밀번호를 입력하세요."
         );
 
         return;
+
     }
+
+
+    /*
+     * 최종 삭제 확인
+     */
 
     if(
         !confirm(
@@ -2504,41 +2556,70 @@ async function deleteAccident(caseId){
             "삭제하면 Google Sheets에서도 해당 신고가 삭제됩니다."
         )
     ){
+
         return;
+
     }
+
 
     try{
 
-        /* 버튼 중복 클릭 방지 */
+        /*
+         * 버튼 중복 클릭 방지
+         */
 
         const cards =
             document.querySelectorAll(
                 `[data-case-id="${CSS.escape(String(caseId))}"]`
             );
 
+
         cards.forEach(
             function(card){
-                card.style.opacity=".5";
+
+                card.style.opacity = ".5";
+
+                card.style.pointerEvents =
+                    "none";
+
             }
         );
+
+
+        /*
+         * Apps Script로
+         * 삭제 비밀번호까지 전달
+         */
 
         const result =
             await postAccident({
 
                 action:"delete",
 
-                id:String(caseId)
+                id:String(caseId),
+
+                password:password
 
             });
+
 
         console.log(
             "삭제 결과:",
             result
         );
 
+
+        /*
+         * Apps Script 응답:
+         *
+         * {
+         *   result:"success"
+         * }
+         */
+
         if(
             !result ||
-            result.success !== true
+            result.result !== "success"
         ){
 
             throw new Error(
@@ -2552,9 +2633,15 @@ async function deleteAccident(caseId){
 
         }
 
+
         alert(
             "🗑 신고가 삭제되었습니다."
         );
+
+
+        /*
+         * 목록 새로고침
+         */
 
         await loadAccidents();
 
@@ -2566,16 +2653,19 @@ async function deleteAccident(caseId){
             err
         );
 
+
         alert(
             "❌ 신고 삭제 실패\n\n" +
             err.message
         );
+
 
         await loadAccidents();
 
     }
 
 }
+
 
 
 /* =====================================================
@@ -2590,41 +2680,53 @@ async function updateAccidentStatus(
     const status =
         normalizeStatus(newStatus);
 
+
     if(!caseId){
-        alert("사고 ID가 없습니다.");
+
+        alert(
+            "사고 ID가 없습니다."
+        );
+
         return;
+
     }
+
 
     let message =
         "처리하시겠습니까?";
 
-    let action="";
+    let action = "";
 
-    if(status==="ARRIVED"){
+
+    if(status === "ARRIVED"){
 
         message =
             "🚓 현장 도착으로 변경하시겠습니까?";
 
-        action="complete";
+        action = "complete";
 
     }
 
-    if(status==="DONE"){
+
+    if(status === "DONE"){
 
         message =
             "✅ 구조 완료로 변경하시겠습니까?";
 
-        action="finish";
+        action = "finish";
 
     }
+
 
     if(!action){
         return;
     }
 
+
     if(!confirm(message)){
         return;
     }
+
 
     try{
 
@@ -2637,25 +2739,38 @@ async function updateAccidentStatus(
 
             });
 
+
+        /*
+         * Apps Script 응답:
+         *
+         * result:"success"
+         */
+
         if(
             !result ||
-            result.success !== true
+            result.result !== "success"
         ){
 
             throw new Error(
-                result.message ||
+                result &&
+                result.message
+                ?
+                result.message
+                :
                 "상태 변경 실패"
             );
 
         }
 
+
         alert(
-            status==="ARRIVED"
+            status === "ARRIVED"
             ?
             "🚓 현장 도착 처리 완료"
             :
             "✅ 구조 완료 처리 완료"
         );
+
 
         await loadAccidents();
 
@@ -2667,45 +2782,6 @@ async function updateAccidentStatus(
         alert(
             "상태 변경 실패\n\n" +
             err.message
-        );
-
-    }
-
-}
-
-
-/* =====================================================
-   ALERT
-===================================================== */
-
-function playAlert(){
-
-    const audio =
-        document.getElementById(
-            "alertSound"
-        );
-
-    if(!audio){
-        return;
-    }
-
-    audio.currentTime=0;
-
-    const promise =
-        audio.play();
-
-    if(
-        promise &&
-        typeof promise.catch==="function"
-    ){
-
-        promise.catch(
-            function(err){
-                console.log(
-                    "알림음 차단:",
-                    err
-                );
-            }
         );
 
     }
