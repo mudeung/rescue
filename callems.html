@@ -252,48 +252,6 @@ button:disabled{
 <body>
 
 
-<!-- ==============================
-     로그인
-================================ -->
-
-<div
-    id="loginOverlay"
-    style="
-        position:fixed;
-        inset:0;
-        background:#000;
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        z-index:9999;
-        flex-direction:column;
-        padding:20px;
-    "
->
-
-    <h2>
-        🔐 무등산특수구조팀 신고접수
-    </h2>
-
-    <input
-        type="password"
-        id="passwordInput"
-        placeholder="비밀번호 입력"
-        style="width:250px;"
-    >
-
-    <button onclick="checkPassword()">
-        접속하기
-    </button>
-
-    <p
-        id="loginError"
-        style="color:#ff5252;"
-    ></p>
-
-</div>
-
-
 <header>
     🆘 무등산특수구조팀 신고접수
 </header>
@@ -441,16 +399,6 @@ const API_URL =
     "https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
 
 
-/*
- * 화면 접속 비밀번호
- *
- * 주의:
- * 이 값은 HTML에 들어가기 때문에
- * 실제 보안용 비밀번호로 사용하면 안 됩니다.
- */
-
-const ACCESS_PASSWORD = "knps";
-
 
 /* =====================================================
    변수
@@ -504,95 +452,6 @@ const loadingEl =
 const submitBtn =
     document.getElementById("submitBtn");
 
-
-/* =====================================================
-   로그인
-===================================================== */
-
-function checkPassword(){
-
-    const input =
-        document.getElementById(
-            "passwordInput"
-        ).value;
-
-    const error =
-        document.getElementById(
-            "loginError"
-        );
-
-
-    if(
-        input === ACCESS_PASSWORD
-    ){
-
-        document.getElementById(
-            "loginOverlay"
-        ).style.display =
-            "none";
-
-
-        sessionStorage.setItem(
-            "authorized",
-            "true"
-        );
-
-    }
-    else{
-
-        error.innerText =
-            "❌ 비밀번호가 올바르지 않습니다.";
-
-    }
-
-}
-
-
-/*
- * Enter 키
- */
-
-document
-.getElementById("passwordInput")
-.addEventListener(
-    "keydown",
-    function(e){
-
-        if(
-            e.key === "Enter"
-        ){
-
-            checkPassword();
-
-        }
-
-    }
-);
-
-
-/*
- * 로그인 상태
- */
-
-window.addEventListener(
-    "load",
-    function(){
-
-        if(
-            sessionStorage.getItem(
-                "authorized"
-            ) === "true"
-        ){
-
-            document.getElementById(
-                "loginOverlay"
-            ).style.display =
-                "none";
-
-        }
-
-    }
-);
 
 
 /* =====================================================
