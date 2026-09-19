@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="ko">
 
@@ -654,7 +655,7 @@ button:disabled{
             🚨 SOS 긴급전송
         </button>
 
-          
+
         <!-- =================================================
              ACCIDENT REPORT
         ================================================== -->
@@ -717,10 +718,6 @@ button:disabled{
         >
 
 
-        <!-- =================================================
-             ADDRESS
-        ================================================== -->
-
         <input
             id="address"
             placeholder="주소 입력 → 좌표 자동검색"
@@ -775,7 +772,6 @@ button:disabled{
         </div>
 
 
-          
         <img
             class="logo"
             src="https://emtcsh.github.io/logo19_192.png"
@@ -806,6 +802,7 @@ button:disabled{
 
 </audio>
 
+
 <script>
 
 /* =====================================================
@@ -820,6 +817,14 @@ const ACCIDENT_API_URL =
 
 
 /* =====================================================
+   DELETE PASSWORD
+   ★ 삭제 비밀번호를 여기서 변경
+====================================================== */
+
+const DELETE_PASSWORD = "1234";
+
+
+/* =====================================================
    MAP
 ====================================================== */
 
@@ -830,6 +835,7 @@ const map =
         13
     );
 
+
 const osm =
     L.tileLayer(
         "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -839,6 +845,7 @@ const osm =
                 "&copy; OpenStreetMap contributors"
         }
     );
+
 
 osm.addTo(map);
 
@@ -852,6 +859,7 @@ const coordControl =
         position:"bottomleft"
     });
 
+
 coordControl.onAdd = function(){
 
     this._div =
@@ -864,9 +872,12 @@ coordControl.onAdd = function(){
         "Lat : --<br>Lng : --";
 
     return this._div;
+
 };
 
+
 coordControl.addTo(map);
+
 
 map.on(
     "mousemove",
@@ -880,6 +891,7 @@ map.on(
 
     }
 );
+
 
 map.on(
     "mouseout",
@@ -899,9 +911,11 @@ map.on(
 const drawnItems =
     new L.FeatureGroup();
 
+
 map.addLayer(
     drawnItems
 );
+
 
 const drawControl =
     new L.Control.Draw({
@@ -921,9 +935,11 @@ const drawControl =
 
     });
 
+
 map.addControl(
     drawControl
 );
+
 
 map.on(
     L.Draw.Event.CREATED,
@@ -944,6 +960,7 @@ map.on(
 const sosLayer =
     L.layerGroup()
     .addTo(map);
+
 
 const accidentLayer =
     L.layerGroup()
@@ -982,25 +999,30 @@ const conditionEl =
         "condition"
     );
 
+
 const phoneEl =
     document.getElementById(
         "phone"
     );
+
 
 const addressEl =
     document.getElementById(
         "address"
     );
 
+
 const latEl =
     document.getElementById(
         "lat"
     );
 
+
 const lngEl =
     document.getElementById(
         "lng"
     );
+
 
 const caseList =
     document.getElementById(
@@ -1052,6 +1074,7 @@ let DEVICE_ID =
         "DEVICE_ID"
     );
 
+
 if(!DEVICE_ID){
 
     if(
@@ -1075,6 +1098,7 @@ if(!DEVICE_ID){
             .slice(2);
 
     }
+
 
     localStorage.setItem(
         "DEVICE_ID",
@@ -1102,7 +1126,9 @@ function getCurrentGPS(){
                 );
 
                 return;
+
             }
+
 
             navigator.geolocation.getCurrentPosition(
 
@@ -1123,11 +1149,13 @@ function getCurrentGPS(){
 
                 },
 
+
                 function(error){
 
                     reject(error);
 
                 },
+
 
                 {
 
@@ -1158,7 +1186,9 @@ async function sendSOS(){
             "sosBtn"
         );
 
+
     button.disabled = true;
+
 
     try{
 
@@ -1166,14 +1196,18 @@ async function sendSOS(){
             "📍 현재 위치를 확인하는 중입니다."
         );
 
+
         const position =
             await getCurrentGPS();
+
 
         const lat =
             Number(position.lat);
 
+
         const lng =
             Number(position.lng);
+
 
         lastPos = {
 
@@ -1290,6 +1324,7 @@ async function sendSOS(){
             17
         );
 
+
         sosMarker.openPopup();
 
 
@@ -1354,6 +1389,7 @@ async function sendSOS(){
             "🚨 SOS 긴급전송 완료\n현재 위치가 지도에 표시되었습니다."
         );
 
+
         loadAccidents();
 
     }
@@ -1364,6 +1400,7 @@ async function sendSOS(){
             "SOS 오류:",
             err
         );
+
 
         alert(
             "🚨 SOS 전송 실패\n\n현재 위치 권한을 확인하세요."
@@ -1399,29 +1436,37 @@ async function useCurrentLocationForReport(){
             "currentReportLocationBtn"
         );
 
+
     button.disabled = true;
+
 
     try{
 
         const position =
             await getCurrentGPS();
 
+
         const lat =
             Number(position.lat);
+
 
         const lng =
             Number(position.lng);
 
+
         latEl.value =
             lat.toFixed(6);
 
+
         lngEl.value =
             lng.toFixed(6);
+
 
         map.setView(
             [lat,lng],
             17
         );
+
 
         setReportPreview(
             lat,
@@ -1433,6 +1478,7 @@ async function useCurrentLocationForReport(){
     catch(err){
 
         console.error(err);
+
 
         alert(
             "현재 위치를 가져오지 못했습니다.\nGPS 권한을 확인하세요."
@@ -1476,6 +1522,7 @@ function setReportPreview(
 
     }
 
+
     reportPreviewMarker =
         L.marker(
             [lat,lng]
@@ -1495,10 +1542,12 @@ function setReportPreview(
 
 let addressSearchTimer = null;
 
+
 function searchAddress(){
 
     const address =
         addressEl.value.trim();
+
 
     if(!address){
 
@@ -1506,7 +1555,9 @@ function searchAddress(){
         lngEl.value = "";
 
         return;
+
     }
+
 
     if(
         typeof kakao === "undefined" ||
@@ -1519,10 +1570,13 @@ function searchAddress(){
         );
 
         return;
+
     }
+
 
     const geocoder =
         new kakao.maps.services.Geocoder();
+
 
     geocoder.addressSearch(
 
@@ -1540,21 +1594,26 @@ function searchAddress(){
                         result[0].y
                     );
 
+
                 const lng =
                     parseFloat(
                         result[0].x
                     );
 
+
                 latEl.value =
                     lat.toFixed(6);
 
+
                 lngEl.value =
                     lng.toFixed(6);
+
 
                 map.setView(
                     [lat,lng],
                     17
                 );
+
 
                 setReportPreview(
                     lat,
@@ -1584,15 +1643,19 @@ addressEl.addEventListener(
             addressSearchTimer
         );
 
+
         latEl.value = "";
         lngEl.value = "";
+
 
         const address =
             addressEl.value.trim();
 
+
         if(address.length < 2){
             return;
         }
+
 
         addressSearchTimer =
             setTimeout(
@@ -1633,9 +1696,11 @@ document
                     }
                 );
 
+
                 btn.classList.add(
                     "active"
                 );
+
 
                 selectedType =
                     btn.dataset.type;
@@ -1656,14 +1721,18 @@ function submitData(){
     const condition =
         conditionEl.value.trim();
 
+
     const phone =
         phoneEl.value.trim();
+
 
     const address =
         addressEl.value.trim();
 
+
     const lat =
         latEl.value.trim();
+
 
     const lng =
         lngEl.value.trim();
@@ -1676,7 +1745,9 @@ function submitData(){
         );
 
         return;
+
     }
+
 
     if(!condition){
 
@@ -1685,7 +1756,9 @@ function submitData(){
         );
 
         return;
+
     }
+
 
     if(!phone){
 
@@ -1694,7 +1767,9 @@ function submitData(){
         );
 
         return;
+
     }
+
 
     if(!address){
 
@@ -1703,7 +1778,9 @@ function submitData(){
         );
 
         return;
+
     }
+
 
     if(!lat || !lng){
 
@@ -1712,11 +1789,13 @@ function submitData(){
         );
 
         return;
+
     }
 
 
     const phonePattern =
         /^[0-9\-]{9,13}$/;
+
 
     if(
         !phonePattern.test(phone)
@@ -1727,14 +1806,17 @@ function submitData(){
         );
 
         return;
+
     }
 
 
     const latNumber =
         Number(lat);
 
+
     const lngNumber =
         Number(lng);
+
 
     if(
         !Number.isFinite(latNumber) ||
@@ -1746,6 +1828,7 @@ function submitData(){
         );
 
         return;
+
     }
 
 
@@ -1781,7 +1864,9 @@ async function sendData(
             "submitReportBtn"
         );
 
+
     button.disabled = true;
+
 
     try{
 
@@ -1857,6 +1942,7 @@ async function sendData(
 
         resetReportForm();
 
+
         setTimeout(
             loadAccidents,
             500
@@ -1870,6 +1956,7 @@ async function sendData(
             "신고 접수 오류:",
             err
         );
+
 
         alert(
             "신고 접수 중 오류가 발생했습니다."
@@ -1925,6 +2012,7 @@ function resetReportForm(){
         map.removeLayer(
             reportPreviewMarker
         );
+
 
         reportPreviewMarker =
             null;
@@ -2074,10 +2162,6 @@ function normalizeStatus(
         .toUpperCase();
 
 
-    /* ==========================================
-       완료
-    ========================================== */
-
     if(
         status === "DONE" ||
         status === "완료" ||
@@ -2090,10 +2174,6 @@ function normalizeStatus(
     }
 
 
-    /* ==========================================
-       현장도착
-    ========================================== */
-
     if(
         status === "ARRIVED" ||
         status === "도착" ||
@@ -2104,10 +2184,6 @@ function normalizeStatus(
 
     }
 
-
-    /* ==========================================
-       접수
-    ========================================== */
 
     return "RECEIVED";
 
@@ -2130,6 +2206,7 @@ function getElapsedTime(
 
     const start =
         new Date(startTime);
+
 
     if(
         Number.isNaN(
@@ -2179,12 +2256,15 @@ function getElapsedTime(
             diff / 3600
         );
 
+
     diff %= 3600;
+
 
     const minute =
         Math.floor(
             diff / 60
         );
+
 
     const second =
         diff % 60;
@@ -2213,7 +2293,9 @@ async function loadAccidents(){
         return;
     }
 
+
     accidentLoading = true;
+
 
     try{
 
@@ -2346,6 +2428,7 @@ function renderAccidents(
                         getAccidentStartTime(a)
                     ).getTime();
 
+
                 const tb =
                     new Date(
                         getAccidentStartTime(b)
@@ -2419,20 +2502,19 @@ function renderAccidents(
 
 
             const endTime =
-    getAccidentField(
+                getAccidentField(
 
-        item,
+                    item,
 
-        [
-            "finishTime",
-            "endTime",
-            "completedAt",
-            "doneAt",
-            "완료시간"
-        ]
+                    [
+                        "finishTime",
+                        "endTime",
+                        "completedAt",
+                        "doneAt",
+                        "완료시간"
+                    ]
 
-    );
-
+                );
 
 
             const lat =
@@ -2552,6 +2634,7 @@ function renderAccidents(
             let statusText =
                 "접수";
 
+
             let statusClass =
                 "status-received";
 
@@ -2560,6 +2643,7 @@ function renderAccidents(
 
                 statusText =
                     "현장도착";
+
 
                 statusClass =
                     "status-arrived";
@@ -2571,6 +2655,7 @@ function renderAccidents(
 
                 statusText =
                     "처리완료";
+
 
                 statusClass =
                     "status-done";
@@ -2895,55 +2980,59 @@ function renderAccidents(
 
             }
 
-/* =====================================================
-   EDIT / DELETE BUTTON
-====================================================== */
 
-const manageButtons =
+            /* =================================================
+               EDIT / DELETE BUTTON
+            ================================================== */
 
-    `
-    <div style="
-        display:grid;
-        grid-template-columns:1fr 1fr;
-        gap:5px;
-        margin-top:6px;
-    ">
+            const manageButtons =
 
-        <button
-            onclick="
-                editAccident(
-                    '${escapeAttribute(id)}'
-                )
-            "
-            style="
-                background:#174a70;
-                color:white;
-                border:1px solid #2196f3;
-                margin:0;
-            "
-        >
-            ✏ 신고 수정
-        </button>
+                `
+                <div style="
+                    display:grid;
+                    grid-template-columns:1fr 1fr;
+                    gap:5px;
+                    margin-top:6px;
+                ">
 
-        <button
-            onclick="
-                deleteAccident(
-                    '${escapeAttribute(id)}'
-                )
-            "
-            style="
-                background:#700000;
-                color:white;
-                border:1px solid #ff3333;
-                margin:0;
-            "
-        >
-            🗑 신고 삭제
-        </button>
+                    <button
+                        type="button"
+                        onclick="
+                            editAccident(
+                                '${escapeAttribute(id)}'
+                            )
+                        "
+                        style="
+                            background:#174a70;
+                            color:white;
+                            border:1px solid #2196f3;
+                            margin:0;
+                        "
+                    >
+                        ✏ 신고 수정
+                    </button>
 
-    </div>
-    `;              
-              
+
+                    <button
+                        type="button"
+                        onclick="
+                            deleteAccident(
+                                '${escapeAttribute(id)}'
+                            )
+                        "
+                        style="
+                            background:#700000;
+                            color:white;
+                            border:1px solid #ff3333;
+                            margin:0;
+                        "
+                    >
+                        🗑 신고 삭제
+                    </button>
+
+                </div>
+                `;
+
 
             /* MAP BUTTON */
 
@@ -2956,6 +3045,7 @@ const manageButtons =
 
                 `
                 <button
+                    type="button"
                     onclick="
                         focusAccident(
                             ${lat},
@@ -3001,6 +3091,7 @@ const manageButtons =
                             ${escapeHTML(type)}
 
                         </strong>
+
 
                         <span
                             class="${statusClass}"
@@ -3164,13 +3255,13 @@ const manageButtons =
                     }
 
 
-                   ${mapButton}
+                    ${mapButton}
 
-${actionButtons}
+                    ${actionButtons}
 
-${manageButtons}
+                    ${manageButtons}
 
-</div>
+                </div>
 
                 `;
 
@@ -3195,6 +3286,7 @@ ${manageButtons}
             ){
 
                 alertedOverdueIds.add(id);
+
 
                 if(!firstLoad){
 
@@ -3302,6 +3394,7 @@ function focusAccident(
 ){
 
     lat = Number(lat);
+
     lng = Number(lng);
 
 
@@ -3334,6 +3427,7 @@ function focusAccident(
 
 }
 
+
 /* =====================================================
    EDIT ACCIDENT
 ====================================================== */
@@ -3342,7 +3436,9 @@ async function editAccident(caseId){
 
     if(!caseId){
 
-        alert("사고 ID가 없습니다.");
+        alert(
+            "사고 ID가 없습니다."
+        );
 
         return;
 
@@ -3365,7 +3461,8 @@ async function editAccident(caseId){
         if(!response.ok){
 
             throw new Error(
-                "HTTP " + response.status
+                "HTTP " +
+                response.status
             );
 
         }
@@ -3383,7 +3480,8 @@ async function editAccident(caseId){
             Array.isArray(data.data)
         ){
 
-            rows = data.data;
+            rows =
+                data.data;
 
         }
         else if(
@@ -3391,7 +3489,8 @@ async function editAccident(caseId){
             Array.isArray(data.items)
         ){
 
-            rows = data.items;
+            rows =
+                data.items;
 
         }
         else if(
@@ -3399,7 +3498,8 @@ async function editAccident(caseId){
             Array.isArray(data.rows)
         ){
 
-            rows = data.rows;
+            rows =
+                data.rows;
 
         }
 
@@ -3422,6 +3522,7 @@ async function editAccident(caseId){
                         row,
                         index
                     );
+
 
                 if(
                     String(id) ===
@@ -3518,25 +3619,25 @@ async function editAccident(caseId){
             );
 
 
-        /* 기존 신고 내용을 입력창으로 가져오기 */
-
         conditionEl.value =
             symptom || "";
+
 
         phoneEl.value =
             phone || "";
 
+
         addressEl.value =
             address || "";
+
 
         latEl.value =
             lat || "";
 
+
         lngEl.value =
             lng || "";
 
-
-        /* 신고 유형 선택 */
 
         selectedType =
             type || "";
@@ -3569,10 +3670,9 @@ async function editAccident(caseId){
         );
 
 
-        /* 지도 이동 */
-
         const editLat =
             Number(lat);
+
 
         const editLng =
             Number(lng);
@@ -3596,8 +3696,6 @@ async function editAccident(caseId){
 
         }
 
-
-        /* 수정 확인 */
 
         const confirmed =
             confirm(
@@ -3635,6 +3733,7 @@ async function editAccident(caseId){
 
 }
 
+
 /* =====================================================
    UPDATE ACCIDENT
 ====================================================== */
@@ -3644,14 +3743,18 @@ async function updateAccident(caseId){
     const condition =
         conditionEl.value.trim();
 
+
     const phone =
         phoneEl.value.trim();
+
 
     const address =
         addressEl.value.trim();
 
+
     const lat =
         latEl.value.trim();
+
 
     const lng =
         lngEl.value.trim();
@@ -3659,7 +3762,9 @@ async function updateAccident(caseId){
 
     if(!caseId){
 
-        alert("사고 ID가 없습니다.");
+        alert(
+            "사고 ID가 없습니다."
+        );
 
         return;
 
@@ -3668,7 +3773,9 @@ async function updateAccident(caseId){
 
     if(!selectedType){
 
-        alert("신고 유형을 선택하세요.");
+        alert(
+            "신고 유형을 선택하세요."
+        );
 
         return;
 
@@ -3677,7 +3784,9 @@ async function updateAccident(caseId){
 
     if(!condition){
 
-        alert("상황을 입력하세요.");
+        alert(
+            "상황을 입력하세요."
+        );
 
         return;
 
@@ -3686,7 +3795,9 @@ async function updateAccident(caseId){
 
     if(!phone){
 
-        alert("연락처를 입력하세요.");
+        alert(
+            "연락처를 입력하세요."
+        );
 
         return;
 
@@ -3695,7 +3806,9 @@ async function updateAccident(caseId){
 
     if(!address){
 
-        alert("주소를 입력하세요.");
+        alert(
+            "주소를 입력하세요."
+        );
 
         return;
 
@@ -3732,6 +3845,7 @@ async function updateAccident(caseId){
 
     const latNumber =
         Number(lat);
+
 
     const lngNumber =
         Number(lng);
@@ -3873,8 +3987,10 @@ async function updateAccident(caseId){
 
 }
 
+
 /* =====================================================
    DELETE ACCIDENT
+   ★ 비밀번호 입력 후 삭제
 ====================================================== */
 
 async function deleteAccident(caseId){
@@ -3890,12 +4006,64 @@ async function deleteAccident(caseId){
     }
 
 
+    /* =================================================
+       1. 비밀번호 입력
+    ================================================== */
+
+    const password =
+        prompt(
+            "🔐 신고 삭제 비밀번호를 입력하세요."
+        );
+
+
+    /* 취소 */
+
+    if(password === null){
+
+        return;
+
+    }
+
+
+    /* 빈 값 */
+
+    if(password.trim() === ""){
+
+        alert(
+            "비밀번호를 입력하세요."
+        );
+
+        return;
+
+    }
+
+
+    /* =================================================
+       2. 비밀번호 확인
+    ================================================== */
+
+    if(password !== DELETE_PASSWORD){
+
+        alert(
+            "❌ 비밀번호가 올바르지 않습니다.\n\n" +
+            "신고 삭제가 취소되었습니다."
+        );
+
+        return;
+
+    }
+
+
+    /* =================================================
+       3. 삭제 확인
+    ================================================== */
+
     const confirmed =
         confirm(
 
             "⚠ 신고 내용을 삭제하시겠습니까?\n\n" +
 
-            "삭제된 신고는 사고 목록에서 제거됩니다.\n" +
+            "삭제된 신고는 사고 목록에서 제거됩니다.\n\n" +
 
             "이 작업은 되돌릴 수 없습니다."
 
@@ -3909,10 +4077,14 @@ async function deleteAccident(caseId){
     }
 
 
+    /* =================================================
+       4. 최종 확인
+    ================================================== */
+
     const doubleConfirmed =
         confirm(
 
-            "정말 삭제하시겠습니까?\n\n" +
+            "⚠ 정말 삭제하시겠습니까?\n\n" +
 
             "삭제하려면 [확인]을 눌러주세요."
 
@@ -3925,6 +4097,10 @@ async function deleteAccident(caseId){
 
     }
 
+
+    /* =================================================
+       5. 삭제 처리
+    ================================================== */
 
     try{
 
@@ -3996,7 +4172,7 @@ async function deleteAccident(caseId){
 
 }
 
-      
+
 /* =====================================================
    ALERT SOUND
 ====================================================== */
@@ -4017,6 +4193,7 @@ function playAlert(){
     try{
 
         audio.currentTime = 0;
+
 
         const promise =
             audio.play();
@@ -4071,6 +4248,7 @@ async function updateAccidentStatus(
         );
 
         return;
+
     }
 
 
@@ -4112,36 +4290,30 @@ async function updateAccidentStatus(
         let payload;
 
 
-        /* ==========================================
-           현장 도착
-           Apps Script → action: complete
-        ========================================== */
-
         if(status === "ARRIVED"){
 
             payload = {
 
-                action: "complete",
+                action:
+                    "complete",
 
-                id: caseId
+                id:
+                    caseId
 
             };
 
         }
 
 
-        /* ==========================================
-           구조 완료
-           Apps Script → action: finish
-        ========================================== */
-
         else if(status === "DONE"){
 
             payload = {
 
-                action: "finish",
+                action:
+                    "finish",
 
-                id: caseId
+                id:
+                    caseId
 
             };
 
@@ -4171,11 +4343,11 @@ async function updateAccidentStatus(
 
             {
 
-                method: "POST",
+                method:"POST",
 
-                mode: "no-cors",
+                mode:"no-cors",
 
-                headers: {
+                headers:{
 
                     "Content-Type":
                         "text/plain;charset=utf-8"
@@ -4191,11 +4363,6 @@ async function updateAccidentStatus(
 
         );
 
-
-        /*
-         * no-cors에서는 서버 응답을 읽을 수 없으므로
-         * 잠시 후 목록을 다시 조회합니다.
-         */
 
         if(status === "ARRIVED"){
 
@@ -4213,11 +4380,6 @@ async function updateAccidentStatus(
         }
 
 
-        /*
-         * Apps Script에서 Sheet를 수정할 시간을 준 뒤
-         * 최신 목록을 다시 가져옵니다.
-         */
-
         setTimeout(
             function(){
 
@@ -4226,7 +4388,6 @@ async function updateAccidentStatus(
             },
             800
         );
-
 
     }
 
@@ -4237,6 +4398,7 @@ async function updateAccidentStatus(
             err
         );
 
+
         alert(
             "사고 상태 변경 중 오류가 발생했습니다.\n\n" +
             err.message
@@ -4245,7 +4407,6 @@ async function updateAccidentStatus(
     }
 
 }
-
 
 
 /* =====================================================
@@ -4280,7 +4441,6 @@ function startAccidentAutoRefresh(){
         );
 
 }
-
 
 
 /* =====================================================
@@ -4371,69 +4531,116 @@ document.addEventListener(
     }
 );
 
-
-// ================= INITIAL =================
-
-
-// 페이지 시작 시 LIVE 한번 실행
-    
-loadLive();
-
 </script>
 
+
 <script>
-/* =========================
-   우클릭 및 개발자도구 단축키 방지
-   ========================= */
-
-document.addEventListener('contextmenu', function(e) {
-    e.preventDefault();
-    return false;
-});
-
-document.addEventListener('keydown', function(e) {
-
-    // F12
-    if (e.key === 'F12') {
-        e.preventDefault();
-        return false;
-    }
-
-    // Ctrl + U (페이지 소스 보기)
-    if (e.ctrlKey && e.key.toLowerCase() === 'u') {
-        e.preventDefault();
-        return false;
-    }
-
-    // Ctrl + Shift + I (개발자 도구)
-    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'i') {
-        e.preventDefault();
-        return false;
-    }
-
-    // Ctrl + Shift + J (콘솔)
-    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'j') {
-        e.preventDefault();
-        return false;
-    }
-
-    // Ctrl + Shift + C (요소 선택)
-    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'c') {
-        e.preventDefault();
-        return false;
-    }
-
-    // Ctrl + S (페이지 저장)
-    if (e.ctrlKey && e.key.toLowerCase() === 's') {
-        e.preventDefault();
-        return false;
-    }
-});
-      
 
 /* =====================================================
-   END
+   우클릭 및 개발자도구 단축키 방지
 ====================================================== */
+
+document.addEventListener(
+    "contextmenu",
+    function(e){
+
+        e.preventDefault();
+
+        return false;
+
+    }
+);
+
+
+document.addEventListener(
+    "keydown",
+    function(e){
+
+        /* F12 */
+
+        if(e.key === "F12"){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+
+        /* Ctrl + U */
+
+        if(
+            e.ctrlKey &&
+            e.key.toLowerCase() === "u"
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+
+        /* Ctrl + Shift + I */
+
+        if(
+            e.ctrlKey &&
+            e.shiftKey &&
+            e.key.toLowerCase() === "i"
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+
+        /* Ctrl + Shift + J */
+
+        if(
+            e.ctrlKey &&
+            e.shiftKey &&
+            e.key.toLowerCase() === "j"
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+
+        /* Ctrl + Shift + C */
+
+        if(
+            e.ctrlKey &&
+            e.shiftKey &&
+            e.key.toLowerCase() === "c"
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+
+        /* Ctrl + S */
+
+        if(
+            e.ctrlKey &&
+            e.key.toLowerCase() === "s"
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+    }
+);
 
 </script>
 
@@ -4441,3 +4648,4 @@ document.addEventListener('keydown', function(e) {
 </body>
 
 </html>
+```
