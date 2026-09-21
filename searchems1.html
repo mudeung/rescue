@@ -1,0 +1,2941 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+
+<meta charset="utf-8">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>🛰 무등산특수구조팀 SEARCH & RESCUE AI SYSTEM</title>
+
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet/dist/leaflet.css"
+/>
+
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css"
+/>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
+
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+html,
+body{
+    margin:0;
+    padding:0;
+    width:100%;
+    height:100%;
+}
+
+body{
+    background:#050b18;
+    color:#00ff9d;
+    font-family:monospace;
+    overflow:hidden;
+}
+
+header{
+    height:50px;
+    background:#071a2f;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:bold;
+    font-size:18px;
+    border-bottom:1px solid #123c55;
+    position:relative;
+    z-index:1000;
+}
+
+#container{
+    display:flex;
+    height:calc(100vh - 50px);
+    width:100%;
+}
+
+#panel{
+    width:360px;
+    min-width:360px;
+    background:#07101f;
+    padding:10px;
+    overflow-y:auto;
+    border-right:1px solid #123c55;
+    z-index:1000;
+}
+
+.section-title{
+    margin-top:12px;
+    padding:9px;
+    background:#10253b;
+    font-weight:bold;
+    border-left:4px solid #00ff9d;
+}
+
+input,
+textarea,
+button{
+    width:100%;
+    padding:10px;
+    margin-bottom:6px;
+    border:1px solid #00ff9d;
+    background:#001a14;
+    color:#00ff9d;
+    font-family:monospace;
+    outline:none;
+}
+
+textarea{
+    min-height:80px;
+    resize:vertical;
+}
+
+button{
+    cursor:pointer;
+    font-weight:bold;
+}
+
+button:hover{
+    background:#003322;
+}
+
+button:disabled{
+    opacity:.4;
+    cursor:not-allowed;
+}
+
+.sos-button{
+    background:#700000;
+    border-color:#ff3333;
+    color:#fff;
+    font-size:16px;
+    font-weight:bold;
+}
+
+.sos-button:hover{
+    background:#a00000;
+}
+
+.logo{
+    display:block;
+    margin:5px auto 10px auto;
+    max-width:100%;
+    max-height:90px;
+    object-fit:contain;
+}
+
+#map{
+    flex:1;
+    height:100%;
+    min-width:0;
+}
+
+.name-label{
+    background:#001a14;
+    color:#00ff9d;
+    border:1px solid #00ff9d;
+    border-radius:5px;
+    padding:3px 8px;
+    font-size:12px;
+    font-weight:bold;
+    box-shadow:0 0 8px #00ff9d;
+}
+
+.case-card{
+    background:#1e1e1e;
+    padding:10px;
+    margin-top:8px;
+    border-radius:6px;
+    color:white;
+    font-family:Arial,sans-serif;
+    font-size:14px;
+    line-height:1.45;
+    border:2px solid transparent;
+}
+
+.case-card.done{
+    opacity:.7;
+    border-color:#777;
+    box-shadow:0 0 10px #777;
+}
+
+.case-card.arrived{
+    border-color:orange;
+    box-shadow:0 0 10px orange;
+}
+
+.case-card.blink{
+    animation:blink 1s infinite;
+}
+
+@keyframes blink{
+    0%{box-shadow:0 0 5px red;}
+    50%{box-shadow:0 0 20px red;}
+    100%{box-shadow:0 0 5px red;}
+}
+
+.status-received,
+.status-arrived,
+.status-done{
+    display:inline-block;
+    margin:6px 0;
+    padding:4px 10px;
+    border-radius:5px;
+    font-weight:bold;
+}
+
+.status-received{
+    background:red;
+    color:white;
+}
+
+.status-arrived{
+    background:orange;
+    color:white;
+}
+
+.status-done{
+    background:#666;
+    color:white;
+    border:1px solid #aaa;
+    box-shadow:0 0 6px #888;
+}
+
+.time{
+    color:#ffcc00;
+}
+
+.coord{
+    font-size:12px;
+    color:#aaa;
+    margin-top:6px;
+}
+
+.complete-btn{
+    background:#2e7d32;
+    color:white;
+    border:none;
+    margin-top:8px;
+}
+
+.arrive-btn{
+    background:#ef6c00;
+    color:white;
+    border:none;
+    margin-top:8px;
+}
+
+.type-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:5px;
+    margin-bottom:6px;
+}
+
+.type-btn{
+    margin:0;
+    border:1px solid #555;
+    background:#111d2b;
+    color:white;
+    padding:10px;
+    cursor:pointer;
+}
+
+.type-btn.active{
+    border:2px solid #00ff9d;
+    background:#003322;
+    color:#00ff9d;
+    box-shadow:0 0 10px rgba(0,255,157,.4);
+}
+
+.type-btn.emergency.active{
+    background:#5b0000;
+    border-color:red;
+}
+
+.report-submit{
+    background:#7a0000;
+    border:1px solid #ff4444;
+    color:white;
+    font-size:16px;
+    padding:12px;
+}
+
+.report-submit:hover{
+    background:#a00000;
+}
+
+.mouse-coords{
+    background:rgba(0,0,0,.8);
+    color:#00ff9d;
+    border:1px solid #00ff9d;
+    border-radius:5px;
+    padding:6px 10px;
+    font-size:12px;
+    font-family:monospace;
+    box-shadow:0 0 8px #00ff9d;
+}
+
+@media(max-width:768px){
+
+    body{
+        overflow:auto;
+    }
+
+    #container{
+        flex-direction:column;
+        height:auto;
+        min-height:calc(100vh - 50px);
+    }
+
+    #panel{
+        width:100%;
+        min-width:0;
+        height:48vh;
+        order:2;
+        border-right:none;
+        border-top:1px solid #123c55;
+    }
+
+    #map{
+        width:100%;
+        height:52vh;
+        order:1;
+    }
+
+    header{
+        font-size:15px;
+    }
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+    🛰 무등산특수구조팀 SEARCH & RESCUE AI SYSTEM
+</header>
+
+<div id="container">
+
+<div id="panel">
+
+<img
+    class="logo"
+    src="https://mudeung.github.io/rescue/logogomir1.png"
+    alt="달콩이 이미지"
+>
+
+<div class="section-title">
+    🚨 긴급구조
+</div>
+
+<button
+    id="sosBtn"
+    class="sos-button"
+    type="button"
+>
+    🚨 SOS 긴급전송
+</button>
+
+<div class="section-title">
+    🆘 산악사고 신고접수
+</div>
+
+<div class="type-grid">
+
+<button class="type-btn emergency"
+        type="button"
+        data-type="응급환자">
+    🚑 응급환자
+</button>
+
+<button class="type-btn dispatch"
+        type="button"
+        data-type="구조출동">
+    🚓 구조출동
+</button>
+
+<button class="type-btn lost"
+        type="button"
+        data-type="조난">
+    🆘 조난
+</button>
+
+<button class="type-btn other"
+        type="button"
+        data-type="기타">
+    ✏ 기타
+</button>
+
+</div>
+
+<textarea
+    id="condition"
+    placeholder="상황 입력"
+></textarea>
+
+<input
+    id="phone"
+    placeholder="연락처 (010-0000-0000)"
+    autocomplete="off"
+>
+
+<input
+    id="address"
+    placeholder="주소 입력 → 좌표 자동검색"
+    autocomplete="off"
+>
+
+<input
+    id="lat"
+    placeholder="위도"
+    inputmode="decimal"
+    readonly
+>
+
+<input
+    id="lng"
+    placeholder="경도"
+    inputmode="decimal"
+    readonly
+>
+
+<button
+    id="currentReportLocationBtn"
+    type="button"
+>
+    📍 현재 위치 사용
+</button>
+
+<button
+    id="submitReportBtn"
+    class="report-submit"
+    type="button"
+>
+    🆘 신고접수
+</button>
+
+<div class="section-title">
+    🆘 사고 신고 목록
+</div>
+
+<div id="caseList">
+    로딩중...
+</div>
+
+<img
+    class="logo"
+    src="https://emtcsh.github.io/logo19_192.png"
+    alt="일구 이미지"
+>
+
+</div>
+
+<div id="map"></div>
+
+</div>
+
+<audio
+    id="alertSound"
+    preload="auto"
+>
+<source
+    src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg"
+    type="audio/ogg"
+>
+</audio>
+
+<script>
+
+/* =====================================================
+   API
+===================================================== */
+
+const GPS_API_URL =
+"https://script.google.com/macros/s/AKfcybyem5fAs2XGxNy6wrHO3s68CmJy7GI31IBKdiz49KtN3sfikYdfmpP07-3dWqna2R/exec";
+
+const ACCIDENT_API_URL =
+"https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
+
+
+/* =====================================================
+   DELETE PASSWORD
+===================================================== */
+
+
+
+/* =====================================================
+   MAP
+===================================================== */
+
+const map =
+    L.map("map")
+    .setView(
+        [35.1345,126.9902],
+        13
+    );
+
+L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+        maxZoom:19,
+        attribution:"&copy; OpenStreetMap contributors"
+    }
+).addTo(map);
+
+
+/* =====================================================
+   COORDINATE
+===================================================== */
+
+const coordControl =
+    L.control({
+        position:"bottomleft"
+    });
+
+coordControl.onAdd = function(){
+
+    this._div =
+        L.DomUtil.create(
+            "div",
+            "mouse-coords"
+        );
+
+    this._div.innerHTML =
+        "Lat : --<br>Lng : --";
+
+    return this._div;
+};
+
+coordControl.addTo(map);
+
+map.on("mousemove",function(e){
+
+    coordControl._div.innerHTML =
+        "Lat : " +
+        e.latlng.lat.toFixed(6) +
+        "<br>Lng : " +
+        e.latlng.lng.toFixed(6);
+
+});
+
+map.on("mouseout",function(){
+
+    coordControl._div.innerHTML =
+        "Lat : --<br>Lng : --";
+
+});
+
+
+/* =====================================================
+   DRAW
+===================================================== */
+
+const drawnItems =
+    new L.FeatureGroup();
+
+map.addLayer(drawnItems);
+
+map.addControl(
+    new L.Control.Draw({
+        draw:{
+            polygon:true,
+            rectangle:true,
+            marker:true,
+            polyline:true,
+            circle:true
+        },
+        edit:{
+            featureGroup:drawnItems
+        }
+    })
+);
+
+map.on(
+    L.Draw.Event.CREATED,
+    function(e){
+        drawnItems.addLayer(e.layer);
+    }
+);
+
+
+/* =====================================================
+   LAYERS
+===================================================== */
+
+const sosLayer =
+    L.layerGroup().addTo(map);
+
+const accidentLayer =
+    L.layerGroup().addTo(map);
+
+
+/* =====================================================
+   STATE
+===================================================== */
+
+let reportPreviewMarker = null;
+
+let selectedType = "";
+
+let accidentTimer = null;
+
+let knownIds = new Set();
+
+let alertedOverdueIds = new Set();
+
+let firstLoad = true;
+
+let accidentLoading = false;
+
+
+/* =====================================================
+   DOM
+===================================================== */
+
+const conditionEl =
+    document.getElementById("condition");
+
+const phoneEl =
+    document.getElementById("phone");
+
+const addressEl =
+    document.getElementById("address");
+
+const latEl =
+    document.getElementById("lat");
+
+const lngEl =
+    document.getElementById("lng");
+
+const caseList =
+    document.getElementById("caseList");
+
+
+/* =====================================================
+   DEVICE ID
+===================================================== */
+
+let DEVICE_ID =
+    localStorage.getItem("DEVICE_ID");
+
+if(!DEVICE_ID){
+
+    DEVICE_ID =
+        window.crypto &&
+        typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID()
+        : "DEVICE-" +
+          Date.now() +
+          "-" +
+          Math.random()
+          .toString(36)
+          .slice(2);
+
+    localStorage.setItem(
+        "DEVICE_ID",
+        DEVICE_ID
+    );
+}
+
+
+/* =====================================================
+   TIME
+===================================================== */
+
+function getNowTime(){
+
+    const d = new Date();
+
+    return (
+        d.getFullYear() + "-" +
+        String(d.getMonth()+1).padStart(2,"0") + "-" +
+        String(d.getDate()).padStart(2,"0") + " " +
+        String(d.getHours()).padStart(2,"0") + ":" +
+        String(d.getMinutes()).padStart(2,"0") + ":" +
+        String(d.getSeconds()).padStart(2,"0")
+    );
+}
+
+
+/* =====================================================
+   GPS
+===================================================== */
+
+function getCurrentGPS(){
+
+    return new Promise(function(resolve,reject){
+
+        if(!navigator.geolocation){
+
+            reject(
+                new Error("GPS_NOT_SUPPORTED")
+            );
+
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+
+            function(position){
+
+                resolve({
+                    lat:position.coords.latitude,
+                    lng:position.coords.longitude,
+                    accuracy:position.coords.accuracy
+                });
+
+            },
+
+            function(error){
+                reject(error);
+            },
+
+            {
+                enableHighAccuracy:true,
+                timeout:15000,
+                maximumAge:5000
+            }
+
+        );
+
+    });
+}
+
+
+/* =====================================================
+   SOS
+===================================================== */
+
+async function sendSOS(){
+
+    const button =
+        document.getElementById("sosBtn");
+
+    button.disabled = true;
+
+    try{
+
+        const position =
+            await getCurrentGPS();
+
+        const lat =
+            Number(position.lat);
+
+        const lng =
+            Number(position.lng);
+
+        sosLayer.clearLayers();
+
+        const marker =
+            L.circleMarker(
+                [lat,lng],
+                {
+                    radius:16,
+                    color:"#ff0000",
+                    fillColor:"#ff0000",
+                    fillOpacity:1,
+                    weight:4
+                }
+            );
+
+        marker.bindPopup(`
+            <div style="
+                font-family:Arial;
+                color:#111;
+                text-align:center;
+            ">
+                <b style="color:red;font-size:17px">
+                    🚨 SOS 긴급 위치
+                </b>
+                <hr>
+                위도<br>
+                ${lat.toFixed(6)}
+                <br><br>
+                경도<br>
+                ${lng.toFixed(6)}
+                <br><br>
+                GPS 정확도<br>
+                약 ${Math.round(position.accuracy)}m
+            </div>
+        `);
+
+        marker.addTo(sosLayer);
+
+        L.circle(
+            [lat,lng],
+            {
+                radius:100,
+                color:"red",
+                fillColor:"red",
+                fillOpacity:.25,
+                weight:3
+            }
+        ).addTo(sosLayer);
+
+        map.setView(
+            [lat,lng],
+            17
+        );
+
+        marker.openPopup();
+
+        const response =
+            await fetch(
+                GPS_API_URL,
+                {
+                    method:"POST",
+                    headers:{
+                        "Content-Type":"text/plain"
+                    },
+                    body:JSON.stringify({
+                        device:DEVICE_ID,
+                        lat:lat,
+                        lng:lng,
+                        status:"SOS",
+                        sosTime:getNowTime(),
+                        accuracy:position.accuracy
+                    })
+                }
+            );
+
+        if(!response.ok){
+            throw new Error(
+                "HTTP " + response.status
+            );
+        }
+
+        alert(
+            "🚨 SOS 긴급전송 완료"
+        );
+
+    }
+    catch(err){
+
+        console.error(err);
+
+        alert(
+            "🚨 SOS 전송 실패\nGPS 권한을 확인하세요."
+        );
+
+    }
+    finally{
+
+        button.disabled = false;
+
+    }
+
+}
+
+document
+.getElementById("sosBtn")
+.addEventListener(
+    "click",
+    sendSOS
+);
+
+
+/* =====================================================
+   CURRENT LOCATION
+===================================================== */
+
+async function useCurrentLocationForReport(){
+
+    const button =
+        document.getElementById(
+            "currentReportLocationBtn"
+        );
+
+    button.disabled = true;
+
+    try{
+
+        const position =
+            await getCurrentGPS();
+
+        const lat =
+            Number(position.lat);
+
+        const lng =
+            Number(position.lng);
+
+        latEl.value =
+            lat.toFixed(6);
+
+        lngEl.value =
+            lng.toFixed(6);
+
+        map.setView(
+            [lat,lng],
+            17
+        );
+
+        setReportPreview(
+            lat,
+            lng
+        );
+
+    }
+    catch(err){
+
+        alert(
+            "현재 위치를 가져오지 못했습니다.\nGPS 권한을 확인하세요."
+        );
+
+    }
+    finally{
+
+        button.disabled = false;
+
+    }
+
+}
+
+document
+.getElementById("currentReportLocationBtn")
+.addEventListener(
+    "click",
+    useCurrentLocationForReport
+);
+
+
+/* =====================================================
+   PREVIEW
+===================================================== */
+
+function setReportPreview(lat,lng){
+
+    if(reportPreviewMarker){
+        map.removeLayer(reportPreviewMarker);
+    }
+
+    reportPreviewMarker =
+        L.marker([lat,lng])
+        .addTo(map)
+        .bindPopup("📍 신고 위치")
+        .openPopup();
+}
+
+
+/* =====================================================
+   KAKAO
+===================================================== */
+
+let addressSearchTimer = null;
+
+function searchAddress(){
+
+    const address =
+        addressEl.value.trim();
+
+    if(!address){
+
+        latEl.value="";
+        lngEl.value="";
+
+        return;
+    }
+
+    if(
+        typeof kakao === "undefined" ||
+        !kakao.maps ||
+        !kakao.maps.services
+    ){
+
+        return;
+    }
+
+    const geocoder =
+        new kakao.maps.services.Geocoder();
+
+    geocoder.addressSearch(
+        address,
+        function(result,status){
+
+            if(
+                status ===
+                kakao.maps.services.Status.OK
+            ){
+
+                const lat =
+                    parseFloat(result[0].y);
+
+                const lng =
+                    parseFloat(result[0].x);
+
+                latEl.value =
+                    lat.toFixed(6);
+
+                lngEl.value =
+                    lng.toFixed(6);
+
+                map.setView(
+                    [lat,lng],
+                    17
+                );
+
+                setReportPreview(
+                    lat,
+                    lng
+                );
+
+            }
+
+        }
+    );
+}
+
+addressEl.addEventListener(
+    "input",
+    function(){
+
+        clearTimeout(
+            addressSearchTimer
+        );
+
+        latEl.value="";
+        lngEl.value="";
+
+        if(
+            addressEl.value.trim().length < 2
+        ){
+            return;
+        }
+
+        addressSearchTimer =
+            setTimeout(
+                searchAddress,
+                500
+            );
+
+    }
+);
+
+
+/* =====================================================
+   TYPE
+===================================================== */
+
+document
+.querySelectorAll(".type-btn")
+.forEach(function(btn){
+
+    btn.addEventListener(
+        "click",
+        function(){
+
+            document
+            .querySelectorAll(".type-btn")
+            .forEach(function(b){
+                b.classList.remove("active");
+            });
+
+            btn.classList.add("active");
+
+            selectedType =
+                btn.dataset.type;
+
+        }
+    );
+
+});
+
+
+/* =====================================================
+   SUBMIT
+===================================================== */
+
+
+async function submitData(){
+
+    const condition =
+        conditionEl.value.trim();
+
+    const phone =
+        phoneEl.value.trim();
+
+    const address =
+        addressEl.value.trim();
+
+    const lat =
+        Number(latEl.value);
+
+    const lng =
+        Number(lngEl.value);
+
+
+    if(!selectedType){
+        alert("신고 유형을 선택하세요.");
+        return;
+    }
+
+    if(!condition){
+        alert("상황 입력 필수");
+        return;
+    }
+
+    if(!phone){
+        alert("연락처 입력 필수");
+        return;
+    }
+
+    if(!address){
+        alert("주소 입력 필수");
+        return;
+    }
+
+    if(
+        !Number.isFinite(lat) ||
+        !Number.isFinite(lng)
+    ){
+
+        alert(
+            "주소 좌표를 확인하세요."
+        );
+
+        return;
+    }
+
+    if(!/^[0-9\-]{9,13}$/.test(phone)){
+
+        alert(
+            "연락처 형식 오류"
+        );
+
+        return;
+    }
+
+
+    const button =
+        document.getElementById(
+            "submitReportBtn"
+        );
+
+    button.disabled = true;
+
+
+    try{
+
+        const payload = {
+
+            action:"create",
+
+            type:selectedType,
+
+            symptom:condition,
+
+            phone:phone,
+
+            address:address,
+
+            lat:lat,
+
+            lng:lng,
+
+            kakaoMapURL:
+                "https://map.kakao.com/link/map/" +
+                lat + "," + lng,
+
+            createdAt:getNowTime(),
+
+            status:"RECEIVED"
+
+        };
+
+
+        const result =
+            await postAccident(
+                payload
+            );
+
+
+        /*
+         * Apps Script는
+         *
+         * result:"success"
+         *
+         * 를 반환하므로
+         * success:true가 아니라
+         * result를 확인해야 합니다.
+         */
+
+        if(
+            !result ||
+            result.result !== "success"
+        ){
+
+            throw new Error(
+                result && result.message
+                ? result.message
+                : "신고 접수 실패"
+            );
+
+        }
+
+
+        alert(
+            "🆘 신고가 접수되었습니다."
+        );
+
+
+        resetReportForm();
+
+        await loadAccidents();
+
+    }
+    catch(err){
+
+        console.error(err);
+
+        alert(
+            "신고 접수 실패\n\n" +
+            err.message
+        );
+
+    }
+    finally{
+
+        button.disabled = false;
+
+    }
+
+}
+
+
+document
+.getElementById("submitReportBtn")
+.addEventListener(
+    "click",
+    submitData
+);
+
+
+
+
+/* =====================================================
+   POST API
+===================================================== */
+
+async function postAccident(payload){
+
+    const response =
+        await fetch(
+            ACCIDENT_API_URL,
+            {
+                method:"POST",
+                headers:{
+                    "Content-Type":
+                        "text/plain;charset=utf-8"
+                },
+                body:
+                    JSON.stringify(payload)
+            }
+        );
+
+    const text =
+        await response.text();
+
+    let data;
+
+    try{
+        data = JSON.parse(text);
+    }
+    catch(e){
+        data = {
+            success:false,
+            message:text
+        };
+    }
+
+    if(!response.ok){
+
+        throw new Error(
+            data.message ||
+            "HTTP " + response.status
+        );
+
+    }
+
+    return data;
+}
+
+
+/* =====================================================
+   RESET
+===================================================== */
+
+function resetReportForm(){
+
+    conditionEl.value="";
+    phoneEl.value="";
+    addressEl.value="";
+    latEl.value="";
+    lngEl.value="";
+
+    selectedType="";
+
+    document
+    .querySelectorAll(".type-btn")
+    .forEach(function(btn){
+        btn.classList.remove("active");
+    });
+
+    if(reportPreviewMarker){
+
+        map.removeLayer(
+            reportPreviewMarker
+        );
+
+        reportPreviewMarker=null;
+
+    }
+
+}
+
+
+/* =====================================================
+   FIELD
+===================================================== */
+
+function getAccidentField(item,names){
+
+    for(const name of names){
+
+        if(
+            item[name] !== undefined &&
+            item[name] !== null &&
+            String(item[name]).trim() !== ""
+        ){
+
+            return item[name];
+
+        }
+
+    }
+
+    return "";
+}
+
+
+/* =====================================================
+   ID
+===================================================== */
+
+function getAccidentId(item,index){
+
+    const value =
+        getAccidentField(
+            item,
+            [
+                "id",
+                "ID",
+                "caseId",
+                "caseID",
+                "사고ID"
+            ]
+        );
+
+    if(value !== ""){
+        return String(value);
+    }
+
+    return (
+        String(
+            getAccidentField(
+                item,
+                [
+                    "createdAt",
+                    "timestamp"
+                ]
+            )
+        ) +
+        "_" +
+        String(index)
+    );
+
+}
+
+
+/* =====================================================
+   START
+===================================================== */
+
+function getAccidentStartTime(item){
+
+    return getAccidentField(
+        item,
+        [
+            "startTime",
+            "createdAt",
+            "timestamp",
+            "time",
+            "date",
+            "접수시간"
+        ]
+    );
+}
+
+
+/* =====================================================
+   STATUS
+===================================================== */
+
+function normalizeStatus(value){
+
+    const status =
+        String(value || "")
+        .trim()
+        .toUpperCase();
+
+    if(
+        status === "DONE" ||
+        status === "완료" ||
+        status === "처리완료" ||
+        status === "사고처리완료"
+    ){
+        return "DONE";
+    }
+
+    if(
+        status === "ARRIVED" ||
+        status === "도착" ||
+        status === "현장도착"
+    ){
+        return "ARRIVED";
+    }
+
+    return "RECEIVED";
+}
+
+
+/* =====================================================
+   ELAPSED
+===================================================== */
+
+function getElapsedTime(startTime,endTime=null){
+
+    if(!startTime){
+        return "-";
+    }
+
+    const start =
+        new Date(startTime);
+
+    if(Number.isNaN(start.getTime())){
+        return "-";
+    }
+
+    const end =
+        endTime
+        ? new Date(endTime)
+        : new Date();
+
+    if(Number.isNaN(end.getTime())){
+        return "-";
+    }
+
+    let diff =
+        Math.floor(
+            (end-start)/1000
+        );
+
+    if(diff<0){
+        diff=0;
+    }
+
+    const hour =
+        Math.floor(diff/3600);
+
+    diff%=3600;
+
+    const minute =
+        Math.floor(diff/60);
+
+    const second =
+        diff%60;
+
+    return (
+        String(hour).padStart(2,"0") +
+        ":" +
+        String(minute).padStart(2,"0") +
+        ":" +
+        String(second).padStart(2,"0")
+    );
+}
+
+
+/* =====================================================
+   LOAD
+===================================================== */
+
+async function loadAccidents(){
+
+    if(accidentLoading){
+        return;
+    }
+
+    accidentLoading=true;
+
+    try{
+
+        const response =
+            await fetch(
+                ACCIDENT_API_URL +
+                "?action=list&t=" +
+                Date.now(),
+                {
+                    cache:"no-store"
+                }
+            );
+
+        if(!response.ok){
+
+            throw new Error(
+                "HTTP " +
+                response.status
+            );
+        }
+
+        const data =
+            await response.json();
+
+        let rows = [];
+
+        if(Array.isArray(data)){
+            rows=data;
+        }
+        else if(
+            data &&
+            Array.isArray(data.data)
+        ){
+            rows=data.data;
+        }
+        else if(
+            data &&
+            Array.isArray(data.items)
+        ){
+            rows=data.items;
+        }
+        else if(
+            data &&
+            Array.isArray(data.rows)
+        ){
+            rows=data.rows;
+        }
+
+        renderAccidents(rows);
+
+    }
+    catch(err){
+
+        console.error(
+            "사고 목록 조회 오류:",
+            err
+        );
+
+        if(firstLoad){
+
+            caseList.innerHTML =
+                `
+                <div class="case-card">
+                    ⚠ 사고 목록을 불러오지 못했습니다.
+                    <br><br>
+                    ${escapeHTML(err.message)}
+                </div>
+                `;
+
+        }
+
+    }
+    finally{
+
+        accidentLoading=false;
+
+    }
+
+}
+
+
+/* =====================================================
+   RENDER
+===================================================== */
+
+function renderAccidents(data){
+
+    accidentLayer.clearLayers();
+
+    const rows =
+        [...data].sort(
+            function(a,b){
+
+                const ta =
+                    new Date(
+                        getAccidentStartTime(a)
+                    ).getTime();
+
+                const tb =
+                    new Date(
+                        getAccidentStartTime(b)
+                    ).getTime();
+
+                if(Number.isNaN(ta)) return 1;
+                if(Number.isNaN(tb)) return -1;
+
+                return tb-ta;
+            }
+        );
+
+    let html="";
+
+    rows.forEach(
+        function(item,index){
+
+            const id =
+                getAccidentId(
+                    item,
+                    index
+                );
+
+            const status =
+                normalizeStatus(
+                    getAccidentField(
+                        item,
+                        [
+                            "status",
+                            "state",
+                            "상태",
+                            "처리상태"
+                        ]
+                    )
+                );
+
+            const startTime =
+                getAccidentStartTime(item);
+
+            const endTime =
+                getAccidentField(
+                    item,
+                    [
+                        "finishTime",
+                        "endTime",
+                        "completedAt",
+                        "doneAt",
+                        "완료시간"
+                    ]
+                );
+
+            const lat =
+                Number(
+                    getAccidentField(
+                        item,
+                        [
+                            "lat",
+                            "latitude",
+                            "위도"
+                        ]
+                    )
+                );
+
+            const lng =
+                Number(
+                    getAccidentField(
+                        item,
+                        [
+                            "lng",
+                            "longitude",
+                            "경도"
+                        ]
+                    )
+                );
+
+            const address =
+                getAccidentField(
+                    item,
+                    [
+                        "address",
+                        "주소",
+                        "location",
+                        "장소"
+                    ]
+                );
+
+            const type =
+                getAccidentField(
+                    item,
+                    [
+                        "type",
+                        "accidentType",
+                        "신고유형",
+                        "유형"
+                    ]
+                ) || "기타";
+
+            const symptom =
+                getAccidentField(
+                    item,
+                    [
+                        "symptom",
+                        "condition",
+                        "description",
+                        "상황",
+                        "내용"
+                    ]
+                );
+
+            const phone =
+                getAccidentField(
+                    item,
+                    [
+                        "phone",
+                        "tel",
+                        "telephone",
+                        "연락처"
+                    ]
+                );
+
+            const kakaoMapURL =
+                getAccidentField(
+                    item,
+                    [
+                        "kakaoMapURL",
+                        "kakaoUrl",
+                        "mapUrl",
+                        "지도URL"
+                    ]
+                );
+
+            const elapsed =
+                getElapsedTime(
+                    startTime,
+                    endTime || null
+                );
+
+            let overdue=false;
+
+            if(
+                status==="RECEIVED" &&
+                startTime
+            ){
+
+                const start =
+                    new Date(
+                        startTime
+                    ).getTime();
+
+                if(Number.isFinite(start)){
+
+                    overdue =
+                        (
+                            Date.now()-start
+                        )/60000 >= 10;
+
+                }
+
+            }
+
+            let statusText="접수";
+            let statusClass="status-received";
+
+            if(status==="ARRIVED"){
+
+                statusText="현장도착";
+                statusClass="status-arrived";
+
+            }
+
+            if(status==="DONE"){
+
+                statusText="처리완료";
+                statusClass="status-done";
+
+            }
+
+            /* 지도 */
+
+            if(
+                Number.isFinite(lat) &&
+                Number.isFinite(lng)
+            ){
+
+                let markerColor="red";
+
+                if(status==="ARRIVED"){
+                    markerColor="orange";
+                }
+
+                if(status==="DONE"){
+                    markerColor="#777";
+                }
+
+                const marker =
+                    L.circleMarker(
+                        [lat,lng],
+                        {
+                            radius:
+                                status==="DONE"
+                                ? 8
+                                : 11,
+                            color:markerColor,
+                            fillColor:markerColor,
+                            fillOpacity:.85,
+                            weight:3
+                        }
+                    );
+
+                marker.bindPopup(`
+                    <div style="
+                        font-family:Arial,sans-serif;
+                        min-width:220px;
+                        color:#111;
+                    ">
+                        <b>🆘 산악사고 신고</b>
+                        <hr>
+                        <b>유형:</b>
+                        ${escapeHTML(type)}
+                        <br>
+                        <b>상태:</b>
+                        ${escapeHTML(statusText)}
+                        <br>
+                        <b>주소:</b>
+                        ${escapeHTML(address || "-")}
+                        <br>
+                        <b>상황:</b>
+                        ${escapeHTML(symptom || "-")}
+                        <br>
+                        <b>접수:</b>
+                        ${escapeHTML(startTime || "-")}
+                        <br>
+                        <b>경과:</b>
+                        ${escapeHTML(elapsed)}
+                        <br><br>
+
+                        ${
+                            phone
+                            ? `
+                            <a
+                                href="tel:${escapeHTML(phone)}"
+                                style="
+                                    display:inline-block;
+                                    padding:6px 10px;
+                                    background:#700000;
+                                    color:white;
+                                    text-decoration:none;
+                                    border-radius:4px;
+                                "
+                            >
+                                📞 연락
+                            </a>
+                            `
+                            : ""
+                        }
+
+                        ${
+                            kakaoMapURL
+                            ? `
+                            <a
+                                href="${escapeAttribute(kakaoMapURL)}"
+                                target="_blank"
+                                rel="noopener"
+                                style="
+                                    display:inline-block;
+                                    padding:6px 10px;
+                                    background:#1769aa;
+                                    color:white;
+                                    text-decoration:none;
+                                    border-radius:4px;
+                                    margin-left:4px;
+                                "
+                            >
+                                🗺 지도
+                            </a>
+                            `
+                            : ""
+                        }
+
+                    </div>
+                `);
+
+                marker.on(
+                    "click",
+                    function(){
+                        map.setView(
+                            [lat,lng],
+                            17
+                        );
+                    }
+                );
+
+                marker.addTo(
+                    accidentLayer
+                );
+
+            }
+
+            let cardClass="case-card";
+
+            if(status==="DONE"){
+                cardClass+=" done";
+            }
+            else if(status==="ARRIVED"){
+                cardClass+=" arrived";
+            }
+
+            if(
+                overdue &&
+                status==="RECEIVED"
+            ){
+                cardClass+=" blink";
+            }
+
+            let typeIcon="🆘";
+
+            if(type==="응급환자") typeIcon="🚑";
+            else if(type==="구조출동") typeIcon="🚓";
+            else if(type==="조난") typeIcon="🆘";
+            else if(type==="기타") typeIcon="✏️";
+
+            let actionButtons="";
+
+            if(status==="RECEIVED"){
+
+                actionButtons=`
+                    <button
+                        class="arrive-btn"
+                        type="button"
+                        onclick="updateAccidentStatus('${escapeJS(id)}','ARRIVED')"
+                    >
+                        🚓 현장 도착
+                    </button>
+                `;
+
+            }
+
+            if(status==="ARRIVED"){
+
+                actionButtons=`
+                    <button
+                        class="complete-btn"
+                        type="button"
+                        onclick="updateAccidentStatus('${escapeJS(id)}','DONE')"
+                    >
+                        ✅ 구조 완료
+                    </button>
+                `;
+
+            }
+
+            const manageButtons=`
+                <div style="
+                    display:grid;
+                    grid-template-columns:1fr 1fr;
+                    gap:5px;
+                    margin-top:6px;
+                ">
+
+                    <button
+                        type="button"
+                        onclick="editAccident('${escapeJS(id)}')"
+                        style="
+                            background:#174a70;
+                            color:white;
+                            border:1px solid #2196f3;
+                            margin:0;
+                        "
+                    >
+                        ✏ 신고 수정
+                    </button>
+
+                    <button
+                        type="button"
+                        onclick="deleteAccident('${escapeJS(id)}')"
+                        style="
+                            background:#700000;
+                            color:white;
+                            border:1px solid #ff3333;
+                            margin:0;
+                        "
+                    >
+                        🗑 신고 삭제
+                    </button>
+
+                </div>
+            `;
+
+            const mapButton =
+                Number.isFinite(lat) &&
+                Number.isFinite(lng)
+                ?
+                `
+                <button
+                    type="button"
+                    onclick="focusAccident(${lat},${lng})"
+                    style="
+                        background:#003d5c;
+                        color:white;
+                        border:1px solid #008dcc;
+                        margin-top:6px;
+                    "
+                >
+                    📍 사고 위치 보기
+                </button>
+                `
+                :
+                "";
+
+            html+=`
+                <div
+                    class="${cardClass}"
+                    data-case-id="${escapeHTML(id)}"
+                >
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        align-items:center;
+                        gap:8px;
+                    ">
+
+                        <strong>
+                            ${typeIcon}
+                            ${escapeHTML(type)}
+                        </strong>
+
+                        <span class="${statusClass}">
+                            ${statusText}
+                        </span>
+
+                    </div>
+
+                    ${
+                        overdue &&
+                        status==="RECEIVED"
+                        ?
+                        `
+                        <div style="
+                            color:#ff3333;
+                            font-weight:bold;
+                            margin-top:6px;
+                        ">
+                            ⚠ 10분 이상 미처리
+                        </div>
+                        `
+                        :
+                        ""
+                    }
+
+                    <div style="margin-top:8px">
+                        <b>상황</b><br>
+                        ${escapeHTML(symptom || "-")}
+                    </div>
+
+                    <div style="margin-top:6px">
+                        <b>주소</b><br>
+                        ${escapeHTML(address || "-")}
+                    </div>
+
+                    <div style="margin-top:6px">
+                        <b>연락처</b><br>
+                        ${
+                            phone
+                            ?
+                            `
+                            <a
+                                href="tel:${escapeAttribute(phone)}"
+                                style="color:#00ff9d"
+                            >
+                                ${escapeHTML(phone)}
+                            </a>
+                            `
+                            :
+                            "-"
+                        }
+                    </div>
+
+                    <div class="time" style="margin-top:6px">
+                        접수:
+                        ${escapeHTML(startTime || "-")}
+                    </div>
+
+                    <div class="time">
+                        경과:
+                        ${escapeHTML(elapsed)}
+                    </div>
+
+                    ${
+                        endTime
+                        ?
+                        `
+                        <div class="time">
+                            완료:
+                            ${escapeHTML(endTime)}
+                        </div>
+                        `
+                        :
+                        ""
+                    }
+
+                    ${
+                        Number.isFinite(lat) &&
+                        Number.isFinite(lng)
+                        ?
+                        `
+                        <div class="coord">
+                            Lat: ${lat.toFixed(6)}
+                            <br>
+                            Lng: ${lng.toFixed(6)}
+                        </div>
+                        `
+                        :
+                        ""
+                    }
+
+                    ${mapButton}
+
+                    ${actionButtons}
+
+                    ${manageButtons}
+
+                </div>
+            `;
+
+            if(
+                !firstLoad &&
+                !knownIds.has(id)
+            ){
+                playAlert();
+            }
+
+            if(
+                overdue &&
+                !alertedOverdueIds.has(id)
+            ){
+
+                alertedOverdueIds.add(id);
+
+                if(!firstLoad){
+                    playAlert();
+                }
+
+            }
+
+            knownIds.add(id);
+
+        }
+    );
+
+    caseList.innerHTML =
+        html ||
+        `
+        <div class="case-card">
+            현재 접수된 사고가 없습니다.
+        </div>
+        `;
+
+    firstLoad=false;
+}
+
+
+/* =====================================================
+   ESCAPE
+===================================================== */
+
+function escapeHTML(value){
+
+    return String(value ?? "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+}
+
+function escapeAttribute(value){
+
+    return String(value ?? "")
+        .replace(/\\/g,"\\\\")
+        .replace(/"/g,"&quot;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;");
+}
+
+function escapeJS(value){
+
+    return String(value ?? "")
+        .replace(/\\/g,"\\\\")
+        .replace(/'/g,"\\'")
+        .replace(/\r/g,"\\r")
+        .replace(/\n/g,"\\n");
+}
+
+
+/* =====================================================
+   FOCUS
+===================================================== */
+
+function focusAccident(lat,lng){
+
+    lat=Number(lat);
+    lng=Number(lng);
+
+    if(
+        !Number.isFinite(lat) ||
+        !Number.isFinite(lng)
+    ){
+        return;
+    }
+
+    map.setView(
+        [lat,lng],
+        17
+    );
+
+    L.popup()
+    .setLatLng([lat,lng])
+    .setContent("🆘 사고 신고 위치")
+    .openOn(map);
+}
+
+
+/* =====================================================
+   EDIT
+===================================================== */
+
+async function editAccident(caseId){
+
+    try{
+
+        const response =
+            await fetch(
+                ACCIDENT_API_URL +
+                "?action=list&t=" +
+                Date.now(),
+                {
+                    cache:"no-store"
+                }
+            );
+
+        const data =
+            await response.json();
+
+        let rows =
+            Array.isArray(data)
+            ? data
+            : (
+                Array.isArray(data.data)
+                ? data.data
+                : []
+            );
+
+        let item=null;
+
+        rows.forEach(
+            function(row,index){
+
+                if(
+                    String(
+                        getAccidentId(row,index)
+                    ) === String(caseId)
+                ){
+                    item=row;
+                }
+
+            }
+        );
+
+        if(!item){
+
+            alert(
+                "수정할 신고 내용을 찾을 수 없습니다."
+            );
+
+            return;
+        }
+
+        conditionEl.value =
+            getAccidentField(
+                item,
+                [
+                    "symptom",
+                    "condition",
+                    "description",
+                    "상황",
+                    "내용"
+                ]
+            );
+
+        phoneEl.value =
+            getAccidentField(
+                item,
+                [
+                    "phone",
+                    "tel",
+                    "telephone",
+                    "연락처"
+                ]
+            );
+
+        addressEl.value =
+            getAccidentField(
+                item,
+                [
+                    "address",
+                    "주소",
+                    "location",
+                    "장소"
+                ]
+            );
+
+        latEl.value =
+            getAccidentField(
+                item,
+                [
+                    "lat",
+                    "latitude",
+                    "위도"
+                ]
+            );
+
+        lngEl.value =
+    getAccidentField(
+        item,
+        [
+            "lng",
+            "longitude",
+            "경도"
+        ]
+    );
+
+
+        selectedType =
+            getAccidentField(
+                item,
+                [
+                    "type",
+                    "accidentType",
+                    "신고유형",
+                    "유형"
+                ]
+            );
+
+        document
+        .querySelectorAll(".type-btn")
+        .forEach(
+            function(btn){
+
+                btn.classList.toggle(
+                    "active",
+                    btn.dataset.type === selectedType
+                );
+
+            }
+        );
+
+        const editLat=Number(latEl.value);
+        const editLng=Number(lngEl.value);
+
+        if(
+            Number.isFinite(editLat) &&
+            Number.isFinite(editLng)
+        ){
+
+            map.setView(
+                [editLat,editLng],
+                17
+            );
+
+            setReportPreview(
+                editLat,
+                editLng
+            );
+
+        }
+
+        if(
+            !confirm(
+                "✏ 현재 입력창의 내용으로 신고를 수정하시겠습니까?"
+            )
+        ){
+            return;
+        }
+
+        await updateAccident(
+            caseId
+        );
+
+    }
+    catch(err){
+
+        console.error(err);
+
+        alert(
+            "신고 수정 중 오류가 발생했습니다.\n" +
+            err.message
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   UPDATE
+===================================================== */
+
+async function updateAccident(caseId){
+
+    const lat =
+        Number(latEl.value);
+
+    const lng =
+        Number(lngEl.value);
+
+
+    if(
+        !caseId ||
+        !selectedType ||
+        !conditionEl.value.trim() ||
+        !phoneEl.value.trim() ||
+        !addressEl.value.trim() ||
+        !Number.isFinite(lat) ||
+        !Number.isFinite(lng)
+    ){
+
+        alert(
+            "수정할 신고 정보를 모두 확인하세요."
+        );
+
+        return;
+
+    }
+
+
+    try{
+
+        const result =
+            await postAccident({
+
+                action:"update",
+
+                id:String(caseId),
+
+                type:selectedType,
+
+                symptom:
+                    conditionEl.value.trim(),
+
+                phone:
+                    phoneEl.value.trim(),
+
+                address:
+                    addressEl.value.trim(),
+
+                lat:lat,
+
+                lng:lng,
+
+                kakaoMapURL:
+                    "https://map.kakao.com/link/map/" +
+                    lat + "," + lng
+
+            });
+
+
+        /*
+         * Apps Script 응답 형식에 맞춤
+         */
+
+        if(
+            !result ||
+            result.result !== "success"
+        ){
+
+            throw new Error(
+                result &&
+                result.message
+                ?
+                result.message
+                :
+                "수정 실패"
+            );
+
+        }
+
+
+        alert(
+            "✏ 신고 내용이 수정되었습니다."
+        );
+
+
+        resetReportForm();
+
+        await loadAccidents();
+
+    }
+    catch(err){
+
+        console.error(err);
+
+        alert(
+            "신고 수정 실패\n\n" +
+            err.message
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   DELETE
+===================================================== */
+
+
+async function deleteAccident(caseId){
+
+    if(!caseId){
+
+        alert(
+            "사고 ID가 없습니다."
+        );
+
+        return;
+
+    }
+
+
+    /*
+     * 삭제 비밀번호 입력
+     */
+
+    const password =
+        prompt(
+            "🔐 신고 삭제 비밀번호를 입력하세요."
+        );
+
+
+    if(password === null){
+        return;
+    }
+
+
+    if(password.trim() === ""){
+
+        alert(
+            "❌ 삭제 비밀번호를 입력하세요."
+        );
+
+        return;
+
+    }
+
+
+    /*
+     * 최종 삭제 확인
+     */
+
+    if(
+        !confirm(
+            "⚠ 신고 내용을 삭제하시겠습니까?\n\n" +
+            "삭제하면 Google Sheets에서도 해당 신고가 삭제됩니다."
+        )
+    ){
+
+        return;
+
+    }
+
+
+    try{
+
+        /*
+         * 버튼 중복 클릭 방지
+         */
+
+        const cards =
+            document.querySelectorAll(
+                `[data-case-id="${CSS.escape(String(caseId))}"]`
+            );
+
+
+        cards.forEach(
+            function(card){
+
+                card.style.opacity = ".5";
+
+                card.style.pointerEvents =
+                    "none";
+
+            }
+        );
+
+
+        /*
+         * Apps Script로
+         * 삭제 비밀번호까지 전달
+         */
+
+        const result =
+            await postAccident({
+
+                action:"delete",
+
+                id:String(caseId),
+
+                password:password
+
+            });
+
+
+        console.log(
+            "삭제 결과:",
+            result
+        );
+
+
+        /*
+         * Apps Script 응답:
+         *
+         * {
+         *   result:"success"
+         * }
+         */
+
+        if(
+            !result ||
+            result.result !== "success"
+        ){
+
+            throw new Error(
+                result &&
+                result.message
+                ?
+                result.message
+                :
+                "삭제 실패"
+            );
+
+        }
+
+
+        alert(
+            "🗑 신고가 삭제되었습니다."
+        );
+
+
+        /*
+         * 목록 새로고침
+         */
+
+        await loadAccidents();
+
+    }
+    catch(err){
+
+        console.error(
+            "삭제 오류:",
+            err
+        );
+
+
+        alert(
+            "❌ 신고 삭제 실패\n\n" +
+            err.message
+        );
+
+
+        await loadAccidents();
+
+    }
+
+}
+
+
+
+/* =====================================================
+   STATUS
+===================================================== */
+
+async function updateAccidentStatus(
+    caseId,
+    newStatus
+){
+
+    const status =
+        normalizeStatus(newStatus);
+
+
+    if(!caseId){
+
+        alert(
+            "사고 ID가 없습니다."
+        );
+
+        return;
+
+    }
+
+
+    let message =
+        "처리하시겠습니까?";
+
+    let action = "";
+
+
+    if(status === "ARRIVED"){
+
+        message =
+            "🚓 현장 도착으로 변경하시겠습니까?";
+
+        action = "complete";
+
+    }
+
+
+    if(status === "DONE"){
+
+        message =
+            "✅ 구조 완료로 변경하시겠습니까?";
+
+        action = "finish";
+
+    }
+
+
+    if(!action){
+        return;
+    }
+
+
+    if(!confirm(message)){
+        return;
+    }
+
+
+    try{
+
+        const result =
+            await postAccident({
+
+                action:action,
+
+                id:String(caseId)
+
+            });
+
+
+        /*
+         * Apps Script 응답:
+         *
+         * result:"success"
+         */
+
+        if(
+            !result ||
+            result.result !== "success"
+        ){
+
+            throw new Error(
+                result &&
+                result.message
+                ?
+                result.message
+                :
+                "상태 변경 실패"
+            );
+
+        }
+
+
+        alert(
+            status === "ARRIVED"
+            ?
+            "🚓 현장 도착 처리 완료"
+            :
+            "✅ 구조 완료 처리 완료"
+        );
+
+
+        await loadAccidents();
+
+    }
+    catch(err){
+
+        console.error(err);
+
+        alert(
+            "상태 변경 실패\n\n" +
+            err.message
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   AUTO REFRESH
+===================================================== */
+
+function startAccidentAutoRefresh(){
+
+    if(accidentTimer){
+        clearInterval(accidentTimer);
+    }
+
+    loadAccidents();
+
+    accidentTimer =
+        setInterval(
+            loadAccidents,
+            5000
+        );
+}
+
+
+/* =====================================================
+   INIT
+===================================================== */
+
+window.addEventListener(
+    "load",
+    function(){
+
+        loadAccidents();
+
+        startAccidentAutoRefresh();
+
+        setTimeout(
+            function(){
+                map.invalidateSize();
+            },
+            500
+        );
+
+    }
+);
+
+document.addEventListener(
+    "visibilitychange",
+    function(){
+
+        if(!document.hidden){
+            loadAccidents();
+        }
+
+    }
+);
+
+window.addEventListener(
+    "resize",
+    function(){
+
+        setTimeout(
+            function(){
+                map.invalidateSize();
+            },
+            100
+        );
+
+    }
+);
+
+document.addEventListener(
+    "keydown",
+    function(e){
+
+        if(
+            e.ctrlKey &&
+            e.shiftKey &&
+            e.key.toLowerCase()==="r"
+        ){
+
+            e.preventDefault();
+
+            loadAccidents();
+
+        }
+
+    }
+);
+
+
+/* =====================================================
+   우클릭 / 단축키
+===================================================== */
+
+document.addEventListener(
+    "contextmenu",
+    function(e){
+        e.preventDefault();
+    }
+);
+
+document.addEventListener(
+    "keydown",
+    function(e){
+
+        if(e.key==="F12"){
+            e.preventDefault();
+        }
+
+        if(
+            e.ctrlKey &&
+            e.key.toLowerCase()==="u"
+        ){
+            e.preventDefault();
+        }
+
+        if(
+            e.ctrlKey &&
+            e.shiftKey &&
+            e.key.toLowerCase()==="i"
+        ){
+            e.preventDefault();
+        }
+
+        if(
+            e.ctrlKey &&
+            e.shiftKey &&
+            e.key.toLowerCase()==="j"
+        ){
+            e.preventDefault();
+        }
+
+        if(
+            e.ctrlKey &&
+            e.shiftKey &&
+            e.key.toLowerCase()==="c"
+        ){
+            e.preventDefault();
+        }
+
+        if(
+            e.ctrlKey &&
+            e.key.toLowerCase()==="s"
+        ){
+            e.preventDefault();
+        }
+
+    }
+);
+
+</script>
+
+</body>
+</html>
