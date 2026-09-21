@@ -484,7 +484,44 @@ L.tileLayer(
     }
 ).addTo(map);
 
+// ================= TILE =================
 
+const osm =
+L.tileLayer(
+"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+);
+
+
+const topo =
+L.tileLayer(
+"https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+);
+
+
+const satellite =
+L.tileLayer(
+"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+);
+
+
+
+osm.addTo(map);
+
+
+
+L.control.layers({
+
+"🗺 일반지도":osm,
+
+"⛰ 지형지도":topo,
+
+"🛰 위성지도":satellite
+
+
+}).addTo(map);
+
+
+      
 /* =====================================================
    COORDINATE
 ===================================================== */
