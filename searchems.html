@@ -889,6 +889,424 @@ function loadAllHistory(){
 
 }
 
+// ================= LIVE LOAD =================
+
+
+function loadLive(){
+
+
+fetch(
+
+API_URL
++
+"?live=1&t="
++
+Date.now()
+
+)
+
+.then(
+r=>r.json()
+)
+
+.then(
+renderLive
+);
+
+
+}
+
+
+// ================= LIVE RENDER =================
+
+function renderLive(data){
+
+
+    sosLayer.clearLayers();
+
+
+
+    data.forEach(p=>{
+
+
+        const lat =
+        Number(p.lat);
+
+
+        const lng =
+        Number(p.lng);
+
+
+
+        if(
+            !Number.isFinite(lat)
+            ||
+            !Number.isFinite(lng)
+        ){
+
+            return;
+
+        }
+
+
+
+        const key =
+        p.name;
+
+
+
+        const pos =
+        [
+            lat,
+            lng
+        ];
+
+
+
+
+
+        // 처음 표시
+
+        if(!markers[key]){
+
+
+            markers[key] =
+
+            L.circleMarker(
+
+                pos,
+
+                {
+
+                    radius:10,
+
+                    color:getColor(key),
+
+                    fillColor:getColor(key),
+
+                    fillOpacity:1,
+
+                    weight:3
+
+                }
+
+            )
+
+            .addTo(map)
+
+            .bindTooltip(
+
+                p.name,
+
+                {
+
+                    permanent:true,
+
+                    direction:"top",
+
+                    className:"name-label"
+
+                }
+
+            );
+
+
+
+        }
+
+
+        else{
+
+
+            markers[key]
+            .setLatLng(pos);
+
+
+
+        }
+
+
+
+
+
+
+
+        // ================= STATUS =================
+
+
+
+        if(p.status==="SOS"){
+
+
+
+            markers[key]
+            .setStyle({
+
+                color:"red",
+
+                fillColor:"red",
+
+                radius:14
+
+            });
+
+
+
+
+            L.circle(
+
+                pos,
+
+                {
+
+                    radius:50,
+
+                    color:"red",
+
+                    fillColor:"red",
+
+                    fillOpacity:0.3
+
+                }
+
+            )
+
+            .addTo(sosLayer);
+
+
+
+
+
+        }
+
+
+
+
+        else if(p.status==="SHARE"){
+
+
+
+            markers[key]
+            .setStyle({
+
+                color:"#0088ff",
+
+                fillColor:"#0088ff"
+
+            });
+
+
+
+        }
+
+
+
+
+
+        else{
+
+
+            markers[key]
+            .setStyle({
+
+                color:getColor(key),
+
+                fillColor:getColor(key)
+
+            });
+
+
+
+        }
+
+
+
+    });
+
+
+
+}
+
+
+// ================= SHARE LOCATION =================
+
+
+function shareLocation(){
+
+
+
+    if(!lastPos){
+
+
+        alert(
+            "현재 위치가 없습니다."
+        );
+
+
+        return;
+
+
+    }
+
+
+
+
+    const url =
+
+    `https://www.google.com/maps?q=${lastPos.lat},${lastPos.lng}`;
+
+
+
+
+
+
+    const text =
+
+
+`📡 구조대 위치공유
+
+UNIT : ${lastPos.name}
+
+위치 :
+${url}`;
+
+
+
+
+
+
+
+    // 서버 기록
+
+
+    fetch(
+
+        API_URL,
+
+        {
+
+
+        method:"POST",
+
+
+        headers:{
+
+
+            "Content-Type":
+            "text/plain"
+
+
+        },
+
+
+        body:JSON.stringify({
+
+
+            ...lastPos,
+
+
+            status:"SHARE"
+
+
+        })
+
+
+
+        }
+
+    );
+
+
+
+
+
+
+
+    // 휴대폰 공유
+
+
+    if(
+        navigator.share
+    ){
+
+
+
+        navigator.share({
+
+            title:
+            "구조대 위치",
+
+
+            text:text,
+
+
+            url:url
+
+
+        })
+
+        .catch(
+            console.log
+        );
+
+
+
+    }
+
+
+
+    else{
+
+
+
+        location.href =
+
+        "sms:?body="
+
+        +
+
+        encodeURIComponent(text);
+
+
+
+    }
+
+
+
+}
+
+
+
+
+// ================= CENTER =================
+
+
+function goMyLocation(){
+
+
+    if(!lastPos)
+    return;
+
+
+
+    map.setView(
+
+        [
+
+            lastPos.lat,
+
+            lastPos.lng
+
+        ],
+
+        16
+
+    );
+
+
+}
+
+      
 /* =====================================================
     HISTORY MAP
 ===================================================== */      
