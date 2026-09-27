@@ -2664,31 +2664,24 @@ function renderAccidents(
 
 
                 marker.on(
+    "click",
+    function(){
 
-                    "click",
+        // 클릭한 사고 위치로 지도 이동
+        map.flyTo(
+            [lat, lng],
+            Math.max(map.getZoom(), 17),
+            {
+                animate: true,
+                duration: 0.8
+            }
+        );
 
-                    function(){
+        // 해당 사고정보 팝업 열기
+        marker.openPopup();
 
-                        map.setView(
-
-                            [lat,lng],
-
-                            Math.max(
-                                map.getZoom(),
-                                16
-                            ),
-
-                            {
-
-                                animate:true
-
-                            }
-
-                        );
-
-                    }
-
-                );
+    }
+);
 
 
                 marker.addTo(
