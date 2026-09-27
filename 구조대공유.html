@@ -8,7 +8,7 @@
 <meta name="viewport"
       content="width=device-width, initial-scale=1.0">
 
-<title>🛰 SEARCH & RESCUE AI SYSTEM</title>
+<title>🛰 SEARCHING AI SYSTEM 구조대 공유</title>
 
 <link
     rel="stylesheet"
@@ -491,14 +491,14 @@ header{
 
 <header>
 
-🛰 SEARCH & RESCUE AI SYSTEM
+🛰 SEARCHING AI SYSTEM 구조대 공유
 
 </header>
 
 
 <div id="accidentCount">
 
-    🆘 무등산 사고정보 0건
+    🆘 사고정보 0건
 
 </div>
 
@@ -713,7 +713,6 @@ map.on(
 
     }
 );
-
 
 
 /* =====================================================
@@ -1302,7 +1301,6 @@ function escapeAttribute(value){
 
 /* =====================================================
    ESCAPE JAVASCRIPT
-   ★ 기존 오류 수정
 ===================================================== */
 
 function escapeJS(value){
@@ -1383,51 +1381,6 @@ function getKakaoMapURL(
 
 
     return "";
-
-}
-
-
-/* =====================================================
-   사고 위치 중앙 이동
-===================================================== */
-
-function focusAccident(
-    lat,
-    lng
-){
-
-    lat =
-        Number(lat);
-
-    lng =
-        Number(lng);
-
-
-    if(
-
-        !Number.isFinite(lat) ||
-        !Number.isFinite(lng)
-
-    ){
-
-        return;
-
-    }
-
-
-    map.setView(
-
-        [lat,lng],
-
-        17,
-
-        {
-
-            animate:true
-
-        }
-
-    );
 
 }
 
@@ -1581,6 +1534,7 @@ async function shareAccident(
 
 /* =====================================================
    사고 팝업
+   ★ 지도 중앙 버튼 삭제
 ===================================================== */
 
 function createAccidentPopup(
@@ -1734,37 +1688,6 @@ function createAccidentPopup(
         >
 
             📍 위치 공유
-
-        </button>
-
-        `
-
-        :
-
-        "";
-
-
-    const centerHTML =
-
-        Number.isFinite(lat) &&
-        Number.isFinite(lng)
-
-        ?
-
-        `
-
-        <button
-            type="button"
-            class="popup-button map-button"
-            onclick="
-                focusAccident(
-                    ${lat},
-                    ${lng}
-                )
-            "
-        >
-
-            🎯 지도 중앙
 
         </button>
 
@@ -1955,8 +1878,6 @@ function createAccidentPopup(
             ${mapHTML}
 
             ${shareHTML}
-
-            ${centerHTML}
 
             ${actionHTML}
 
@@ -2556,7 +2477,7 @@ function renderAccidents(
 
 
                 /*
-                 * ★ 신규 사고 판단
+                 * 신규 사고 판단
                  *
                  * 최초 로딩에서는 신규 처리하지 않음.
                  * 이후 5초 갱신에서 처음 발견된 사고만 처리.
@@ -2574,16 +2495,11 @@ function renderAccidents(
                     playAlert();
 
 
-                    /*
-                     * 신규 사고가 있을 때만
-                     * 지도 중앙 이동
-                     */
-
                     setTimeout(
 
                         function(){
 
-                            map.setView(
+                            map.flyTo(
 
                                 [lat,lng],
 
@@ -2591,7 +2507,9 @@ function renderAccidents(
 
                                 {
 
-                                    animate:true
+                                    animate:true,
+
+                                    duration:.8
 
                                 }
 
@@ -2663,25 +2581,47 @@ function renderAccidents(
                 );
 
 
+                /*
+                 * =================================================
+                 * 핀 클릭 기능
+                 *
+                 * 사고 핀을 클릭하면
+                 * 해당 사고 위치로 부드럽게 이동하고
+                 * 사고정보 팝업을 표시합니다.
+                 * =================================================
+                 */
+
                 marker.on(
-    "click",
-    function(){
 
-        // 클릭한 사고 위치로 지도 이동
-        map.flyTo(
-            [lat, lng],
-            Math.max(map.getZoom(), 17),
-            {
-                animate: true,
-                duration: 0.8
-            }
-        );
+                    "click",
 
-        // 해당 사고정보 팝업 열기
-        marker.openPopup();
+                    function(){
 
-    }
-);
+                        map.flyTo(
+
+                            [lat,lng],
+
+                            Math.max(
+                                map.getZoom(),
+                                17
+                            ),
+
+                            {
+
+                                animate:true,
+
+                                duration:.8
+
+                            }
+
+                        );
+
+
+                        marker.openPopup();
+
+                    }
+
+                );
 
 
                 marker.addTo(
