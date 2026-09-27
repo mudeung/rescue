@@ -1,0 +1,2788 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>🆘 무등산특수구조팀 산악사고 공유</title>
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+
+<!-- =====================================================
+     VWorld 2D 지도 API
+     
+     ★★★ 여기서는 API KEY를 직접 입력하지 않습니다.
+     아래 VWORLD_API_KEY 값으로 동적으로 로딩합니다.
+====================================================== -->
+
+
+<style>
+
+body{
+    margin:0;
+    font-family:Arial,sans-serif;
+    background:#111;
+    color:#fff;
+}
+
+header{
+    background:#b71c1c;
+    padding:15px;
+    text-align:center;
+    font-size:20px;
+    font-weight:bold;
+}
+
+.container{
+    padding:15px;
+}
+
+#map{
+    width:100%;
+    height:65vh;
+    min-height:450px;
+    max-height:750px;
+    margin-bottom:15px;
+    border-radius:6px;
+    overflow:hidden;
+    position:relative;
+}
+
+.card{
+    background:#1e1e1e;
+    padding:12px;
+    margin-bottom:10px;
+    border-radius:6px;
+    border:1px solid #333;
+}
+
+.card.done{
+    background:#2b2b2b;
+    opacity:0.6;
+}
+
+.time{
+    color:#ffcc00;
+    font-size:14px;
+    margin-bottom:4px;
+}
+
+.coord{
+    font-size:12px;
+    color:#aaa;
+    margin-top:6px;
+    margin-bottom:6px;
+}
+
+.maplink{
+    color:#4fc3f7;
+    font-size:13px;
+    text-decoration:none;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.maplink:hover{
+    text-decoration:underline;
+}
+
+.complete-btn{
+    background:#2e7d32;
+    margin-top:8px;
+    color:#fff;
+    border:none;
+    padding:7px 12px;
+    border-radius:4px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.complete-btn:hover{
+    opacity:0.8;
+}
+
+.complete-btn:disabled{
+    background:#555;
+    cursor:not-allowed;
+}
+
+
+/* =====================================================
+   응급환자 깜빡임
+====================================================== */
+
+@keyframes blinkEmergency{
+
+    0%{
+        box-shadow:0 0 5px #ff1744;
+    }
+
+    50%{
+        box-shadow:
+            0 0 25px #ff1744,
+            0 0 40px #ff1744;
+    }
+
+    100%{
+        box-shadow:0 0 5px #ff1744;
+    }
+
+}
+
+.card.blink{
+    animation:blinkEmergency 1s infinite;
+}
+
+
+/* =====================================================
+   상태
+====================================================== */
+
+.status{
+    display:inline-block;
+    padding:5px 9px;
+    border-radius:5px;
+    font-size:13px;
+    font-weight:bold;
+    margin-bottom:7px;
+}
+
+.status.received{
+    background:#d50000;
+    color:#fff;
+}
+
+.status.arrived{
+    background:#ef6c00;
+    color:#fff;
+}
+
+.status.done{
+    background:#777;
+    color:#fff;
+}
+
+
+/* =====================================================
+   VWorld 팝업
+====================================================== */
+
+.vworld-popup{
+    position:absolute;
+
+    background:#fff;
+
+    color:#222;
+
+    min-width:250px;
+    max-width:320px;
+
+    padding:12px;
+
+    border-radius:8px;
+
+    border:1px solid #ccc;
+
+    box-shadow:
+        0 3px 12px
+        rgba(0,0,0,0.35);
+
+    transform:
+        translate(-50%, calc(-100% - 18px));
+
+    z-index:9999;
+
+    font-family:Arial,sans-serif;
+
+    font-size:13px;
+
+    line-height:1.5;
+}
+
+.vworld-popup:after{
+
+    content:"";
+
+    position:absolute;
+
+    left:50%;
+
+    bottom:-10px;
+
+    margin-left:-10px;
+
+    border-width:10px 10px 0 10px;
+
+    border-style:solid;
+
+    border-color:
+        #fff transparent transparent transparent;
+
+}
+
+.vworld-popup-close{
+
+    position:absolute;
+
+    right:7px;
+
+    top:4px;
+
+    border:none;
+
+    background:none;
+
+    color:#555;
+
+    font-size:17px;
+
+    cursor:pointer;
+
+    font-weight:bold;
+
+}
+
+
+/* =====================================================
+   VWorld 팝업 내부 링크
+====================================================== */
+
+.vworld-map-btn{
+
+    display:inline-block;
+
+    margin-top:8px;
+
+    padding:7px 10px;
+
+    background:#1976d2;
+
+    color:#fff;
+
+    border-radius:4px;
+
+    text-decoration:none;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
+}
+
+.vworld-map-btn:hover{
+
+    opacity:0.85;
+
+}
+
+
+/* =====================================================
+   모바일
+====================================================== */
+
+@media(max-width:600px){
+
+    header{
+        font-size:18px;
+        padding:13px;
+    }
+
+    .container{
+        padding:10px;
+    }
+
+    #map{
+        height:65vh;
+        min-height:400px;
+        max-height:none;
+    }
+
+    .vworld-popup{
+
+        min-width:230px;
+        max-width:280px;
+
+        font-size:12px;
+
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<header>
+    🆘 무등산특수구조팀 산악사고 공유
+</header>
+
+
+<audio id="alertSound">
+
+    <source
+        src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg"
+        type="audio/ogg"
+    >
+
+</audio>
+
+
+<div class="container">
+
+    <div id="map"></div>
+
+</div>
+
+
+<img
+    src="https://mudeung.github.io/rescue/logo19_192.png"
+    alt="달콩이 이미지"
+    style="
+        display:block;
+        margin:0 auto;
+        max-width:100%;
+    "
+>
+
+
+<div class="container">
+
+    <div id="listArea">
+        로딩중...
+    </div>
+
+</div>
+
+
+<br>
+
+
+<script>
+
+/* =====================================================
+   ★★★★★ VWorld API KEY ★★★★★
+
+   발급받은 VWorld API 인증키를 여기에 입력하세요.
+
+   예:
+   const VWORLD_API_KEY =
+       "12345678-ABCD-1234-ABCD-123456789ABC";
+
+====================================================== */
+
+const VWORLD_API_KEY =
+    "880583C3-EBB3-491F-B675-F7021E5E5399";
+
+
+/* =====================================================
+   Google Apps Script API
+====================================================== */
+
+const API_URL =
+    "https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
+
+
+/* =====================================================
+   VWorld 지도 API 동적 로딩
+====================================================== */
+
+function loadVWorldMapScript(){
+
+    return new Promise(
+        function(resolve,reject){
+
+            if(
+                typeof vw !== "undefined" &&
+                typeof ol !== "undefined"
+            ){
+
+                resolve();
+
+                return;
+
+            }
+
+            const script =
+                document.createElement("script");
+
+            script.type =
+                "text/javascript";
+
+            script.src =
+                "https://map.vworld.kr/js/vworldMapInit.js.do" +
+                "?version=2.0" +
+                "&apiKey=" +
+                encodeURIComponent(
+                    VWORLD_API_KEY
+                );
+
+            script.onload =
+                function(){
+
+                    resolve();
+
+                };
+
+            script.onerror =
+                function(){
+
+                    reject(
+                        new Error(
+                            "VWorld 지도 API를 불러오지 못했습니다."
+                        )
+                    );
+
+                };
+
+            document.head.appendChild(
+                script
+            );
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   지도
+====================================================== */
+
+let map = null;
+
+let markers = [];
+
+let openedInfoWindow = null;
+
+let openedMarker = null;
+
+
+/* =====================================================
+   VWorld 지도 초기화
+====================================================== */
+
+function initMap(){
+
+    if(
+        typeof vw === "undefined" ||
+        typeof ol === "undefined"
+    ){
+
+        throw new Error(
+            "VWorld 지도 라이브러리가 준비되지 않았습니다."
+        );
+
+    }
+
+
+    vw.ol3.MapOptions = {
+
+        basemapType:
+            vw.ol3.BasemapType.GRAPHIC,
+
+        controlDensity:
+            vw.ol3.DensityType.FULL,
+
+        interactionDensity:
+            vw.ol3.DensityType.BASIC,
+
+        controlsAutoArrange:
+            true,
+
+        homePosition:
+            vw.ol3.CameraPosition,
+
+        initPosition:
+            vw.ol3.CameraPosition
+
+    };
+
+
+    map =
+        new vw.ol3.Map(
+            "map",
+            vw.ol3.MapOptions
+        );
+
+
+    /* =================================================
+       무등산 주변으로 초기 중심 이동
+    ================================================= */
+
+    map.getView().setCenter(
+
+        ol.proj.transform(
+
+            [
+                126.9902,
+                35.1345
+            ],
+
+            "EPSG:4326",
+
+            "EPSG:900913"
+
+        )
+
+    );
+
+
+    map.getView().setZoom(11);
+
+}
+
+
+/* =====================================================
+   DOM
+====================================================== */
+
+const listArea =
+    document.getElementById(
+        "listArea"
+    );
+
+
+/* =====================================================
+   신고 관리
+====================================================== */
+
+let knownIds =
+    new Set();
+
+let alertedOverdueIds =
+    new Set();
+
+let overdueIntervals =
+    new Map();
+
+let firstLoad =
+    true;
+
+
+/* =====================================================
+   상태 통일
+====================================================== */
+
+function normalizeStatus(status){
+
+    const value =
+        String(status || "")
+        .trim()
+        .toUpperCase();
+
+    if(
+
+        value === "DONE" ||
+
+        value === "완료" ||
+
+        value === "처리완료" ||
+
+        value === "사고처리완료"
+
+    ){
+
+        return "사고처리완료";
+
+    }
+
+
+    if(
+
+        value === "ARRIVED" ||
+
+        value === "도착" ||
+
+        value === "현장도착"
+
+    ){
+
+        return "현장도착";
+
+    }
+
+
+    return "사고접수";
+
+}
+
+
+/* =====================================================
+   경과시간
+====================================================== */
+
+function getElapsedTime(
+    startTime,
+    endTime = null
+){
+
+    if(!startTime){
+
+        return "시간 정보 없음";
+
+    }
+
+
+    const start =
+        new Date(startTime);
+
+
+    const end =
+        endTime
+        ? new Date(endTime)
+        : new Date();
+
+
+    if(
+        Number.isNaN(
+            start.getTime()
+        )
+    ){
+
+        return "시간 정보 오류";
+
+    }
+
+
+    const diff =
+        Math.max(
+
+            0,
+
+            Math.floor(
+
+                (end - start)
+                / 1000
+
+            )
+
+        );
+
+
+    const h =
+        Math.floor(
+            diff / 3600
+        );
+
+
+    const m =
+        Math.floor(
+
+            (diff % 3600)
+            / 60
+
+        );
+
+
+    const s =
+        diff % 60;
+
+
+    if(h > 0){
+
+        return (
+            `${h}시간 ` +
+            `${m}분 ` +
+            `${s}초 경과`
+        );
+
+    }
+
+
+    return (
+        `${m}분 ` +
+        `${s}초 경과`
+    );
+
+}
+
+
+/* =====================================================
+   마커 색상
+====================================================== */
+
+function getMarkerColor(status){
+
+    const normalized =
+        normalizeStatus(status);
+
+
+    if(
+        normalized ===
+        "사고처리완료"
+    ){
+
+        return "#777777";
+
+    }
+
+
+    if(
+        normalized ===
+        "현장도착"
+    ){
+
+        return "#fb8c00";
+
+    }
+
+
+    return "#e53935";
+
+}
+
+
+/* =====================================================
+   VWorld / OpenLayers 마커 스타일
+====================================================== */
+
+function createMarkerStyle(status){
+
+    const color =
+        getMarkerColor(status);
+
+
+    return new ol.style.Style({
+
+        image:
+
+            new ol.style.Circle({
+
+                radius:11,
+
+                fill:
+                    new ol.style.Fill({
+
+                        color:
+                            color
+
+                    }),
+
+                stroke:
+                    new ol.style.Stroke({
+
+                        color:"#ffffff",
+
+                        width:3
+
+                    })
+
+            })
+
+    });
+
+}
+
+
+/* =====================================================
+   지도 좌표 변환
+====================================================== */
+
+function toMapCoordinate(
+    lat,
+    lng
+){
+
+    return ol.proj.transform(
+
+        [
+            Number(lng),
+            Number(lat)
+        ],
+
+        "EPSG:4326",
+
+        "EPSG:900913"
+
+    );
+
+}
+
+
+/* =====================================================
+   팝업 HTML
+====================================================== */
+
+function createInfoWindow(
+    item,
+    lat,
+    lng
+){
+
+    const status =
+        normalizeStatus(
+            item.status
+        );
+
+
+    let statusColor =
+        "#e53935";
+
+
+    let statusText =
+        "🔴 사고 접수";
+
+
+    if(
+        status ===
+        "현장도착"
+    ){
+
+        statusColor =
+            "#fb8c00";
+
+        statusText =
+            "🟠 현장도착";
+
+    }
+
+
+    if(
+        status ===
+        "사고처리완료"
+    ){
+
+        statusColor =
+            "#777777";
+
+        statusText =
+            "⚪ 사고처리완료";
+
+    }
+
+
+    const popup =
+        document.createElement(
+            "div"
+        );
+
+
+    popup.className =
+        "vworld-popup";
+
+
+    popup.innerHTML = `
+
+        <button
+            class="vworld-popup-close"
+            type="button"
+            title="닫기"
+        >
+            ×
+        </button>
+
+
+        <div
+            style="
+                font-size:16px;
+                font-weight:bold;
+                margin-bottom:8px;
+            "
+        >
+            🆘 산악사고 신고
+        </div>
+
+
+        <div
+            style="
+                display:inline-block;
+                padding:5px 10px;
+                background:${statusColor};
+                color:#fff;
+                border-radius:5px;
+                font-weight:bold;
+                margin-bottom:8px;
+            "
+        >
+            ${statusText}
+        </div>
+
+
+        <br>
+
+
+        🚨 <b>신고유형</b><br>
+
+        ${item.type || "미입력"}
+
+
+        <br><br>
+
+
+        🕒 <b>접수시간</b><br>
+
+        ${
+            item.time
+            ?
+            new Date(
+                item.time
+            ).toLocaleString()
+            :
+            ""
+        }
+
+
+        <br><br>
+
+
+        ⏱ <b>경과시간</b><br>
+
+        ${
+            getElapsedTime(
+                item.time,
+                item.finishTime
+            )
+        }
+
+
+        <br><br>
+
+
+        📝 <b>상황</b><br>
+
+        ${item.symptom || "내용없음"}
+
+
+        <br><br>
+
+
+        🏠 <b>주소</b><br>
+
+        ${item.address || "주소없음"}
+
+
+        <br><br>
+
+
+        📞 <b>연락처</b><br>
+
+        ${item.phone || "번호없음"}
+
+
+        <br><br>
+
+
+        📍 <b>좌표</b><br>
+
+        ${lat.toFixed(6)},
+        ${lng.toFixed(6)}
+
+
+        ${
+            item.completeTime
+            ?
+            `
+                <br><br>
+
+                🚑 <b>현장도착</b><br>
+
+                ${
+                    new Date(
+                        item.completeTime
+                    ).toLocaleString()
+                }
+            `
+            :
+            ""
+        }
+
+
+        ${
+            item.finishTime
+            ?
+            `
+                <br><br>
+
+                ⚪ <b>사고처리 완료</b><br>
+
+                ${
+                    new Date(
+                        item.finishTime
+                    ).toLocaleString()
+                }
+            `
+            :
+            ""
+        }
+
+
+        <div>
+
+            <button
+                type="button"
+                class="vworld-map-btn"
+            >
+                📍 이 위치로 지도 이동
+            </button>
+
+        </div>
+
+    `;
+
+
+    popup
+        .querySelector(
+            ".vworld-popup-close"
+        )
+        .addEventListener(
+
+            "click",
+
+            function(e){
+
+                e.stopPropagation();
+
+                closeInfoWindow();
+
+            }
+
+        );
+
+
+    popup
+        .querySelector(
+            ".vworld-map-btn"
+        )
+        .addEventListener(
+
+            "click",
+
+            function(e){
+
+                e.stopPropagation();
+
+                moveToLocation(
+                    lat,
+                    lng
+                );
+
+            }
+
+        );
+
+
+    return popup;
+
+}
+
+
+/* =====================================================
+   팝업 닫기
+====================================================== */
+
+function closeInfoWindow(){
+
+    if(
+        openedInfoWindow
+    ){
+
+        map.removeOverlay(
+            openedInfoWindow
+        );
+
+    }
+
+
+    openedInfoWindow =
+        null;
+
+
+    openedMarker =
+        null;
+
+}
+
+
+/* =====================================================
+   특정 위치로 이동
+====================================================== */
+
+function moveToLocation(
+    lat,
+    lng
+){
+
+    if(!map){
+        return;
+    }
+
+
+    const coordinate =
+        toMapCoordinate(
+            lat,
+            lng
+        );
+
+
+    map.getView()
+        .setCenter(
+            coordinate
+        );
+
+
+    map.getView()
+        .setZoom(16);
+
+}
+
+
+/* =====================================================
+   VWorld 마커 생성
+====================================================== */
+
+function createMarker(
+    item,
+    lat,
+    lng
+){
+
+    const coordinate =
+        toMapCoordinate(
+            lat,
+            lng
+        );
+
+
+    const feature =
+        new ol.Feature({
+
+            geometry:
+                new ol.geom.Point(
+                    coordinate
+                ),
+
+            rescueId:
+                item.id,
+
+            rescueItem:
+                item
+
+        });
+
+
+    feature.setStyle(
+
+        createMarkerStyle(
+            item.status
+        )
+
+    );
+
+
+    const source =
+        new ol.source.Vector({
+
+            features:[
+                feature
+            ]
+
+        });
+
+
+    const layer =
+        new ol.layer.Vector({
+
+            source:
+                source
+
+        });
+
+
+    layer.set(
+        "rescueMarkerLayer",
+        true
+    );
+
+
+    map.addLayer(
+        layer
+    );
+
+
+    markers.push({
+
+        feature:
+            feature,
+
+        layer:
+            layer,
+
+        item:
+            item
+
+    });
+
+
+    return feature;
+
+}
+
+
+/* =====================================================
+   마커 클릭 이벤트
+====================================================== */
+
+function registerMapClick(){
+
+    map.on(
+
+        "singleclick",
+
+        function(evt){
+
+            let clickedFeature =
+                null;
+
+
+            map.forEachFeatureAtPixel(
+
+                evt.pixel,
+
+                function(feature){
+
+                    clickedFeature =
+                        feature;
+
+                    return true;
+
+                }
+
+            );
+
+
+            if(
+                !clickedFeature
+            ){
+
+                closeInfoWindow();
+
+                return;
+
+            }
+
+
+            const item =
+                clickedFeature.get(
+                    "rescueItem"
+                );
+
+
+            if(!item){
+                return;
+            }
+
+
+            const coordinate =
+                clickedFeature
+                    .getGeometry()
+                    .getCoordinates();
+
+
+            if(
+                openedInfoWindow
+            ){
+
+                closeInfoWindow();
+
+            }
+
+
+            const lat =
+                Number(
+                    item.lat
+                );
+
+
+            const lng =
+                Number(
+                    item.lng
+                );
+
+
+            const popupElement =
+                createInfoWindow(
+                    item,
+                    lat,
+                    lng
+                );
+
+
+            const overlay =
+                new ol.Overlay({
+
+                    element:
+                        popupElement,
+
+                    positioning:
+                        "bottom-center",
+
+                    stopEvent:
+                        true,
+
+                    offset:
+                        [0, -12]
+
+                });
+
+
+            overlay.setPosition(
+                coordinate
+            );
+
+
+            map.addOverlay(
+                overlay
+            );
+
+
+            openedInfoWindow =
+                overlay;
+
+
+            openedMarker =
+                clickedFeature;
+
+        }
+
+    );
+
+
+    map.on(
+
+        "pointermove",
+
+        function(evt){
+
+            const hit =
+                map.hasFeatureAtPixel(
+                    evt.pixel
+                );
+
+
+            map.getTargetElement()
+                .style.cursor =
+                hit
+                ? "pointer"
+                : "";
+
+        }
+
+    );
+
+}
+
+
+/* =====================================================
+   기존 마커 제거
+====================================================== */
+
+function clearMarkers(){
+
+    markers.forEach(
+
+        function(marker){
+
+            if(
+                marker.layer
+            ){
+
+                map.removeLayer(
+                    marker.layer
+                );
+
+            }
+
+        }
+
+    );
+
+
+    markers = [];
+
+
+    closeInfoWindow();
+
+}
+
+
+/* =====================================================
+   모든 마커에 맞춰 지도 이동
+====================================================== */
+
+function fitAllMarkers(){
+
+    if(
+        !markers.length
+    ){
+
+        return;
+
+    }
+
+
+    const extent =
+        ol.extent.createEmpty();
+
+
+    markers.forEach(
+
+        function(marker){
+
+            const geometry =
+                marker.feature
+                    .getGeometry();
+
+
+            ol.extent.extend(
+
+                extent,
+
+                geometry.getExtent()
+
+            );
+
+        }
+
+    );
+
+
+    if(
+        !ol.extent.isEmpty(extent)
+    ){
+
+        map.getView()
+            .fit(
+
+                extent,
+
+                {
+
+                    padding:[
+                        80,
+                        80,
+                        80,
+                        80
+                    ],
+
+                    maxZoom:16,
+
+                    duration:500
+
+                }
+
+            );
+
+    }
+
+}
+
+
+/* =====================================================
+   응급환자 경고 타이머 정리
+====================================================== */
+
+function clearOverdueTimer(id){
+
+    if(
+        overdueIntervals.has(id)
+    ){
+
+        clearInterval(
+
+            overdueIntervals.get(id)
+
+        );
+
+
+        overdueIntervals.delete(
+            id
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   응급환자 3분 초과
+====================================================== */
+
+function checkOverdue(
+    item,
+    div
+){
+
+    const status =
+        normalizeStatus(
+            item.status
+        );
+
+
+    if(
+        item.type !==
+        "응급환자"
+    ){
+
+        return;
+
+    }
+
+
+    if(
+        status ===
+        "사고처리완료"
+    ){
+
+        div.classList.remove(
+            "blink"
+        );
+
+
+        clearOverdueTimer(
+            item.id
+        );
+
+
+        alertedOverdueIds.delete(
+            item.id
+        );
+
+
+        return;
+
+    }
+
+
+    const start =
+        new Date(
+            item.time
+        );
+
+
+    if(
+        Number.isNaN(
+            start.getTime()
+        )
+    ){
+
+        return;
+
+    }
+
+
+    const diffSeconds =
+        Math.floor(
+
+            (
+                new Date() -
+                start
+            )
+            / 1000
+
+        );
+
+
+    if(
+        diffSeconds < 180
+    ){
+
+        return;
+
+    }
+
+
+    div.classList.add(
+        "blink"
+    );
+
+
+    if(
+        alertedOverdueIds.has(
+            item.id
+        )
+    ){
+
+        return;
+
+    }
+
+
+    alertedOverdueIds.add(
+        item.id
+    );
+
+
+    const playAlert =
+        () => {
+
+            const alertSound =
+                document.getElementById(
+                    "alertSound"
+                );
+
+
+            if(!alertSound){
+                return;
+            }
+
+
+            alertSound.currentTime =
+                0;
+
+
+            alertSound.play()
+                .catch(
+                    () => {}
+                );
+
+        };
+
+
+    playAlert();
+
+
+    const interval =
+        setInterval(
+
+            playAlert,
+
+            30000
+
+        );
+
+
+    overdueIntervals.set(
+
+        item.id,
+
+        interval
+
+    );
+
+}
+
+
+/* =====================================================
+   현장도착
+====================================================== */
+
+async function completeCase(
+    id
+){
+
+    if(
+        !confirm(
+            "구조대원이 현장에 도착했습니까?"
+        )
+    ){
+
+        return;
+
+    }
+
+
+    try{
+
+        const response =
+            await fetch(
+
+                API_URL,
+
+                {
+
+                    method:
+                        "POST",
+
+                    headers:{
+                        "Content-Type":
+                            "text/plain;charset=utf-8"
+                    },
+
+                    body:
+                        JSON.stringify({
+
+                            action:
+                                "complete",
+
+                            id:
+                                id
+
+                        })
+
+                }
+
+            );
+
+
+        const result =
+            await response.json();
+
+
+        if(
+            result.result !==
+            "success"
+        ){
+
+            alert(
+
+                result.message ||
+                "현장도착 처리에 실패했습니다."
+
+            );
+
+
+            return;
+
+        }
+
+
+        clearOverdueTimer(
+            id
+        );
+
+
+        loadData();
+
+    }
+    catch(err){
+
+        console.error(
+            err
+        );
+
+
+        alert(
+            "현장도착 처리 중 오류가 발생했습니다."
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   사고처리 완료
+====================================================== */
+
+async function finishCase(
+    id
+){
+
+    if(
+        !confirm(
+            "사고처리를 완료하시겠습니까?"
+        )
+    ){
+
+        return;
+
+    }
+
+
+    try{
+
+        const response =
+            await fetch(
+
+                API_URL,
+
+                {
+
+                    method:
+                        "POST",
+
+                    headers:{
+                        "Content-Type":
+                            "text/plain;charset=utf-8"
+                    },
+
+                    body:
+                        JSON.stringify({
+
+                            action:
+                                "finish",
+
+                            id:
+                                id
+
+                        })
+
+                }
+
+            );
+
+
+        const result =
+            await response.json();
+
+
+        if(
+            result.result !==
+            "success"
+        ){
+
+            alert(
+
+                result.message ||
+                "사고처리 완료에 실패했습니다."
+
+            );
+
+
+            return;
+
+        }
+
+
+        clearOverdueTimer(
+            id
+        );
+
+
+        loadData();
+
+    }
+    catch(err){
+
+        console.error(
+            err
+        );
+
+
+        alert(
+            "사고처리 완료 중 오류가 발생했습니다."
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   신고 목록
+====================================================== */
+
+async function loadData(){
+
+    try{
+
+        const res =
+            await fetch(
+
+                API_URL +
+                "?action=list",
+
+                {
+                    cache:
+                        "no-store"
+                }
+
+            );
+
+
+        const data =
+            await res.json();
+
+
+        if(
+            !Array.isArray(
+                data
+            )
+        ){
+
+            throw new Error(
+
+                "서버 응답 형식이 올바르지 않습니다."
+
+            );
+
+        }
+
+
+        listArea.innerHTML =
+            "";
+
+
+        /* 기존 마커 제거 */
+
+        clearMarkers();
+
+
+        /* 신고 없음 */
+
+        if(
+            !data.length
+        ){
+
+            listArea.innerHTML =
+                "현재 접수된 신고가 없습니다.";
+
+
+            return;
+
+        }
+
+
+        /* 신규 신고 */
+
+        if(
+            firstLoad
+        ){
+
+            data.forEach(
+
+                function(item){
+
+                    knownIds.add(
+                        item.id
+                    );
+
+                }
+
+            );
+
+
+            firstLoad =
+                false;
+
+        }
+        else{
+
+            data.forEach(
+
+                function(item){
+
+                    if(
+                        !knownIds.has(
+                            item.id
+                        )
+                    ){
+
+                        knownIds.add(
+                            item.id
+                        );
+
+
+                        alert(
+                            "🚨 새로운 신고 접수!"
+                        );
+
+
+                        const alertSound =
+                            document.getElementById(
+                                "alertSound"
+                            );
+
+
+                        if(alertSound){
+
+                            alertSound.currentTime =
+                                0;
+
+
+                            alertSound.play()
+                                .catch(
+                                    () => {}
+                                );
+
+                        }
+
+                    }
+
+                }
+
+            );
+
+        }
+
+
+        /* 최신순 */
+
+        data.sort(
+
+            function(a,b){
+
+                return (
+
+                    new Date(
+                        b.time
+                    ) -
+
+                    new Date(
+                        a.time
+                    )
+
+                );
+
+            }
+
+        );
+
+
+        data.forEach(
+
+            function(item){
+
+                const status =
+                    normalizeStatus(
+                        item.status
+                    );
+
+
+                /* =================================================
+                   카드
+                ================================================= */
+
+                const div =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                div.className =
+                    "card" +
+
+                    (
+
+                        status ===
+                        "사고처리완료"
+
+                        ? " done"
+
+                        : ""
+
+                    );
+
+
+                div.setAttribute(
+                    "data-time",
+                    item.time || ""
+                );
+
+
+                if(
+                    item.finishTime
+                ){
+
+                    div.setAttribute(
+
+                        "data-finish-time",
+
+                        item.finishTime
+
+                    );
+
+                }
+
+
+                /* =================================================
+                   상태
+                ================================================= */
+
+                let statusHTML =
+                    "";
+
+
+                if(
+                    status ===
+                    "사고처리완료"
+                ){
+
+                    statusHTML = `
+
+                        <div class="status done">
+                            ⚪ 사고처리완료
+                        </div>
+
+                    `;
+
+                }
+                else if(
+                    status ===
+                    "현장도착"
+                ){
+
+                    statusHTML = `
+
+                        <div class="status arrived">
+                            🟠 현장도착
+                        </div>
+
+                    `;
+
+                }
+                else{
+
+                    statusHTML = `
+
+                        <div class="status received">
+                            🔴 사고 접수
+                        </div>
+
+                    `;
+
+                }
+
+
+                /* =================================================
+                   현장도착 시간
+                ================================================= */
+
+                let completeHTML =
+                    "";
+
+
+                if(
+                    item.completeTime
+                ){
+
+                    completeHTML = `
+
+                        <div class="time">
+
+                            🚑 현장도착:
+
+                            ${
+                                new Date(
+                                    item.completeTime
+                                ).toLocaleString()
+                            }
+
+                        </div>
+
+                    `;
+
+                }
+
+
+                /* =================================================
+                   완료 시간
+                ================================================= */
+
+                let finishHTML =
+                    "";
+
+
+                if(
+                    item.finishTime
+                ){
+
+                    finishHTML = `
+
+                        <div class="time">
+
+                            ✅ 사고처리 완료:
+
+                            ${
+                                new Date(
+                                    item.finishTime
+                                ).toLocaleString()
+                            }
+
+                        </div>
+
+                    `;
+
+                }
+
+
+                /* =================================================
+                   버튼
+                ================================================= */
+
+                let buttonHTML =
+                    "";
+
+
+                if(
+                    status ===
+                    "사고처리완료"
+                ){
+
+                    buttonHTML = `
+
+                        <span
+                            style="
+                                display:inline-block;
+                                margin-top:8px;
+                                color:#aaa;
+                                font-weight:bold;
+                            "
+                        >
+                            ✔ 처리완료
+                        </span>
+
+                    `;
+
+                }
+                else if(
+                    status ===
+                    "현장도착"
+                ){
+
+                    buttonHTML = `
+
+                        <button
+                            class="complete-btn"
+                            onclick="
+                                finishCase('${item.id}')
+                            "
+                        >
+                            ✅ 사고처리 완료
+                        </button>
+
+                    `;
+
+                }
+                else{
+
+                    buttonHTML = `
+
+                        <button
+                            class="complete-btn"
+                            onclick="
+                                completeCase('${item.id}')
+                            "
+                        >
+                            🚑 구조대원 현장도착
+                        </button>
+
+                    `;
+
+                }
+
+
+                /* =================================================
+                   카드 내용
+                ================================================= */
+
+                div.innerHTML = `
+
+                    <div class="time">
+
+                        🕒 접수:
+
+                        ${
+                            item.time
+                            ?
+                            new Date(
+                                item.time
+                            ).toLocaleString()
+                            :
+                            ""
+                        }
+
+                    </div>
+
+
+                    <div class="time elapsed">
+
+                        ⏱
+
+                        ${
+                            getElapsedTime(
+                                item.time,
+                                item.finishTime
+                            )
+                        }
+
+                    </div>
+
+
+                    ${statusHTML}
+
+
+                    ${completeHTML}
+
+
+                    ${finishHTML}
+
+
+                    <div
+                        style="
+                            margin-top:5px;
+                            font-size:15px;
+                            font-weight:bold;
+                            color:#ff5252;
+                        "
+                    >
+
+                        🚨
+                        ${item.type || "미입력"}
+
+                    </div>
+
+
+                    <br>
+
+
+                    🏠
+                    ${item.address || "주소없음"}
+
+
+                    <br><br>
+
+
+                    📞
+                    ${item.phone || "번호없음"}
+
+
+                    <br><br>
+
+
+                    📝
+                    ${item.symptom || "내용없음"}
+
+
+                    <div class="coord">
+
+                        위도:
+                        ${item.lat}
+
+                        /
+
+                        경도:
+                        ${item.lng}
+
+                    </div>
+
+
+                    <a
+                        class="maplink"
+                        onclick="
+                            moveToLocation(
+                                ${Number(item.lat)},
+                                ${Number(item.lng)}
+                            )
+                        "
+                    >
+                        📍 지도에서 위치 보기
+                    </a>
+
+
+                    <br>
+
+
+                    ${buttonHTML}
+
+                `;
+
+
+                listArea.appendChild(
+                    div
+                );
+
+
+                /* =================================================
+                   응급환자
+                ================================================= */
+
+                checkOverdue(
+                    item,
+                    div
+                );
+
+
+                /* =================================================
+                   지도
+                ================================================= */
+
+                if(
+                    item.lat &&
+                    item.lng
+                ){
+
+                    const lat =
+                        Number(
+                            item.lat
+                        );
+
+
+                    const lng =
+                        Number(
+                            item.lng
+                        );
+
+
+                    if(
+
+                        Number.isFinite(
+                            lat
+                        )
+
+                        &&
+
+                        Number.isFinite(
+                            lng
+                        )
+
+                    ){
+
+                        createMarker(
+
+                            item,
+
+                            lat,
+
+                            lng
+
+                        );
+
+                    }
+
+                }
+
+            }
+
+        );
+
+
+        /* =================================================
+           모든 마커 표시
+        ================================================= */
+
+        fitAllMarkers();
+
+    }
+    catch(err){
+
+        console.error(
+            err
+        );
+
+
+        listArea.innerHTML =
+            "구글시트 로딩 실패. 잠시 후 다시 시도해주세요.";
+
+    }
+
+}
+
+
+/* =====================================================
+   VWorld 지도 + 데이터 시작
+====================================================== */
+
+async function startApplication(){
+
+    try{
+
+        if(
+            !VWORLD_API_KEY ||
+            VWORLD_API_KEY ===
+            "여기에_발급받은_VWORLD_API_KEY"
+        ){
+
+            throw new Error(
+
+                "VWorld API 인증키가 입력되지 않았습니다."
+
+            );
+
+        }
+
+
+        await loadVWorldMapScript();
+
+
+        initMap();
+
+
+        registerMapClick();
+
+
+        await loadData();
+
+    }
+    catch(err){
+
+        console.error(
+            err
+        );
+
+
+        listArea.innerHTML = `
+
+            <div
+                class="card"
+                style="
+                    color:#ff5252;
+                    line-height:1.7;
+                "
+            >
+
+                ❌ VWorld 지도를 불러오지 못했습니다.
+
+                <br><br>
+
+                <b>확인할 사항</b>
+
+                <br>
+
+                1. VWorld API 인증키가 정확한지 확인
+
+                <br>
+
+                2. VWorld 인증키의 사용 도메인이
+                   현재 사이트와 일치하는지 확인
+
+                <br>
+
+                3. 인터넷 연결 상태 확인
+
+                <br>
+
+                4. 브라우저 개발자도구의 Console에서
+                   VWorld 오류 확인
+
+            </div>
+
+        `;
+
+    }
+
+}
+
+
+/* =====================================================
+   최초 실행
+====================================================== */
+
+startApplication();
+
+
+/* =====================================================
+   10초마다 갱신
+====================================================== */
+
+setInterval(
+
+    function(){
+
+        loadData();
+
+    },
+
+    10000
+
+);
+
+
+/* =====================================================
+   경과시간 1초 갱신
+====================================================== */
+
+setInterval(
+
+    function(){
+
+        document
+            .querySelectorAll(
+                ".card"
+            )
+            .forEach(
+
+                function(card){
+
+                    const elapsedEl =
+                        card.querySelector(
+                            ".time.elapsed"
+                        );
+
+
+                    const timeAttr =
+                        card.getAttribute(
+                            "data-time"
+                        );
+
+
+                    const finishTimeAttr =
+                        card.getAttribute(
+                            "data-finish-time"
+                        );
+
+
+                    if(
+
+                        !elapsedEl ||
+
+                        !timeAttr
+
+                    ){
+
+                        return;
+
+                    }
+
+
+                    elapsedEl.innerText =
+
+                        "⏱ " +
+
+                        getElapsedTime(
+
+                            timeAttr,
+
+                            finishTimeAttr
+
+                        );
+
+                }
+
+            );
+
+    },
+
+    1000
+
+);
+
+</script>
+
+
+<script>
+
+/* =====================================================
+   우클릭 방지
+====================================================== */
+
+document.addEventListener(
+
+    "contextmenu",
+
+    function(e){
+
+        e.preventDefault();
+
+        return false;
+
+    }
+
+);
+
+
+/* =====================================================
+   단축키 방지
+====================================================== */
+
+document.addEventListener(
+
+    "keydown",
+
+    function(e){
+
+        if(
+            e.key === "F12"
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+
+        if(
+
+            e.ctrlKey &&
+
+            e.key.toLowerCase() ===
+            "u"
+
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+
+        if(
+
+            e.ctrlKey &&
+
+            e.shiftKey &&
+
+            e.key.toLowerCase() ===
+            "i"
+
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+
+        if(
+
+            e.ctrlKey &&
+
+            e.shiftKey &&
+
+            e.key.toLowerCase() ===
+            "j"
+
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+
+        if(
+
+            e.ctrlKey &&
+
+            e.shiftKey &&
+
+            e.key.toLowerCase() ===
+            "c"
+
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+
+        if(
+
+            e.ctrlKey &&
+
+            e.key.toLowerCase() ===
+            "s"
+
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+    }
+
+);
+
+</script>
+
+
+</body>
+
+</html>
