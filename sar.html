@@ -26,7 +26,7 @@
 
 /* =====================================================
    기본
-===================================================== */
+====================================================== */
 
 * {
     box-sizing: border-box;
@@ -38,18 +38,13 @@ body {
 
     font-family:
         Arial,
-        "Malgun Gothic",
+        "Noto Sans KR",
         sans-serif;
 
     background: #111;
 
     color: #fff;
 }
-
-
-/* =====================================================
-   헤더
-===================================================== */
 
 header {
 
@@ -64,20 +59,15 @@ header {
     font-weight: bold;
 }
 
-
-/* =====================================================
-   컨테이너
-===================================================== */
-
 .container {
 
-    padding: 12px;
+    padding: 15px;
 }
 
 
 /* =====================================================
    지도
-===================================================== */
+====================================================== */
 
 #map {
 
@@ -91,7 +81,7 @@ header {
 
     margin-bottom: 15px;
 
-    border-radius: 8px;
+    border-radius: 6px;
 
     overflow: hidden;
 
@@ -102,62 +92,71 @@ header {
 
 
 /* =====================================================
-   지도 상단 정보
-===================================================== */
+   지도 안내문
+   - 지도 정중앙
+====================================================== */
 
 .map-info {
 
     position: absolute;
 
+    left: 50%;
+
+    top: 50%;
+
+    transform:
+        translate(-50%, -50%);
+
     z-index: 1000;
 
-    left: 10px;
-
-    top: 10px;
-
-    background: rgba(0,0,0,.75);
+    background:
+        rgba(0, 0, 0, 0.78);
 
     color: #fff;
 
-    padding: 8px 12px;
+    padding: 10px 16px;
 
-    border-radius: 6px;
+    border-radius: 8px;
 
-    font-size: 12px;
+    font-size: 13px;
+
+    font-weight: bold;
+
+    text-align: center;
+
+    white-space: nowrap;
 
     pointer-events: none;
+
+    box-shadow:
+        0 2px 8px
+        rgba(0, 0, 0, 0.4);
 }
 
 
 /* =====================================================
    신고 카드
-===================================================== */
+====================================================== */
 
 .card {
 
     background: #1e1e1e;
 
-    padding: 13px;
+    padding: 12px;
 
     margin-bottom: 10px;
 
-    border-radius: 7px;
+    border-radius: 6px;
 
     border: 1px solid #333;
 }
 
-
 .card.done {
 
-    background: #292929;
+    background: #2b2b2b;
 
-    opacity: .65;
+    opacity: 0.6;
 }
-
-
-/* =====================================================
-   시간
-===================================================== */
 
 .time {
 
@@ -165,21 +164,8 @@ header {
 
     font-size: 14px;
 
-    margin-bottom: 5px;
+    margin-bottom: 4px;
 }
-
-
-.elapsed {
-
-    color: #81d4fa;
-
-    font-weight: bold;
-}
-
-
-/* =====================================================
-   좌표
-===================================================== */
 
 .coord {
 
@@ -187,15 +173,15 @@ header {
 
     color: #aaa;
 
-    margin-top: 7px;
+    margin-top: 6px;
 
-    margin-bottom: 7px;
+    margin-bottom: 6px;
 }
 
 
 /* =====================================================
    지도 링크
-===================================================== */
+====================================================== */
 
 .maplink {
 
@@ -210,7 +196,6 @@ header {
     cursor: pointer;
 }
 
-
 .maplink:hover {
 
     text-decoration: underline;
@@ -218,8 +203,8 @@ header {
 
 
 /* =====================================================
-   버튼
-===================================================== */
+   완료 버튼
+====================================================== */
 
 .complete-btn {
 
@@ -231,21 +216,19 @@ header {
 
     border: none;
 
-    padding: 8px 13px;
+    padding: 8px 12px;
 
-    border-radius: 5px;
+    border-radius: 4px;
 
     cursor: pointer;
 
     font-weight: bold;
 }
 
-
 .complete-btn:hover {
 
-    opacity: .85;
+    opacity: 0.8;
 }
-
 
 .complete-btn:disabled {
 
@@ -256,54 +239,41 @@ header {
 
 
 /* =====================================================
-   수정 / 삭제
-===================================================== */
+   응급환자 3분 초과 깜빡임
+====================================================== */
 
-.edit-btn {
+@keyframes blinkEmergency {
 
-    background: #1565c0;
+    0% {
 
-    margin-top: 8px;
+        box-shadow:
+            0 0 5px #ff1744;
+    }
 
-    margin-right: 5px;
+    50% {
 
-    color: #fff;
+        box-shadow:
+            0 0 25px #ff1744,
+            0 0 40px #ff1744;
+    }
 
-    border: none;
+    100% {
 
-    padding: 8px 12px;
-
-    border-radius: 5px;
-
-    cursor: pointer;
-
-    font-weight: bold;
+        box-shadow:
+            0 0 5px #ff1744;
+    }
 }
 
+.card.blink {
 
-.delete-btn {
-
-    background: #b71c1c;
-
-    margin-top: 8px;
-
-    color: #fff;
-
-    border: none;
-
-    padding: 8px 12px;
-
-    border-radius: 5px;
-
-    cursor: pointer;
-
-    font-weight: bold;
+    animation:
+        blinkEmergency 1s infinite;
 }
 
 
 /* =====================================================
    상태
-===================================================== */
+====================================================== */
 
 .status {
 
@@ -320,7 +290,6 @@ header {
     margin-bottom: 7px;
 }
 
-
 .status.received {
 
     background: #d50000;
@@ -328,14 +297,12 @@ header {
     color: #fff;
 }
 
-
 .status.arrived {
 
     background: #ef6c00;
 
     color: #fff;
 }
-
 
 .status.done {
 
@@ -346,42 +313,8 @@ header {
 
 
 /* =====================================================
-   응급환자 3분 초과
-===================================================== */
-
-@keyframes blinkEmergency {
-
-    0% {
-
-        box-shadow:
-            0 0 5px #ff1744;
-    }
-
-    50% {
-
-        box-shadow:
-            0 0 20px #ff1744,
-            0 0 40px #ff1744;
-    }
-
-    100% {
-
-        box-shadow:
-            0 0 5px #ff1744;
-    }
-}
-
-
-.card.blink {
-
-    animation:
-        blinkEmergency 1s infinite;
-}
-
-
-/* =====================================================
    VWorld 팝업
-===================================================== */
+====================================================== */
 
 .vworld-popup {
 
@@ -403,7 +336,7 @@ header {
 
     box-shadow:
         0 3px 12px
-        rgba(0,0,0,.35);
+        rgba(0, 0, 0, 0.35);
 
     transform:
         translate(
@@ -419,7 +352,6 @@ header {
 
     line-height: 1.5;
 }
-
 
 .vworld-popup::after {
 
@@ -439,9 +371,11 @@ header {
     border-style: solid;
 
     border-color:
-        #fff transparent transparent transparent;
+        #fff
+        transparent
+        transparent
+        transparent;
 }
-
 
 .vworld-popup-close {
 
@@ -464,6 +398,10 @@ header {
     font-weight: bold;
 }
 
+
+/* =====================================================
+   팝업 지도 버튼
+====================================================== */
 
 .vworld-map-btn {
 
@@ -488,10 +426,15 @@ header {
     cursor: pointer;
 }
 
+.vworld-map-btn:hover {
+
+    opacity: 0.85;
+}
+
 
 /* =====================================================
    지도 오류
-===================================================== */
+====================================================== */
 
 .map-error {
 
@@ -519,9 +462,9 @@ header {
 
 /* =====================================================
    모바일
-===================================================== */
+====================================================== */
 
-@media (max-width:600px) {
+@media (max-width: 600px) {
 
     header {
 
@@ -532,7 +475,7 @@ header {
 
     .container {
 
-        padding: 9px;
+        padding: 10px;
     }
 
     #map {
@@ -544,6 +487,14 @@ header {
         max-height: none;
     }
 
+    .map-info {
+
+        font-size: 11px;
+
+        padding:
+            8px 10px;
+    }
+
     .vworld-popup {
 
         min-width: 230px;
@@ -552,7 +503,6 @@ header {
 
         font-size: 12px;
     }
-
 }
 
 </style>
@@ -563,8 +513,14 @@ header {
 <body>
 
 
+<!-- =====================================================
+     제목
+====================================================== -->
+
 <header>
+
     🆘 무등산특수구조팀 산악사고 공유
+
 </header>
 
 
@@ -600,9 +556,9 @@ header {
             <br>
 
             🔴 접수
-            &nbsp;
+            &nbsp;&nbsp;
             🟠 현장도착
-            &nbsp;
+            &nbsp;&nbsp;
             ⚪ 완료
 
         </div>
@@ -616,7 +572,15 @@ header {
      로고
 ====================================================== -->
 
-
+<img
+    src="https://mudeung.github.io/rescue/logo19_192.png"
+    alt="달콩이 이미지"
+    style="
+        display:block;
+        margin:0 auto;
+        max-width:100%;
+    "
+>
 
 
 <!-- =====================================================
@@ -634,11 +598,14 @@ header {
 </div>
 
 
+<br>
+
+
 <script>
 
 /* =====================================================
-   API
-===================================================== */
+   API 설정
+====================================================== */
 
 const API_URL =
     "https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
@@ -646,30 +613,30 @@ const API_URL =
 
 /* =====================================================
    지도 변수
-===================================================== */
+====================================================== */
 
 let map = null;
-
-let markerLayer = null;
-
-let markerSource = null;
 
 let markers = [];
 
 let openedInfoWindow = null;
 
+let openedMarker = null;
+
 
 /* =====================================================
    DOM
-===================================================== */
+====================================================== */
 
 const listArea =
-    document.getElementById("listArea");
+    document.getElementById(
+        "listArea"
+    );
 
 
 /* =====================================================
    신고 관리
-===================================================== */
+====================================================== */
 
 let knownIds =
     new Set();
@@ -686,14 +653,18 @@ let firstLoad =
 
 /* =====================================================
    지도 초기화
-===================================================== */
+====================================================== */
 
 function initMap() {
 
     if (
+
         typeof vw === "undefined" ||
+
         typeof ol === "undefined" ||
+
         typeof vw.ol3 === "undefined"
+
     ) {
 
         throw new Error(
@@ -701,6 +672,10 @@ function initMap() {
         );
     }
 
+
+    /* =================================================
+       VWorld 지도 옵션
+    ================================================= */
 
     vw.ol3.MapOptions = {
 
@@ -724,6 +699,10 @@ function initMap() {
     };
 
 
+    /* =================================================
+       지도 생성
+    ================================================= */
+
     map =
         new vw.ol3.Map(
             "map",
@@ -734,16 +713,22 @@ function initMap() {
     if (!map) {
 
         throw new Error(
-            "VWorld 지도 객체 생성 실패"
+            "VWorld 지도 객체 생성에 실패했습니다."
         );
     }
 
 
-    /*
-     * 무등산
-     */
+    /* =================================================
+       무등산 초기 위치
+       
+       경도:
+       126.9902
 
-    const center =
+       위도:
+       35.1345
+    ================================================= */
+
+    const initialCenter =
         ol.proj.transform(
 
             [
@@ -758,42 +743,22 @@ function initMap() {
 
 
     map.getView()
-        .setCenter(center);
+        .setCenter(
+            initialCenter
+        );
 
 
-    /*
-     * 처음에는 넓게 표시
-     */
+    /* =================================================
+       ★ 최초 확대
+       
+       Zoom 18
+       
+       약 50m 수준의
+       상세 지도 화면
+    ================================================= */
 
     map.getView()
-        .setZoom(13);
-
-
-    /*
-     * 마커 전용 레이어
-     */
-
-    markerSource =
-        new ol.source.Vector();
-
-
-    markerLayer =
-        new ol.layer.Vector({
-
-            source:
-                markerSource
-        });
-
-
-    markerLayer.set(
-        "rescueMarkerLayer",
-        true
-    );
-
-
-    map.addLayer(
-        markerLayer
-    );
+        .setZoom(18);
 
 
     console.log(
@@ -804,7 +769,7 @@ function initMap() {
 
 /* =====================================================
    상태 통일
-===================================================== */
+====================================================== */
 
 function normalizeStatus(status) {
 
@@ -850,7 +815,7 @@ function normalizeStatus(status) {
 
 /* =====================================================
    경과시간
-===================================================== */
+====================================================== */
 
 function getElapsedTime(
     startTime,
@@ -890,7 +855,9 @@ function getElapsedTime(
 
             Math.floor(
 
-                (end - start) / 1000
+                (
+                    end - start
+                ) / 1000
             )
         );
 
@@ -914,28 +881,37 @@ function getElapsedTime(
     if (h > 0) {
 
         return (
+
             `${h}시간 ` +
+
             `${m}분 ` +
+
             `${s}초 경과`
+
         );
     }
 
 
     return (
+
         `${m}분 ` +
+
         `${s}초 경과`
+
     );
 }
 
 
 /* =====================================================
    마커 색상
-===================================================== */
+====================================================== */
 
 function getMarkerColor(status) {
 
     const normalized =
-        normalizeStatus(status);
+        normalizeStatus(
+            status
+        );
 
 
     if (
@@ -943,7 +919,7 @@ function getMarkerColor(status) {
         "사고처리완료"
     ) {
 
-        return "#777";
+        return "#777777";
     }
 
 
@@ -962,14 +938,14 @@ function getMarkerColor(status) {
 
 /* =====================================================
    마커 스타일
-===================================================== */
+====================================================== */
 
-function createMarkerStyle(
-    status
-) {
+function createMarkerStyle(status) {
 
     const color =
-        getMarkerColor(status);
+        getMarkerColor(
+            status
+        );
 
 
     return new ol.style.Style({
@@ -977,7 +953,7 @@ function createMarkerStyle(
         image:
             new ol.style.Circle({
 
-                radius: 12,
+                radius: 11,
 
                 fill:
                     new ol.style.Fill({
@@ -990,7 +966,7 @@ function createMarkerStyle(
                     new ol.style.Stroke({
 
                         color:
-                            "#fff",
+                            "#ffffff",
 
                         width: 3
                     })
@@ -1001,7 +977,7 @@ function createMarkerStyle(
 
 /* =====================================================
    좌표 변환
-===================================================== */
+====================================================== */
 
 function toMapCoordinate(
     lat,
@@ -1023,8 +999,8 @@ function toMapCoordinate(
 
 
 /* =====================================================
-   팝업
-===================================================== */
+   팝업 생성
+====================================================== */
 
 function createInfoWindow(
     item,
@@ -1065,7 +1041,7 @@ function createInfoWindow(
     ) {
 
         statusColor =
-            "#777";
+            "#777777";
 
         statusText =
             "⚪ 사고처리완료";
@@ -1087,6 +1063,7 @@ function createInfoWindow(
         <button
             class="vworld-popup-close"
             type="button"
+            title="닫기"
         >
             ×
         </button>
@@ -1143,8 +1120,8 @@ function createInfoWindow(
             item.time
                 ? new Date(
                     item.time
-                  ).toLocaleString()
-                : "시간없음"
+                ).toLocaleString()
+                : ""
         }
 
 
@@ -1246,18 +1223,23 @@ function createInfoWindow(
         }
 
 
-        <br>
+        <div>
 
+            <button
+                type="button"
+                class="vworld-map-btn"
+            >
+                📍 이 위치로 지도 이동
+            </button>
 
-        <button
-            type="button"
-            class="vworld-map-btn"
-        >
-            📍 이 위치로 이동
-        </button>
+        </div>
 
     `;
 
+
+    /* =================================================
+       닫기
+    ================================================= */
 
     popup
         .querySelector(
@@ -1265,12 +1247,18 @@ function createInfoWindow(
         )
         .addEventListener(
             "click",
-            function() {
+            function(e) {
+
+                e.stopPropagation();
 
                 closeInfoWindow();
             }
         );
 
+
+    /* =================================================
+       지도 이동
+    ================================================= */
 
     popup
         .querySelector(
@@ -1278,7 +1266,9 @@ function createInfoWindow(
         )
         .addEventListener(
             "click",
-            function() {
+            function(e) {
+
+                e.stopPropagation();
 
                 moveToLocation(
                     lat,
@@ -1294,13 +1284,16 @@ function createInfoWindow(
 
 /* =====================================================
    팝업 닫기
-===================================================== */
+====================================================== */
 
 function closeInfoWindow() {
 
     if (
+
         openedInfoWindow &&
+
         map
+
     ) {
 
         map.removeOverlay(
@@ -1311,12 +1304,16 @@ function closeInfoWindow() {
 
     openedInfoWindow =
         null;
+
+
+    openedMarker =
+        null;
 }
 
 
 /* =====================================================
-   위치 이동
-===================================================== */
+   특정 위치 이동
+====================================================== */
 
 function moveToLocation(
     lat,
@@ -1324,6 +1321,7 @@ function moveToLocation(
 ) {
 
     if (!map) {
+
         return;
     }
 
@@ -1341,19 +1339,18 @@ function moveToLocation(
         );
 
 
-    /*
-     * 50m 근접 신고 확인이
-     * 가능하도록 충분히 확대
-     */
+    /* =================================================
+       위치보기는 50m 수준으로 확대
+    ================================================= */
 
     map.getView()
-        .setZoom(17);
+        .setZoom(18);
 }
 
 
 /* =====================================================
    마커 생성
-===================================================== */
+====================================================== */
 
 function createMarker(
     item,
@@ -1377,7 +1374,7 @@ function createMarker(
                 ),
 
             rescueId:
-                String(item.id),
+                item.id,
 
             rescueItem:
                 item
@@ -1391,8 +1388,31 @@ function createMarker(
     );
 
 
-    markerSource.addFeature(
-        feature
+    const source =
+        new ol.source.Vector({
+
+            features: [
+                feature
+            ]
+        });
+
+
+    const layer =
+        new ol.layer.Vector({
+
+            source:
+                source
+        });
+
+
+    layer.set(
+        "rescueMarkerLayer",
+        true
+    );
+
+
+    map.addLayer(
+        layer
     );
 
 
@@ -1401,41 +1421,28 @@ function createMarker(
         feature:
             feature,
 
+        layer:
+            layer,
+
         item:
             item
     });
+
+
+    return feature;
 }
 
 
 /* =====================================================
-   마커 전체 삭제
-===================================================== */
-
-function clearMarkers() {
-
-    if (!markerSource) {
-        return;
-    }
-
-
-    markerSource.clear();
-
-
-    markers = [];
-
-
-    closeInfoWindow();
-}
-
-
-/* =====================================================
-   지도 클릭
-===================================================== */
+   지도 클릭 이벤트
+====================================================== */
 
 function registerMapClick() {
 
     map.on(
+
         "singleclick",
+
         function(evt) {
 
             let clickedFeature =
@@ -1452,10 +1459,6 @@ function registerMapClick() {
                         feature;
 
                     return true;
-                },
-
-                {
-                    hitTolerance: 8
                 }
             );
 
@@ -1475,6 +1478,7 @@ function registerMapClick() {
 
 
             if (!item) {
+
                 return;
             }
 
@@ -1485,22 +1489,33 @@ function registerMapClick() {
                     .getCoordinates();
 
 
-            closeInfoWindow();
+            if (openedInfoWindow) {
+
+                closeInfoWindow();
+            }
 
 
             const lat =
-                Number(item.lat);
+                Number(
+                    item.lat
+                );
 
 
             const lng =
-                Number(item.lng);
+                Number(
+                    item.lng
+                );
 
 
             const popupElement =
                 createInfoWindow(
+
                     item,
+
                     lat,
+
                     lng
+
                 );
 
 
@@ -1533,20 +1548,27 @@ function registerMapClick() {
 
             openedInfoWindow =
                 overlay;
+
+
+            openedMarker =
+                clickedFeature;
         }
     );
 
 
+    /* =================================================
+       마우스 포인터
+    ================================================= */
+
     map.on(
+
         "pointermove",
+
         function(evt) {
 
             const hit =
                 map.hasFeatureAtPixel(
-                    evt.pixel,
-                    {
-                        hitTolerance: 8
-                    }
+                    evt.pixel
                 );
 
 
@@ -1561,24 +1583,97 @@ function registerMapClick() {
 
 
 /* =====================================================
-   마커 전체가 보이도록 지도 자동맞춤
-===================================================== */
+   기존 마커 제거
+====================================================== */
+
+function clearMarkers() {
+
+    if (!map) {
+
+        return;
+    }
+
+
+    markers.forEach(
+
+        function(marker) {
+
+            if (marker.layer) {
+
+                map.removeLayer(
+                    marker.layer
+                );
+            }
+        }
+    );
+
+
+    markers = [];
+
+
+    closeInfoWindow();
+}
+
+
+/* =====================================================
+   마커 전체 표시
+====================================================== */
 
 function fitAllMarkers() {
 
     if (
+
         !map ||
+
         !markers.length
+
     ) {
+
         return;
     }
 
+
+    /* =================================================
+       마커가 1개면
+       ★ 50m 수준 유지
+    ================================================= */
+
+    if (
+        markers.length === 1
+    ) {
+
+        const coordinate =
+            markers[0]
+                .feature
+                .getGeometry()
+                .getCoordinates();
+
+
+        map.getView()
+            .setCenter(
+                coordinate
+            );
+
+
+        map.getView()
+            .setZoom(18);
+
+
+        return;
+    }
+
+
+    /* =================================================
+       마커가 2개 이상이면
+       전체 마커가 보이도록 조정
+    ================================================= */
 
     const extent =
         ol.extent.createEmpty();
 
 
     markers.forEach(
+
         function(marker) {
 
             const geometry =
@@ -1597,69 +1692,58 @@ function fitAllMarkers() {
 
 
     if (
-        ol.extent.isEmpty(
+        !ol.extent.isEmpty(
             extent
         )
     ) {
 
-        return;
+        map.getView()
+            .fit(
+
+                extent,
+
+                {
+
+                    padding: [
+
+                        80,
+                        80,
+                        80,
+                        80
+
+                    ],
+
+                    /* =================================
+                       너무 멀리 축소되지 않도록
+                       최대 축소 정도 제한
+                    ================================= */
+
+                    maxZoom: 18,
+
+                    duration: 500
+
+                }
+            );
     }
-
-
-    /*
-     * 마커 주변에 여유 공간 추가
-     *
-     * 이렇게 하면 서로 가까운
-     * 신고 위치도 화면 안에 들어온다.
-     */
-
-    const bufferedExtent =
-        ol.extent.buffer(
-            extent,
-            50
-        );
-
-
-    map.getView()
-        .fit(
-
-            bufferedExtent,
-
-            {
-
-                padding: [
-                    100,
-                    100,
-                    100,
-                    100
-                ],
-
-                /*
-                 * 너무 멀리 축소되지 않도록 제한
-                 */
-
-                maxZoom: 17,
-
-                duration: 500
-            }
-        );
 }
 
 
 /* =====================================================
-   3분 초과 응급환자
-===================================================== */
+   응급환자 타이머 정리
+====================================================== */
 
 function clearOverdueTimer(id) {
 
     if (
-        overdueIntervals.has(
-            id
-        )
+        overdueIntervals.has(id)
     ) {
 
         clearInterval(
-            overdueIntervals.get(id)
+
+            overdueIntervals.get(
+                id
+            )
+
         );
 
 
@@ -1669,6 +1753,10 @@ function clearOverdueTimer(id) {
     }
 }
 
+
+/* =====================================================
+   응급환자 3분 초과 확인
+====================================================== */
 
 function checkOverdue(
     item,
@@ -1734,9 +1822,12 @@ function checkOverdue(
         Math.floor(
 
             (
+
                 new Date() -
                 start
+
             ) / 1000
+
         );
 
 
@@ -1771,22 +1862,24 @@ function checkOverdue(
     const playAlert =
         function() {
 
-            const sound =
+            const alertSound =
                 document.getElementById(
                     "alertSound"
                 );
 
 
-            if (!sound) {
+            if (!alertSound) {
+
                 return;
             }
 
 
-            sound.currentTime =
+            alertSound.currentTime =
                 0;
 
 
-            sound.play()
+            alertSound
+                .play()
                 .catch(
                     function() {}
                 );
@@ -1798,25 +1891,29 @@ function checkOverdue(
 
     const interval =
         setInterval(
+
             playAlert,
+
             30000
+
         );
 
 
     overdueIntervals.set(
+
         item.id,
+
         interval
+
     );
 }
 
 
 /* =====================================================
    현장도착
-===================================================== */
+====================================================== */
 
-async function completeCase(
-    id
-) {
+async function completeCase(id) {
 
     if (
         !confirm(
@@ -1854,6 +1951,7 @@ async function completeCase(
 
                             id:
                                 id
+
                         })
                 }
             );
@@ -1871,8 +1969,11 @@ async function completeCase(
             alert(
 
                 result.message ||
-                "현장도착 처리 실패"
+
+                "현장도착 처리에 실패했습니다."
+
             );
+
 
             return;
         }
@@ -1886,6 +1987,7 @@ async function completeCase(
         await loadData();
 
     }
+
     catch (err) {
 
         console.error(err);
@@ -1900,11 +2002,9 @@ async function completeCase(
 
 /* =====================================================
    사고처리 완료
-===================================================== */
+====================================================== */
 
-async function finishCase(
-    id
-) {
+async function finishCase(id) {
 
     if (
         !confirm(
@@ -1942,6 +2042,7 @@ async function finishCase(
 
                             id:
                                 id
+
                         })
                 }
             );
@@ -1959,8 +2060,11 @@ async function finishCase(
             alert(
 
                 result.message ||
-                "사고처리 완료 실패"
+
+                "사고처리 완료에 실패했습니다."
+
             );
+
 
             return;
         }
@@ -1974,6 +2078,7 @@ async function finishCase(
         await loadData();
 
     }
+
     catch (err) {
 
         console.error(err);
@@ -1987,248 +2092,21 @@ async function finishCase(
 
 
 /* =====================================================
-   수정
-===================================================== */
-
-async function editCase(
-    item
-) {
-
-    const type =
-        prompt(
-            "신고유형",
-            item.type || ""
-        );
-
-
-    if (type === null) {
-        return;
-    }
-
-
-    const symptom =
-        prompt(
-            "상황",
-            item.symptom || ""
-        );
-
-
-    if (symptom === null) {
-        return;
-    }
-
-
-    const address =
-        prompt(
-            "주소",
-            item.address || ""
-        );
-
-
-    if (address === null) {
-        return;
-    }
-
-
-    const phone =
-        prompt(
-            "연락처",
-            item.phone || ""
-        );
-
-
-    if (phone === null) {
-        return;
-    }
-
-
-    try {
-
-        const response =
-            await fetch(
-
-                API_URL,
-
-                {
-
-                    method:
-                        "POST",
-
-                    headers: {
-
-                        "Content-Type":
-                            "text/plain;charset=utf-8"
-                    },
-
-                    body:
-                        JSON.stringify({
-
-                            action:
-                                "update",
-
-                            id:
-                                item.id,
-
-                            type:
-                                type,
-
-                            symptom:
-                                symptom,
-
-                            address:
-                                address,
-
-                            phone:
-                                phone
-                        })
-                }
-            );
-
-
-        const result =
-            await response.json();
-
-
-        if (
-            result.result !==
-            "success"
-        ) {
-
-            alert(
-
-                result.message ||
-                "수정 실패"
-            );
-
-            return;
-        }
-
-
-        await loadData();
-
-
-    }
-    catch (err) {
-
-        console.error(err);
-
-
-        alert(
-            "신고 수정 중 오류가 발생했습니다."
-        );
-    }
-}
-
-
-/* =====================================================
-   삭제
-===================================================== */
-
-async function deleteCase(
-    id
-) {
-
-    if (
-        !confirm(
-            "이 신고를 정말 삭제하시겠습니까?\n삭제하면 복구할 수 없습니다."
-        )
-    ) {
-
-        return;
-    }
-
-
-    try {
-
-        const response =
-            await fetch(
-
-                API_URL,
-
-                {
-
-                    method:
-                        "POST",
-
-                    headers: {
-
-                        "Content-Type":
-                            "text/plain;charset=utf-8"
-                    },
-
-                    body:
-                        JSON.stringify({
-
-                            action:
-                                "delete",
-
-                            id:
-                                id
-                        })
-                }
-            );
-
-
-        const result =
-            await response.json();
-
-
-        if (
-            result.result !==
-            "success"
-        ) {
-
-            alert(
-
-                result.message ||
-                "삭제 실패"
-            );
-
-            return;
-        }
-
-
-        clearOverdueTimer(
-            id
-        );
-
-
-        knownIds.delete(
-            id
-        );
-
-
-        await loadData();
-
-    }
-    catch (err) {
-
-        console.error(err);
-
-
-        alert(
-            "신고 삭제 중 오류가 발생했습니다."
-        );
-    }
-}
-
-
-/* =====================================================
    신고 목록 로딩
-===================================================== */
+====================================================== */
 
 async function loadData() {
 
     try {
 
-        const response =
+        const res =
             await fetch(
 
                 API_URL +
-                "?action=list&_=" +
-                Date.now(),
+                "?action=list",
 
                 {
+
                     cache:
                         "no-store"
                 }
@@ -2236,7 +2114,7 @@ async function loadData() {
 
 
         const data =
-            await response.json();
+            await res.json();
 
 
         if (
@@ -2244,29 +2122,27 @@ async function loadData() {
         ) {
 
             throw new Error(
-                "서버 응답 형식 오류"
+                "서버 응답 형식이 올바르지 않습니다."
             );
         }
-
-
-        /*
-         * 기존 마커 삭제
-         */
-
-        clearMarkers();
 
 
         listArea.innerHTML =
             "";
 
 
-        /*
-         * 신고 없음
-         */
+        /* =================================================
+           기존 마커 제거
+        ================================================= */
 
-        if (
-            data.length === 0
-        ) {
+        clearMarkers();
+
+
+        /* =================================================
+           신고 없음
+        ================================================= */
+
+        if (!data.length) {
 
             listArea.innerHTML = `
 
@@ -2278,21 +2154,54 @@ async function loadData() {
 
             `;
 
+
+            /* ===============================
+               지도 기본 위치 유지
+            ================================ */
+
+            if (map) {
+
+                const initialCenter =
+                    ol.proj.transform(
+
+                        [
+                            126.9902,
+                            35.1345
+                        ],
+
+                        "EPSG:4326",
+
+                        "EPSG:3857"
+                    );
+
+
+                map.getView()
+                    .setCenter(
+                        initialCenter
+                    );
+
+
+                map.getView()
+                    .setZoom(18);
+            }
+
+
             return;
         }
 
 
-        /*
-         * 신규 신고
-         */
+        /* =================================================
+           신규 신고 확인
+        ================================================= */
 
         if (firstLoad) {
 
             data.forEach(
+
                 function(item) {
 
                     knownIds.add(
-                        String(item.id)
+                        item.id
                     );
                 }
             );
@@ -2302,23 +2211,21 @@ async function loadData() {
                 false;
 
         }
+
         else {
 
             data.forEach(
+
                 function(item) {
-
-                    const id =
-                        String(item.id);
-
 
                     if (
                         !knownIds.has(
-                            id
+                            item.id
                         )
                     ) {
 
                         knownIds.add(
-                            id
+                            item.id
                         );
 
 
@@ -2327,19 +2234,20 @@ async function loadData() {
                         );
 
 
-                        const sound =
+                        const alertSound =
                             document.getElementById(
                                 "alertSound"
                             );
 
 
-                        if (sound) {
+                        if (alertSound) {
 
-                            sound.currentTime =
+                            alertSound.currentTime =
                                 0;
 
 
-                            sound.play()
+                            alertSound
+                                .play()
                                 .catch(
                                     function() {}
                                 );
@@ -2350,16 +2258,18 @@ async function loadData() {
         }
 
 
-        /*
-         * 최신순
-         */
+        /* =================================================
+           최신순 정렬
+        ================================================= */
 
         data.sort(
-            function(a,b) {
+
+            function(a, b) {
 
                 return (
 
                     new Date(b.time) -
+
                     new Date(a.time)
 
                 );
@@ -2367,11 +2277,12 @@ async function loadData() {
         );
 
 
-        /*
-         * 목록 생성
-         */
+        /* =================================================
+           신고 출력
+        ================================================= */
 
         data.forEach(
+
             function(item) {
 
                 const status =
@@ -2380,6 +2291,10 @@ async function loadData() {
                     );
 
 
+                /* =========================================
+                   카드
+                ========================================== */
+
                 const div =
                     document.createElement(
                         "div"
@@ -2387,29 +2302,23 @@ async function loadData() {
 
 
                 div.className =
-                    "card";
+                    "card" +
 
+                    (
 
-                if (
-                    status ===
-                    "사고처리완료"
-                ) {
+                        status ===
+                        "사고처리완료"
 
-                    div.classList.add(
-                        "done"
+                            ? " done"
+
+                            : ""
+
                     );
-                }
 
 
                 div.setAttribute(
                     "data-time",
                     item.time || ""
-                );
-
-
-                div.setAttribute(
-                    "data-id",
-                    item.id
                 );
 
 
@@ -2422,13 +2331,14 @@ async function loadData() {
                         "data-finish-time",
 
                         item.finishTime
+
                     );
                 }
 
 
-                /*
-                 * 상태
-                 */
+                /* =========================================
+                   상태
+                ========================================== */
 
                 let statusHTML =
                     "";
@@ -2450,6 +2360,7 @@ async function loadData() {
                     `;
 
                 }
+
                 else if (
                     status ===
                     "현장도착"
@@ -2466,6 +2377,7 @@ async function loadData() {
                     `;
 
                 }
+
                 else {
 
                     statusHTML = `
@@ -2480,9 +2392,9 @@ async function loadData() {
                 }
 
 
-                /*
-                 * 현장도착
-                 */
+                /* =========================================
+                   현장도착 시간
+                ========================================== */
 
                 let completeHTML =
                     "";
@@ -2510,9 +2422,9 @@ async function loadData() {
                 }
 
 
-                /*
-                 * 완료
-                 */
+                /* =========================================
+                   사고처리 완료 시간
+                ========================================== */
 
                 let finishHTML =
                     "";
@@ -2540,11 +2452,11 @@ async function loadData() {
                 }
 
 
-                /*
-                 * 처리 버튼
-                 */
+                /* =========================================
+                   버튼
+                ========================================== */
 
-                let actionHTML =
+                let buttonHTML =
                     "";
 
 
@@ -2553,7 +2465,7 @@ async function loadData() {
                     "사고처리완료"
                 ) {
 
-                    actionHTML = `
+                    buttonHTML = `
 
                         <span
                             style="
@@ -2571,18 +2483,22 @@ async function loadData() {
                     `;
 
                 }
+
                 else if (
                     status ===
                     "현장도착"
                 ) {
 
-                    actionHTML = `
+                    buttonHTML = `
 
                         <button
+
                             class="complete-btn"
+
                             onclick="
                                 finishCase('${item.id}')
                             "
+
                         >
 
                             ✅ 사고처리 완료
@@ -2592,15 +2508,19 @@ async function loadData() {
                     `;
 
                 }
+
                 else {
 
-                    actionHTML = `
+                    buttonHTML = `
 
                         <button
+
                             class="complete-btn"
+
                             onclick="
                                 completeCase('${item.id}')
                             "
+
                         >
 
                             🚑 구조대원 현장도착
@@ -2611,9 +2531,9 @@ async function loadData() {
                 }
 
 
-                /*
-                 * 카드
-                 */
+                /* =========================================
+                   카드 내용
+                ========================================== */
 
                 div.innerHTML = `
 
@@ -2625,7 +2545,7 @@ async function loadData() {
                             item.time
                                 ? new Date(
                                     item.time
-                                  ).toLocaleString()
+                                ).toLocaleString()
                                 : ""
                         }
 
@@ -2665,6 +2585,7 @@ async function loadData() {
                     >
 
                         🚨
+
                         ${item.type || "미입력"}
 
                     </div>
@@ -2674,6 +2595,7 @@ async function loadData() {
 
 
                     🏠
+
                     ${item.address || "주소없음"}
 
 
@@ -2681,6 +2603,7 @@ async function loadData() {
 
 
                     📞
+
                     ${item.phone || "번호없음"}
 
 
@@ -2688,30 +2611,36 @@ async function loadData() {
 
 
                     📝
+
                     ${item.symptom || "내용없음"}
 
 
                     <div class="coord">
 
                         위도:
+
                         ${item.lat}
 
                         /
 
                         경도:
+
                         ${item.lng}
 
                     </div>
 
 
                     <a
+
                         class="maplink"
+
                         onclick="
                             moveToLocation(
                                 ${Number(item.lat)},
                                 ${Number(item.lng)}
                             )
                         "
+
                     >
 
                         📍 지도에서 위치 보기
@@ -2722,32 +2651,7 @@ async function loadData() {
                     <br>
 
 
-                    ${actionHTML}
-
-
-                    <br>
-
-
-                    <button
-                        class="edit-btn"
-                        onclick='editCase(${JSON.stringify(item)})'
-                    >
-
-                        ✏️ 수정
-
-                    </button>
-
-
-                    <button
-                        class="delete-btn"
-                        onclick="
-                            deleteCase('${item.id}')
-                        "
-                    >
-
-                        🗑 삭제
-
-                    </button>
+                    ${buttonHTML}
 
                 `;
 
@@ -2757,67 +2661,103 @@ async function loadData() {
                 );
 
 
-                /*
-                 * 응급환자
-                 */
+                /* =========================================
+                   응급환자
+                ========================================== */
 
                 checkOverdue(
+
                     item,
+
                     div
+
                 );
 
 
-                /*
-                 * 좌표
-                 */
-
-                const lat =
-                    Number(item.lat);
-
-
-                const lng =
-                    Number(item.lng);
-
+                /* =========================================
+                   지도 마커
+                ========================================== */
 
                 if (
 
-                    Number.isFinite(lat) &&
+                    item.lat !==
+                    undefined &&
 
-                    Number.isFinite(lng) &&
+                    item.lat !==
+                    null &&
 
-                    lat >= -90 &&
+                    item.lng !==
+                    undefined &&
 
-                    lat <= 90 &&
-
-                    lng >= -180 &&
-
-                    lng <= 180
+                    item.lng !==
+                    null
 
                 ) {
 
-                    createMarker(
-                        item,
-                        lat,
-                        lng
-                    );
+                    const lat =
+                        Number(
+                            item.lat
+                        );
+
+
+                    const lng =
+                        Number(
+                            item.lng
+                        );
+
+
+                    if (
+
+                        Number.isFinite(
+                            lat
+                        ) &&
+
+                        Number.isFinite(
+                            lng
+                        ) &&
+
+                        lat >= -90 &&
+
+                        lat <= 90 &&
+
+                        lng >= -180 &&
+
+                        lng <= 180
+
+                    ) {
+
+                        createMarker(
+
+                            item,
+
+                            lat,
+
+                            lng
+
+                        );
+                    }
                 }
 
             }
         );
 
 
-        /*
-         * 마커 전체 보기
-         */
+        /* =================================================
+           마커 전체 표시
+        ================================================= */
 
         fitAllMarkers();
 
     }
+
     catch (err) {
 
         console.error(
+
             "신고 데이터 로딩 오류:",
+
             err
+
         );
 
 
@@ -2832,7 +2772,7 @@ async function loadData() {
                     "
                 >
 
-                    ❌ 구글시트 로딩 실패
+                    구글시트 로딩 실패
 
                 </span>
 
@@ -2846,7 +2786,9 @@ async function loadData() {
                 <br><br>
 
 
-                ${err.message || ""}
+                오류:
+
+                ${err.message || err}
 
             </div>
 
@@ -2857,25 +2799,62 @@ async function loadData() {
 
 /* =====================================================
    애플리케이션 시작
-===================================================== */
+====================================================== */
 
 async function startApplication() {
 
     try {
 
+        /* =============================================
+           VWorld 확인
+        ============================================== */
+
+        if (
+
+            typeof vw === "undefined" ||
+
+            typeof ol === "undefined" ||
+
+            typeof vw.ol3 === "undefined"
+
+        ) {
+
+            throw new Error(
+                "VWorld API가 로딩되지 않았습니다."
+            );
+        }
+
+
+        /* =============================================
+           지도 초기화
+        ============================================== */
+
         initMap();
 
+
+        /* =============================================
+           지도 클릭
+        ============================================== */
 
         registerMapClick();
 
 
+        /* =============================================
+           신고 데이터
+        ============================================== */
+
         await loadData();
 
     }
+
     catch (err) {
 
         console.error(
+
+            "VWorld 지도 초기화 오류:",
+
             err
+
         );
 
 
@@ -2917,23 +2896,58 @@ async function startApplication() {
                         "
                     >
 
-                        ① VWorld API Key 확인
+                        다음 항목을 확인해주세요.
+
+                        <br><br>
+
+                        ① VWorld API 키의
+                        허용 도메인
 
                         <br>
 
-                        ② 허용 도메인 확인
+                        ② 현재 홈페이지가 HTTPS인지
 
                         <br>
 
-                        ③ HTTPS 확인
+                        ③ VWorld API 키가 유효한지
 
                         <br>
 
-                        ④ 브라우저 Console 확인
+                        ④ 브라우저 Console 오류
 
                     </div>
 
                 </div>
+
+            </div>
+
+        `;
+
+
+        listArea.innerHTML = `
+
+            <div class="card">
+
+                <div
+                    style="
+                        color:#ff5252;
+                        font-weight:bold;
+                    "
+                >
+
+                    ❌ 지도 초기화에 실패했습니다.
+
+                </div>
+
+
+                <br>
+
+
+                오류:
+
+                <br><br>
+
+                ${err.message || err}
 
             </div>
 
@@ -2943,24 +2957,28 @@ async function startApplication() {
 
 
 /* =====================================================
-   시작
-===================================================== */
+   최초 실행
+====================================================== */
 
 window.addEventListener(
+
     "DOMContentLoaded",
+
     function() {
 
         startApplication();
 
     }
+
 );
 
 
 /* =====================================================
-   5초 자동 갱신
-===================================================== */
+   ★ 5초마다 신고 데이터 자동 갱신
+====================================================== */
 
 setInterval(
+
     function() {
 
         if (map) {
@@ -2970,86 +2988,111 @@ setInterval(
         }
 
     },
+
     5000
+
 );
 
 
 /* =====================================================
    경과시간 1초 갱신
-===================================================== */
+====================================================== */
 
 setInterval(
+
     function() {
 
         document
-            .querySelectorAll(
-                ".card"
-            )
+            .querySelectorAll(".card")
             .forEach(
+
                 function(card) {
 
-                    const elapsed =
+                    const elapsedEl =
                         card.querySelector(
-                            ".elapsed"
+                            ".time.elapsed"
                         );
 
 
-                    const time =
+                    const timeAttr =
                         card.getAttribute(
                             "data-time"
                         );
 
 
-                    const finishTime =
+                    const finishTimeAttr =
                         card.getAttribute(
                             "data-finish-time"
                         );
 
 
                     if (
-                        !elapsed ||
-                        !time
+
+                        !elapsedEl ||
+
+                        !timeAttr
+
                     ) {
 
                         return;
                     }
 
 
-                    elapsed.innerText =
+                    elapsedEl.innerText =
+
                         "⏱ " +
+
                         getElapsedTime(
-                            time,
-                            finishTime
+
+                            timeAttr,
+
+                            finishTimeAttr
+
                         );
                 }
             );
 
     },
+
     1000
+
 );
 
+</script>
+
+
+<script>
 
 /* =====================================================
    우클릭 방지
-===================================================== */
+====================================================== */
 
 document.addEventListener(
+
     "contextmenu",
+
     function(e) {
 
         e.preventDefault();
 
+        return false;
+
     }
+
 );
 
 
 /* =====================================================
    단축키 방지
-===================================================== */
+====================================================== */
 
 document.addEventListener(
+
     "keydown",
+
     function(e) {
+
+        /* F12 */
 
         if (
             e.key === "F12"
@@ -3057,71 +3100,101 @@ document.addEventListener(
 
             e.preventDefault();
 
-            return;
+            return false;
         }
 
 
+        /* Ctrl + U */
+
         if (
+
             e.ctrlKey &&
+
             e.key.toLowerCase() === "u"
+
         ) {
 
             e.preventDefault();
 
-            return;
+            return false;
         }
 
 
+        /* Ctrl + Shift + I */
+
         if (
+
             e.ctrlKey &&
+
             e.shiftKey &&
+
             e.key.toLowerCase() === "i"
+
         ) {
 
             e.preventDefault();
 
-            return;
+            return false;
         }
 
 
+        /* Ctrl + Shift + J */
+
         if (
+
             e.ctrlKey &&
+
             e.shiftKey &&
+
             e.key.toLowerCase() === "j"
+
         ) {
 
             e.preventDefault();
 
-            return;
+            return false;
         }
 
 
+        /* Ctrl + Shift + C */
+
         if (
+
             e.ctrlKey &&
+
             e.shiftKey &&
+
             e.key.toLowerCase() === "c"
+
         ) {
 
             e.preventDefault();
 
-            return;
+            return false;
         }
 
 
+        /* Ctrl + S */
+
         if (
+
             e.ctrlKey &&
+
             e.key.toLowerCase() === "s"
+
         ) {
 
             e.preventDefault();
 
-            return;
+            return false;
         }
 
     }
+
 );
 
 </script>
+
 
 </body>
 
