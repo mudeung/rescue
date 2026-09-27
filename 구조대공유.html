@@ -715,60 +715,6 @@ map.on(
 );
 
 
-/* =====================================================
-   DRAW
-===================================================== */
-
-const drawnItems =
-    new L.FeatureGroup();
-
-
-map.addLayer(
-    drawnItems
-);
-
-
-map.addControl(
-
-    new L.Control.Draw({
-
-        draw:{
-
-            polygon:true,
-
-            rectangle:true,
-
-            marker:true,
-
-            polyline:true,
-
-            circle:true
-
-        },
-
-        edit:{
-
-            featureGroup:
-                drawnItems
-
-        }
-
-    })
-
-);
-
-
-map.on(
-    L.Draw.Event.CREATED,
-    function(e){
-
-        drawnItems.addLayer(
-            e.layer
-        );
-
-    }
-);
-
 
 /* =====================================================
    사고 레이어
