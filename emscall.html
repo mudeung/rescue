@@ -102,6 +102,78 @@ header{
     cursor:not-allowed;
 }
 
+
+/* =====================================================
+   신고 공유 버튼
+====================================================== */
+
+.share-btn{
+
+    background:#1565c0;
+
+    margin-top:8px;
+
+    margin-left:5px;
+
+    color:#fff;
+
+    border:none;
+
+    padding:7px 12px;
+
+    border-radius:4px;
+
+    cursor:pointer;
+
+    font-weight:bold;
+
+}
+
+.share-btn:hover{
+    background:#1976d2;
+}
+
+.share-btn:active{
+    transform:scale(0.97);
+}
+
+
+/* =====================================================
+   버튼 영역
+====================================================== */
+
+.button-area{
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    gap:5px;
+
+    margin-top:8px;
+
+}
+
+
+/* =====================================================
+   공유 완료 표시
+====================================================== */
+
+.share-message{
+
+    display:none;
+
+    color:#81c784;
+
+    font-size:12px;
+
+    margin-top:5px;
+
+    font-weight:bold;
+
+}
+
+
 @keyframes blinkEmergency{
 
     0%{
@@ -165,6 +237,11 @@ header{
         max-height:none;
     }
 
+    .share-btn,
+    .complete-btn{
+        padding:9px 12px;
+    }
+
 }
 
 </style>
@@ -177,16 +254,23 @@ header{
     🆘 무등산특수구조팀 산악사고 공유
 </header>
 
+
 <audio id="alertSound">
+
     <source
         src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg"
         type="audio/ogg"
     >
+
 </audio>
 
+
 <div class="container">
+
     <div id="map"></div>
+
 </div>
+
 
 <img
     src="https://mudeung.github.io/rescue/logo19_192.png"
@@ -198,6 +282,7 @@ header{
     "
 >
 
+
 <div class="container">
 
     <div id="listArea">
@@ -206,7 +291,9 @@ header{
 
 </div>
 
+
 <br>
+
 
 <script>
 
@@ -746,6 +833,211 @@ function checkOverdue(
 
 
 /* =====================================================
+   신고 공유
+====================================================== */
+
+async function shareCase(item){
+
+    const status =
+        normalizeStatus(item.status);
+
+    let statusText =
+        "🔴 사고 접수";
+
+    if(status === "현장도착"){
+        statusText = "🟠 현장도착";
+    }
+
+    if(status === "사고처리완료"){
+        statusText = "⚪ 사고처리완료";
+    }
+
+
+    /* 지도 링크 */
+
+    let mapLink = "";
+
+    if(
+        item.lat &&
+        item.lng
+    ){
+
+        mapLink =
+            "https://map.kakao.com/link/map/" +
+            encodeURIComponent("구조요청 위치") +
+            "," +
+            item.lat +
+            "," +
+            item.lng;
+
+    }
+
+
+    /* 공유할 내용 */
+
+    const shareText =
+
+`🆘 무등산특수구조팀 산악사고
+
+${statusText}
+
+🚨 신고유형
+${item.type || "미입력"}
+
+🕒 접수시간
+${
+    item.time
+    ? new Date(item.time).toLocaleString()
+    : "미입력"
+}
+
+⏱ 경과시간
+${getElapsedTime(
+    item.time,
+    item.finishTime
+)}
+
+🏠 주소
+${item.address || "주소없음"}
+
+📝 상황
+${item.symptom || "내용없음"}
+
+📍 좌표
+${
+    item.lat && item.lng
+    ? `${item.lat}, ${item.lng}`
+    : "좌표없음"
+}
+
+${mapLink ? "📍 지도 위치\n" + mapLink : ""}
+
+`;
+
+    /* =================================================
+       모바일/지원 브라우저
+    ================================================= */
+
+    if(
+        navigator.share
+    ){
+
+        try{
+
+            await navigator.share({
+
+                title:
+                    "🆘 산악사고 신고",
+
+                text:
+                    shareText
+
+            });
+
+            return;
+
+        }
+        catch(err){
+
+            /*
+             * 사용자가 공유창을 닫은 경우
+             * 오류 메시지를 표시하지 않음
+             */
+
+            if(
+                err &&
+                err.name === "AbortError"
+            ){
+                return;
+            }
+
+        }
+
+    }
+
+
+    /* =================================================
+       공유 API 미지원 → 클립보드
+    ================================================= */
+
+    try{
+
+        if(
+            navigator.clipboard &&
+            window.isSecureContext
+        ){
+
+            await navigator.clipboard.writeText(
+                shareText
+            );
+
+            alert(
+                "📋 신고 내용이 클립보드에 복사되었습니다."
+            );
+
+            return;
+
+        }
+
+    }
+    catch(err){
+
+        console.error(err);
+
+    }
+
+
+    /* =================================================
+       구형 브라우저 대응
+    ================================================= */
+
+    const textArea =
+        document.createElement("textarea");
+
+    textArea.value =
+        shareText;
+
+    textArea.style.position =
+        "fixed";
+
+    textArea.style.left =
+        "-9999px";
+
+    document.body.appendChild(
+        textArea
+    );
+
+    textArea.focus();
+
+    textArea.select();
+
+    try{
+
+        document.execCommand(
+            "copy"
+        );
+
+        alert(
+            "📋 신고 내용이 복사되었습니다."
+        );
+
+    }
+    catch(err){
+
+        alert(
+            shareText
+        );
+
+    }
+
+    document.body.removeChild(
+        textArea
+    );
+
+}
+
+
+/* =====================================================
    현장도착
 ====================================================== */
 
@@ -928,6 +1220,7 @@ async function loadData(){
 
         listArea.innerHTML = "";
 
+
         /* 기존 마커 제거 */
 
         markers.forEach(
@@ -938,6 +1231,7 @@ async function loadData(){
 
         markers = [];
 
+
         /* 팝업 닫기 */
 
         if(openedInfoWindow){
@@ -945,9 +1239,11 @@ async function loadData(){
             openedInfoWindow.close();
 
             openedInfoWindow = null;
+
             openedMarker = null;
 
         }
+
 
         /* 신고 없음 */
 
@@ -959,6 +1255,7 @@ async function loadData(){
             return;
 
         }
+
 
         /* 신규 신고 */
 
@@ -1009,6 +1306,7 @@ async function loadData(){
 
         }
 
+
         /* 최신순 */
 
         data.sort(
@@ -1017,11 +1315,13 @@ async function loadData(){
                 new Date(a.time)
         );
 
+
         data.forEach(
             item => {
 
                 const status =
                     normalizeStatus(item.status);
+
 
                 /* 카드 */
 
@@ -1050,6 +1350,7 @@ async function loadData(){
                     );
 
                 }
+
 
                 /* 상태 */
 
@@ -1095,6 +1396,7 @@ async function loadData(){
 
                 }
 
+
                 /* 현장도착 시간 */
 
                 let completeHTML = "";
@@ -1118,6 +1420,7 @@ async function loadData(){
 
                 }
 
+
                 /* 완료 시간 */
 
                 let finishHTML = "";
@@ -1140,6 +1443,7 @@ async function loadData(){
                     `;
 
                 }
+
 
                 /* 버튼 */
 
@@ -1202,7 +1506,28 @@ async function loadData(){
 
                 }
 
-                /* 카드 내용 */
+
+                /* =================================================
+                   공유 버튼
+                ================================================= */
+
+                const shareButtonHTML = `
+
+                    <button
+                        class="share-btn"
+                        onclick="
+                            shareCase(${JSON.stringify(item).replace(/"/g, '&quot;')})
+                        "
+                    >
+                        📤 신고 공유
+                    </button>
+
+                `;
+
+
+                /* =================================================
+                   카드 내용
+                ================================================= */
 
                 div.innerHTML = `
 
@@ -1221,6 +1546,7 @@ async function loadData(){
 
                     </div>
 
+
                     <div class="time elapsed">
 
                         ⏱
@@ -1233,11 +1559,15 @@ async function loadData(){
 
                     </div>
 
+
                     ${statusHTML}
+
 
                     ${completeHTML}
 
+
                     ${finishHTML}
+
 
                     <div
                         style="
@@ -1253,20 +1583,27 @@ async function loadData(){
 
                     </div>
 
+
                     <br>
+
 
                     🏠
                     ${item.address || "주소없음"}
 
+
                     <br><br>
+
 
                     📞
                     ${item.phone || "번호없음"}
 
+
                     <br><br>
+
 
                     📝
                     ${item.symptom || "내용없음"}
+
 
                     <div class="coord">
 
@@ -1280,6 +1617,7 @@ async function loadData(){
 
                     </div>
 
+
                     <a
                         class="maplink"
                         href="
@@ -1290,13 +1628,25 @@ async function loadData(){
                         📍 지도보기
                     </a>
 
-                    <br>
 
-                    ${buttonHTML}
+                    <div class="button-area">
+
+                        ${buttonHTML}
+
+                        ${shareButtonHTML}
+
+                    </div>
+
+
+                    <div class="share-message">
+                        📤 신고 공유 준비 완료
+                    </div>
 
                 `;
 
+
                 listArea.appendChild(div);
+
 
                 /* 응급환자 */
 
@@ -1304,6 +1654,7 @@ async function loadData(){
                     item,
                     div
                 );
+
 
                 /* 지도 */
 
@@ -1318,6 +1669,7 @@ async function loadData(){
                     const lng =
                         Number(item.lng);
 
+
                     if(
                         Number.isFinite(lat) &&
                         Number.isFinite(lng)
@@ -1329,10 +1681,12 @@ async function loadData(){
                                 lng
                             );
 
+
                         const markerImage =
                             createMarkerImage(
                                 status
                             );
+
 
                         const marker =
                             new kakao.maps.Marker({
@@ -1350,7 +1704,9 @@ async function loadData(){
 
                             });
 
+
                         markers.push(marker);
+
 
                         const infoWindow =
                             createInfoWindow(
@@ -1358,6 +1714,7 @@ async function loadData(){
                                 lat,
                                 lng
                             );
+
 
                         kakao.maps.event.addListener(
 
@@ -1381,11 +1738,13 @@ async function loadData(){
                                     }
 
                                     openedInfoWindow = null;
+
                                     openedMarker = null;
 
                                     return;
 
                                 }
+
 
                                 if(
                                     openedInfoWindow
@@ -1395,10 +1754,12 @@ async function loadData(){
 
                                 }
 
+
                                 infoWindow.open(
                                     map,
                                     marker
                                 );
+
 
                                 openedInfoWindow =
                                     infoWindow;
@@ -1417,6 +1778,7 @@ async function loadData(){
             }
         );
 
+
         /* 모든 마커 표시 */
 
         if(
@@ -1425,6 +1787,7 @@ async function loadData(){
 
             const bounds =
                 new kakao.maps.LatLngBounds();
+
 
             markers.forEach(
                 marker => {
@@ -1435,6 +1798,7 @@ async function loadData(){
 
                 }
             );
+
 
             map.setBounds(bounds);
 
@@ -1499,12 +1863,14 @@ setInterval(
                             "data-finish-time"
                         );
 
+
                     if(
                         !elapsedEl ||
                         !timeAttr
                     ){
                         return;
                     }
+
 
                     elapsedEl.innerText =
                         "⏱ " +
@@ -1535,8 +1901,11 @@ setInterval(
 document.addEventListener(
     "contextmenu",
     function(e){
+
         e.preventDefault();
+
         return false;
+
     }
 );
 
@@ -1550,57 +1919,81 @@ document.addEventListener(
     function(e){
 
         if(e.key === "F12"){
+
             e.preventDefault();
+
             return false;
+
         }
+
 
         if(
             e.ctrlKey &&
             e.key.toLowerCase() === "u"
         ){
+
             e.preventDefault();
+
             return false;
+
         }
+
 
         if(
             e.ctrlKey &&
             e.shiftKey &&
             e.key.toLowerCase() === "i"
         ){
+
             e.preventDefault();
+
             return false;
+
         }
+
 
         if(
             e.ctrlKey &&
             e.shiftKey &&
             e.key.toLowerCase() === "j"
         ){
+
             e.preventDefault();
+
             return false;
+
         }
+
 
         if(
             e.ctrlKey &&
             e.shiftKey &&
             e.key.toLowerCase() === "c"
         ){
+
             e.preventDefault();
+
             return false;
+
         }
+
 
         if(
             e.ctrlKey &&
             e.key.toLowerCase() === "s"
         ){
+
             e.preventDefault();
+
             return false;
+
         }
 
     }
 );
 
 </script>
+
 
 </body>
 
