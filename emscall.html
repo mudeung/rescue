@@ -2,277 +2,328 @@
 <html lang="ko">
 
 <head>
+    <meta charset="UTF-8">
 
-<meta charset="UTF-8">
+    <title>🆘 무등산특수구조팀 산악사고 위치</title>
 
-<title>🆘 무등산특수구조팀 산악사고 위치</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
+    <!-- 카카오맵 -->
+    <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
 
-<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
+    <style>
+        /* =====================================================
+           기본
+        ===================================================== */
 
-<style>
+        * {
+            box-sizing: border-box;
+        }
 
-*{
-    box-sizing:border-box;
-}
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #111;
+            color: #fff;
+        }
 
-body{
-    margin:0;
-    font-family:Arial,sans-serif;
-    background:#111;
-    color:#fff;
-}
+        header {
+            background: #b71c1c;
+            padding: 15px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
 
-header{
-    background:#b71c1c;
-    padding:15px;
-    text-align:center;
-    font-size:20px;
-    font-weight:bold;
-}
+        .container {
+            padding: 15px;
+        }
 
-.container{
-    padding:15px;
-}
 
-#map{
-    width:100%;
-    height:65vh;
-    min-height:450px;
-    max-height:750px;
-    margin-bottom:15px;
-    border-radius:6px;
-    overflow:hidden;
-}
+        /* =====================================================
+           지도
+        ===================================================== */
 
-.card{
-    background:#1e1e1e;
-    padding:12px;
-    margin-bottom:10px;
-    border-radius:6px;
-    border:1px solid #333;
-}
+        #map {
+            width: 100%;
+            height: 65vh;
+            min-height: 450px;
+            max-height: 750px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            overflow: hidden;
+        }
 
-.card.done{
-    background:#2b2b2b;
-    opacity:0.6;
-}
 
-.time{
-    color:#ffcc00;
-    font-size:14px;
-    margin-bottom:4px;
-}
+        /* =====================================================
+           신고 카드
+        ===================================================== */
 
-.coord{
-    font-size:12px;
-    color:#aaa;
-    margin-top:6px;
-    margin-bottom:6px;
-}
+        .card {
+            background: #1e1e1e;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border: 1px solid #333;
+        }
 
-.maplink{
-    color:#4fc3f7;
-    font-size:13px;
-    text-decoration:none;
-    font-weight:bold;
-}
+        .card.done {
+            background: #2b2b2b;
+            opacity: 0.6;
+        }
 
-.maplink:hover{
-    text-decoration:underline;
-}
 
-.button-area{
-    display:flex;
-    flex-wrap:wrap;
-    gap:6px;
-    margin-top:10px;
-}
+        /* =====================================================
+           시간
+        ===================================================== */
 
-.complete-btn{
-    background:#2e7d32;
-    color:#fff;
-    border:none;
-    padding:9px 12px;
-    border-radius:5px;
-    cursor:pointer;
-    font-weight:bold;
-    font-size:14px;
-    min-height:40px;
-    touch-action:manipulation;
-}
+        .time {
+            color: #ffcc00;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
 
-.complete-btn:hover{
-    background:#388e3c;
-}
 
-.complete-btn:active{
-    transform:scale(0.97);
-}
+        /* =====================================================
+           좌표
+        ===================================================== */
 
-.complete-btn:disabled{
-    background:#555;
-    cursor:not-allowed;
-}
+        .coord {
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 6px;
+            margin-bottom: 6px;
+        }
 
-.share-btn{
-    background:#1565c0;
-    color:#fff;
-    border:none;
-    padding:9px 14px;
-    border-radius:5px;
-    cursor:pointer;
-    font-weight:bold;
-    font-size:14px;
-    min-height:40px;
-    display:inline-block;
-    touch-action:manipulation;
-    -webkit-appearance:none;
-    appearance:none;
-}
 
-.share-btn:hover{
-    background:#1976d2;
-}
+        /* =====================================================
+           지도 링크
+        ===================================================== */
 
-.share-btn:active{
-    background:#0d47a1;
-    transform:scale(0.97);
-}
+        .maplink {
+            color: #4fc3f7;
+            font-size: 13px;
+            text-decoration: none;
+            font-weight: bold;
+        }
 
-.share-message{
-    display:none;
-    color:#81c784;
-    font-size:12px;
-    margin-top:5px;
-    font-weight:bold;
-}
+        .maplink:hover {
+            text-decoration: underline;
+        }
 
-@keyframes blinkEmergency{
 
-    0%{
-        box-shadow:0 0 5px #ff1744;
-    }
+        /* =====================================================
+           버튼
+        ===================================================== */
 
-    50%{
-        box-shadow:
-            0 0 25px #ff1744,
-            0 0 40px #ff1744;
-    }
+        .button-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+        }
 
-    100%{
-        box-shadow:0 0 5px #ff1744;
-    }
+        .complete-btn {
+            background: #2e7d32;
+            color: #fff;
+            border: none;
+            padding: 9px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            min-height: 40px;
+            touch-action: manipulation;
+        }
 
-}
+        .complete-btn:hover {
+            background: #388e3c;
+        }
 
-.card.blink{
-    animation:blinkEmergency 1s infinite;
-}
+        .complete-btn:active {
+            transform: scale(0.97);
+        }
 
-.status{
-    display:inline-block;
-    padding:5px 9px;
-    border-radius:5px;
-    font-size:13px;
-    font-weight:bold;
-    margin-bottom:7px;
-}
+        .complete-btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
 
-.status.received{
-    background:#d50000;
-    color:#fff;
-}
 
-.status.arrived{
-    background:#ef6c00;
-    color:#fff;
-}
+        /* =====================================================
+           공유 버튼
+        ===================================================== */
 
-.status.done{
-    background:#777;
-    color:#fff;
-}
+        .share-btn {
+            background: #1565c0;
+            color: #fff;
+            border: none;
+            padding: 9px 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            min-height: 40px;
+            display: inline-block;
+            touch-action: manipulation;
+            -webkit-appearance: none;
+            appearance: none;
+        }
 
-@media(max-width:600px){
+        .share-btn:hover {
+            background: #1976d2;
+        }
 
-    header{
-        font-size:18px;
-        padding:13px;
-    }
+        .share-btn:active {
+            background: #0d47a1;
+            transform: scale(0.97);
+        }
 
-    .container{
-        padding:10px;
-    }
 
-    #map{
-        height:65vh;
-        min-height:400px;
-        max-height:none;
-    }
+        /* =====================================================
+           공유 메시지
+        ===================================================== */
 
-    .button-area{
-        display:flex;
-        flex-direction:column;
-        gap:7px;
-        width:100%;
-    }
+        .share-message {
+            display: none;
+            color: #81c784;
+            font-size: 12px;
+            margin-top: 5px;
+            font-weight: bold;
+        }
 
-    .button-area button{
-        width:100%;
-        min-height:44px;
-        margin:0;
-        font-size:15px;
-    }
 
-    .share-btn{
-        width:100%;
-        min-height:44px;
-        font-size:15px;
-    }
+        /* =====================================================
+           응급환자 경고
+        ===================================================== */
 
-    .complete-btn{
-        width:100%;
-        min-height:44px;
-        font-size:15px;
-    }
+        @keyframes blinkEmergency {
+            0% {
+                box-shadow: 0 0 5px #ff1744;
+            }
 
-}
+            50% {
+                box-shadow:
+                    0 0 25px #ff1744,
+                    0 0 40px #ff1744;
+            }
 
-</style>
+            100% {
+                box-shadow: 0 0 5px #ff1744;
+            }
+        }
 
+        .card.blink {
+            animation: blinkEmergency 1s infinite;
+        }
+
+
+        /* =====================================================
+           상태
+        ===================================================== */
+
+        .status {
+            display: inline-block;
+            padding: 5px 9px;
+            border-radius: 5px;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 7px;
+        }
+
+        .status.received {
+            background: #d50000;
+            color: #fff;
+        }
+
+        .status.arrived {
+            background: #ef6c00;
+            color: #fff;
+        }
+
+        .status.done {
+            background: #777;
+            color: #fff;
+        }
+
+
+        /* =====================================================
+           모바일
+        ===================================================== */
+
+        @media (max-width: 600px) {
+
+            header {
+                font-size: 18px;
+                padding: 13px;
+            }
+
+            .container {
+                padding: 10px;
+            }
+
+            #map {
+                height: 65vh;
+                min-height: 400px;
+                max-height: none;
+            }
+
+            .button-area {
+                display: flex;
+                flex-direction: column;
+                gap: 7px;
+                width: 100%;
+            }
+
+            .button-area button {
+                width: 100%;
+                min-height: 44px;
+                margin: 0;
+                font-size: 15px;
+            }
+
+            .share-btn {
+                width: 100%;
+                min-height: 44px;
+                font-size: 15px;
+            }
+
+            .complete-btn {
+                width: 100%;
+                min-height: 44px;
+                font-size: 15px;
+            }
+        }
+    </style>
 </head>
 
 
 <body>
-
 
 <header>
     🆘 무등산특수구조팀 산악사고 위치
 </header>
 
 
+<!-- 알림음 -->
 <audio id="alertSound">
-
     <source
         src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg"
         type="audio/ogg"
     >
-
 </audio>
 
 
+<!-- 지도 -->
 <div class="container">
-
     <div id="map"></div>
-
 </div>
 
 
+<!-- 로고 -->
 <img
     src="https://mudeung.github.io/rescue/logo19_192.png"
     alt="달콩이 이미지"
@@ -284,6 +335,7 @@ header{
 >
 
 
+<!-- 신고 목록 -->
 <div class="container">
 
     <div id="listArea">
@@ -300,17 +352,17 @@ header{
 
 /* =====================================================
    API
-====================================================== */
+===================================================== */
 
 const API_URL =
     "https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
 
 
 /* =====================================================
-   지도
-====================================================== */
+   지도 전역변수
+===================================================== */
 
-let map;
+let map = null;
 
 let markers = [];
 
@@ -320,126 +372,130 @@ let openedMarker = null;
 
 
 /* =====================================================
-   지도 초기화
-====================================================== */
+   신고 관리
+===================================================== */
 
-function initMap(){
+let knownIds = new Set();
 
-    map =
-        new kakao.maps.Map(
+let alertedOverdueIds = new Set();
 
-            document.getElementById("map"),
+let overdueIntervals = new Map();
 
-            {
-                center:
-                    new kakao.maps.LatLng(
-                        35.1345,
-                        126.9902
-                    ),
+let firstLoad = true;
 
-                level:6
-            }
 
-        );
+/* =====================================================
+   현재 신고 데이터
+===================================================== */
 
-}
-
-initMap();
+window.rescueCases = new Map();
 
 
 /* =====================================================
    DOM
-====================================================== */
+===================================================== */
 
 const listArea =
     document.getElementById("listArea");
 
 
 /* =====================================================
-   신고 관리
-====================================================== */
+   지도 초기화
+===================================================== */
 
-let knownIds =
-    new Set();
+function initMap() {
 
-let alertedOverdueIds =
-    new Set();
+    map = new kakao.maps.Map(
+        document.getElementById("map"),
+        {
+            center:
+                new kakao.maps.LatLng(
+                    35.1345,
+                    126.9902
+                ),
 
-let overdueIntervals =
-    new Map();
+            level: 6
+        }
+    );
+}
 
-let firstLoad =
-    true;
-
-
-/* =====================================================
-   현재 신고 데이터
-====================================================== */
-
-window.rescueCases =
-    new Map();
+initMap();
 
 
 /* =====================================================
    상태 통일
-====================================================== */
+===================================================== */
 
-function normalizeStatus(status){
+function normalizeStatus(status) {
 
     const value =
         String(status || "")
-        .trim()
-        .toUpperCase();
+            .trim()
+            .toUpperCase();
 
 
-    if(
-
+    if (
         value === "DONE" ||
         value === "완료" ||
         value === "처리완료" ||
         value === "사고처리완료"
-
-    ){
+    ) {
 
         return "사고처리완료";
-
     }
 
 
-    if(
-
+    if (
         value === "ARRIVED" ||
         value === "도착" ||
         value === "현장도착"
-
-    ){
+    ) {
 
         return "현장도착";
-
     }
 
 
     return "사고접수";
+}
 
+
+/* =====================================================
+   전송번호
+   -----------------------------------------------------
+   Apps Script에서 sendNumber로 받아오는 값
+===================================================== */
+
+function getSendNumber(item) {
+
+    if (
+        !item ||
+        item.sendNumber === undefined ||
+        item.sendNumber === null
+    ) {
+
+        return "번호없음";
+    }
+
+
+    const value =
+        String(item.sendNumber).trim();
+
+
+    return value || "번호없음";
 }
 
 
 /* =====================================================
    경과시간
-====================================================== */
+===================================================== */
 
 function getElapsedTime(
-
     startTime,
-
     endTime = null
+) {
 
-){
-
-    if(!startTime){
-
+    if (!startTime) {
         return "시간 정보 없음";
-
     }
 
 
@@ -449,34 +505,26 @@ function getElapsedTime(
 
     const end =
         endTime
-        ? new Date(endTime)
-        : new Date();
+            ? new Date(endTime)
+            : new Date();
 
 
-    if(
-
+    if (
         Number.isNaN(
             start.getTime()
         )
-
-    ){
+    ) {
 
         return "시간 정보 오류";
-
     }
 
 
     const diff =
         Math.max(
-
             0,
-
             Math.floor(
-
                 (end - start) / 1000
-
             )
-
         );
 
 
@@ -488,9 +536,7 @@ function getElapsedTime(
 
     const m =
         Math.floor(
-
             (diff % 3600) / 60
-
         );
 
 
@@ -498,63 +544,57 @@ function getElapsedTime(
         diff % 60;
 
 
-    if(h > 0){
+    if (h > 0) {
 
         return `${h}시간 ${m}분 ${s}초 경과`;
-
     }
 
 
     return `${m}분 ${s}초 경과`;
-
 }
 
 
 /* =====================================================
    마커 색상
-====================================================== */
+===================================================== */
 
-function getMarkerColor(status){
+function getMarkerColor(status) {
 
     const normalized =
         normalizeStatus(status);
 
 
-    if(
+    if (
         normalized === "사고처리완료"
-    ){
+    ) {
 
         return "#777777";
-
     }
 
 
-    if(
+    if (
         normalized === "현장도착"
-    ){
+    ) {
 
         return "#fb8c00";
-
     }
 
 
     return "#e53935";
-
 }
 
 
 /* =====================================================
-   원형 마커
-====================================================== */
+   마커 이미지
+===================================================== */
 
-function createMarkerImage(status){
+function createMarkerImage(status) {
 
     const color =
         getMarkerColor(status);
 
 
     const svg = `
-
         <svg
             xmlns="http://www.w3.org/2000/svg"
             width="44"
@@ -579,7 +619,6 @@ function createMarkerImage(status){
             />
 
         </svg>
-
     `;
 
 
@@ -594,33 +633,25 @@ function createMarkerImage(status){
         ),
 
         {
-
             offset:
                 new kakao.maps.Point(
                     22,
                     22
                 )
-
         }
-
     );
-
 }
 
 
 /* =====================================================
-   팝업
-====================================================== */
+   지도 팝업
+===================================================== */
 
 function createInfoWindow(
-
     item,
-
     lat,
-
     lng
-
-){
+) {
 
     const status =
         normalizeStatus(item.status);
@@ -634,30 +665,34 @@ function createInfoWindow(
         "🔴 사고 접수";
 
 
-    if(
+    if (
         status === "현장도착"
-    ){
+    ) {
 
         statusColor =
             "#fb8c00";
 
         statusText =
             "🟠 현장도착";
-
     }
 
 
-    if(
+    if (
         status === "사고처리완료"
-    ){
+    ) {
 
         statusColor =
             "#777777";
 
         statusText =
             "⚪ 사고처리완료";
-
     }
+
+
+    /* 전송번호 */
+
+    const sendNumber =
+        getSendNumber(item);
 
 
     const infoContent = `
@@ -704,7 +739,6 @@ function createInfoWindow(
 
 
             🚨 <b>신고유형</b><br>
-
             ${item.type || "미입력"}
 
 
@@ -712,15 +746,12 @@ function createInfoWindow(
 
 
             🕒 <b>접수시간</b><br>
-
             ${
                 item.time
-                ?
-                new Date(
-                    item.time
-                ).toLocaleString("ko-KR")
-                :
-                ""
+                    ? new Date(
+                        item.time
+                    ).toLocaleString("ko-KR")
+                    : "미입력"
             }
 
 
@@ -728,7 +759,6 @@ function createInfoWindow(
 
 
             ⏱ <b>경과시간</b><br>
-
             ${
                 getElapsedTime(
                     item.time,
@@ -741,7 +771,6 @@ function createInfoWindow(
 
 
             📝 <b>상황</b><br>
-
             ${item.symptom || "내용없음"}
 
 
@@ -749,7 +778,6 @@ function createInfoWindow(
 
 
             🏠 <b>주소</b><br>
-
             ${item.address || "주소없음"}
 
 
@@ -757,7 +785,6 @@ function createInfoWindow(
 
 
             📞 <b>연락처</b><br>
-
             ${item.phone || "번호없음"}
 
 
@@ -765,57 +792,51 @@ function createInfoWindow(
 
 
             📲 <b>전송번호</b><br>
-
-            ${item.sendPhone || "전송번호 없음"}
+            ${sendNumber}
 
 
             <br><br>
 
 
             📍 <b>좌표</b><br>
-
             ${lat.toFixed(6)}, ${lng.toFixed(6)}
 
 
             ${
                 item.completeTime
-                ?
-                `
-                    <br><br>
+                    ? `
+                        <br><br>
 
-                    🚑 <b>현장도착</b><br>
+                        🚑 <b>현장도착</b><br>
 
-                    ${
-                        new Date(
-                            item.completeTime
-                        ).toLocaleString(
-                            "ko-KR"
-                        )
-                    }
-                `
-                :
-                ""
+                        ${
+                            new Date(
+                                item.completeTime
+                            ).toLocaleString(
+                                "ko-KR"
+                            )
+                        }
+                    `
+                    : ""
             }
 
 
             ${
                 item.finishTime
-                ?
-                `
-                    <br><br>
+                    ? `
+                        <br><br>
 
-                    ⚪ <b>사고처리 완료</b><br>
+                        ⚪ <b>사고처리 완료</b><br>
 
-                    ${
-                        new Date(
-                            item.finishTime
-                        ).toLocaleString(
-                            "ko-KR"
-                        )
-                    }
-                `
-                :
-                ""
+                        ${
+                            new Date(
+                                item.finishTime
+                            ).toLocaleString(
+                                "ko-KR"
+                            )
+                        }
+                    `
+                    : ""
             }
 
 
@@ -838,7 +859,6 @@ function createInfoWindow(
             </div>
 
         </div>
-
     `;
 
 
@@ -849,64 +869,54 @@ function createInfoWindow(
 
         removable:
             true
-
     });
-
 }
 
 
 /* =====================================================
-   응급환자 경고 타이머 정리
-====================================================== */
+   응급환자 타이머 제거
+===================================================== */
 
-function clearOverdueTimer(id){
+function clearOverdueTimer(id) {
 
-    if(
+    if (
         overdueIntervals.has(id)
-    ){
+    ) {
 
         clearInterval(
-
             overdueIntervals.get(id)
-
         );
 
 
         overdueIntervals.delete(id);
-
     }
-
 }
 
 
 /* =====================================================
-   응급환자 3분 초과
-====================================================== */
+   응급환자 3분 초과 확인
+===================================================== */
 
 function checkOverdue(
-
     item,
-
     div
-
-){
+) {
 
     const status =
         normalizeStatus(item.status);
 
 
-    if(
+    if (
         item.type !== "응급환자"
-    ){
+    ) {
 
         return;
-
     }
 
 
-    if(
+    if (
         status === "사고처리완료"
-    ){
+    ) {
 
         div.classList.remove(
             "blink"
@@ -919,7 +929,6 @@ function checkOverdue(
 
 
         return;
-
     }
 
 
@@ -927,32 +936,29 @@ function checkOverdue(
         new Date(item.time);
 
 
-    if(
+    if (
         Number.isNaN(
             start.getTime()
         )
-    ){
+    ) {
 
         return;
-
     }
 
 
     const diffSeconds =
         Math.floor(
-
-            (new Date() - start)
-            / 1000
-
+            (
+                new Date() - start
+            ) / 1000
         );
 
 
-    if(
+    if (
         diffSeconds < 180
-    ){
+    ) {
 
         return;
-
     }
 
 
@@ -961,12 +967,13 @@ function checkOverdue(
     );
 
 
-    if(
-        alertedOverdueIds.has(item.id)
-    ){
+    if (
+        alertedOverdueIds.has(
+            item.id
+        )
+    ) {
 
         return;
-
     }
 
 
@@ -984,22 +991,18 @@ function checkOverdue(
                 );
 
 
-            if(!alertSound){
-
+            if (!alertSound) {
                 return;
-
             }
 
 
-            alertSound.currentTime =
-                0;
+            alertSound.currentTime = 0;
 
 
             alertSound.play()
                 .catch(
                     () => {}
                 );
-
         };
 
 
@@ -1008,30 +1011,23 @@ function checkOverdue(
 
     const interval =
         setInterval(
-
             playAlert,
-
             30000
-
         );
 
 
     overdueIntervals.set(
-
         item.id,
-
         interval
-
     );
-
 }
 
 
 /* =====================================================
    신고 공유
-====================================================== */
+===================================================== */
 
-async function shareCase(item){
+async function shareCase(item) {
 
     const status =
         normalizeStatus(item.status);
@@ -1041,62 +1037,53 @@ async function shareCase(item){
         "🔴 사고 접수";
 
 
-    if(
+    if (
         status === "현장도착"
-    ){
+    ) {
 
         statusText =
             "🟠 현장도착";
-
     }
 
 
-    if(
+    if (
         status === "사고처리완료"
-    ){
+    ) {
 
         statusText =
             "⚪ 사고처리완료";
-
     }
 
 
-    /* =================================================
-       카카오맵 링크
-    ================================================= */
+    /* 전송번호 */
+
+    const sendNumber =
+        getSendNumber(item);
+
+
+    /* 카카오맵 */
 
     let mapLink = "";
 
 
-    if(
-
+    if (
         item.lat &&
         item.lng
-
-    ){
+    ) {
 
         mapLink =
-
             "https://map.kakao.com/link/map/" +
-
             encodeURIComponent(
                 "구조요청 위치"
             ) +
-
             "," +
-
             item.lat +
-
             "," +
-
             item.lng;
-
     }
 
 
-    /* =================================================
-       공유 내용
-    ================================================= */
+    /* 공유 내용 */
 
     const shareText =
 
@@ -1110,12 +1097,10 @@ ${item.type || "미입력"}
 🕒 접수시간
 ${
     item.time
-    ?
-    new Date(
-        item.time
-    ).toLocaleString("ko-KR")
-    :
-    "미입력"
+        ? new Date(
+            item.time
+        ).toLocaleString("ko-KR")
+        : "미입력"
 }
 
 ⏱ 경과시간
@@ -1131,7 +1116,7 @@ ${item.address || "주소없음"}
 ${item.phone || "번호없음"}
 
 📲 전송번호
-${item.sendPhone || "전송번호 없음"}
+${sendNumber}
 
 📝 상황
 ${item.symptom || "내용없음"}
@@ -1139,34 +1124,27 @@ ${item.symptom || "내용없음"}
 📍 좌표
 ${
     item.lat && item.lng
-    ?
-    `${item.lat}, ${item.lng}`
-    :
-    "좌표없음"
+        ? `${item.lat}, ${item.lng}`
+        : "좌표없음"
 }
 
 ${
     mapLink
-    ?
-    "📍 무등산 산악사고 위치\n" + mapLink
-    :
-    ""
+        ? "📍 무등산 산악사고 위치\n" + mapLink
+        : ""
 }`;
 
 
     /* =================================================
-       모바일 기본 공유
+       모바일 공유
     ================================================= */
 
-    if(
-
+    if (
         typeof navigator !== "undefined" &&
-
         typeof navigator.share === "function"
+    ) {
 
-    ){
-
-        try{
+        try {
 
             await navigator.share({
 
@@ -1182,19 +1160,14 @@ ${
             return;
 
         }
-        catch(error){
+        catch (error) {
 
-            if(
-
+            if (
                 error &&
-
-                error.name ===
-                    "AbortError"
-
-            ){
+                error.name === "AbortError"
+            ) {
 
                 return;
-
             }
 
 
@@ -1202,9 +1175,7 @@ ${
                 "Web Share 실패:",
                 error
             );
-
         }
-
     }
 
 
@@ -1212,16 +1183,13 @@ ${
        클립보드
     ================================================= */
 
-    try{
+    try {
 
-        if(
-
+        if (
             navigator.clipboard &&
-
             typeof navigator.clipboard.writeText ===
                 "function"
-
-        ){
+        ) {
 
             await navigator.clipboard.writeText(
                 shareText
@@ -1229,26 +1197,21 @@ ${
 
 
             alert(
-
                 "📋 신고 내용이 복사되었습니다.\n\n" +
-
                 "카카오톡이나 문자에 붙여넣어 주세요."
-
             );
 
 
             return;
-
         }
 
     }
-    catch(error){
+    catch (error) {
 
         console.log(
             "Clipboard 실패:",
             error
         );
-
     }
 
 
@@ -1269,18 +1232,14 @@ ${
     textArea.style.position =
         "fixed";
 
-
     textArea.style.top =
         "0";
-
 
     textArea.style.left =
         "-9999px";
 
-
     textArea.style.width =
         "1px";
-
 
     textArea.style.height =
         "1px";
@@ -1292,11 +1251,10 @@ ${
 
 
     textArea.focus();
-
     textArea.select();
 
 
-    try{
+    try {
 
         document.execCommand(
             "copy"
@@ -1304,39 +1262,32 @@ ${
 
 
         alert(
-
             "📋 신고 내용이 복사되었습니다.\n\n" +
-
             "카카오톡이나 문자에 붙여넣어 주세요."
-
         );
 
     }
-    catch(error){
+    catch (error) {
 
         alert(
             shareText
         );
-
     }
 
 
     document.body.removeChild(
         textArea
     );
-
 }
 
 
 /* =====================================================
-   신고 공유 버튼 이벤트
-====================================================== */
+   공유 버튼 이벤트
+===================================================== */
 
 document.addEventListener(
-
     "click",
-
-    async function(e){
+    async function(e) {
 
         const button =
             e.target.closest(
@@ -1344,10 +1295,8 @@ document.addEventListener(
             );
 
 
-        if(!button){
-
+        if (!button) {
             return;
-
         }
 
 
@@ -1360,7 +1309,7 @@ document.addEventListener(
             );
 
 
-        if(!id){
+        if (!id) {
 
             alert(
                 "신고 정보를 찾을 수 없습니다."
@@ -1368,91 +1317,67 @@ document.addEventListener(
 
 
             return;
-
         }
 
 
         const item =
-            window.rescueCases
-            ?
             window.rescueCases.get(
                 String(id)
-            )
-            :
-            null;
+            );
 
 
-        if(!item){
+        if (!item) {
 
             alert(
-
                 "신고 정보를 불러오는 중입니다.\n" +
-
                 "잠시 후 다시 눌러주세요."
-
             );
 
 
             return;
-
         }
 
 
         await shareCase(item);
-
     }
-
 );
 
 
 /* =====================================================
    현장도착
-====================================================== */
+===================================================== */
 
-async function completeCase(id){
+async function completeCase(id) {
 
-    if(
-
+    if (
         !confirm(
             "구조대원이 현장에 도착했습니까?"
         )
-
-    ){
+    ) {
 
         return;
-
     }
 
 
-    try{
+    try {
 
         const response =
             await fetch(
-
                 API_URL,
-
                 {
+                    method: "POST",
 
-                    method:"POST",
-
-                    headers:{
-
+                    headers: {
                         "Content-Type":
                             "text/plain;charset=utf-8"
-
                     },
 
                     body:
                         JSON.stringify({
-
-                            action:"complete",
-
-                            id:id
-
+                            action: "complete",
+                            id: id
                         })
-
                 }
-
             );
 
 
@@ -1460,24 +1385,17 @@ async function completeCase(id){
             await response.json();
 
 
-        if(
-
-            result.result !==
-                "success"
-
-        ){
+        if (
+            result.result !== "success"
+        ) {
 
             alert(
-
                 result.message ||
-
                 "현장도착 처리에 실패했습니다."
-
             );
 
 
             return;
-
         }
 
 
@@ -1489,7 +1407,7 @@ async function completeCase(id){
         loadData();
 
     }
-    catch(err){
+    catch (err) {
 
         console.error(err);
 
@@ -1497,60 +1415,45 @@ async function completeCase(id){
         alert(
             "현장도착 처리 중 오류가 발생했습니다."
         );
-
     }
-
 }
 
 
 /* =====================================================
    사고처리 완료
-====================================================== */
+===================================================== */
 
-async function finishCase(id){
+async function finishCase(id) {
 
-    if(
-
+    if (
         !confirm(
             "사고처리를 완료하시겠습니까?"
         )
-
-    ){
+    ) {
 
         return;
-
     }
 
 
-    try{
+    try {
 
         const response =
             await fetch(
-
                 API_URL,
-
                 {
+                    method: "POST",
 
-                    method:"POST",
-
-                    headers:{
-
+                    headers: {
                         "Content-Type":
                             "text/plain;charset=utf-8"
-
                     },
 
                     body:
                         JSON.stringify({
-
-                            action:"finish",
-
-                            id:id
-
+                            action: "finish",
+                            id: id
                         })
-
                 }
-
             );
 
 
@@ -1558,24 +1461,17 @@ async function finishCase(id){
             await response.json();
 
 
-        if(
-
-            result.result !==
-                "success"
-
-        ){
+        if (
+            result.result !== "success"
+        ) {
 
             alert(
-
                 result.message ||
-
                 "사고처리 완료에 실패했습니다."
-
             );
 
 
             return;
-
         }
 
 
@@ -1587,7 +1483,7 @@ async function finishCase(id){
         loadData();
 
     }
-    catch(err){
+    catch (err) {
 
         console.error(err);
 
@@ -1595,30 +1491,25 @@ async function finishCase(id){
         alert(
             "사고처리 완료 중 오류가 발생했습니다."
         );
-
     }
-
 }
 
 
 /* =====================================================
-   신고 목록
-====================================================== */
+   신고 목록 불러오기
+===================================================== */
 
-async function loadData(){
+async function loadData() {
 
-    try{
+    try {
 
         const res =
             await fetch(
-
                 API_URL +
                 "?action=list",
-
                 {
-                    cache:"no-store"
+                    cache: "no-store"
                 }
-
             );
 
 
@@ -1626,101 +1517,78 @@ async function loadData(){
             await res.json();
 
 
-        if(
-
+        if (
             !Array.isArray(data)
-
-        ){
+        ) {
 
             throw new Error(
                 "서버 응답 형식이 올바르지 않습니다."
             );
-
         }
 
 
         listArea.innerHTML = "";
 
 
-        /* =================================================
-           신고 데이터 저장
-        ================================================= */
+        /* 신고 데이터 저장 */
 
         window.rescueCases.clear();
 
 
         data.forEach(
-
             item => {
 
                 window.rescueCases.set(
-
                     String(item.id),
-
                     item
-
                 );
 
             }
-
         );
 
 
-        /* =================================================
-           기존 마커 제거
-        ================================================= */
+        /* 기존 마커 제거 */
 
         markers.forEach(
-
             marker => {
-
                 marker.setMap(null);
-
             }
-
         );
 
 
         markers = [];
 
 
-        /* =================================================
-           팝업 닫기
-        ================================================= */
+        /* 기존 팝업 닫기 */
 
-        if(openedInfoWindow){
+        if (openedInfoWindow) {
 
             openedInfoWindow.close();
 
             openedInfoWindow = null;
 
             openedMarker = null;
-
         }
 
 
-        /* =================================================
-           신고 없음
-        ================================================= */
+        /* 신고 없음 */
 
-        if(!data.length){
+        if (!data.length) {
 
             listArea.innerHTML =
                 "현재 접수된 신고가 없습니다.";
 
             return;
-
         }
 
 
         /* =================================================
-           신규 신고
+           신규 신고 확인
         ================================================= */
 
-        if(firstLoad){
+        if (firstLoad) {
 
             data.forEach(
-
                 item => {
 
                     knownIds.add(
@@ -1728,24 +1596,22 @@ async function loadData(){
                     );
 
                 }
-
             );
 
 
             firstLoad = false;
 
         }
-        else{
+        else {
 
             data.forEach(
-
                 item => {
 
-                    if(
+                    if (
                         !knownIds.has(
                             item.id
                         )
-                    ){
+                    ) {
 
                         knownIds.add(
                             item.id
@@ -1763,7 +1629,7 @@ async function loadData(){
                             );
 
 
-                        if(alertSound){
+                        if (alertSound) {
 
                             alertSound.currentTime =
                                 0;
@@ -1773,45 +1639,39 @@ async function loadData(){
                                 .catch(
                                     () => {}
                                 );
-
                         }
-
                     }
-
                 }
-
             );
-
         }
 
 
-        /* =================================================
-           최신순
-        ================================================= */
+        /* 최신순 정렬 */
 
         data.sort(
-
-            (a,b) =>
-
+            (a, b) =>
                 new Date(b.time) -
                 new Date(a.time)
-
         );
 
 
         /* =================================================
-           신고 카드
+           카드 생성
         ================================================= */
 
         data.forEach(
-
             item => {
-
 
                 const status =
                     normalizeStatus(
                         item.status
                     );
+
+
+                /* 전송번호 */
+
+                const sendNumber =
+                    getSendNumber(item);
 
 
                 const div =
@@ -1821,110 +1681,79 @@ async function loadData(){
 
 
                 div.className =
-
                     "card" +
-
                     (
-
                         status ===
                         "사고처리완료"
-
-                        ?
-                        " done"
-
-                        :
-                        ""
-
+                            ? " done"
+                            : ""
                     );
 
 
                 div.setAttribute(
-
                     "data-time",
-
                     item.time || ""
-
                 );
 
 
-                if(item.finishTime){
+                if (item.finishTime) {
 
                     div.setAttribute(
-
                         "data-finish-time",
-
                         item.finishTime
-
                     );
-
                 }
 
 
-                /* =================================================
-                   상태
-                ================================================= */
+                /* 상태 */
 
-                let statusHTML =
-                    "";
+                let statusHTML = "";
 
 
-                if(
-
+                if (
                     status ===
                     "사고처리완료"
-
-                ){
+                ) {
 
                     statusHTML = `
-
                         <div class="status done">
                             ⚪ 사고처리완료
                         </div>
-
                     `;
 
                 }
-                else if(
-
+                else if (
                     status ===
                     "현장도착"
-
-                ){
+                ) {
 
                     statusHTML = `
-
                         <div class="status arrived">
                             🟠 현장도착
                         </div>
-
                     `;
 
                 }
-                else{
+                else {
 
                     statusHTML = `
-
                         <div class="status received">
                             🔴 사고 접수
                         </div>
-
                     `;
-
                 }
 
 
-                /* =================================================
-                   현장도착 시간
-                ================================================= */
+                /* 현장도착 시간 */
 
-                let completeHTML =
-                    "";
+                let completeHTML = "";
 
 
-                if(item.completeTime){
+                if (
+                    item.completeTime
+                ) {
 
                     completeHTML = `
-
                         <div class="time">
 
                             🚑 현장도착:
@@ -1938,24 +1767,20 @@ async function loadData(){
                             }
 
                         </div>
-
                     `;
-
                 }
 
 
-                /* =================================================
-                   완료 시간
-                ================================================= */
+                /* 사고처리 완료 시간 */
 
-                let finishHTML =
-                    "";
+                let finishHTML = "";
 
 
-                if(item.finishTime){
+                if (
+                    item.finishTime
+                ) {
 
                     finishHTML = `
-
                         <div class="time">
 
                             ✅ 사고처리 완료:
@@ -1969,29 +1794,21 @@ async function loadData(){
                             }
 
                         </div>
-
                     `;
-
                 }
 
 
-                /* =================================================
-                   처리 버튼
-                ================================================= */
+                /* 처리 버튼 */
 
-                let buttonHTML =
-                    "";
+                let buttonHTML = "";
 
 
-                if(
-
+                if (
                     status ===
                     "사고처리완료"
-
-                ){
+                ) {
 
                     buttonHTML = `
-
                         <span
                             style="
                                 display:inline-block;
@@ -2002,63 +1819,51 @@ async function loadData(){
                         >
                             ✔ 처리완료
                         </span>
-
                     `;
 
                 }
-                else if(
-
+                else if (
                     status ===
                     "현장도착"
-
-                ){
+                ) {
 
                     buttonHTML = `
-
                         <button
                             type="button"
                             class="complete-btn"
                             data-action="finish"
-                            data-case-id="${String(item.id).replace(/"/g,'&quot;')}"
+                            data-case-id="${String(item.id).replace(/"/g, "&quot;")}"
                         >
                             ✅ 사고처리 완료
                         </button>
-
                     `;
 
                 }
-                else{
+                else {
 
                     buttonHTML = `
-
                         <button
                             type="button"
                             class="complete-btn"
                             data-action="complete"
-                            data-case-id="${String(item.id).replace(/"/g,'&quot;')}"
+                            data-case-id="${String(item.id).replace(/"/g, "&quot;")}"
                         >
                             🚑 구조대원 현장도착
                         </button>
-
                     `;
-
                 }
 
 
-                /* =================================================
-                   공유 버튼
-                ================================================= */
+                /* 공유 버튼 */
 
                 const shareButtonHTML = `
-
                     <button
                         type="button"
                         class="share-btn"
-                        data-share-id="${String(item.id).replace(/"/g,'&quot;')}"
+                        data-share-id="${String(item.id).replace(/"/g, "&quot;")}"
                     >
                         📤 신고 공유
                     </button>
-
                 `;
 
 
@@ -2074,18 +1879,12 @@ async function loadData(){
 
                         ${
                             item.time
-                            ?
-
-                            new Date(
-                                item.time
-                            ).toLocaleString(
-                                "ko-KR"
-                            )
-
-                            :
-
-                            ""
-
+                                ? new Date(
+                                    item.time
+                                ).toLocaleString(
+                                    "ko-KR"
+                                )
+                                : ""
                         }
 
                     </div>
@@ -2094,7 +1893,6 @@ async function loadData(){
                     <div class="time elapsed">
 
                         ⏱
-
                         ${
                             getElapsedTime(
                                 item.time,
@@ -2107,9 +1905,7 @@ async function loadData(){
 
                     ${statusHTML}
 
-
                     ${completeHTML}
-
 
                     ${finishHTML}
 
@@ -2147,8 +1943,8 @@ async function loadData(){
 
 
                     📲
-                    전송번호:
-                    ${item.sendPhone || "전송번호 없음"}
+                    <b>전송번호</b>
+                    ${sendNumber}
 
 
                     <br><br>
@@ -2196,7 +1992,6 @@ async function loadData(){
                         📤 신고 공유 준비 완료
 
                     </div>
-
                 `;
 
 
@@ -2205,61 +2000,40 @@ async function loadData(){
                 );
 
 
-                /* =================================================
-                   응급환자
-                ================================================= */
+                /* 응급환자 확인 */
 
                 checkOverdue(
-
                     item,
-
                     div
-
                 );
 
 
                 /* =================================================
-                   지도
+                   지도 마커
                 ================================================= */
 
-                if(
-
+                if (
                     item.lat &&
                     item.lng
-
-                ){
+                ) {
 
                     const lat =
-                        Number(
-                            item.lat
-                        );
+                        Number(item.lat);
 
 
                     const lng =
-                        Number(
-                            item.lng
-                        );
+                        Number(item.lng);
 
 
-                    if(
-
-                        Number.isFinite(
-                            lat
-                        ) &&
-
-                        Number.isFinite(
-                            lng
-                        )
-
-                    ){
+                    if (
+                        Number.isFinite(lat) &&
+                        Number.isFinite(lng)
+                    ) {
 
                         const position =
                             new kakao.maps.LatLng(
-
                                 lat,
-
                                 lng
-
                             );
 
 
@@ -2272,9 +2046,10 @@ async function loadData(){
                         const marker =
                             new kakao.maps.Marker({
 
-                                map:map,
+                                map: map,
 
-                                position:position,
+                                position:
+                                    position,
 
                                 title:
                                     item.type ||
@@ -2282,7 +2057,6 @@ async function loadData(){
 
                                 image:
                                     markerImage
-
                             });
 
 
@@ -2293,154 +2067,113 @@ async function loadData(){
 
                         const infoWindow =
                             createInfoWindow(
-
                                 item,
-
                                 lat,
-
                                 lng
-
                             );
 
 
                         kakao.maps.event.addListener(
-
                             marker,
-
                             "click",
+                            function() {
 
-                            function(){
-
-                                if(
-
+                                if (
                                     openedMarker ===
                                     marker
+                                ) {
 
-                                ){
-
-                                    if(
+                                    if (
                                         openedInfoWindow
-                                    ){
+                                    ) {
 
                                         openedInfoWindow.close();
-
                                     }
 
 
                                     openedInfoWindow =
                                         null;
 
-
                                     openedMarker =
                                         null;
 
-
                                     return;
-
                                 }
 
 
-                                if(
+                                if (
                                     openedInfoWindow
-                                ){
+                                ) {
 
                                     openedInfoWindow.close();
-
                                 }
 
 
                                 infoWindow.open(
-
                                     map,
-
                                     marker
-
                                 );
 
 
                                 openedInfoWindow =
                                     infoWindow;
 
-
                                 openedMarker =
                                     marker;
-
                             }
-
                         );
-
                     }
-
                 }
-
             }
-
         );
 
 
-        /* =================================================
-           모든 마커 표시
-        ================================================= */
+        /* 모든 마커가 보이도록 지도 범위 조정 */
 
-        if(
-
+        if (
             markers.length > 0
-
-        ){
+        ) {
 
             const bounds =
                 new kakao.maps.LatLngBounds();
 
 
             markers.forEach(
-
                 marker => {
 
                     bounds.extend(
-
                         marker.getPosition()
-
                     );
 
                 }
-
             );
 
 
             map.setBounds(
                 bounds
             );
-
         }
 
     }
-    catch(err){
+    catch (err) {
 
-        console.error(
-            err
-        );
+        console.error(err);
 
 
         listArea.innerHTML =
-
             "구글시트 로딩 실패. " +
-
             "잠시 후 다시 시도해주세요.";
-
     }
-
 }
 
 
 /* =====================================================
    처리 버튼 이벤트
-====================================================== */
+===================================================== */
 
 document.addEventListener(
-
     "click",
-
-    async function(e){
+    async function(e) {
 
         const button =
             e.target.closest(
@@ -2448,10 +2181,8 @@ document.addEventListener(
             );
 
 
-        if(!button){
-
+        if (!button) {
             return;
-
         }
 
 
@@ -2467,73 +2198,60 @@ document.addEventListener(
             );
 
 
-        if(!id){
-
+        if (!id) {
             return;
-
         }
 
 
-        if(
+        if (
             action === "complete"
-        ){
+        ) {
 
             await completeCase(
                 id
             );
-
         }
 
 
-        if(
+        if (
             action === "finish"
-        ){
+        ) {
 
             await finishCase(
                 id
             );
-
         }
-
     }
-
 );
 
 
 /* =====================================================
    최초 실행
-====================================================== */
+===================================================== */
 
 loadData();
 
 
 /* =====================================================
-   10초마다 갱신
-====================================================== */
+   10초마다 신고 갱신
+===================================================== */
 
 setInterval(
-
     loadData,
-
     10000
-
 );
 
 
 /* =====================================================
    경과시간 1초 갱신
-====================================================== */
+===================================================== */
 
 setInterval(
-
     () => {
 
         document
-            .querySelectorAll(
-                ".card"
-            )
+            .querySelectorAll(".card")
             .forEach(
-
                 card => {
 
                     const elapsedEl =
@@ -2554,38 +2272,26 @@ setInterval(
                         );
 
 
-                    if(
-
+                    if (
                         !elapsedEl ||
                         !timeAttr
-
-                    ){
+                    ) {
 
                         return;
-
                     }
 
 
                     elapsedEl.innerText =
-
                         "⏱ " +
-
                         getElapsedTime(
-
                             timeAttr,
-
                             finishTimeAttr
-
                         );
-
                 }
-
             );
 
     },
-
     1000
-
 );
 
 </script>
@@ -2595,125 +2301,107 @@ setInterval(
 
 /* =====================================================
    우클릭 방지
-====================================================== */
+===================================================== */
 
 document.addEventListener(
-
     "contextmenu",
-
-    function(e){
+    function(e) {
 
         e.preventDefault();
 
         return false;
-
     }
-
 );
 
 
 /* =====================================================
    단축키 방지
-====================================================== */
+===================================================== */
 
 document.addEventListener(
-
     "keydown",
+    function(e) {
 
-    function(e){
+        /* F12 */
 
-        if(
+        if (
             e.key === "F12"
-        ){
+        ) {
 
             e.preventDefault();
 
             return false;
-
         }
 
 
-        if(
+        /* Ctrl + U */
 
+        if (
             e.ctrlKey &&
-
-            e.key.toLowerCase() ===
-                "u"
-
-        ){
+            e.key.toLowerCase() === "u"
+        ) {
 
             e.preventDefault();
 
             return false;
-
         }
 
 
-        if(
+        /* Ctrl + Shift + I */
 
+        if (
             e.ctrlKey &&
             e.shiftKey &&
-            e.key.toLowerCase() ===
-                "i"
-
-        ){
+            e.key.toLowerCase() === "i"
+        ) {
 
             e.preventDefault();
 
             return false;
-
         }
 
 
-        if(
+        /* Ctrl + Shift + J */
 
+        if (
             e.ctrlKey &&
             e.shiftKey &&
-            e.key.toLowerCase() ===
-                "j"
-
-        ){
+            e.key.toLowerCase() === "j"
+        ) {
 
             e.preventDefault();
 
             return false;
-
         }
 
 
-        if(
+        /* Ctrl + Shift + C */
 
+        if (
             e.ctrlKey &&
             e.shiftKey &&
-            e.key.toLowerCase() ===
-                "c"
-
-        ){
+            e.key.toLowerCase() === "c"
+        ) {
 
             e.preventDefault();
 
             return false;
-
         }
 
 
-        if(
+        /* Ctrl + S */
 
+        if (
             e.ctrlKey &&
-
-            e.key.toLowerCase() ===
-                "s"
-
-        ){
+            e.key.toLowerCase() === "s"
+        ) {
 
             e.preventDefault();
 
             return false;
-
         }
 
     }
-
 );
 
 </script>
