@@ -137,12 +137,19 @@
         }
 
 
+        button:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+
+
         #sendStatus {
             margin-top: 10px;
             font-size: 14px;
             font-weight: bold;
             color: #1565c0;
-            line-height: 1.6;
+            line-height: 1.7;
+            word-break: break-all;
         }
 
 
@@ -211,7 +218,9 @@
         function toggleConsent() {
 
             const detail =
-                document.getElementById("consentDetail");
+                document.getElementById(
+                    "consentDetail"
+                );
 
 
             if (
@@ -221,7 +230,8 @@
 
                 detail.style.display = "block";
 
-            } else {
+            }
+            else {
 
                 detail.style.display = "none";
 
@@ -428,7 +438,8 @@
 
         let currentLng = null;
 
-        let currentAddress = "주소 확인 중...";
+        let currentAddress =
+            "주소 확인 중...";
 
         let geocoder;
 
@@ -457,7 +468,7 @@
 
 
         /* =====================================================
-           상황 입력
+           위치공유시스템 고정 내용
         ====================================================== */
 
         const FIXED_CONTENT =
@@ -465,10 +476,7 @@
 
 
         /* =====================================================
-           ★ 기기 ID
-           
-           같은 휴대폰 / 같은 브라우저에서는
-           최초 생성된 ID를 계속 사용합니다.
+           ★ 같은 휴대폰을 구분하는 기기 ID
         ====================================================== */
 
         function getDeviceId() {
@@ -483,9 +491,7 @@
                 );
 
 
-            if (
-                !deviceId
-            ) {
+            if (!deviceId) {
 
                 deviceId =
                     "DEV-" +
@@ -518,7 +524,7 @@
            ★ 전송번호 생성
            
            예:
-           20261001-143025-DEV123-001
+           20261001-143025-DEV-ABC123-0001
         ====================================================== */
 
         function createSendId() {
@@ -570,11 +576,9 @@
                 `${year}${month}${day}-${hour}${minute}${second}`;
 
 
-            /*
-             * 같은 초에 여러 번 눌러도
-             * 각각 다른 순번을 만들기 위해
-             * localStorage 카운터 사용
-             */
+            /* -----------------------------------------
+               같은 휴대폰의 전송 순번
+            ----------------------------------------- */
 
             const COUNTER_KEY =
                 "MUDEUNG_RESCUE_SEND_COUNTER";
@@ -611,18 +615,14 @@
                     .padStart(4, "0");
 
 
-            /*
-             * 전송번호
-             *
-             * 날짜시간 + 기기ID + 순번
-             */
-
             return (
+
                 timePart +
                 "-" +
                 DEVICE_ID +
                 "-" +
                 sequence
+
             );
 
         }
@@ -651,13 +651,17 @@
             map =
                 new kakao.maps.Map(
 
-                    document.getElementById("map"),
+                    document.getElementById(
+                        "map"
+                    ),
 
                     {
 
-                        center: center,
+                        center:
+                            center,
 
-                        level: 3
+                        level:
+                            3
 
                     }
 
@@ -667,9 +671,11 @@
             userMarker =
                 new kakao.maps.Marker({
 
-                    map: map,
+                    map:
+                        map,
 
-                    position: center
+                    position:
+                        center
 
                 });
 
@@ -715,7 +721,10 @@
 
                 lat,
 
-                function(result, status) {
+                function(
+                    result,
+                    status
+                ) {
 
 
                     if (
@@ -726,6 +735,8 @@
 
                         let address = "";
 
+
+                        /* 도로명주소 우선 */
 
                         if (
                             result[0] &&
@@ -739,6 +750,8 @@
 
                         }
 
+
+                        /* 지번주소 */
 
                         if (
                             !address &&
@@ -759,7 +772,6 @@
                             "주소를 확인할 수 없습니다.";
 
                     }
-
                     else {
 
                         currentAddress =
@@ -896,18 +908,20 @@
 
                 {
 
-                    enableHighAccuracy: true,
+                    enableHighAccuracy:
+                        true,
 
-                    maximumAge: 1000,
+                    maximumAge:
+                        1000,
 
-                    timeout: 10000
+                    timeout:
+                        10000
 
                 }
 
             );
 
         }
-
         else {
 
             document.getElementById(
@@ -978,19 +992,11 @@
 
 
             /* -----------------------------------------
-               전송번호 생성
+               ★ 전송번호 생성
             ----------------------------------------- */
 
             const sendId =
                 createSendId();
-
-
-            /* -----------------------------------------
-               현재 전송시간
-            ----------------------------------------- */
-
-            const sendTime =
-                new Date();
 
 
             /* -----------------------------------------
@@ -1002,63 +1008,35 @@
 
 
             /* =================================================
-               구글시트 저장 데이터
+               ★ 구글시트 전송 데이터
+               
+               일반 신고와 구별하기 위해
+               type을 정확히 지정합니다.
+               
+               Apps Script에서는 이 type일 때만
+               전송번호를 M열에 기록합니다.
             ================================================== */
 
             const sheetData = {
 
-                /*
-                 * 날짜/시간 기반 전송번호
-                 */
-                sendId:
-                    sendId,
-
-
-                /*
-                 * 같은 휴대폰을 식별하기 위한 ID
-                 */
-                deviceId:
-                    DEVICE_ID,
-
-
-                /*
-                 * 전송 시각
-                 */
-                sendTime:
-                    sendTime.toISOString(),
-
-
-                /*
-                 * GPS
-                 */
                 lat:
                     lat,
 
                 lng:
                     lng,
 
-
-                /*
-                 * 주소
-                 */
                 address:
                     currentAddress,
 
-
-                /*
-                 * 지도
-                 */
                 kakaoMapURL:
                     kakaoMapURL,
-
 
                 mapURL:
                     kakaoMapURL,
 
 
-                /*
-                 * 상황
-                 */
+                /* ★ 중요 */
+
                 type:
                     FIXED_CONTENT,
 
@@ -1067,9 +1045,14 @@
                     FIXED_CONTENT,
 
 
-                /*
-                 * 기존 Apps Script 호환용
-                 */
+                /* ★ 전송번호 */
+
+                sendId:
+                    sendId,
+
+
+                /* 기존 구조 호환 */
+
                 symptom:
                     "-",
 
@@ -1089,9 +1072,11 @@
 
                 {
 
-                    method: "POST",
+                    method:
+                        "POST",
 
-                    mode: "no-cors",
+                    mode:
+                        "no-cors",
 
                     headers: {
 
@@ -1137,9 +1122,6 @@
 🔢 전송번호:
 ${sendId}
 
-📱 기기ID:
-${DEVICE_ID}
-
 📝 위치공유시스템에서 전송
 
 🏠 주소:
@@ -1157,15 +1139,16 @@ ${kakaoMapURL}
 
 
             /* =================================================
-               화면 상태
+               화면 전송 상태
             ================================================== */
 
             document.getElementById(
                 "sendStatus"
             ).innerHTML =
 
-                "✅ 전송 준비 완료" +
-                "<br>전송번호: " +
+                "✅ 위치공유시스템 전송 준비 완료" +
+                "<br>" +
+                "🔢 전송번호: " +
                 sendId;
 
 
@@ -1179,7 +1162,9 @@ ${kakaoMapURL}
                 );
 
 
-            button.disabled = true;
+            button.disabled =
+                true;
+
 
             button.style.opacity =
                 "0.7";
@@ -1210,7 +1195,6 @@ ${kakaoMapURL}
                     )
             ) {
 
-
                 location.href =
 
                     `sms:${RESCUE_NUMBER}?body=` +
@@ -1219,11 +1203,8 @@ ${kakaoMapURL}
                         smsText
                     );
 
-
             }
-
             else {
-
 
                 alert(
 
@@ -1262,6 +1243,8 @@ ${kakaoMapURL}
             function(e) {
 
 
+                /* F12 */
+
                 if (
                     e.key === "F12"
                 ) {
@@ -1272,6 +1255,8 @@ ${kakaoMapURL}
 
                 }
 
+
+                /* Ctrl + U */
 
                 if (
                     e.ctrlKey &&
@@ -1284,6 +1269,8 @@ ${kakaoMapURL}
 
                 }
 
+
+                /* Ctrl + Shift + I */
 
                 if (
                     e.ctrlKey &&
@@ -1298,6 +1285,8 @@ ${kakaoMapURL}
                 }
 
 
+                /* Ctrl + Shift + J */
+
                 if (
                     e.ctrlKey &&
                     e.shiftKey &&
@@ -1311,6 +1300,8 @@ ${kakaoMapURL}
                 }
 
 
+                /* Ctrl + Shift + C */
+
                 if (
                     e.ctrlKey &&
                     e.shiftKey &&
@@ -1323,6 +1314,8 @@ ${kakaoMapURL}
 
                 }
 
+
+                /* Ctrl + S */
 
                 if (
                     e.ctrlKey &&
