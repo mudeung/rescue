@@ -22,6 +22,7 @@
         content="width=device-width, initial-scale=1.0"
     >
 
+
     <!-- =====================================================
          카카오맵 SDK
     ====================================================== -->
@@ -49,10 +50,6 @@
         }
 
 
-        /* =====================================================
-           헤더
-        ====================================================== */
-
         header {
             background: #b71c1c;
             color: white;
@@ -63,28 +60,16 @@
         }
 
 
-        /* =====================================================
-           지도
-        ====================================================== */
-
         #map {
             width: 100%;
             height: 450px;
         }
 
 
-        /* =====================================================
-           기본 영역
-        ====================================================== */
-
         section {
             padding: 15px;
         }
 
-
-        /* =====================================================
-           정보 카드
-        ====================================================== */
 
         .info {
             background: white;
@@ -94,10 +79,6 @@
             box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
         }
 
-
-        /* =====================================================
-           GPS 정보
-        ====================================================== */
 
         #gpsInfo {
             line-height: 1.7;
@@ -110,25 +91,6 @@
             color: #1565c0;
         }
 
-
-        /* =====================================================
-           내용 표시
-        ====================================================== */
-
-        .content-info {
-            margin-top: 10px;
-            padding: 10px;
-            background: #fff3e0;
-            border-left: 4px solid #ef6c00;
-            border-radius: 5px;
-            color: #e65100;
-            font-weight: bold;
-        }
-
-
-        /* =====================================================
-           주소 표시
-        ====================================================== */
 
         .address-box {
             margin-top: 10px;
@@ -153,10 +115,6 @@
         }
 
 
-        /* =====================================================
-           버튼
-        ====================================================== */
-
         button {
             width: 100%;
             padding: 14px;
@@ -179,21 +137,21 @@
         }
 
 
-        /* =====================================================
-           전송 상태
-        ====================================================== */
+        button:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+
 
         #sendStatus {
             margin-top: 10px;
             font-size: 14px;
             font-weight: bold;
             color: #1565c0;
+            line-height: 1.7;
+            word-break: break-all;
         }
 
-
-        /* =====================================================
-           안내문
-        ====================================================== */
 
         .small {
             font-size: 14px;
@@ -203,11 +161,7 @@
         }
 
 
-        /* =====================================================
-           동의 안내
-        ====================================================== */
-
-        .consent-box {
+        .consent-info {
             padding: 0 15px;
             margin-top: 10px;
         }
@@ -233,10 +187,6 @@
             line-height: 1.6;
         }
 
-
-        /* =====================================================
-           모바일
-        ====================================================== */
 
         @media (max-width: 768px) {
 
@@ -268,7 +218,9 @@
         function toggleConsent() {
 
             const detail =
-                document.getElementById("consentDetail");
+                document.getElementById(
+                    "consentDetail"
+                );
 
 
             if (
@@ -278,7 +230,8 @@
 
                 detail.style.display = "block";
 
-            } else {
+            }
+            else {
 
                 detail.style.display = "none";
 
@@ -302,7 +255,7 @@
         🆘 무등산 산악사고 구조요청
     </header>
 
-  
+
     <!-- =====================================================
          위치정보 수집·이용 안내
     ====================================================== -->
@@ -351,7 +304,7 @@
 
             <br><br>
 
-            <b>[위치 보내기]</b>
+            <b>[문자 보내기]</b>
             버튼을 눌러 전송한 경우
             위 위치정보 수집·이용에 동의한 것으로
             간주됩니다.
@@ -374,17 +327,16 @@
             max-width:100%;
         "
     >
-    
+
+
     <!-- =====================================================
          GPS 정보
     ====================================================== -->
 
     <section>
-        
+
         <div class="info">
 
-
-            <!-- GPS 좌표 -->
 
             <div id="gpsInfo">
 
@@ -393,9 +345,7 @@
             </div>
 
 
-            <!-- =================================================
-                 주소
-            ================================================== -->
+            <!-- 주소 -->
 
             <div
                 id="addressInfo"
@@ -416,7 +366,8 @@
                 </div>
 
             </div>
-           
+
+
             <br>
 
 
@@ -425,6 +376,7 @@
             ================================================== -->
 
             <button
+                id="sendButton"
                 onclick="sendSMSAndCall()"
             >
 
@@ -432,7 +384,6 @@
 
             </button>
 
-               
 
             <!-- 전송 상태 -->
 
@@ -487,7 +438,8 @@
 
         let currentLng = null;
 
-        let currentAddress = "주소 확인 중...";
+        let currentAddress =
+            "주소 확인 중...";
 
         let geocoder;
 
@@ -516,11 +468,164 @@
 
 
         /* =====================================================
-           ★★★ 상황입력에 기록할 내용 ★★★
+           위치공유시스템 고정 내용
         ====================================================== */
 
         const FIXED_CONTENT =
             "위치공유시스템에서 전송";
+
+
+        /* =====================================================
+           ★ 같은 휴대폰을 구분하는 기기 ID
+        ====================================================== */
+
+        function getDeviceId() {
+
+            const STORAGE_KEY =
+                "MUDEUNG_RESCUE_DEVICE_ID";
+
+
+            let deviceId =
+                localStorage.getItem(
+                    STORAGE_KEY
+                );
+
+
+            if (!deviceId) {
+
+                deviceId =
+                    "DEV-" +
+                    Date.now().toString(36) +
+                    "-" +
+                    Math.random()
+                        .toString(36)
+                        .substring(2, 10)
+                        .toUpperCase();
+
+
+                localStorage.setItem(
+                    STORAGE_KEY,
+                    deviceId
+                );
+
+            }
+
+
+            return deviceId;
+
+        }
+
+
+        const DEVICE_ID =
+            getDeviceId();
+
+
+        /* =====================================================
+           ★ 전송번호 생성
+           
+           예:
+           20261001-143025-DEV-ABC123-0001
+        ====================================================== */
+
+        function createSendId() {
+
+            const now =
+                new Date();
+
+
+            const year =
+                now.getFullYear();
+
+
+            const month =
+                String(
+                    now.getMonth() + 1
+                )
+                .padStart(2, "0");
+
+
+            const day =
+                String(
+                    now.getDate()
+                )
+                .padStart(2, "0");
+
+
+            const hour =
+                String(
+                    now.getHours()
+                )
+                .padStart(2, "0");
+
+
+            const minute =
+                String(
+                    now.getMinutes()
+                )
+                .padStart(2, "0");
+
+
+            const second =
+                String(
+                    now.getSeconds()
+                )
+                .padStart(2, "0");
+
+
+            const timePart =
+                `${year}${month}${day}-${hour}${minute}${second}`;
+
+
+            /* -----------------------------------------
+               같은 휴대폰의 전송 순번
+            ----------------------------------------- */
+
+            const COUNTER_KEY =
+                "MUDEUNG_RESCUE_SEND_COUNTER";
+
+
+            let counter =
+                Number(
+                    localStorage.getItem(
+                        COUNTER_KEY
+                    ) || "0"
+                );
+
+
+            counter++;
+
+
+            if (
+                counter > 9999
+            ) {
+
+                counter = 1;
+
+            }
+
+
+            localStorage.setItem(
+                COUNTER_KEY,
+                String(counter)
+            );
+
+
+            const sequence =
+                String(counter)
+                    .padStart(4, "0");
+
+
+            return (
+
+                timePart +
+                "-" +
+                DEVICE_ID +
+                "-" +
+                sequence
+
+            );
+
+        }
 
 
         /* =====================================================
@@ -546,32 +651,34 @@
             map =
                 new kakao.maps.Map(
 
-                    document.getElementById("map"),
+                    document.getElementById(
+                        "map"
+                    ),
 
                     {
 
-                        center: center,
+                        center:
+                            center,
 
-                        level: 3
+                        level:
+                            3
 
                     }
 
                 );
 
 
-            /* 현재 위치 마커 */
-
             userMarker =
                 new kakao.maps.Marker({
 
-                    map: map,
+                    map:
+                        map,
 
-                    position: center
+                    position:
+                        center
 
                 });
 
-
-            /* 주소 변환 객체 */
 
             geocoder =
                 new kakao.maps.services.Geocoder();
@@ -583,7 +690,7 @@
 
 
         /* =====================================================
-           GPS 좌표 → 주소 변환
+           GPS → 주소
         ====================================================== */
 
         function getAddressFromGPS(
@@ -596,6 +703,7 @@
 
                 currentAddress =
                     "주소 검색 서비스를 사용할 수 없습니다.";
+
 
                 document.getElementById(
                     "addressText"
@@ -613,10 +721,11 @@
 
                 lat,
 
-                function(result, status) {
+                function(
+                    result,
+                    status
+                ) {
 
-
-                    /* 주소 검색 성공 */
 
                     if (
                         status ===
@@ -642,7 +751,7 @@
                         }
 
 
-                        /* 도로명주소가 없으면 지번주소 */
+                        /* 지번주소 */
 
                         if (
                             !address &&
@@ -663,7 +772,6 @@
                             "주소를 확인할 수 없습니다.";
 
                     }
-
                     else {
 
                         currentAddress =
@@ -671,8 +779,6 @@
 
                     }
 
-
-                    /* 화면 주소 갱신 */
 
                     document.getElementById(
                         "addressText"
@@ -700,8 +806,6 @@
                 function(pos) {
 
 
-                    /* 현재 좌표 */
-
                     currentLat =
                         pos.coords.latitude;
 
@@ -722,8 +826,6 @@
                         );
 
 
-                    /* 카카오맵 좌표 */
-
                     const loc =
                         new kakao.maps.LatLng(
                             lat,
@@ -731,21 +833,15 @@
                         );
 
 
-                    /* 지도 이동 */
-
                     map.setCenter(
                         loc
                     );
 
 
-                    /* 현재 위치 마커 이동 */
-
                     userMarker.setPosition(
                         loc
                     );
 
-
-                    /* 화면 GPS 정보 */
 
                     document.getElementById(
                         "gpsInfo"
@@ -768,8 +864,6 @@
 
                     `;
 
-
-                    /* 주소 변환 */
 
                     getAddressFromGPS(
                         lat,
@@ -814,18 +908,20 @@
 
                 {
 
-                    enableHighAccuracy: true,
+                    enableHighAccuracy:
+                        true,
 
-                    maximumAge: 1000,
+                    maximumAge:
+                        1000,
 
-                    timeout: 10000
+                    timeout:
+                        10000
 
                 }
 
             );
 
         }
-
         else {
 
             document.getElementById(
@@ -843,7 +939,9 @@
         function sendSMSAndCall() {
 
 
-            /* GPS 확인 */
+            /* -----------------------------------------
+               GPS 확인
+            ----------------------------------------- */
 
             if (
                 currentLat === null ||
@@ -859,7 +957,9 @@
             }
 
 
-            /* 좌표 */
+            /* -----------------------------------------
+               좌표
+            ----------------------------------------- */
 
             const lat =
                 Number(
@@ -873,7 +973,9 @@
                 );
 
 
-            /* 주소 확인 */
+            /* -----------------------------------------
+               주소 확인
+            ----------------------------------------- */
 
             if (
                 currentAddress ===
@@ -889,9 +991,17 @@
             }
 
 
-            /* =================================================
+            /* -----------------------------------------
+               ★ 전송번호 생성
+            ----------------------------------------- */
+
+            const sendId =
+                createSendId();
+
+
+            /* -----------------------------------------
                카카오맵 URL
-            ================================================== */
+            ----------------------------------------- */
 
             const kakaoMapURL =
                 `https://map.kakao.com/link/map/${lat},${lng}`;
@@ -900,21 +1010,54 @@
             /* =================================================
                ★ 구글시트 전송 데이터
                
-               condition 값:
-               위치공유시스템에서 전송
+               일반 신고와 구별하기 위해
+               type을 정확히 지정합니다.
+               
+               Apps Script에서는 이 type일 때만
+               전송번호를 M열에 기록합니다.
             ================================================== */
 
             const sheetData = {
 
-            lat: lat,
+                lat:
+                    lat,
 
-            lng: lng,
+                lng:
+                    lng,
 
-            address: currentAddress,
+                address:
+                    currentAddress,
 
-            kakaoMapURL: kakaoMapURL,
+                kakaoMapURL:
+                    kakaoMapURL,
 
-            type: "위치공유시스템에서 전송"
+                mapURL:
+                    kakaoMapURL,
+
+
+                /* ★ 중요 */
+
+                type:
+                    FIXED_CONTENT,
+
+
+                condition:
+                    FIXED_CONTENT,
+
+
+                /* ★ 전송번호 */
+
+                sendId:
+                    sendId,
+
+
+                /* 기존 구조 호환 */
+
+                symptom:
+                    "-",
+
+                phone:
+                    "-"
 
             };
 
@@ -929,9 +1072,11 @@
 
                 {
 
-                    method: "POST",
+                    method:
+                        "POST",
 
-                    mode: "no-cors",
+                    mode:
+                        "no-cors",
 
                     headers: {
 
@@ -951,7 +1096,8 @@
             .then(function() {
 
                 console.log(
-                    "구글시트 전송 완료"
+                    "구글시트 전송 완료:",
+                    sendId
                 );
 
             })
@@ -972,6 +1118,9 @@
             const smsText =
 
 `🚨 [산악구조요청]
+
+🔢 전송번호:
+${sendId}
 
 📝 위치공유시스템에서 전송
 
@@ -997,12 +1146,47 @@ ${kakaoMapURL}
                 "sendStatus"
             ).innerHTML =
 
-                "✅ 위치공유시스템 전송 준비 완료";
+                "✅ 위치공유시스템 전송 준비 완료" +
+                "<br>" +
+                "🔢 전송번호: " +
+                sendId;
+
+
+            /* =================================================
+               버튼 중복 클릭 방지
+            ================================================= */
+
+            const button =
+                document.getElementById(
+                    "sendButton"
+                );
+
+
+            button.disabled =
+                true;
+
+
+            button.style.opacity =
+                "0.7";
+
+
+            setTimeout(
+                function() {
+
+                    button.disabled =
+                        false;
+
+                    button.style.opacity =
+                        "1";
+
+                },
+                3000
+            );
 
 
             /* =================================================
                모바일 문자
-            ================================================== */
+            ================================================= */
 
             if (
                 /Mobi|Android|iPhone/i
@@ -1010,7 +1194,6 @@ ${kakaoMapURL}
                         navigator.userAgent
                     )
             ) {
-
 
                 location.href =
 
@@ -1020,11 +1203,8 @@ ${kakaoMapURL}
                         smsText
                     );
 
-
             }
-
             else {
-
 
                 alert(
 
