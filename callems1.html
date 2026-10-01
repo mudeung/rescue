@@ -283,21 +283,6 @@ button:hover,
 }
 
 /* =========================
-   전송번호
-========================= */
-
-.transfer-number{
-  color:#ffcc00;
-  font-weight:bold;
-  word-break:break-all;
-}
-
-.transfer-number.empty{
-  color:#777;
-  font-weight:normal;
-}
-
-/* =========================
    입력
 ========================= */
 
@@ -460,6 +445,11 @@ textarea.edit-input{
 
 </div>
 
+
+<!-- =========================
+     상세 모달
+========================= -->
+
 <div id="modalOverlay">
 
   <div id="modalContent">
@@ -476,6 +466,11 @@ textarea.edit-input{
   </div>
 
 </div>
+
+
+<!-- =========================
+     수정 모달
+========================= -->
 
 <div id="editOverlay"></div>
 
@@ -669,61 +664,6 @@ function escapeJs(value){
 
 
 /* =====================================================
-   전송번호 처리
-   ※ 이번 수정 핵심 부분
-===================================================== */
-
-function getTransferNumber(item){
-
-  if(!item){
-    return "";
-  }
-
-  /*
-   * transferNumber를 우선 사용하고,
-   * 혹시 기존 Google Sheet 데이터에서
-   * transfer_number / 전송번호 등의 이름으로
-   * 들어온 경우에도 읽을 수 있도록 처리
-   */
-
-  const value =
-    item.transferNumber ??
-    item.transfer_number ??
-    item["전송번호"] ??
-    item.sendNumber ??
-    item.send_number ??
-    "";
-
-  return String(value ?? "").trim();
-
-}
-
-
-function renderTransferNumber(value){
-
-  const number =
-    String(value ?? "").trim();
-
-  if(!number){
-
-    return `
-      <span class="transfer-number empty">
-        미입력
-      </span>
-    `;
-
-  }
-
-  return `
-    <span class="transfer-number">
-      ${escapeHtml(number)}
-    </span>
-  `;
-
-}
-
-
-/* =====================================================
    지도
 ===================================================== */
 
@@ -786,9 +726,6 @@ function showModal(item){
 
   const status =
     normalizeStatus(item.status);
-
-  const transferNumber =
-    getTransferNumber(item);
 
   const body =
     document.getElementById(
@@ -859,7 +796,7 @@ function showModal(item){
 
 
     <!-- =========================
-         전송번호
+         Google Apps Script에서 받은 전송번호
     ========================== -->
 
     <div class="detail-row">
@@ -869,8 +806,8 @@ function showModal(item){
       </div>
 
       <div class="detail-value">
-        ${renderTransferNumber(
-          transferNumber
+        ${escapeHtml(
+          item.transferNumber
         )}
       </div>
 
@@ -1300,15 +1237,12 @@ function updateStats(data){
 
 function triggerAlert(item){
 
-  const transferNumber =
-    getTransferNumber(item);
-
   const msg =
 `🚨 긴급 신고 접수
 
 유형: ${item.type || ""}
 주소: ${item.address || ""}
-전송번호: ${transferNumber || "미입력"}
+전송번호: ${item.transferNumber || ""}
 상태: ${statusText(item.status)}`;
 
 
@@ -1533,10 +1467,6 @@ function renderData(data){
         );
 
 
-      const transferNumber =
-        getTransferNumber(item);
-
-
       div.innerHTML = `
 
         <div class="card-title">
@@ -1582,8 +1512,8 @@ function renderData(data){
 
           📤
           전송번호:
-          ${renderTransferNumber(
-            transferNumber
+          ${escapeHtml(
+            item.transferNumber
           )}
 
           <br>
@@ -1673,10 +1603,6 @@ function renderTable(data){
   data.forEach(
     item => {
 
-      const transferNumber =
-        getTransferNumber(item);
-
-
       const tr =
         document.createElement("tr");
 
@@ -1712,8 +1638,8 @@ function renderTable(data){
         </td>
 
         <td>
-          ${renderTransferNumber(
-            transferNumber
+          ${escapeHtml(
+            item.transferNumber
           )}
         </td>
 
@@ -1977,10 +1903,6 @@ function showEditForm(){
     currentItem;
 
 
-  const transferNumber =
-    getTransferNumber(item);
-
-
   const overlay =
     document.getElementById(
       "editOverlay"
@@ -2060,7 +1982,7 @@ function showEditForm(){
 
 
       <!-- =========================
-           전송번호 수정
+           Google Apps Script 전송번호
       ========================== -->
 
       <label>
@@ -2071,23 +1993,12 @@ function showEditForm(){
         id="editTransferNumber"
         class="edit-input"
         type="text"
-        inputmode="text"
-        autocomplete="off"
         value="${escapeHtml(
-          transferNumber
+          item.transferNumber || ""
         )}"
-        placeholder="전송번호를 입력하세요"
+        placeholder="Google Apps Script 전송번호"
+        autocomplete="off"
       >
-
-      <small
-        style="
-          display:block;
-          margin-top:5px;
-          color:#aaa;
-        "
-      >
-        신고 접수기관 또는 전송 대상의 번호를 입력하세요.
-      </small>
 
 
       <br>
@@ -2222,23 +2133,10 @@ async function saveEdit(){
     currentItem.id;
 
 
-  /*
-   * 전송번호를 별도로 정확하게 읽음
-   */
-
-  const transferNumberInput =
-    document.getElementById(
-      "editTransferNumber"
-    );
-
-
-  const transferNumber =
-    transferNumberInput
-    ?
-    transferNumberInput.value.trim()
-    :
-    "";
-
+  /* ============================================
+     Google Apps Script로 전송할 데이터
+     transferNumber 포함
+  ============================================ */
 
   const data = {
 
@@ -2263,14 +2161,10 @@ async function saveEdit(){
         "editPhone"
       ).value.trim(),
 
-    /*
-     * 전송번호
-     * Google Apps Script에서
-     * transferNumber라는 이름으로 받음
-     */
-
     transferNumber:
-      transferNumber,
+      document.getElementById(
+        "editTransferNumber"
+      ).value.trim(),
 
     symptom:
       document.getElementById(
