@@ -5,10 +5,7 @@
 
 <title>🆘 무등산 산악사고 신고/접수/대응 상황판</title>
 
-<meta
-  name="viewport"
-  content="width=device-width, initial-scale=1.0"
->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
 
@@ -226,7 +223,7 @@ header{
 }
 
 /* =========================
-   버튼 및 지도링크 스타일
+   버튼
 ========================= */
 
 .button-area{
@@ -236,7 +233,8 @@ header{
   margin-top:15px;
 }
 
-button, .maplink{
+button,
+.maplink{
   border:none;
   padding:9px 13px;
   border-radius:5px;
@@ -250,7 +248,8 @@ button, .maplink{
   justify-content:center;
 }
 
-button:hover, .maplink:hover{
+button:hover,
+.maplink:hover{
   opacity:0.85;
 }
 
@@ -321,6 +320,24 @@ textarea.edit-input{
 }
 
 /* =========================
+   수정 모달
+========================= */
+
+#editOverlay{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.85);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:10000;
+  padding:15px;
+}
+
+/* =========================
    모바일
 ========================= */
 
@@ -350,6 +367,14 @@ textarea.edit-input{
     font-size:22px;
   }
 
+  .card-title{
+    font-size:15px;
+  }
+
+  .card-info{
+    font-size:13px;
+  }
+
 }
 
 </style>
@@ -363,7 +388,9 @@ textarea.edit-input{
 
 <div class="container">
 
-  <!-- 통계 -->
+  <!-- =========================
+       통계
+  ========================== -->
 
   <div class="stats">
 
@@ -389,18 +416,21 @@ textarea.edit-input{
 
   </div>
 
-
-  <!-- 지도 -->
+  <!-- =========================
+       지도
+  ========================== -->
 
   <div id="map"></div>
 
-
-  <!-- 신고 목록 -->
+  <!-- =========================
+       신고 목록
+  ========================== -->
 
   <div id="listArea"></div>
 
-
-  <!-- 시트 형태 -->
+  <!-- =========================
+       시트 형태
+  ========================== -->
 
   <div id="sheetTableContainer">
 
@@ -412,14 +442,12 @@ textarea.edit-input{
       <thead>
 
         <tr>
-
           <th>시간</th>
           <th>유형</th>
           <th>주소</th>
           <th>전화</th>
           <th>증상</th>
           <th>상태</th>
-
         </tr>
 
       </thead>
@@ -432,8 +460,9 @@ textarea.edit-input{
 
 </div>
 
-
-<!-- 상세 모달 -->
+<!-- =========================
+     상세 모달
+========================== -->
 
 <div id="modalOverlay">
 
@@ -452,17 +481,11 @@ textarea.edit-input{
 
 </div>
 
+<!-- =========================
+     수정 모달
+========================== -->
 
-<!-- 수정 모달 -->
-
-<div id="editOverlay">
-
-  <div id="editContent">
-
-  </div>
-
-</div>
-
+<div id="editOverlay"></div>
 
 <div id="toast"></div>
 
@@ -638,10 +661,56 @@ function escapeHtml(value){
 
 
 /* =====================================================
+   JavaScript 문자열 안전 처리
+===================================================== */
+
+function escapeJs(value){
+
+  return String(value ?? "")
+    .replace(/\\/g,"\\\\")
+    .replace(/'/g,"\\'")
+    .replace(/"/g,'\\"')
+    .replace(/\n/g,"\\n")
+    .replace(/\r/g,"\\r");
+
+}
+
+
+/* =====================================================
    지도
 ===================================================== */
 
 function initMap(){
+
+  if(
+    typeof kakao === "undefined" ||
+    !kakao.maps
+  ){
+
+    console.error(
+      "카카오 지도 API를 불러오지 못했습니다."
+    );
+
+    document.getElementById(
+      "map"
+    ).innerHTML = `
+      <div style="
+        height:100%;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        background:#222;
+        color:#ff7777;
+        text-align:center;
+        padding:20px;
+      ">
+        ❌ 카카오 지도 API를 불러오지 못했습니다.
+      </div>
+    `;
+
+    return;
+  }
+
 
   map =
     new kakao.maps.Map(
@@ -678,7 +747,6 @@ function showModal(item){
   body.innerHTML = `
 
     <div class="detail-row">
-
       <div class="detail-label">
         신고 ID
       </div>
@@ -686,12 +754,10 @@ function showModal(item){
       <div class="detail-value">
         ${escapeHtml(item.id)}
       </div>
-
     </div>
 
 
     <div class="detail-row">
-
       <div class="detail-label">
         구조요청시간
       </div>
@@ -705,12 +771,10 @@ function showModal(item){
           )
         )}
       </div>
-
     </div>
 
 
     <div class="detail-row">
-
       <div class="detail-label">
         유형
       </div>
@@ -718,12 +782,10 @@ function showModal(item){
       <div class="detail-value">
         ${escapeHtml(item.type)}
       </div>
-
     </div>
 
 
     <div class="detail-row">
-
       <div class="detail-label">
         주소
       </div>
@@ -731,12 +793,10 @@ function showModal(item){
       <div class="detail-value">
         ${escapeHtml(item.address)}
       </div>
-
     </div>
 
 
     <div class="detail-row">
-
       <div class="detail-label">
         연락처
       </div>
@@ -744,12 +804,10 @@ function showModal(item){
       <div class="detail-value">
         ${escapeHtml(item.phone)}
       </div>
-
     </div>
 
 
     <div class="detail-row">
-
       <div class="detail-label">
         증상
       </div>
@@ -757,22 +815,17 @@ function showModal(item){
       <div class="detail-value">
         ${escapeHtml(item.symptom)}
       </div>
-
     </div>
 
 
     <div class="detail-row">
-
       <div class="detail-label">
         상태
       </div>
 
       <div class="detail-value">
-
         ${statusText(status)}
-
       </div>
-
     </div>
 
 
@@ -885,12 +938,14 @@ function renderModalButtons(item){
 
     `;
 
-    /* 외부 카카오맵 바로가기 <a> 링크 추가 */
+
+    /* 카카오맵 바로가기 */
+
     html += `
 
       <a
         class="maplink"
-        href="https://map.kakao.com/link/map/구조요청 위치,${item.lat},${item.lng}"
+        href="https://map.kakao.com/link/map/구조요청 위치,${encodeURIComponent(item.lat)},${encodeURIComponent(item.lng)}"
         target="_blank"
         rel="noopener noreferrer"
       >
@@ -902,7 +957,7 @@ function renderModalButtons(item){
   }
 
 
-  /* 별도 저장된 KakaoMap URL이 있을 경우 */
+  /* 별도 저장된 KakaoMap URL */
 
   if(item.kakaoMapURL){
 
@@ -913,6 +968,20 @@ function renderModalButtons(item){
         onclick="openMapUrl('${escapeJs(item.kakaoMapURL)}')"
       >
         🗺 카카오맵
+      </button>
+
+    `;
+
+  }
+  else if(item.mapURL){
+
+    html += `
+
+      <button
+        class="btn-map"
+        onclick="openMapUrl('${escapeJs(item.mapURL)}')"
+      >
+        🗺 지도 열기
       </button>
 
     `;
@@ -1012,22 +1081,6 @@ function renderModalButtons(item){
 
 
 /* =====================================================
-   JavaScript 문자열 안전 처리
-===================================================== */
-
-function escapeJs(value){
-
-  return String(value ?? "")
-    .replace(/\\/g,"\\\\")
-    .replace(/'/g,"\\'")
-    .replace(/"/g,'\\"')
-    .replace(/\n/g,"\\n")
-    .replace(/\r/g,"\\r");
-
-}
-
-
-/* =====================================================
    지도 이동
 ===================================================== */
 
@@ -1042,21 +1095,36 @@ function moveToMarker(id){
     return;
   }
 
+
   const lat =
     Number(item.lat);
 
   const lng =
     Number(item.lng);
 
+
   if(
     !Number.isFinite(lat) ||
     !Number.isFinite(lng)
   ){
+
     showToast(
       "GPS 위치정보가 없습니다."
     );
 
     return;
+
+  }
+
+
+  if(!map){
+
+    showToast(
+      "지도가 아직 준비되지 않았습니다."
+    );
+
+    return;
+
   }
 
 
@@ -1084,7 +1152,8 @@ function openMapUrl(url){
 
   window.open(
     url,
-    "_blank"
+    "_blank",
+    "noopener,noreferrer"
   );
 
 }
@@ -1258,7 +1327,13 @@ function triggerAlert(item){
 
 
   setTimeout(
-    () => popup.remove(),
+    () => {
+
+      if(popup.parentNode){
+        popup.remove();
+      }
+
+    },
     5000
   );
 
@@ -1307,6 +1382,7 @@ function renderData(data){
       ========================= */
 
       if(
+        map &&
         Number.isFinite(lat) &&
         Number.isFinite(lng)
       ){
@@ -1469,6 +1545,7 @@ function renderData(data){
 
 
           if(
+            map &&
             Number.isFinite(lat) &&
             Number.isFinite(lng)
           ){
@@ -1501,7 +1578,10 @@ function renderData(data){
   );
 
 
-  if(markers.length > 0){
+  if(
+    map &&
+    markers.length > 0
+  ){
 
     map.setBounds(
       bounds
@@ -1844,35 +1924,6 @@ function showEditForm(){
 
   overlay.style.display =
     "flex";
-
-
-  overlay.style.position =
-    "fixed";
-
-
-  overlay.style.top =
-    "0";
-
-  overlay.style.left =
-    "0";
-
-  overlay.style.width =
-    "100%";
-
-  overlay.style.height =
-    "100%";
-
-  overlay.style.background =
-    "rgba(0,0,0,0.85)";
-
-  overlay.style.zIndex =
-    "10000";
-
-  overlay.style.justifyContent =
-    "center";
-
-  overlay.style.alignItems =
-    "center";
 
 
   overlay.innerHTML = `
@@ -2264,11 +2315,6 @@ async function postData(
   data
 ){
 
-  /*
-   * Apps Script Web App으로
-   * JSON POST
-   */
-
   const response =
     await fetch(
       API_URL,
@@ -2357,6 +2403,86 @@ document.getElementById(
     ){
 
       closeModal();
+
+    }
+
+  }
+);
+
+
+/* =====================================================
+   수정 모달 바깥 클릭
+===================================================== */
+
+document.getElementById(
+  "editOverlay"
+).addEventListener(
+  "click",
+  function(e){
+
+    if(
+      e.target === this
+    ){
+
+      closeEditForm();
+
+    }
+
+  }
+);
+
+
+/* =====================================================
+   알림 권한 요청
+===================================================== */
+
+function requestNotificationPermission(){
+
+  if(
+    "Notification" in window &&
+    Notification.permission === "default"
+  ){
+
+    Notification.requestPermission()
+      .catch(
+        () => {}
+      );
+
+  }
+
+}
+
+
+/* =====================================================
+   첫 화면에서 알림 권한 요청
+===================================================== */
+
+window.addEventListener(
+  "load",
+  function(){
+
+    setTimeout(
+      requestNotificationPermission,
+      1000
+    );
+
+  }
+);
+
+
+/* =====================================================
+   ESC로 모달 닫기
+===================================================== */
+
+document.addEventListener(
+  "keydown",
+  function(e){
+
+    if(e.key === "Escape"){
+
+      closeModal();
+
+      closeEditForm();
 
     }
 
