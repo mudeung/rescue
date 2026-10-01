@@ -289,6 +289,28 @@ button:disabled{
 }
 
 /* =====================================================
+   전송번호
+===================================================== */
+
+.transmission-number{
+    margin-top:8px;
+    padding:7px 9px;
+    background:#001a14;
+    border:1px solid #00ff9d;
+    border-radius:4px;
+    color:#00ff9d;
+    font-family:monospace;
+    font-weight:bold;
+    letter-spacing:1px;
+}
+
+.transmission-label{
+    color:#8aa;
+    font-size:11px;
+    margin-right:5px;
+}
+
+/* =====================================================
    연락 / 공유 버튼
 ===================================================== */
 
@@ -470,8 +492,8 @@ button:disabled{
     로딩중...
 </div>
 
-<br>      
-      
+<br>
+
 <img
     class="logo"
     src="https://emtcsh.github.io/logo19_192.png"
@@ -684,6 +706,7 @@ const caseList =
 
 /* =====================================================
    DEVICE ID
+   - 브라우저별 고정 UUID
 ===================================================== */
 
 let DEVICE_ID =
@@ -706,6 +729,112 @@ if(!DEVICE_ID){
         "DEVICE_ID",
         DEVICE_ID
     );
+}
+
+
+/* =====================================================
+   DEVICE CODE
+   - DEVICE_ID를 기반으로 2자리 Base36 코드 생성
+   - 00 ~ ZZ = 최대 1296개 코드
+===================================================== */
+
+function makeDeviceCode(deviceId){
+
+    let hash = 2166136261;
+
+    for(
+        let i=0;
+        i<deviceId.length;
+        i++
+    ){
+
+        hash ^= deviceId.charCodeAt(i);
+
+        hash =
+            Math.imul(
+                hash,
+                16777619
+            );
+
+    }
+
+    hash >>>= 0;
+
+    const code =
+        (hash % 1296)
+        .toString(36)
+        .toUpperCase()
+        .padStart(2,"0");
+
+    return code;
+}
+
+
+let DEVICE_CODE =
+    localStorage.getItem("DEVICE_CODE");
+
+if(
+    !DEVICE_CODE ||
+    !/^[0-9A-Z]{2}$/.test(DEVICE_CODE)
+){
+
+    DEVICE_CODE =
+        makeDeviceCode(DEVICE_ID);
+
+    localStorage.setItem(
+        "DEVICE_CODE",
+        DEVICE_CODE
+    );
+
+}
+
+
+/* =====================================================
+   TRANSMISSION NUMBER
+   형식:
+   YYMMDDHHMM-XX
+
+   예:
+   2610011542-A7
+===================================================== */
+
+function getTransmissionNumber(date = new Date()){
+
+    const year =
+        String(
+            date.getFullYear()
+        ).slice(-2);
+
+    const month =
+        String(
+            date.getMonth()+1
+        ).padStart(2,"0");
+
+    const day =
+        String(
+            date.getDate()
+        ).padStart(2,"0");
+
+    const hour =
+        String(
+            date.getHours()
+        ).padStart(2,"0");
+
+    const minute =
+        String(
+            date.getMinutes()
+        ).padStart(2,"0");
+
+    return (
+        year +
+        month +
+        day +
+        hour +
+        minute +
+        "-" +
+        DEVICE_CODE
+    );
+
 }
 
 
@@ -1053,9 +1182,38 @@ async function submitData(){
 
     try{
 
+        /*
+         * 신고 버튼을 누르는 순간 생성
+         * YYMMDDHHMM-XX
+         */
+        const transmissionNumber =
+            getTransmissionNumber(
+                new Date()
+            );
+
+
         const payload = {
 
             action:"create",
+
+            /*
+             * 신규 전송번호
+             */
+            transmissionNumber:
+                transmissionNumber,
+
+            /*
+             * 전체 기기 식별값
+             * 서버에서 중복 확인용으로 사용할 수 있음
+             */
+            deviceId:
+                DEVICE_ID,
+
+            /*
+             * 표시용 2자리 기기코드
+             */
+            deviceCode:
+                DEVICE_CODE,
 
             type:selectedType,
 
@@ -1101,7 +1259,9 @@ async function submitData(){
 
 
         alert(
-            "🆘 신고가 접수되었습니다."
+            "🆘 신고가 접수되었습니다.\n\n" +
+            "전송번호: " +
+            transmissionNumber
         );
 
 
@@ -1248,6 +1408,9 @@ function getAccidentField(item,names){
 
 function getAccidentId(item,index){
 
+    /*
+     * 기존 서버 ID가 있으면 기존 ID 사용
+     */
     const value =
         getAccidentField(
             item,
@@ -1264,6 +1427,23 @@ function getAccidentId(item,index){
         return String(value);
     }
 
+    /*
+     * 서버 ID가 없는 경우 전송번호 우선 사용
+     */
+    const transmissionNumber =
+        getAccidentField(
+            item,
+            [
+                "transmissionNumber",
+                "전송번호",
+                "전송번호ID"
+            ]
+        );
+
+    if(transmissionNumber !== ""){
+        return String(transmissionNumber);
+    }
+
     return (
         String(
             getAccidentField(
@@ -1276,6 +1456,24 @@ function getAccidentId(item,index){
         ) +
         "_" +
         String(index)
+    );
+
+}
+
+
+/* =====================================================
+   TRANSMISSION FIELD
+===================================================== */
+
+function getTransmissionNumberFromItem(item){
+
+    return getAccidentField(
+        item,
+        [
+            "transmissionNumber",
+            "전송번호",
+            "전송번호ID"
+        ]
     );
 
 }
@@ -1429,6 +1627,9 @@ async function shareAccident(data){
         statusText = "처리완료";
     }
 
+    const transmissionNumber =
+        getTransmissionNumberFromItem(data) || "-";
+
     const address =
         getAccidentField(
             data,
@@ -1516,6 +1717,7 @@ async function shareAccident(data){
     const shareText =
 `🆘 무등산 산악사고 공유
 
+전송번호: ${transmissionNumber}
 신고유형: ${type}
 상태: ${statusText}
 주소: ${address}
@@ -1728,6 +1930,11 @@ function renderAccidents(data){
                     index
                 );
 
+            const transmissionNumber =
+                getTransmissionNumberFromItem(
+                    item
+                ) || "-";
+
             const status =
                 normalizeStatus(
                     getAccidentField(
@@ -1925,21 +2132,31 @@ function renderAccidents(data){
                     ">
                         <b>🆘 무등산 산악사고 공유</b>
                         <hr>
+
+                        <b>전송번호:</b>
+                        ${escapeHTML(transmissionNumber)}
+                        <br>
+
                         <b>유형:</b>
                         ${escapeHTML(type)}
                         <br>
+
                         <b>상태:</b>
                         ${escapeHTML(statusText)}
                         <br>
+
                         <b>주소:</b>
                         ${escapeHTML(address || "-")}
                         <br>
+
                         <b>상황:</b>
                         ${escapeHTML(symptom || "-")}
                         <br>
+
                         <b>접수:</b>
                         ${escapeHTML(startTime || "-")}
                         <br>
+
                         <b>경과:</b>
                         ${escapeHTML(elapsed)}
                         <br><br>
@@ -2119,7 +2336,6 @@ function renderAccidents(data){
 
             /* =================================================
                연락 + 공유 버튼
-               ※ 지도 버튼은 제거됨
             ================================================= */
 
             const contactShareButtons = `
@@ -2189,6 +2405,21 @@ function renderAccidents(data){
                         </span>
 
                     </div>
+
+                    ${
+                        transmissionNumber !== "-"
+                        ?
+                        `
+                        <div class="transmission-number">
+                            <span class="transmission-label">
+                                전송번호
+                            </span>
+                            ${escapeHTML(transmissionNumber)}
+                        </div>
+                        `
+                        :
+                        ""
+                    }
 
                     ${
                         overdue &&
