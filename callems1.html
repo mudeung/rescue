@@ -283,6 +283,21 @@ button:hover,
 }
 
 /* =========================
+   전송번호
+========================= */
+
+.transfer-number{
+  color:#ffcc00;
+  font-weight:bold;
+  word-break:break-all;
+}
+
+.transfer-number.empty{
+  color:#777;
+  font-weight:normal;
+}
+
+/* =========================
    입력
 ========================= */
 
@@ -388,10 +403,6 @@ textarea.edit-input{
 
 <div class="container">
 
-  <!-- =========================
-       통계
-  ========================== -->
-
   <div class="stats">
 
     <div class="stat-box">
@@ -416,21 +427,9 @@ textarea.edit-input{
 
   </div>
 
-  <!-- =========================
-       지도
-  ========================== -->
-
   <div id="map"></div>
 
-  <!-- =========================
-       신고 목록
-  ========================== -->
-
   <div id="listArea"></div>
-
-  <!-- =========================
-       시트 형태
-  ========================== -->
 
   <div id="sheetTableContainer">
 
@@ -461,10 +460,6 @@ textarea.edit-input{
 
 </div>
 
-<!-- =========================
-     상세 모달
-========================= -->
-
 <div id="modalOverlay">
 
   <div id="modalContent">
@@ -481,10 +476,6 @@ textarea.edit-input{
   </div>
 
 </div>
-
-<!-- =========================
-     수정 모달
-========================= -->
 
 <div id="editOverlay"></div>
 
@@ -678,6 +669,61 @@ function escapeJs(value){
 
 
 /* =====================================================
+   전송번호 처리
+   ※ 이번 수정 핵심 부분
+===================================================== */
+
+function getTransferNumber(item){
+
+  if(!item){
+    return "";
+  }
+
+  /*
+   * transferNumber를 우선 사용하고,
+   * 혹시 기존 Google Sheet 데이터에서
+   * transfer_number / 전송번호 등의 이름으로
+   * 들어온 경우에도 읽을 수 있도록 처리
+   */
+
+  const value =
+    item.transferNumber ??
+    item.transfer_number ??
+    item["전송번호"] ??
+    item.sendNumber ??
+    item.send_number ??
+    "";
+
+  return String(value ?? "").trim();
+
+}
+
+
+function renderTransferNumber(value){
+
+  const number =
+    String(value ?? "").trim();
+
+  if(!number){
+
+    return `
+      <span class="transfer-number empty">
+        미입력
+      </span>
+    `;
+
+  }
+
+  return `
+    <span class="transfer-number">
+      ${escapeHtml(number)}
+    </span>
+  `;
+
+}
+
+
+/* =====================================================
    지도
 ===================================================== */
 
@@ -740,6 +786,9 @@ function showModal(item){
 
   const status =
     normalizeStatus(item.status);
+
+  const transferNumber =
+    getTransferNumber(item);
 
   const body =
     document.getElementById(
@@ -820,8 +869,8 @@ function showModal(item){
       </div>
 
       <div class="detail-value">
-        ${escapeHtml(
-          item.transferNumber
+        ${renderTransferNumber(
+          transferNumber
         )}
       </div>
 
@@ -937,8 +986,6 @@ function renderModalButtons(item){
   let html = "";
 
 
-  /* 내부 지도 위치 이동 */
-
   if(
     Number.isFinite(
       Number(item.lat)
@@ -960,8 +1007,6 @@ function renderModalButtons(item){
     `;
 
 
-    /* 카카오맵 바로가기 */
-
     html += `
 
       <a
@@ -977,8 +1022,6 @@ function renderModalButtons(item){
 
   }
 
-
-  /* 별도 저장된 KakaoMap URL */
 
   if(item.kakaoMapURL){
 
@@ -1010,8 +1053,6 @@ function renderModalButtons(item){
   }
 
 
-  /* 접수 → 현장도착 */
-
   if(status === "RECEIVED"){
 
     html += `
@@ -1030,8 +1071,6 @@ function renderModalButtons(item){
 
   }
 
-
-  /* 현장도착 → 처리완료 */
 
   if(status === "ARRIVED"){
 
@@ -1052,8 +1091,6 @@ function renderModalButtons(item){
   }
 
 
-  /* 수정 */
-
   if(status !== "DONE"){
 
     html += `
@@ -1069,8 +1106,6 @@ function renderModalButtons(item){
 
   }
 
-
-  /* 삭제 */
 
   html += `
 
@@ -1265,16 +1300,17 @@ function updateStats(data){
 
 function triggerAlert(item){
 
+  const transferNumber =
+    getTransferNumber(item);
+
   const msg =
 `🚨 긴급 신고 접수
 
 유형: ${item.type || ""}
 주소: ${item.address || ""}
-전송번호: ${item.transferNumber || ""}
+전송번호: ${transferNumber || "미입력"}
 상태: ${statusText(item.status)}`;
 
-
-  /* 브라우저 알림 */
 
   if(
     "Notification" in window
@@ -1298,8 +1334,6 @@ function triggerAlert(item){
 
   }
 
-
-  /* 화면 팝업 */
 
   const popup =
     document.createElement("div");
@@ -1399,10 +1433,6 @@ function renderData(data){
         parseFloat(item.lng);
 
 
-      /* =========================
-         마커
-      ========================= */
-
       if(
         map &&
         Number.isFinite(lat) &&
@@ -1488,10 +1518,6 @@ function renderData(data){
       }
 
 
-      /* =========================
-         카드
-      ========================= */
-
       const div =
         document.createElement("div");
 
@@ -1505,6 +1531,10 @@ function renderData(data){
         normalizeStatus(
           item.status
         );
+
+
+      const transferNumber =
+        getTransferNumber(item);
 
 
       div.innerHTML = `
@@ -1552,8 +1582,8 @@ function renderData(data){
 
           📤
           전송번호:
-          ${escapeHtml(
-            item.transferNumber
+          ${renderTransferNumber(
+            transferNumber
           )}
 
           <br>
@@ -1643,6 +1673,10 @@ function renderTable(data){
   data.forEach(
     item => {
 
+      const transferNumber =
+        getTransferNumber(item);
+
+
       const tr =
         document.createElement("tr");
 
@@ -1678,8 +1712,8 @@ function renderTable(data){
         </td>
 
         <td>
-          ${escapeHtml(
-            item.transferNumber
+          ${renderTransferNumber(
+            transferNumber
           )}
         </td>
 
@@ -1750,10 +1784,6 @@ async function loadData(){
     }
 
 
-    /* =========================
-       신규 신고 감지
-    ========================= */
-
     const newItems = [];
 
 
@@ -1776,11 +1806,6 @@ async function loadData(){
       }
     );
 
-
-    /*
-     * 최초 로딩에서는
-     * 기존 신고를 긴급알림하지 않음
-     */
 
     if(lastIds.size > 0){
 
@@ -1952,6 +1977,10 @@ function showEditForm(){
     currentItem;
 
 
+  const transferNumber =
+    getTransferNumber(item);
+
+
   const overlay =
     document.getElementById(
       "editOverlay"
@@ -2041,11 +2070,24 @@ function showEditForm(){
       <input
         id="editTransferNumber"
         class="edit-input"
+        type="text"
+        inputmode="text"
+        autocomplete="off"
         value="${escapeHtml(
-          item.transferNumber
+          transferNumber
         )}"
         placeholder="전송번호를 입력하세요"
       >
+
+      <small
+        style="
+          display:block;
+          margin-top:5px;
+          color:#aaa;
+        "
+      >
+        신고 접수기관 또는 전송 대상의 번호를 입력하세요.
+      </small>
 
 
       <br>
@@ -2180,6 +2222,24 @@ async function saveEdit(){
     currentItem.id;
 
 
+  /*
+   * 전송번호를 별도로 정확하게 읽음
+   */
+
+  const transferNumberInput =
+    document.getElementById(
+      "editTransferNumber"
+    );
+
+
+  const transferNumber =
+    transferNumberInput
+    ?
+    transferNumberInput.value.trim()
+    :
+    "";
+
+
   const data = {
 
     action:
@@ -2203,14 +2263,14 @@ async function saveEdit(){
         "editPhone"
       ).value.trim(),
 
-    /* =========================
-       전송번호
-    ========================== */
+    /*
+     * 전송번호
+     * Google Apps Script에서
+     * transferNumber라는 이름으로 받음
+     */
 
     transferNumber:
-      document.getElementById(
-        "editTransferNumber"
-      ).value.trim(),
+      transferNumber,
 
     symptom:
       document.getElementById(
@@ -2580,8 +2640,6 @@ document.addEventListener(
   "keydown",
   function(e){
 
-    /* F12 */
-
     if(
       e.key === "F12"
     ){
@@ -2592,8 +2650,6 @@ document.addEventListener(
 
     }
 
-
-    /* Ctrl + U */
 
     if(
       e.ctrlKey &&
@@ -2606,8 +2662,6 @@ document.addEventListener(
 
     }
 
-
-    /* Ctrl + Shift + I */
 
     if(
       e.ctrlKey &&
@@ -2622,8 +2676,6 @@ document.addEventListener(
     }
 
 
-    /* Ctrl + Shift + J */
-
     if(
       e.ctrlKey &&
       e.shiftKey &&
@@ -2637,8 +2689,6 @@ document.addEventListener(
     }
 
 
-    /* Ctrl + Shift + C */
-
     if(
       e.ctrlKey &&
       e.shiftKey &&
@@ -2651,8 +2701,6 @@ document.addEventListener(
 
     }
 
-
-    /* Ctrl + S */
 
     if(
       e.ctrlKey &&
