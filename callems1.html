@@ -145,7 +145,7 @@ header{
 
 #sheetTable{
   border-collapse:collapse;
-  min-width:850px;
+  min-width:1000px;
 }
 
 #sheetTable th,
@@ -446,6 +446,7 @@ textarea.edit-input{
           <th>유형</th>
           <th>주소</th>
           <th>전화</th>
+          <th>전송번호</th>
           <th>증상</th>
           <th>상태</th>
         </tr>
@@ -462,7 +463,7 @@ textarea.edit-input{
 
 <!-- =========================
      상세 모달
-========================== -->
+========================= -->
 
 <div id="modalOverlay">
 
@@ -483,7 +484,7 @@ textarea.edit-input{
 
 <!-- =========================
      수정 모달
-========================== -->
+========================= -->
 
 <div id="editOverlay"></div>
 
@@ -709,6 +710,7 @@ function initMap(){
     `;
 
     return;
+
   }
 
 
@@ -804,6 +806,25 @@ function showModal(item){
       <div class="detail-value">
         ${escapeHtml(item.phone)}
       </div>
+    </div>
+
+
+    <!-- =========================
+         전송번호
+    ========================== -->
+
+    <div class="detail-row">
+
+      <div class="detail-label">
+        📤 전송번호
+      </div>
+
+      <div class="detail-value">
+        ${escapeHtml(
+          item.transferNumber
+        )}
+      </div>
+
     </div>
 
 
@@ -1249,6 +1270,7 @@ function triggerAlert(item){
 
 유형: ${item.type || ""}
 주소: ${item.address || ""}
+전송번호: ${item.transferNumber || ""}
 상태: ${statusText(item.status)}`;
 
 
@@ -1528,6 +1550,14 @@ function renderData(data){
 
           <br>
 
+          📤
+          전송번호:
+          ${escapeHtml(
+            item.transferNumber
+          )}
+
+          <br>
+
           📝
           ${escapeHtml(
             item.symptom
@@ -1644,6 +1674,12 @@ function renderTable(data){
         <td>
           ${escapeHtml(
             item.phone
+          )}
+        </td>
+
+        <td>
+          ${escapeHtml(
+            item.transferNumber
           )}
         </td>
 
@@ -1994,6 +2030,27 @@ function showEditForm(){
       <br>
 
 
+      <!-- =========================
+           전송번호 수정
+      ========================== -->
+
+      <label>
+        📤 전송번호
+      </label>
+
+      <input
+        id="editTransferNumber"
+        class="edit-input"
+        value="${escapeHtml(
+          item.transferNumber
+        )}"
+        placeholder="전송번호를 입력하세요"
+      >
+
+
+      <br>
+
+
       <label>
         증상
       </label>
@@ -2144,6 +2201,15 @@ async function saveEdit(){
     phone:
       document.getElementById(
         "editPhone"
+      ).value.trim(),
+
+    /* =========================
+       전송번호
+    ========================== */
+
+    transferNumber:
+      document.getElementById(
+        "editTransferNumber"
       ).value.trim(),
 
     symptom:
