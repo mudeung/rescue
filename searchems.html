@@ -288,10 +288,6 @@ button:disabled{
     box-shadow:0 0 8px #00ff9d;
 }
 
-/* =====================================================
-   전송번호
-===================================================== */
-
 .transmission-number{
     margin-top:8px;
     padding:7px 9px;
@@ -309,10 +305,6 @@ button:disabled{
     font-size:11px;
     margin-right:5px;
 }
-
-/* =====================================================
-   연락 / 공유 버튼
-===================================================== */
 
 .case-action-row{
     display:flex;
@@ -706,7 +698,6 @@ const caseList =
 
 /* =====================================================
    DEVICE ID
-   - 브라우저별 고정 UUID
 ===================================================== */
 
 let DEVICE_ID =
@@ -734,8 +725,6 @@ if(!DEVICE_ID){
 
 /* =====================================================
    DEVICE CODE
-   - DEVICE_ID를 기반으로 2자리 Base36 코드 생성
-   - 00 ~ ZZ = 최대 1296개 코드
 ===================================================== */
 
 function makeDeviceCode(deviceId){
@@ -760,13 +749,13 @@ function makeDeviceCode(deviceId){
 
     hash >>>= 0;
 
-    const code =
-        (hash % 1296)
-        .toString(36)
-        .toUpperCase()
-        .padStart(2,"0");
+    return (
+        hash % 1296
+    )
+    .toString(36)
+    .toUpperCase()
+    .padStart(2,"0");
 
-    return code;
 }
 
 
@@ -791,11 +780,6 @@ if(
 
 /* =====================================================
    TRANSMISSION NUMBER
-   형식:
-   YYMMDDHHMM-XX
-
-   예:
-   2610011542-A7
 ===================================================== */
 
 function getTransmissionNumber(date = new Date()){
@@ -1183,8 +1167,8 @@ async function submitData(){
     try{
 
         /*
-         * 신고 버튼을 누르는 순간 생성
-         * YYMMDDHHMM-XX
+         * 신고 버튼을 누르는 순간
+         * 전송번호 생성
          */
         const transmissionNumber =
             getTransmissionNumber(
@@ -1196,22 +1180,12 @@ async function submitData(){
 
             action:"create",
 
-            /*
-             * 신규 전송번호
-             */
             transmissionNumber:
                 transmissionNumber,
 
-            /*
-             * 전체 기기 식별값
-             * 서버에서 중복 확인용으로 사용할 수 있음
-             */
             deviceId:
                 DEVICE_ID,
 
-            /*
-             * 표시용 2자리 기기코드
-             */
             deviceCode:
                 DEVICE_CODE,
 
@@ -1236,6 +1210,12 @@ async function submitData(){
             status:"RECEIVED"
 
         };
+
+
+        console.log(
+            "신고 전송 데이터:",
+            payload
+        );
 
 
         const result =
@@ -1323,13 +1303,17 @@ async function postAccident(payload){
     let data;
 
     try{
+
         data = JSON.parse(text);
+
     }
     catch(e){
+
         data = {
             success:false,
             message:text
         };
+
     }
 
     if(!response.ok){
@@ -1384,6 +1368,10 @@ function resetReportForm(){
 
 function getAccidentField(item,names){
 
+    if(!item){
+        return "";
+    }
+
     for(const name of names){
 
         if(
@@ -1403,13 +1391,117 @@ function getAccidentField(item,names){
 
 
 /* =====================================================
+   TRANSMISSION NUMBER
+   Google Sheets에서 받아오는 전송번호
+===================================================== */
+
+function getTransmissionNumberFromItem(item){
+
+    if(!item){
+        return "";
+    }
+
+
+    /*
+     * 일반적인 Apps Script JSON 필드
+     */
+    const value =
+        getAccidentField(
+            item,
+            [
+
+                "transmissionNumber",
+
+                "TransmissionNumber",
+
+                "transmission_number",
+
+                "transmissionNo",
+
+                "transmissionNO",
+
+                "transmission",
+
+                "전송번호",
+
+                "전송 번호",
+
+                "전송번호ID",
+
+                "전송번호 Id",
+
+                "전송번호ID",
+
+                "번호"
+
+            ]
+        );
+
+
+    if(value !== ""){
+
+        return String(value).trim();
+
+    }
+
+
+    /*
+     * 헤더 이름의 공백 / 대소문자가
+     * 달라도 찾아내도록 처리
+     */
+    const keys =
+        Object.keys(item);
+
+
+    for(const key of keys){
+
+        const normalized =
+            String(key)
+            .replace(/\s/g,"")
+            .toLowerCase();
+
+
+        if(
+            normalized === "전송번호" ||
+            normalized === "transmissionnumber" ||
+            normalized === "transmissionno"
+        ){
+
+            const result =
+                item[key];
+
+
+            if(
+                result !== undefined &&
+                result !== null &&
+                String(result).trim() !== ""
+            ){
+
+                return String(
+                    result
+                ).trim();
+
+            }
+
+        }
+
+    }
+
+
+    return "";
+
+}
+
+
+/* =====================================================
    ID
 ===================================================== */
 
 function getAccidentId(item,index){
 
     /*
-     * 기존 서버 ID가 있으면 기존 ID 사용
+     * 1순위
+     * 서버 ID
      */
     const value =
         getAccidentField(
@@ -1423,27 +1515,36 @@ function getAccidentId(item,index){
             ]
         );
 
+
     if(value !== ""){
+
         return String(value);
+
     }
+
 
     /*
-     * 서버 ID가 없는 경우 전송번호 우선 사용
+     * 2순위
+     * Google Sheets 전송번호
      */
     const transmissionNumber =
-        getAccidentField(
-            item,
-            [
-                "transmissionNumber",
-                "전송번호",
-                "전송번호ID"
-            ]
+        getTransmissionNumberFromItem(
+            item
         );
 
+
     if(transmissionNumber !== ""){
-        return String(transmissionNumber);
+
+        return String(
+            transmissionNumber
+        );
+
     }
 
+
+    /*
+     * 3순위
+     */
     return (
         String(
             getAccidentField(
@@ -1462,25 +1563,7 @@ function getAccidentId(item,index){
 
 
 /* =====================================================
-   TRANSMISSION FIELD
-===================================================== */
-
-function getTransmissionNumberFromItem(item){
-
-    return getAccidentField(
-        item,
-        [
-            "transmissionNumber",
-            "전송번호",
-            "전송번호ID"
-        ]
-    );
-
-}
-
-
-/* =====================================================
-   START
+   START TIME
 ===================================================== */
 
 function getAccidentStartTime(item){
@@ -1496,6 +1579,7 @@ function getAccidentStartTime(item){
             "접수시간"
         ]
     );
+
 }
 
 
@@ -1510,24 +1594,32 @@ function normalizeStatus(value){
         .trim()
         .toUpperCase();
 
+
     if(
         status === "DONE" ||
         status === "완료" ||
         status === "처리완료" ||
         status === "사고처리완료"
     ){
+
         return "DONE";
+
     }
+
 
     if(
         status === "ARRIVED" ||
         status === "도착" ||
         status === "현장도착"
     ){
+
         return "ARRIVED";
+
     }
 
+
     return "RECEIVED";
+
 }
 
 
@@ -1535,47 +1627,61 @@ function normalizeStatus(value){
    ELAPSED
 ===================================================== */
 
-function getElapsedTime(startTime,endTime=null){
+function getElapsedTime(
+    startTime,
+    endTime=null
+){
 
     if(!startTime){
         return "-";
     }
 
+
     const start =
         new Date(startTime);
+
 
     if(Number.isNaN(start.getTime())){
         return "-";
     }
+
 
     const end =
         endTime
         ? new Date(endTime)
         : new Date();
 
+
     if(Number.isNaN(end.getTime())){
         return "-";
     }
+
 
     let diff =
         Math.floor(
             (end-start)/1000
         );
 
+
     if(diff<0){
         diff=0;
     }
 
+
     const hour =
         Math.floor(diff/3600);
 
+
     diff%=3600;
+
 
     const minute =
         Math.floor(diff/60);
 
+
     const second =
         diff%60;
+
 
     return (
         String(hour).padStart(2,"0") +
@@ -1584,6 +1690,7 @@ function getElapsedTime(startTime,endTime=null){
         ":" +
         String(second).padStart(2,"0")
     );
+
 }
 
 
@@ -1604,6 +1711,7 @@ async function shareAccident(data){
             ]
         ) || "기타";
 
+
     const status =
         normalizeStatus(
             getAccidentField(
@@ -1617,18 +1725,25 @@ async function shareAccident(data){
             )
         );
 
-    let statusText = "접수";
 
-    if(status === "ARRIVED"){
-        statusText = "현장도착";
+    let statusText="접수";
+
+
+    if(status==="ARRIVED"){
+        statusText="현장도착";
     }
 
-    if(status === "DONE"){
-        statusText = "처리완료";
+
+    if(status==="DONE"){
+        statusText="처리완료";
     }
+
 
     const transmissionNumber =
-        getTransmissionNumberFromItem(data) || "-";
+        getTransmissionNumberFromItem(
+            data
+        ) || "-";
+
 
     const address =
         getAccidentField(
@@ -1640,6 +1755,7 @@ async function shareAccident(data){
                 "장소"
             ]
         ) || "-";
+
 
     const symptom =
         getAccidentField(
@@ -1653,6 +1769,7 @@ async function shareAccident(data){
             ]
         ) || "-";
 
+
     const phone =
         getAccidentField(
             data,
@@ -1664,8 +1781,10 @@ async function shareAccident(data){
             ]
         ) || "-";
 
+
     const startTime =
         getAccidentStartTime(data) || "-";
+
 
     const lat =
         Number(
@@ -1679,6 +1798,7 @@ async function shareAccident(data){
             )
         );
 
+
     const lng =
         Number(
             getAccidentField(
@@ -1691,6 +1811,7 @@ async function shareAccident(data){
             )
         );
 
+
     let mapURL =
         getAccidentField(
             data,
@@ -1701,6 +1822,7 @@ async function shareAccident(data){
                 "지도URL"
             ]
         );
+
 
     if(
         !mapURL &&
@@ -1713,6 +1835,7 @@ async function shareAccident(data){
             lat + "," + lng;
 
     }
+
 
     const shareText =
 `🆘 무등산 산악사고 공유
@@ -1740,6 +1863,7 @@ ${mapURL ? "사고위치: " + mapURL : ""}`;
             });
 
             return;
+
         }
 
 
@@ -1757,13 +1881,14 @@ ${mapURL ? "사고위치: " + mapURL : ""}`;
             );
 
             return;
+
         }
 
 
         const temp =
             document.createElement("textarea");
 
-        temp.value = shareText;
+        temp.value=shareText;
 
         document.body.appendChild(temp);
 
@@ -1780,14 +1905,19 @@ ${mapURL ? "사고위치: " + mapURL : ""}`;
     }
     catch(err){
 
-        if(err && err.name === "AbortError"){
+        if(
+            err &&
+            err.name==="AbortError"
+        ){
             return;
         }
+
 
         console.error(
             "공유 오류:",
             err
         );
+
 
         alert(
             "공유 기능을 사용할 수 없습니다."
@@ -1808,7 +1938,9 @@ async function loadAccidents(){
         return;
     }
 
+
     accidentLoading=true;
+
 
     try{
 
@@ -1822,40 +1954,54 @@ async function loadAccidents(){
                 }
             );
 
+
         if(!response.ok){
 
             throw new Error(
                 "HTTP " +
                 response.status
             );
+
         }
+
 
         const data =
             await response.json();
 
-        let rows = [];
+
+        let rows=[];
+
 
         if(Array.isArray(data)){
+
             rows=data;
+
         }
         else if(
             data &&
             Array.isArray(data.data)
         ){
+
             rows=data.data;
+
         }
         else if(
             data &&
             Array.isArray(data.items)
         ){
+
             rows=data.items;
+
         }
         else if(
             data &&
             Array.isArray(data.rows)
         ){
+
             rows=data.rows;
+
         }
+
 
         renderAccidents(rows);
 
@@ -1866,6 +2012,7 @@ async function loadAccidents(){
             "사고 목록 조회 오류:",
             err
         );
+
 
         if(firstLoad){
 
@@ -1898,6 +2045,7 @@ function renderAccidents(data){
 
     accidentLayer.clearLayers();
 
+
     const rows =
         [...data].sort(
             function(a,b){
@@ -1907,19 +2055,26 @@ function renderAccidents(data){
                         getAccidentStartTime(a)
                     ).getTime();
 
+
                 const tb =
                     new Date(
                         getAccidentStartTime(b)
                     ).getTime();
 
+
                 if(Number.isNaN(ta)) return 1;
+
                 if(Number.isNaN(tb)) return -1;
 
+
                 return tb-ta;
+
             }
         );
 
+
     let html="";
+
 
     rows.forEach(
         function(item,index){
@@ -1930,10 +2085,15 @@ function renderAccidents(data){
                     index
                 );
 
+
+            /*
+             * Google Sheets 전송번호
+             */
             const transmissionNumber =
                 getTransmissionNumberFromItem(
                     item
                 ) || "-";
+
 
             const status =
                 normalizeStatus(
@@ -1948,8 +2108,10 @@ function renderAccidents(data){
                     )
                 );
 
+
             const startTime =
                 getAccidentStartTime(item);
+
 
             const endTime =
                 getAccidentField(
@@ -1963,6 +2125,7 @@ function renderAccidents(data){
                     ]
                 );
 
+
             const lat =
                 Number(
                     getAccidentField(
@@ -1974,6 +2137,7 @@ function renderAccidents(data){
                         ]
                     )
                 );
+
 
             const lng =
                 Number(
@@ -1987,6 +2151,7 @@ function renderAccidents(data){
                     )
                 );
 
+
             const address =
                 getAccidentField(
                     item,
@@ -1998,6 +2163,7 @@ function renderAccidents(data){
                     ]
                 );
 
+
             const type =
                 getAccidentField(
                     item,
@@ -2008,6 +2174,7 @@ function renderAccidents(data){
                         "유형"
                     ]
                 ) || "기타";
+
 
             const symptom =
                 getAccidentField(
@@ -2021,6 +2188,7 @@ function renderAccidents(data){
                     ]
                 );
 
+
             const phone =
                 getAccidentField(
                     item,
@@ -2032,16 +2200,6 @@ function renderAccidents(data){
                     ]
                 );
 
-            const kakaoMapURL =
-                getAccidentField(
-                    item,
-                    [
-                        "kakaoMapURL",
-                        "kakaoUrl",
-                        "mapUrl",
-                        "지도URL"
-                    ]
-                );
 
             const elapsed =
                 getElapsedTime(
@@ -2049,7 +2207,9 @@ function renderAccidents(data){
                     endTime || null
                 );
 
+
             let overdue=false;
+
 
             if(
                 status==="RECEIVED" &&
@@ -2060,6 +2220,7 @@ function renderAccidents(data){
                     new Date(
                         startTime
                     ).getTime();
+
 
                 if(Number.isFinite(start)){
 
@@ -2072,20 +2233,29 @@ function renderAccidents(data){
 
             }
 
+
             let statusText="접수";
-            let statusClass="status-received";
+
+            let statusClass=
+                "status-received";
+
 
             if(status==="ARRIVED"){
 
                 statusText="현장도착";
-                statusClass="status-arrived";
+
+                statusClass=
+                    "status-arrived";
 
             }
+
 
             if(status==="DONE"){
 
                 statusText="처리완료";
-                statusClass="status-done";
+
+                statusClass=
+                    "status-done";
 
             }
 
@@ -2101,13 +2271,16 @@ function renderAccidents(data){
 
                 let markerColor="red";
 
+
                 if(status==="ARRIVED"){
                     markerColor="orange";
                 }
 
+
                 if(status==="DONE"){
                     markerColor="#777";
                 }
+
 
                 const marker =
                     L.circleMarker(
@@ -2124,13 +2297,16 @@ function renderAccidents(data){
                         }
                     );
 
+
                 marker.bindPopup(`
                     <div style="
                         font-family:Arial,sans-serif;
                         min-width:220px;
                         color:#111;
                     ">
-                        <b>🆘 무등산 산악사고 공유</b>
+
+                        <b>🆘 무등산 산악사고</b>
+
                         <hr>
 
                         <b>전송번호:</b>
@@ -2186,15 +2362,19 @@ function renderAccidents(data){
                     </div>
                 `);
 
+
                 marker.on(
                     "click",
                     function(){
+
                         map.setView(
                             [lat,lng],
                             17
                         );
+
                     }
                 );
+
 
                 marker.addTo(
                     accidentLayer
@@ -2209,33 +2389,50 @@ function renderAccidents(data){
 
             let cardClass="case-card";
 
+
             if(status==="DONE"){
+
                 cardClass+=" done";
+
             }
             else if(status==="ARRIVED"){
+
                 cardClass+=" arrived";
+
             }
+
 
             if(
                 overdue &&
                 status==="RECEIVED"
             ){
+
                 cardClass+=" blink";
+
             }
 
 
             let typeIcon="🆘";
 
-            if(type==="응급환자") typeIcon="🚑";
+
+            if(type==="응급환자")
+                typeIcon="🚑";
+
             else if(
                 type==="구조출동" ||
                 type==="구조신고"
-            ) typeIcon="🚓";
-            else if(type==="조난") typeIcon="🆘";
-            else if(type==="기타") typeIcon="✏️";
+            )
+                typeIcon="🚓";
+
+            else if(type==="조난")
+                typeIcon="🆘";
+
+            else if(type==="기타")
+                typeIcon="✏️";
 
 
             let actionButtons="";
+
 
             if(status==="RECEIVED"){
 
@@ -2250,6 +2447,7 @@ function renderAccidents(data){
                 `;
 
             }
+
 
             if(status==="ARRIVED"){
 
@@ -2309,7 +2507,7 @@ function renderAccidents(data){
 
 
             /* =================================================
-               사고 위치 보기
+               위치 버튼
             ================================================= */
 
             const mapButton =
@@ -2335,7 +2533,7 @@ function renderAccidents(data){
 
 
             /* =================================================
-               연락 + 공유 버튼
+               연락 + 공유
             ================================================= */
 
             const contactShareButtons = `
@@ -2382,6 +2580,10 @@ function renderAccidents(data){
             `;
 
 
+            /* =================================================
+               HTML
+            ================================================= */
+
             html+=`
                 <div
                     class="${cardClass}"
@@ -2406,20 +2608,27 @@ function renderAccidents(data){
 
                     </div>
 
+
                     ${
                         transmissionNumber !== "-"
                         ?
                         `
                         <div class="transmission-number">
+
                             <span class="transmission-label">
                                 전송번호
                             </span>
-                            ${escapeHTML(transmissionNumber)}
+
+                            ${escapeHTML(
+                                transmissionNumber
+                            )}
+
                         </div>
                         `
                         :
                         ""
                     }
+
 
                     ${
                         overdue &&
@@ -2438,18 +2647,33 @@ function renderAccidents(data){
                         ""
                     }
 
+
                     <div style="margin-top:8px">
+
                         <b>상황</b><br>
-                        ${escapeHTML(symptom || "-")}
+
+                        ${escapeHTML(
+                            symptom || "-"
+                        )}
+
                     </div>
 
+
                     <div style="margin-top:6px">
+
                         <b>주소</b><br>
-                        ${escapeHTML(address || "-")}
+
+                        ${escapeHTML(
+                            address || "-"
+                        )}
+
                     </div>
 
+
                     <div style="margin-top:6px">
+
                         <b>연락처</b><br>
+
                         ${
                             phone
                             ?
@@ -2464,30 +2688,44 @@ function renderAccidents(data){
                             :
                             "-"
                         }
+
                     </div>
 
-                    <div class="time" style="margin-top:6px">
+
+                    <div
+                        class="time"
+                        style="margin-top:6px"
+                    >
                         접수:
-                        ${escapeHTML(startTime || "-")}
+                        ${escapeHTML(
+                            startTime || "-"
+                        )}
                     </div>
+
 
                     <div class="time">
+
                         경과:
                         ${escapeHTML(elapsed)}
+
                     </div>
+
 
                     ${
                         endTime
                         ?
                         `
                         <div class="time">
+
                             완료:
                             ${escapeHTML(endTime)}
+
                         </div>
                         `
                         :
                         ""
                     }
+
 
                     ${
                         Number.isFinite(lat) &&
@@ -2495,14 +2733,21 @@ function renderAccidents(data){
                         ?
                         `
                         <div class="coord">
-                            Lat: ${lat.toFixed(6)}
+
+                            Lat:
+                            ${lat.toFixed(6)}
+
                             <br>
-                            Lng: ${lng.toFixed(6)}
+
+                            Lng:
+                            ${lng.toFixed(6)}
+
                         </div>
                         `
                         :
                         ""
                     }
+
 
                     ${mapButton}
 
@@ -2520,7 +2765,9 @@ function renderAccidents(data){
                 !firstLoad &&
                 !knownIds.has(id)
             ){
+
                 playAlert();
+
             }
 
 
@@ -2531,11 +2778,15 @@ function renderAccidents(data){
 
                 alertedOverdueIds.add(id);
 
+
                 if(!firstLoad){
+
                     playAlert();
+
                 }
 
             }
+
 
             knownIds.add(id);
 
@@ -2550,6 +2801,7 @@ function renderAccidents(data){
             현재 접수된 사고가 없습니다.
         </div>
         `;
+
 
     firstLoad=false;
 
@@ -2602,26 +2854,35 @@ async function shareAccidentById(caseId){
 
         let rows=[];
 
+
         if(Array.isArray(data)){
+
             rows=data;
+
         }
         else if(
             data &&
             Array.isArray(data.data)
         ){
+
             rows=data.data;
+
         }
         else if(
             data &&
             Array.isArray(data.items)
         ){
+
             rows=data.items;
+
         }
         else if(
             data &&
             Array.isArray(data.rows)
         ){
+
             rows=data.rows;
+
         }
 
 
@@ -2669,6 +2930,7 @@ async function shareAccidentById(caseId){
             err
         );
 
+
         alert(
             "공유할 신고 정보를 가져오지 못했습니다.\n\n" +
             err.message
@@ -2691,7 +2953,9 @@ function escapeHTML(value){
         .replace(/>/g,"&gt;")
         .replace(/"/g,"&quot;")
         .replace(/'/g,"&#039;");
+
 }
+
 
 function escapeAttribute(value){
 
@@ -2700,7 +2964,9 @@ function escapeAttribute(value){
         .replace(/"/g,"&quot;")
         .replace(/</g,"&lt;")
         .replace(/>/g,"&gt;");
+
 }
+
 
 function escapeJS(value){
 
@@ -2709,6 +2975,7 @@ function escapeJS(value){
         .replace(/'/g,"\\'")
         .replace(/\r/g,"\\r")
         .replace(/\n/g,"\\n");
+
 }
 
 
@@ -2719,24 +2986,33 @@ function escapeJS(value){
 function focusAccident(lat,lng){
 
     lat=Number(lat);
+
     lng=Number(lng);
+
 
     if(
         !Number.isFinite(lat) ||
         !Number.isFinite(lng)
     ){
+
         return;
+
     }
+
 
     map.setView(
         [lat,lng],
         17
     );
 
+
     L.popup()
     .setLatLng([lat,lng])
-    .setContent("🆘 사고 신고 위치")
+    .setContent(
+        "🆘 사고 신고 위치"
+    )
     .openOn(map);
+
 }
 
 
@@ -2758,8 +3034,10 @@ async function editAccident(caseId){
                 }
             );
 
+
         const data =
             await response.json();
+
 
         let rows =
             Array.isArray(data)
@@ -2770,21 +3048,29 @@ async function editAccident(caseId){
                 : []
             );
 
+
         let item=null;
+
 
         rows.forEach(
             function(row,index){
 
                 if(
                     String(
-                        getAccidentId(row,index)
+                        getAccidentId(
+                            row,
+                            index
+                        )
                     ) === String(caseId)
                 ){
+
                     item=row;
+
                 }
 
             }
         );
+
 
         if(!item){
 
@@ -2793,7 +3079,9 @@ async function editAccident(caseId){
             );
 
             return;
+
         }
+
 
         conditionEl.value =
             getAccidentField(
@@ -2807,6 +3095,7 @@ async function editAccident(caseId){
                 ]
             );
 
+
         phoneEl.value =
             getAccidentField(
                 item,
@@ -2817,6 +3106,7 @@ async function editAccident(caseId){
                     "연락처"
                 ]
             );
+
 
         addressEl.value =
             getAccidentField(
@@ -2829,6 +3119,7 @@ async function editAccident(caseId){
                 ]
             );
 
+
         latEl.value =
             getAccidentField(
                 item,
@@ -2838,6 +3129,7 @@ async function editAccident(caseId){
                     "위도"
                 ]
             );
+
 
         lngEl.value =
             getAccidentField(
@@ -2861,6 +3153,7 @@ async function editAccident(caseId){
                 ]
             );
 
+
         document
         .querySelectorAll(".type-btn")
         .forEach(
@@ -2875,8 +3168,13 @@ async function editAccident(caseId){
         );
 
 
-        const editLat=Number(latEl.value);
-        const editLng=Number(lngEl.value);
+        const editLat =
+            Number(latEl.value);
+
+
+        const editLng =
+            Number(lngEl.value);
+
 
         if(
             Number.isFinite(editLat) &&
@@ -2887,6 +3185,7 @@ async function editAccident(caseId){
                 [editLat,editLng],
                 17
             );
+
 
             setReportPreview(
                 editLat,
@@ -2901,7 +3200,9 @@ async function editAccident(caseId){
                 "✏ 현재 입력창의 내용으로 신고를 수정하시겠습니까?"
             )
         ){
+
             return;
+
         }
 
 
@@ -2913,6 +3214,7 @@ async function editAccident(caseId){
     catch(err){
 
         console.error(err);
+
 
         alert(
             "신고 수정 중 오류가 발생했습니다.\n" +
@@ -2932,6 +3234,7 @@ async function updateAccident(caseId){
 
     const lat =
         Number(latEl.value);
+
 
     const lng =
         Number(lngEl.value);
@@ -3018,6 +3321,7 @@ async function updateAccident(caseId){
 
         console.error(err);
 
+
         alert(
             "신고 수정 실패\n\n" +
             err.message
@@ -3051,12 +3355,12 @@ async function deleteAccident(caseId){
         );
 
 
-    if(password === null){
+    if(password===null){
         return;
     }
 
 
-    if(password.trim() === ""){
+    if(password.trim()===""){
 
         alert(
             "❌ 삭제 비밀번호를 입력하세요."
@@ -3090,10 +3394,9 @@ async function deleteAccident(caseId){
         cards.forEach(
             function(card){
 
-                card.style.opacity = ".5";
+                card.style.opacity=".5";
 
-                card.style.pointerEvents =
-                    "none";
+                card.style.pointerEvents="none";
 
             }
         );
@@ -3190,25 +3493,26 @@ async function updateAccidentStatus(
     let message =
         "처리하시겠습니까?";
 
-    let action = "";
+
+    let action="";
 
 
-    if(status === "ARRIVED"){
+    if(status==="ARRIVED"){
 
         message =
             "🚓 현장 도착으로 변경하시겠습니까?";
 
-        action = "complete";
+        action="complete";
 
     }
 
 
-    if(status === "DONE"){
+    if(status==="DONE"){
 
         message =
             "✅ 구조 완료로 변경하시겠습니까?";
 
-        action = "finish";
+        action="finish";
 
     }
 
@@ -3253,7 +3557,7 @@ async function updateAccidentStatus(
 
 
         alert(
-            status === "ARRIVED"
+            status==="ARRIVED"
             ?
             "🚓 현장 도착 처리 완료"
             :
@@ -3267,6 +3571,7 @@ async function updateAccidentStatus(
     catch(err){
 
         console.error(err);
+
 
         alert(
             "상태 변경 실패\n\n" +
@@ -3289,26 +3594,32 @@ function playAlert(){
             "alertSound"
         );
 
+
     if(!audio){
         return;
     }
 
+
     audio.currentTime=0;
+
 
     const promise =
         audio.play();
 
+
     if(
         promise &&
-        typeof promise.catch === "function"
+        typeof promise.catch==="function"
     ){
 
         promise.catch(
             function(err){
+
                 console.log(
                     "알림음 재생 제한:",
                     err
                 );
+
             }
         );
 
@@ -3324,16 +3635,23 @@ function playAlert(){
 function startAccidentAutoRefresh(){
 
     if(accidentTimer){
-        clearInterval(accidentTimer);
+
+        clearInterval(
+            accidentTimer
+        );
+
     }
 
+
     loadAccidents();
+
 
     accidentTimer =
         setInterval(
             loadAccidents,
             60000
         );
+
 }
 
 
@@ -3349,9 +3667,12 @@ window.addEventListener(
 
         startAccidentAutoRefresh();
 
+
         setTimeout(
             function(){
+
                 map.invalidateSize();
+
             },
             30000
         );
@@ -3359,16 +3680,20 @@ window.addEventListener(
     }
 );
 
+
 document.addEventListener(
     "visibilitychange",
     function(){
 
         if(!document.hidden){
+
             loadAccidents();
+
         }
 
     }
 );
+
 
 window.addEventListener(
     "resize",
@@ -3376,13 +3701,16 @@ window.addEventListener(
 
         setTimeout(
             function(){
+
                 map.invalidateSize();
+
             },
             100
         );
 
     }
 );
+
 
 document.addEventListener(
     "keydown",
@@ -3411,54 +3739,74 @@ document.addEventListener(
 document.addEventListener(
     "contextmenu",
     function(e){
+
         e.preventDefault();
+
     }
 );
+
 
 document.addEventListener(
     "keydown",
     function(e){
 
         if(e.key==="F12"){
+
             e.preventDefault();
+
         }
+
 
         if(
             e.ctrlKey &&
             e.key.toLowerCase()==="u"
         ){
+
             e.preventDefault();
+
         }
+
 
         if(
             e.ctrlKey &&
             e.shiftKey &&
             e.key.toLowerCase()==="i"
         ){
+
             e.preventDefault();
+
         }
+
 
         if(
             e.ctrlKey &&
             e.shiftKey &&
             e.key.toLowerCase()==="j"
         ){
+
             e.preventDefault();
+
         }
+
 
         if(
             e.ctrlKey &&
             e.shiftKey &&
             e.key.toLowerCase()==="c"
         ){
+
             e.preventDefault();
+
         }
+
 
         if(
             e.ctrlKey &&
             e.key.toLowerCase()==="s"
         ){
+
             e.preventDefault();
+
         }
 
     }
