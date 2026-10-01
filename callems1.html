@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+
 <meta charset="UTF-8">
 
 <title>🆘 무등산 산악사고 신고/접수/대응 상황판</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+>
 
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
 
@@ -110,7 +114,7 @@ header{
 .card-info{
   font-size:14px;
   color:#ddd;
-  line-height:1.6;
+  line-height:1.7;
 }
 
 .status{
@@ -145,7 +149,7 @@ header{
 
 #sheetTable{
   border-collapse:collapse;
-  min-width:1000px;
+  min-width:1100px;
 }
 
 #sheetTable th,
@@ -270,35 +274,8 @@ button:hover,
   background:#2e7d32;
 }
 
-.btn-edit{
-  background:#1976d2;
-}
-
-.btn-delete{
-  background:#c62828;
-}
-
 .btn-map{
   background:#00897b;
-}
-
-/* =========================
-   입력
-========================= */
-
-.edit-input{
-  width:100%;
-  padding:9px;
-  margin-top:4px;
-  background:#111;
-  color:#fff;
-  border:1px solid #555;
-  border-radius:5px;
-}
-
-textarea.edit-input{
-  min-height:80px;
-  resize:vertical;
 }
 
 /* =========================
@@ -320,24 +297,6 @@ textarea.edit-input{
 }
 
 /* =========================
-   수정 모달
-========================= */
-
-#editOverlay{
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:rgba(0,0,0,0.85);
-  display:none;
-  justify-content:center;
-  align-items:center;
-  z-index:10000;
-  padding:15px;
-}
-
-/* =========================
    모바일
 ========================= */
 
@@ -345,6 +304,7 @@ textarea.edit-input{
 
   header{
     font-size:17px;
+    padding:13px 8px;
   }
 
   .container{
@@ -375,9 +335,14 @@ textarea.edit-input{
     font-size:13px;
   }
 
+  #modalContent{
+    padding:15px;
+  }
+
 }
 
 </style>
+
 </head>
 
 <body>
@@ -386,7 +351,12 @@ textarea.edit-input{
   🆘 무등산 산악사고 신고/접수/대응 상황판
 </header>
 
+
 <div class="container">
+
+  <!-- =========================
+       통계
+  ========================== -->
 
   <div class="stats">
 
@@ -412,9 +382,24 @@ textarea.edit-input{
 
   </div>
 
+
+  <!-- =========================
+       지도
+  ========================== -->
+
   <div id="map"></div>
 
+
+  <!-- =========================
+       신고 카드
+  ========================== -->
+
   <div id="listArea"></div>
+
+
+  <!-- =========================
+       구글시트 데이터 테이블
+  ========================== -->
 
   <div id="sheetTableContainer">
 
@@ -426,13 +411,21 @@ textarea.edit-input{
       <thead>
 
         <tr>
+
           <th>시간</th>
+
           <th>유형</th>
+
           <th>주소</th>
+
           <th>전화</th>
+
           <th>전송번호</th>
+
           <th>증상</th>
+
           <th>상태</th>
+
         </tr>
 
       </thead>
@@ -454,7 +447,9 @@ textarea.edit-input{
 
   <div id="modalContent">
 
-    <h3>🚨 신고 상세정보</h3>
+    <h3>
+      🚨 신고 상세정보
+    </h3>
 
     <div id="modalBody"></div>
 
@@ -467,12 +462,6 @@ textarea.edit-input{
 
 </div>
 
-
-<!-- =========================
-     수정 모달
-========================= -->
-
-<div id="editOverlay"></div>
 
 <div id="toast"></div>
 
@@ -526,7 +515,8 @@ function parseKST(value){
     return null;
   }
 
-  const d = new Date(value);
+  const d =
+    new Date(value);
 
   if(isNaN(d.getTime())){
     return null;
@@ -563,7 +553,7 @@ function formatTime(value){
 
 
 /* =====================================================
-   상태 변환
+   상태
 ===================================================== */
 
 function normalizeStatus(status){
@@ -573,22 +563,29 @@ function normalizeStatus(status){
       .trim()
       .toUpperCase();
 
+
   if(
     value === "DONE" ||
     value === "완료" ||
     value === "처리완료" ||
     value === "사고처리완료"
   ){
+
     return "DONE";
+
   }
+
 
   if(
     value === "ARRIVED" ||
     value === "도착" ||
     value === "현장도착"
   ){
+
     return "ARRIVED";
+
   }
+
 
   return "RECEIVED";
 
@@ -600,13 +597,16 @@ function statusText(status){
   const s =
     normalizeStatus(status);
 
+
   if(s === "DONE"){
     return "사고처리완료";
   }
 
+
   if(s === "ARRIVED"){
     return "현장도착";
   }
+
 
   return "접수";
 
@@ -618,13 +618,16 @@ function statusClass(status){
   const s =
     normalizeStatus(status);
 
+
   if(s === "DONE"){
     return "done";
   }
 
+
   if(s === "ARRIVED"){
     return "arrived";
   }
+
 
   return "received";
 
@@ -664,7 +667,7 @@ function escapeJs(value){
 
 
 /* =====================================================
-   지도
+   지도 초기화
 ===================================================== */
 
 function initMap(){
@@ -678,9 +681,11 @@ function initMap(){
       "카카오 지도 API를 불러오지 못했습니다."
     );
 
+
     document.getElementById(
       "map"
     ).innerHTML = `
+
       <div style="
         height:100%;
         display:flex;
@@ -691,8 +696,11 @@ function initMap(){
         text-align:center;
         padding:20px;
       ">
+
         ❌ 카카오 지도 API를 불러오지 못했습니다.
+
       </div>
+
     `;
 
     return;
@@ -704,12 +712,15 @@ function initMap(){
     new kakao.maps.Map(
       document.getElementById("map"),
       {
+
         center:
           new kakao.maps.LatLng(
             35.1345,
             126.9902
           ),
+
         level:6
+
       }
     );
 
@@ -717,24 +728,30 @@ function initMap(){
 
 
 /* =====================================================
-   모달
+   상세 모달
 ===================================================== */
 
 function showModal(item){
 
   currentItem = item;
 
+
   const status =
-    normalizeStatus(item.status);
+    normalizeStatus(
+      item.status
+    );
+
 
   const body =
     document.getElementById(
       "modalBody"
     );
 
+
   body.innerHTML = `
 
     <div class="detail-row">
+
       <div class="detail-label">
         신고 ID
       </div>
@@ -742,15 +759,18 @@ function showModal(item){
       <div class="detail-value">
         ${escapeHtml(item.id)}
       </div>
+
     </div>
 
 
     <div class="detail-row">
+
       <div class="detail-label">
         구조요청시간
       </div>
 
       <div class="detail-value">
+
         ${escapeHtml(
           formatTime(
             item.startTime ||
@@ -758,11 +778,14 @@ function showModal(item){
             item.time
           )
         )}
+
       </div>
+
     </div>
 
 
     <div class="detail-row">
+
       <div class="detail-label">
         유형
       </div>
@@ -770,10 +793,12 @@ function showModal(item){
       <div class="detail-value">
         ${escapeHtml(item.type)}
       </div>
+
     </div>
 
 
     <div class="detail-row">
+
       <div class="detail-label">
         주소
       </div>
@@ -781,10 +806,12 @@ function showModal(item){
       <div class="detail-value">
         ${escapeHtml(item.address)}
       </div>
+
     </div>
 
 
     <div class="detail-row">
+
       <div class="detail-label">
         연락처
       </div>
@@ -792,12 +819,9 @@ function showModal(item){
       <div class="detail-value">
         ${escapeHtml(item.phone)}
       </div>
+
     </div>
 
-
-    <!-- =========================
-         Google Apps Script에서 받은 전송번호
-    ========================== -->
 
     <div class="detail-row">
 
@@ -807,7 +831,9 @@ function showModal(item){
 
       <div class="detail-value">
         ${escapeHtml(
-          item.transferNumber
+          item.transferNumber ||
+          item.sendId ||
+          ""
         )}
       </div>
 
@@ -815,6 +841,7 @@ function showModal(item){
 
 
     <div class="detail-row">
+
       <div class="detail-label">
         증상
       </div>
@@ -822,17 +849,24 @@ function showModal(item){
       <div class="detail-value">
         ${escapeHtml(item.symptom)}
       </div>
+
     </div>
 
 
     <div class="detail-row">
+
       <div class="detail-label">
         상태
       </div>
 
       <div class="detail-value">
-        ${statusText(status)}
+
+        ${escapeHtml(
+          statusText(status)
+        )}
+
       </div>
+
     </div>
 
 
@@ -840,19 +874,25 @@ function showModal(item){
       item.arrivedTime
       ?
       `
-      <div class="detail-row">
 
-        <div class="detail-label">
-          현장도착시간
+        <div class="detail-row">
+
+          <div class="detail-label">
+            현장도착시간
+          </div>
+
+          <div class="detail-value">
+
+            ${escapeHtml(
+              formatTime(
+                item.arrivedTime
+              )
+            )}
+
+          </div>
+
         </div>
 
-        <div class="detail-value">
-          ${escapeHtml(
-            formatTime(item.arrivedTime)
-          )}
-        </div>
-
-      </div>
       `
       :
       ""
@@ -863,19 +903,25 @@ function showModal(item){
       item.finishTime
       ?
       `
-      <div class="detail-row">
 
-        <div class="detail-label">
-          완료시간
+        <div class="detail-row">
+
+          <div class="detail-label">
+            완료시간
+          </div>
+
+          <div class="detail-value">
+
+            ${escapeHtml(
+              formatTime(
+                item.finishTime
+              )
+            )}
+
+          </div>
+
         </div>
 
-        <div class="detail-value">
-          ${escapeHtml(
-            formatTime(item.finishTime)
-          )}
-        </div>
-
-      </div>
       `
       :
       ""
@@ -889,16 +935,23 @@ function showModal(item){
 
   document.getElementById(
     "modalOverlay"
-  ).style.display = "flex";
+  ).style.display =
+    "flex";
 
 }
 
+
+/* =====================================================
+   모달 닫기
+===================================================== */
 
 function closeModal(){
 
   document.getElementById(
     "modalOverlay"
-  ).style.display = "none";
+  ).style.display =
+    "none";
+
 
   currentItem = null;
 
@@ -907,6 +960,7 @@ function closeModal(){
 
 /* =====================================================
    상세 버튼
+   ★ 수정 / 삭제 제거
 ===================================================== */
 
 function renderModalButtons(item){
@@ -916,12 +970,19 @@ function renderModalButtons(item){
       "modalButtons"
     );
 
+
   const status =
-    normalizeStatus(item.status);
+    normalizeStatus(
+      item.status
+    );
 
 
   let html = "";
 
+
+  /* =========================
+     지도보기
+  ========================== */
 
   if(
     Number.isFinite(
@@ -936,9 +997,13 @@ function renderModalButtons(item){
 
       <button
         class="btn-map"
-        onclick="moveToMarker('${escapeJs(item.id)}')"
+        onclick="moveToMarker(
+          '${escapeJs(item.id)}'
+        )"
       >
+
         📍 지도보기
+
       </button>
 
     `;
@@ -952,7 +1017,9 @@ function renderModalButtons(item){
         target="_blank"
         rel="noopener noreferrer"
       >
+
         📍 구조요청위치
+
       </a>
 
     `;
@@ -960,15 +1027,23 @@ function renderModalButtons(item){
   }
 
 
+  /* =========================
+     카카오맵
+  ========================== */
+
   if(item.kakaoMapURL){
 
     html += `
 
       <button
         class="btn-map"
-        onclick="openMapUrl('${escapeJs(item.kakaoMapURL)}')"
+        onclick="openMapUrl(
+          '${escapeJs(item.kakaoMapURL)}'
+        )"
       >
+
         🗺 카카오맵
+
       </button>
 
     `;
@@ -980,15 +1055,23 @@ function renderModalButtons(item){
 
       <button
         class="btn-map"
-        onclick="openMapUrl('${escapeJs(item.mapURL)}')"
+        onclick="openMapUrl(
+          '${escapeJs(item.mapURL)}'
+        )"
       >
+
         🗺 지도 열기
+
       </button>
 
     `;
 
   }
 
+
+  /* =========================
+     현장도착
+  ========================== */
 
   if(status === "RECEIVED"){
 
@@ -1001,13 +1084,19 @@ function renderModalButtons(item){
           '${escapeJs(item.id)}'
         )"
       >
+
         🚑 현장도착
+
       </button>
 
     `;
 
   }
 
+
+  /* =========================
+     사고처리 완료
+  ========================== */
 
   if(status === "ARRIVED"){
 
@@ -1020,7 +1109,9 @@ function renderModalButtons(item){
           '${escapeJs(item.id)}'
         )"
       >
+
         ✅ 사고처리 완료
+
       </button>
 
     `;
@@ -1028,33 +1119,9 @@ function renderModalButtons(item){
   }
 
 
-  if(status !== "DONE"){
-
-    html += `
-
-      <button
-        class="btn-edit"
-        onclick="showEditForm()"
-      >
-        ✏ 수정
-      </button>
-
-    `;
-
-  }
-
-
-  html += `
-
-    <button
-      class="btn-delete"
-      onclick="deleteAccident('${escapeJs(item.id)}')"
-    >
-      🗑 삭제
-    </button>
-
-  `;
-
+  /* =========================
+     닫기
+  ========================== */
 
   html += `
 
@@ -1062,13 +1129,16 @@ function renderModalButtons(item){
       class="btn-close"
       onclick="closeModal()"
     >
+
       닫기
+
     </button>
 
   `;
 
 
-  area.innerHTML = html;
+  area.innerHTML =
+    html;
 
 }
 
@@ -1081,11 +1151,20 @@ function moveToMarker(id){
 
   const item =
     allData.find(
-      x => String(x.id) === String(id)
+      x =>
+        String(x.id) ===
+        String(id)
     );
 
+
   if(!item){
+
+    showToast(
+      "신고 정보를 찾을 수 없습니다."
+    );
+
     return;
+
   }
 
 
@@ -1128,20 +1207,29 @@ function moveToMarker(id){
     );
 
 
-  map.setCenter(position);
+  map.setCenter(
+    position
+  );
+
 
   map.setLevel(3);
+
 
   closeModal();
 
 }
 
 
+/* =====================================================
+   외부 지도 URL
+===================================================== */
+
 function openMapUrl(url){
 
   if(!url){
     return;
   }
+
 
   window.open(
     url,
@@ -1170,26 +1258,30 @@ function updateStats(data){
   data.forEach(
     item => {
 
-      const t =
-        String(item.type || "");
+      const type =
+        String(
+          item.type || ""
+        );
 
 
-      if(t.includes("응급")){
+      if(
+        type.includes("응급")
+      ){
 
         emergency++;
 
       }
       else if(
-        t.includes("구조") ||
-        t.includes("산악사고")
+        type.includes("구조") ||
+        type.includes("산악사고")
       ){
 
         dispatch++;
 
       }
       else if(
-        t.includes("조난") ||
-        t.includes("실종")
+        type.includes("조난") ||
+        type.includes("실종")
       ){
 
         lost++;
@@ -1232,7 +1324,7 @@ function updateStats(data){
 
 
 /* =====================================================
-   긴급 알림
+   신규 신고 알림
 ===================================================== */
 
 function triggerAlert(item){
@@ -1242,9 +1334,17 @@ function triggerAlert(item){
 
 유형: ${item.type || ""}
 주소: ${item.address || ""}
-전송번호: ${item.transferNumber || ""}
+전송번호: ${
+  item.transferNumber ||
+  item.sendId ||
+  ""
+}
 상태: ${statusText(item.status)}`;
 
+
+  /* =========================
+     브라우저 알림
+  ========================== */
 
   if(
     "Notification" in window
@@ -1258,9 +1358,11 @@ function triggerAlert(item){
       new Notification(
         "산악사고 긴급 신고",
         {
+
           body:
             item.type ||
             "새로운 신고가 접수되었습니다."
+
         }
       );
 
@@ -1269,8 +1371,14 @@ function triggerAlert(item){
   }
 
 
+  /* =========================
+     화면 긴급 팝업
+  ========================== */
+
   const popup =
-    document.createElement("div");
+    document.createElement(
+      "div"
+    );
 
 
   popup.style.position =
@@ -1298,7 +1406,7 @@ function triggerAlert(item){
     "99999";
 
   popup.style.maxWidth =
-    "300px";
+    "320px";
 
   popup.style.boxShadow =
     "0 0 15px rgba(0,0,0,0.6)";
@@ -1320,7 +1428,9 @@ function triggerAlert(item){
     () => {
 
       if(popup.parentNode){
+
         popup.remove();
+
       }
 
     },
@@ -1331,15 +1441,20 @@ function triggerAlert(item){
 
 
 /* =====================================================
-   렌더
+   전체 데이터 렌더링
 ===================================================== */
 
 function renderData(data){
 
   document.getElementById(
     "listArea"
-  ).innerHTML = "";
+  ).innerHTML =
+    "";
 
+
+  /* =========================
+     기존 마커 제거
+  ========================== */
 
   markers.forEach(
     marker =>
@@ -1350,12 +1465,18 @@ function renderData(data){
   markers = [];
 
 
-  updateStats(data);
+  updateStats(
+    data
+  );
 
 
   const bounds =
     new kakao.maps.LatLngBounds();
 
+
+  /* =========================
+     데이터 표시
+  ========================== */
 
   data.forEach(
     item => {
@@ -1367,6 +1488,10 @@ function renderData(data){
         parseFloat(item.lng);
 
 
+      /* =========================
+         지도 마커
+      ========================== */
+
       if(
         map &&
         Number.isFinite(lat) &&
@@ -1376,19 +1501,23 @@ function renderData(data){
         let iconUrl;
 
 
-        const t =
-          String(item.type || "");
+        const type =
+          String(
+            item.type || ""
+          );
 
 
-        if(t.includes("응급")){
+        if(
+          type.includes("응급")
+        ){
 
           iconUrl =
             "https://maps.google.com/mapfiles/ms/icons/red-dot.png";
 
         }
         else if(
-          t.includes("구조") ||
-          t.includes("산악사고")
+          type.includes("구조") ||
+          type.includes("산악사고")
         ){
 
           iconUrl =
@@ -1396,8 +1525,8 @@ function renderData(data){
 
         }
         else if(
-          t.includes("조난") ||
-          t.includes("실종")
+          type.includes("조난") ||
+          type.includes("실종")
         ){
 
           iconUrl =
@@ -1426,10 +1555,12 @@ function renderData(data){
             image:
               new kakao.maps.MarkerImage(
                 iconUrl,
+
                 new kakao.maps.Size(
                   32,
                   32
                 )
+
               )
 
           });
@@ -1443,7 +1574,10 @@ function renderData(data){
         );
 
 
-        markers.push(marker);
+        markers.push(
+          marker
+        );
+
 
         bounds.extend(
           marker.getPosition()
@@ -1452,13 +1586,21 @@ function renderData(data){
       }
 
 
+      /* =========================
+         신고 카드
+      ========================== */
+
       const div =
-        document.createElement("div");
+        document.createElement(
+          "div"
+        );
 
 
       div.className =
         "card " +
-        statusClass(item.status);
+        statusClass(
+          item.status
+        );
 
 
       const status =
@@ -1486,9 +1628,15 @@ function renderData(data){
           )}
 
           <span
-            class="status ${statusClass(status)}"
+            class="status ${
+              statusClass(status)
+            }"
           >
-            ${statusText(status)}
+
+            ${escapeHtml(
+              statusText(status)
+            )}
+
           </span>
 
         </div>
@@ -1512,8 +1660,11 @@ function renderData(data){
 
           📤
           전송번호:
+
           ${escapeHtml(
-            item.transferNumber
+            item.transferNumber ||
+            item.sendId ||
+            ""
           )}
 
           <br>
@@ -1531,7 +1682,9 @@ function renderData(data){
       div.onclick =
         function(){
 
-          showModal(item);
+          showModal(
+            item
+          );
 
 
           if(
@@ -1551,6 +1704,7 @@ function renderData(data){
               moveLatLng
             );
 
+
             map.setLevel(3);
 
           }
@@ -1562,11 +1716,17 @@ function renderData(data){
         .getElementById(
           "listArea"
         )
-        .appendChild(div);
+        .appendChild(
+          div
+        );
 
     }
   );
 
+
+  /* =========================
+     지도 범위
+  ========================== */
 
   if(
     map &&
@@ -1580,7 +1740,9 @@ function renderData(data){
   }
 
 
-  renderTable(data);
+  renderTable(
+    data
+  );
 
 }
 
@@ -1597,19 +1759,23 @@ function renderTable(data){
     );
 
 
-  tbody.innerHTML = "";
+  tbody.innerHTML =
+    "";
 
 
   data.forEach(
     item => {
 
       const tr =
-        document.createElement("tr");
+        document.createElement(
+          "tr"
+        );
 
 
       tr.innerHTML = `
 
         <td>
+
           ${escapeHtml(
             formatTime(
               item.startTime ||
@@ -1617,42 +1783,65 @@ function renderTable(data){
               item.time
             )
           )}
+
         </td>
 
+
         <td>
+
           ${escapeHtml(
             item.type
           )}
+
         </td>
 
+
         <td>
+
           ${escapeHtml(
             item.address
           )}
+
         </td>
 
+
         <td>
+
           ${escapeHtml(
             item.phone
           )}
+
         </td>
 
+
         <td>
+
           ${escapeHtml(
-            item.transferNumber
+            item.transferNumber ||
+            item.sendId ||
+            ""
           )}
+
         </td>
 
+
         <td>
+
           ${escapeHtml(
             item.symptom
           )}
+
         </td>
 
+
         <td>
+
           ${escapeHtml(
-            statusText(item.status)
+            statusText(
+              item.status
+            )
           )}
+
         </td>
 
       `;
@@ -1663,7 +1852,9 @@ function renderTable(data){
           showModal(item);
 
 
-      tbody.appendChild(tr);
+      tbody.appendChild(
+        tr
+      );
 
     }
   );
@@ -1681,19 +1872,23 @@ async function loadData(){
 
     const res =
       await fetch(
+
         API_URL +
         "?action=list&_=" +
         Date.now(),
+
         {
           cache:"no-store"
         }
+
       );
 
 
     if(!res.ok){
 
       throw new Error(
-        "HTTP " + res.status
+        "HTTP " +
+        res.status
       );
 
     }
@@ -1703,7 +1898,9 @@ async function loadData(){
       await res.json();
 
 
-    if(!Array.isArray(data)){
+    if(
+      !Array.isArray(data)
+    ){
 
       data = [];
 
@@ -1717,7 +1914,9 @@ async function loadData(){
       item => {
 
         const id =
-          String(item.id || "");
+          String(
+            item.id || ""
+          );
 
 
         if(
@@ -1725,7 +1924,9 @@ async function loadData(){
           !lastIds.has(id)
         ){
 
-          newItems.push(item);
+          newItems.push(
+            item
+          );
 
         }
 
@@ -1733,7 +1934,13 @@ async function loadData(){
     );
 
 
-    if(lastIds.size > 0){
+    /* =========================
+       첫 로딩 이후 신규 신고만 알림
+    ========================== */
+
+    if(
+      lastIds.size > 0
+    ){
 
       newItems.forEach(
         triggerAlert
@@ -1744,10 +1951,14 @@ async function loadData(){
 
     lastIds =
       new Set(
+
         data.map(
           item =>
-            String(item.id || "")
+            String(
+              item.id || ""
+            )
         )
+
       );
 
 
@@ -1758,7 +1969,6 @@ async function loadData(){
     renderData(
       allData
     );
-
 
   }
   catch(error){
@@ -1779,9 +1989,11 @@ async function loadData(){
         <br>
 
         <small>
+
           ${escapeHtml(
             error.message
           )}
+
         </small>
 
       </div>
@@ -1795,6 +2007,8 @@ async function loadData(){
 
 /* =====================================================
    상태 변경
+   ★ complete = 현장도착
+   ★ finish   = 사고처리 완료
 ===================================================== */
 
 async function changeStatus(
@@ -1810,13 +2024,17 @@ async function changeStatus(
   let message;
 
 
-  if(action === "complete"){
+  if(
+    action === "complete"
+  ){
 
     message =
       "현장도착 상태로 변경하시겠습니까?";
 
   }
-  else if(action === "finish"){
+  else if(
+    action === "finish"
+  ){
 
     message =
       "사고처리 완료로 변경하시겠습니까?";
@@ -1872,447 +2090,8 @@ async function changeStatus(
 
     closeModal();
 
-    await loadData();
-
-
-  }
-  catch(error){
-
-    alert(
-      "❌ " +
-      error.message
-    );
-
-  }
-
-}
-
-
-/* =====================================================
-   수정 화면
-===================================================== */
-
-function showEditForm(){
-
-  if(!currentItem){
-    return;
-  }
-
-
-  const item =
-    currentItem;
-
-
-  const overlay =
-    document.getElementById(
-      "editOverlay"
-    );
-
-
-  overlay.style.display =
-    "flex";
-
-
-  overlay.innerHTML = `
-
-    <div
-      id="editBox"
-      style="
-        background:#222;
-        padding:20px;
-        border-radius:10px;
-        width:90%;
-        max-width:500px;
-        max-height:90vh;
-        overflow:auto;
-      "
-    >
-
-      <h3>
-        ✏ 신고 내용 수정
-      </h3>
-
-
-      <label>
-        유형
-      </label>
-
-      <input
-        id="editType"
-        class="edit-input"
-        value="${escapeHtml(
-          item.type
-        )}"
-      >
-
-
-      <br>
-
-
-      <label>
-        주소
-      </label>
-
-      <input
-        id="editAddress"
-        class="edit-input"
-        value="${escapeHtml(
-          item.address
-        )}"
-      >
-
-
-      <br>
-
-
-      <label>
-        연락처
-      </label>
-
-      <input
-        id="editPhone"
-        class="edit-input"
-        value="${escapeHtml(
-          item.phone
-        )}"
-      >
-
-
-      <br>
-
-
-      <!-- =========================
-           Google Apps Script 전송번호
-      ========================== -->
-
-      <label>
-        📤 전송번호
-      </label>
-
-      <input
-        id="editTransferNumber"
-        class="edit-input"
-        type="text"
-        value="${escapeHtml(
-          item.transferNumber || ""
-        )}"
-        placeholder="Google Apps Script 전송번호"
-        autocomplete="off"
-      >
-
-
-      <br>
-
-
-      <label>
-        증상
-      </label>
-
-      <textarea
-        id="editSymptom"
-        class="edit-input"
-      >${escapeHtml(
-        item.symptom
-      )}</textarea>
-
-
-      <br>
-
-
-      <label>
-        위도
-      </label>
-
-      <input
-        id="editLat"
-        class="edit-input"
-        type="number"
-        step="0.000001"
-        value="${escapeHtml(
-          item.lat
-        )}"
-      >
-
-
-      <br>
-
-
-      <label>
-        경도
-      </label>
-
-      <input
-        id="editLng"
-        class="edit-input"
-        type="number"
-        step="0.000001"
-        value="${escapeHtml(
-          item.lng
-        )}"
-      >
-
-
-      <br>
-
-
-      <label>
-        카카오맵 URL
-      </label>
-
-      <input
-        id="editMapUrl"
-        class="edit-input"
-        value="${escapeHtml(
-          item.kakaoMapURL ||
-          item.mapURL ||
-          ""
-        )}"
-      >
-
-
-      <div class="button-area">
-
-        <button
-          class="btn-edit"
-          onclick="saveEdit()"
-        >
-          💾 저장
-        </button>
-
-
-        <button
-          class="btn-close"
-          onclick="closeEditForm()"
-        >
-          취소
-        </button>
-
-      </div>
-
-    </div>
-
-  `;
-
-}
-
-
-/* =====================================================
-   수정 취소
-===================================================== */
-
-function closeEditForm(){
-
-  const overlay =
-    document.getElementById(
-      "editOverlay"
-    );
-
-
-  overlay.style.display =
-    "none";
-
-
-  overlay.innerHTML =
-    "";
-
-}
-
-
-/* =====================================================
-   수정 저장
-===================================================== */
-
-async function saveEdit(){
-
-  if(!currentItem){
-    return;
-  }
-
-
-  const id =
-    currentItem.id;
-
-
-  /* ============================================
-     Google Apps Script로 전송할 데이터
-     transferNumber 포함
-  ============================================ */
-
-  const data = {
-
-    action:
-      "update",
-
-    id:
-      id,
-
-    type:
-      document.getElementById(
-        "editType"
-      ).value.trim(),
-
-    address:
-      document.getElementById(
-        "editAddress"
-      ).value.trim(),
-
-    phone:
-      document.getElementById(
-        "editPhone"
-      ).value.trim(),
-
-    transferNumber:
-      document.getElementById(
-        "editTransferNumber"
-      ).value.trim(),
-
-    symptom:
-      document.getElementById(
-        "editSymptom"
-      ).value.trim(),
-
-    lat:
-      Number(
-        document.getElementById(
-          "editLat"
-        ).value
-      ),
-
-    lng:
-      Number(
-        document.getElementById(
-          "editLng"
-        ).value
-      ),
-
-    kakaoMapURL:
-      document.getElementById(
-        "editMapUrl"
-      ).value.trim()
-
-  };
-
-
-  if(
-    !Number.isFinite(data.lat) ||
-    !Number.isFinite(data.lng)
-  ){
-
-    alert(
-      "위도와 경도를 확인해주세요."
-    );
-
-    return;
-
-  }
-
-
-  try{
-
-    const result =
-      await postData(
-        data
-      );
-
-
-    if(
-      result.result !==
-      "success"
-    ){
-
-      throw new Error(
-        result.message ||
-        "수정에 실패했습니다."
-      );
-
-    }
-
-
-    closeEditForm();
-
-    closeModal();
-
-    showToast(
-      "신고 내용이 수정되었습니다."
-    );
-
 
     await loadData();
-
-
-  }
-  catch(error){
-
-    alert(
-      "❌ " +
-      error.message
-    );
-
-  }
-
-}
-
-
-/* =====================================================
-   삭제
-===================================================== */
-
-async function deleteAccident(
-  id
-){
-
-  if(!id){
-    return;
-  }
-
-
-  if(
-    !confirm(
-      "정말 이 신고를 삭제하시겠습니까?"
-    )
-  ){
-
-    return;
-
-  }
-
-
-  try{
-
-    const result =
-      await postData({
-
-        action:
-          "delete",
-
-        id:
-          id
-
-      });
-
-
-    if(
-      result.result !==
-      "success"
-    ){
-
-      throw new Error(
-        result.message ||
-        "삭제에 실패했습니다."
-      );
-
-    }
-
-
-    closeModal();
-
-    showToast(
-      "신고가 삭제되었습니다."
-    );
-
-
-    await loadData();
-
 
   }
   catch(error){
@@ -2337,26 +2116,35 @@ async function postData(
 
   const response =
     await fetch(
+
       API_URL,
+
       {
+
         method:"POST",
 
         headers:{
+
           "Content-Type":
             "text/plain;charset=utf-8"
+
         },
 
         body:
           JSON.stringify(data)
+
       }
+
     );
 
 
   if(!response.ok){
 
     throw new Error(
+
       "서버 응답 오류: HTTP " +
       response.status
+
     );
 
   }
@@ -2431,39 +2219,19 @@ document.getElementById(
 
 
 /* =====================================================
-   수정 모달 바깥 클릭
-===================================================== */
-
-document.getElementById(
-  "editOverlay"
-).addEventListener(
-  "click",
-  function(e){
-
-    if(
-      e.target === this
-    ){
-
-      closeEditForm();
-
-    }
-
-  }
-);
-
-
-/* =====================================================
-   알림 권한 요청
+   알림 권한
 ===================================================== */
 
 function requestNotificationPermission(){
 
   if(
     "Notification" in window &&
-    Notification.permission === "default"
+    Notification.permission ===
+      "default"
   ){
 
-    Notification.requestPermission()
+    Notification
+      .requestPermission()
       .catch(
         () => {}
       );
@@ -2472,10 +2240,6 @@ function requestNotificationPermission(){
 
 }
 
-
-/* =====================================================
-   첫 화면에서 알림 권한 요청
-===================================================== */
 
 window.addEventListener(
   "load",
@@ -2498,11 +2262,11 @@ document.addEventListener(
   "keydown",
   function(e){
 
-    if(e.key === "Escape"){
+    if(
+      e.key === "Escape"
+    ){
 
       closeModal();
-
-      closeEditForm();
 
     }
 
