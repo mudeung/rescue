@@ -2066,48 +2066,34 @@ function searchAddress(){
 
 
             /* -----------------------------------------
-               지도 이동
-            ----------------------------------------- */
+             지도 이동
+             ----------------------------------------- */
 
             if(
-                typeof setMapCenter === "function"
-            ){
-
-                setMapCenter(
-                    lat,
-                    lng,
-                    17
-                );
-
-            }
-            else if(
                 typeof map !== "undefined" &&
-                map &&
-                typeof map.setView === "function"
+                map
             ){
 
-                map.setView(
-                    [lat, lng],
-                    17
+                map.setCenter(
+                    new kakao.maps.LatLng(
+                        lat,
+                        lng
+                    )
                 );
+
+                map.setLevel(3);
 
             }
 
 
             /* -----------------------------------------
-               신고 위치 핀 이동
+            신고 위치 핀 이동
             ----------------------------------------- */
 
-            if(
-                typeof setReportPreview === "function"
-            ){
-
-                setReportPreview(
-                    lat,
-                    lng
-                );
-
-            }
+            setReportPreview(
+                lat,
+                lng
+            );
 
 
             /* -----------------------------------------
@@ -2119,10 +2105,10 @@ function searchAddress(){
                 "success"
             );
 
-        }
-    );
+                    }
+                );
 
-}
+            }
 
 
 /* =====================================================
