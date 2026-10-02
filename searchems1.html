@@ -8,15 +8,20 @@
 <meta name="viewport"
       content="width=device-width, initial-scale=1.0">
 
-<title>무등산특수산악구조대 SEARCH & RESCUE AI SYSTEM</title>
+<title>
+무등산특수산악구조대 SEARCH & RESCUE AI SYSTEM
+</title>
+
 
 <!-- =====================================================
      Kakao Maps JavaScript SDK
 ===================================================== -->
 
 <script
-    src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services&autoload=false">
+    src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services&autoload=false"
+    defer>
 </script>
+
 
 <!-- =====================================================
      proj4
@@ -25,6 +30,7 @@
 <script
     src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.js">
 </script>
+
 
 <style>
 
@@ -78,6 +84,7 @@ header{
     display:flex;
     height:calc(100vh - 50px);
     width:100%;
+    min-height:0;
 }
 
 
@@ -88,6 +95,7 @@ header{
 #panel{
     width:390px;
     min-width:390px;
+    height:100%;
     background:#07101f;
     padding:10px;
     overflow-y:auto;
@@ -188,9 +196,13 @@ button:disabled{
 
 #map{
     flex:1;
+    width:auto;
     height:100%;
     min-width:0;
+    min-height:400px;
     position:relative;
+    background:#0b1525;
+    overflow:hidden;
 }
 
 
@@ -645,6 +657,55 @@ button:disabled{
 
 
 /* =====================================================
+   MAP LOADING
+===================================================== */
+
+.map-loading{
+    position:absolute;
+    inset:0;
+    z-index:999;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#050b18;
+    color:#00ff9d;
+    font-family:monospace;
+    text-align:center;
+}
+
+.map-loading-box{
+    padding:25px;
+    border:1px solid #00ff9d;
+    background:#07101f;
+    border-radius:8px;
+    box-shadow:0 0 20px rgba(0,255,157,.25);
+}
+
+.map-error{
+    position:absolute;
+    inset:0;
+    z-index:999;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#050b18;
+    color:#ff6666;
+    font-family:monospace;
+    text-align:center;
+    padding:20px;
+}
+
+.map-error-box{
+    max-width:450px;
+    padding:25px;
+    border:1px solid #ff4444;
+    background:#170909;
+    border-radius:8px;
+    line-height:1.7;
+}
+
+
+/* =====================================================
    MOBILE
 ===================================================== */
 
@@ -664,6 +725,7 @@ button:disabled{
         width:100%;
         min-width:0;
         height:55vh;
+        min-height:450px;
         order:2;
         border-right:none;
         border-top:1px solid #123c55;
@@ -672,12 +734,39 @@ button:disabled{
     #map{
         width:100%;
         height:45vh;
-        min-height:320px;
+        min-height:400px;
         order:1;
+        flex:none;
     }
 
     header{
         font-size:15px;
+        height:50px;
+    }
+
+}
+
+
+/* =====================================================
+   SMALL MOBILE
+===================================================== */
+
+@media(max-width:480px){
+
+    #map{
+        min-height:360px;
+        height:45vh;
+    }
+
+    #panel{
+        height:55vh;
+        min-height:500px;
+    }
+
+    .kakao-map-control button{
+        min-width:85px;
+        font-size:11px;
+        padding:6px 8px;
     }
 
 }
@@ -782,9 +871,13 @@ button:disabled{
 
 
 <div class="coordinate-help">
+
     ※ 주소를 입력하면 좌표가 자동 검색됩니다.<br>
+
     ※ 위도·경도를 입력하면 주소가 자동 검색됩니다.<br>
+
     ※ 지도에서 위치를 클릭해도 좌표와 주소가 자동 입력됩니다.
+
 </div>
 
 
@@ -802,14 +895,16 @@ button:disabled{
     inputmode="decimal"
     autocomplete="off"
 >
-     
+
+
 <button
     id="currentReportLocationBtn"
     class="location-button"
     type="button"
 >
     📍 현재 위치 사용
-</button>      
+</button>
+
 
 <button
     id="applyCoordinateBtn"
@@ -818,6 +913,7 @@ button:disabled{
 >
     📍 입력한 위도·경도로 위치 표시
 </button>
+
 
 <!-- =====================================================
      좌표변환
@@ -879,7 +975,7 @@ button:disabled{
         id="coordinateResult"
         class="coordinate-result"
     >
-좌표 입력 후 변환 버튼을 누르세요.
+        좌표 입력 후 변환 버튼을 누르세요.
     </div>
 
 
@@ -887,7 +983,7 @@ button:disabled{
         id="coordinateStatus"
         class="coordinate-status"
     >
-변환 결과는 기존 신고용 위도/경도 입력창에 자동 연결됩니다.
+        변환 결과는 기존 신고용 위도/경도 입력창에 자동 연결됩니다.
     </div>
 
 
@@ -962,8 +1058,27 @@ button:disabled{
 
 <div id="map">
 
-    <div class="map-coordinate-label"
-         id="mapCoordinateLabel">
+    <div class="map-loading" id="mapLoading">
+
+        <div class="map-loading-box">
+
+            🗺️ 카카오 지도 불러오는 중...
+
+            <br><br>
+
+            <span style="color:#789;">
+                잠시만 기다려주세요.
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <div
+        class="map-coordinate-label"
+        id="mapCoordinateLabel"
+    >
 
         Lat : --<br>
         Lng : --
@@ -1126,6 +1241,9 @@ const coordinateStatusEl =
 
 const mapCoordinateLabel =
     document.getElementById("mapCoordinateLabel");
+
+const mapLoadingEl =
+    document.getElementById("mapLoading");
 
 
 /* =====================================================
@@ -1347,20 +1465,120 @@ function validateCoordinates(
 
 
 /* =====================================================
+   KAKAO MAP ERROR
+===================================================== */
+
+function showMapError(message){
+
+    if(mapLoadingEl){
+
+        mapLoadingEl.style.display =
+            "none";
+
+    }
+
+
+    const mapElement =
+        document.getElementById("map");
+
+
+    if(!mapElement){
+
+        return;
+
+    }
+
+
+    const oldError =
+        document.getElementById(
+            "mapError"
+        );
+
+
+    if(oldError){
+
+        oldError.remove();
+
+    }
+
+
+    const error =
+        document.createElement("div");
+
+
+    error.id =
+        "mapError";
+
+    error.className =
+        "map-error";
+
+
+    error.innerHTML = `
+
+        <div class="map-error-box">
+
+            <div style="
+                font-size:20px;
+                font-weight:bold;
+                margin-bottom:12px;
+            ">
+                ⚠ 카카오 지도를 불러오지 못했습니다.
+            </div>
+
+            <div>
+                ${escapeHTML(message)}
+            </div>
+
+            <br>
+
+            <div style="
+                color:#aaa;
+                font-size:12px;
+            ">
+                Kakao Developers에서<br>
+                JavaScript 키와 Web 플랫폼 도메인을 확인하세요.
+            </div>
+
+        </div>
+
+    `;
+
+
+    mapElement.appendChild(
+        error
+    );
+
+}
+
+
+/* =====================================================
    KAKAO MAP INIT
 ===================================================== */
 
 function initializeKakaoMap(){
+
+    const mapElement =
+        document.getElementById("map");
+
+
+    if(!mapElement){
+
+        console.error(
+            "map 요소를 찾을 수 없습니다."
+        );
+
+        return;
+
+    }
+
 
     if(
         typeof kakao === "undefined" ||
         !kakao.maps
     ){
 
-        alert(
-            "Kakao Maps API를 불러오지 못했습니다.\n\n" +
-            "Kakao Developers의 JavaScript 키와\n" +
-            웹 도메인 등록 상태를 확인하세요."
+        showMapError(
+            "Kakao Maps SDK가 로드되지 않았습니다."
         );
 
         return;
@@ -1375,9 +1593,13 @@ function initializeKakaoMap(){
         );
 
 
+    /*
+     * 지도 생성
+     */
+
     map =
         new kakao.maps.Map(
-            document.getElementById("map"),
+            mapElement,
             {
                 center:center,
                 level:5
@@ -1385,8 +1607,38 @@ function initializeKakaoMap(){
         );
 
 
-    kakaoGeocoder =
-        new kakao.maps.services.Geocoder();
+    /*
+     * Geocoder
+     */
+
+    if(
+        kakao.maps.services &&
+        kakao.maps.services.Geocoder
+    ){
+
+        kakaoGeocoder =
+            new kakao.maps.services.Geocoder();
+
+    }
+    else{
+
+        console.warn(
+            "Kakao Geocoder 서비스를 사용할 수 없습니다."
+        );
+
+    }
+
+
+    /*
+     * 지도 로딩 표시 제거
+     */
+
+    if(mapLoadingEl){
+
+        mapLoadingEl.style.display =
+            "none";
+
+    }
 
 
     /*
@@ -1443,6 +1695,7 @@ function initializeKakaoMap(){
             const latlng =
                 mouseEvent.latLng;
 
+
             mapCoordinateLabel.innerHTML =
                 "Lat : " +
                 latlng.getLat().toFixed(6) +
@@ -1463,15 +1716,28 @@ function initializeKakaoMap(){
         "click",
         function(){
 
+            if(!map){
+
+                return;
+
+            }
+
+
             map.setMapTypeId(
                 kakao.maps.MapTypeId.ROADMAP
             );
 
-            this.classList.add("active");
+
+            this.classList.add(
+                "active"
+            );
+
 
             document
             .getElementById("skyviewBtn")
-            .classList.remove("active");
+            .classList.remove(
+                "active"
+            );
 
         }
     );
@@ -1487,22 +1753,35 @@ function initializeKakaoMap(){
         "click",
         function(){
 
+            if(!map){
+
+                return;
+
+            }
+
+
             map.setMapTypeId(
                 kakao.maps.MapTypeId.HYBRID
             );
 
-            this.classList.add("active");
+
+            this.classList.add(
+                "active"
+            );
+
 
             document
             .getElementById("roadmapBtn")
-            .classList.remove("active");
+            .classList.remove(
+                "active"
+            );
 
         }
     );
 
 
     /*
-     * 확대/축소 컨트롤
+     * 확대 / 축소
      */
 
     const zoomControl =
@@ -1516,10 +1795,28 @@ function initializeKakaoMap(){
 
 
     /*
-     * 사고 목록
+     * flex / mobile layout 대응
      */
 
-    loadAccidents();
+    setTimeout(
+        function(){
+
+            if(map){
+
+                map.relayout();
+
+                map.setCenter(
+                    new kakao.maps.LatLng(
+                        35.1345,
+                        126.9902
+                    )
+                );
+
+            }
+
+        },
+        100
+    );
 
 
     setTimeout(
@@ -1532,8 +1829,15 @@ function initializeKakaoMap(){
             }
 
         },
-        300
+        500
     );
+
+
+    /*
+     * 사고 목록
+     */
+
+    loadAccidents();
 
 }
 
@@ -1548,7 +1852,24 @@ function setMapCenter(
     level=3
 ){
 
-    if(!map){
+    if(
+        !map ||
+        typeof kakao === "undefined"
+    ){
+
+        return;
+
+    }
+
+
+    const checked =
+        validateCoordinates(
+            lat,
+            lng
+        );
+
+
+    if(!checked.valid){
 
         return;
 
@@ -1557,13 +1878,29 @@ function setMapCenter(
 
     map.setCenter(
         new kakao.maps.LatLng(
-            lat,
-            lng
+            checked.lat,
+            checked.lng
         )
     );
 
 
-    map.setLevel(level);
+    map.setLevel(
+        level
+    );
+
+
+    setTimeout(
+        function(){
+
+            if(map){
+
+                map.relayout();
+
+            }
+
+        },
+        100
+    );
 
 }
 
@@ -1669,6 +2006,7 @@ function searchAddress(){
                     result[0].y
                 );
 
+
             const lng =
                 parseFloat(
                     result[0].x
@@ -1767,6 +2105,15 @@ function reverseGeocode(
 
     if(!kakaoGeocoder){
 
+        if(updateStatus){
+
+            setAddressStatus(
+                "Kakao 주소변환 서비스를 사용할 수 없습니다.",
+                "error"
+            );
+
+        }
+
         return;
 
     }
@@ -1796,8 +2143,8 @@ function reverseGeocode(
 
 
     kakaoGeocoder.coord2Address(
-        lng,
-        lat,
+        checked.lng,
+        checked.lat,
         function(result,status){
 
             if(
@@ -1860,10 +2207,6 @@ function reverseGeocode(
                 "";
 
 
-            /*
-             * 도로명 주소 우선
-             */
-
             const finalAddress =
                 roadAddress ||
                 jibunAddress ||
@@ -1874,6 +2217,7 @@ function reverseGeocode(
 
                 addressEl.value =
                     finalAddress;
+
 
                 if(updateStatus){
 
@@ -1901,7 +2245,7 @@ function reverseGeocode(
 
 
 /* =====================================================
-   LAT INPUT → ADDRESS
+   LAT/LNG INPUT → ADDRESS
 ===================================================== */
 
 function scheduleCoordinateAddressSearch(){
@@ -1915,6 +2259,7 @@ function scheduleCoordinateAddressSearch(){
         Number(
             latEl.value.trim()
         );
+
 
     const lng =
         Number(
@@ -1951,21 +2296,21 @@ function scheduleCoordinateAddressSearch(){
             function(){
 
                 setReportPreview(
-                    lat,
-                    lng
+                    checked.lat,
+                    checked.lng
                 );
 
 
                 setMapCenter(
-                    lat,
-                    lng,
+                    checked.lat,
+                    checked.lng,
                     3
                 );
 
 
                 reverseGeocode(
-                    lat,
-                    lng,
+                    checked.lat,
+                    checked.lng,
                     true
                 );
 
@@ -2219,7 +2564,10 @@ function setReportPreview(
     lng
 ){
 
-    if(!map){
+    if(
+        !map ||
+        typeof kakao === "undefined"
+    ){
 
         return;
 
@@ -2243,10 +2591,6 @@ function setReportPreview(
             lng
         );
 
-
-    /*
-     * 신고 위치용 커스텀 오버레이
-     */
 
     const content =
 
@@ -4258,7 +4602,10 @@ function addAccidentMarker(
     item
 ){
 
-    if(!map){
+    if(
+        !map ||
+        typeof kakao === "undefined"
+    ){
 
         return;
 
@@ -4307,8 +4654,13 @@ function addAccidentMarker(
         );
 
 
+    /*
+     * CustomOverlay를 사용해
+     * 사고 상태별 색상 표시
+     */
+
     const marker =
-        new kakao.maps.Marker({
+        new kakao.maps.CustomOverlay({
 
             position:
                 new kakao.maps.LatLng(
@@ -4316,10 +4668,24 @@ function addAccidentMarker(
                     lng
                 ),
 
-            map:
-                map
+            content:
+                markerStyle.content,
+
+            yAnchor:
+                0.5,
+
+            xAnchor:
+                0.5,
+
+            zIndex:
+                500
 
         });
+
+
+    marker.setMap(
+        map
+    );
 
 
     const type =
@@ -4430,6 +4796,9 @@ function addAccidentMarker(
     max-width:330px;
     padding:12px;
     color:#111;
+    background:#fff;
+    border-radius:8px;
+    box-shadow:0 2px 12px rgba(0,0,0,.35);
     font-family:Arial,sans-serif;
     line-height:1.5;
 ">
@@ -4517,40 +4886,101 @@ function addAccidentMarker(
 
 
     const infowindow =
-        new kakao.maps.InfoWindow({
+        new kakao.maps.CustomOverlay({
+
+            position:
+                new kakao.maps.LatLng(
+                    lat,
+                    lng
+                ),
 
             content:
                 content,
 
-            removable:
-                true
+            yAnchor:
+                1.05,
+
+            zIndex:
+                900
 
         });
 
 
     kakao.maps.event.addListener(
-        marker,
+        map,
         "click",
-        function(){
+        function(mouseEvent){
 
-            infowindow.open(
-                map,
-                marker
-            );
-
-
-            setMapCenter(
-                lat,
-                lng,
-                3
-            );
+            /*
+             * 지도 전체 클릭 이벤트와 충돌하지 않도록
+             * 좌표 기준으로 사고 위치를 선택할 수 있도록 함
+             */
 
         }
     );
 
 
+    /*
+     * 마커 클릭
+     *
+     * CustomOverlay 자체에는 일반 Marker와 같은
+     * click 이벤트가 안정적이지 않을 수 있으므로
+     * DOM 이벤트를 직접 연결
+     */
+
+    setTimeout(
+        function(){
+
+            const element =
+                marker.getContent();
+
+
+            if(
+                element &&
+                typeof element.addEventListener ===
+                "function"
+            ){
+
+                element.style.cursor =
+                    "pointer";
+
+                element.addEventListener(
+                    "click",
+                    function(e){
+
+                        e.stopPropagation();
+
+                        infowindow.setMap(
+                            null
+                        );
+
+                        infowindow.setMap(
+                            map
+                        );
+
+                        setMapCenter(
+                            lat,
+                            lng,
+                            3
+                        );
+
+                    }
+                );
+
+            }
+
+        },
+        0
+    );
+
+
     accidentMarkers.push(
         marker
+    );
+
+
+    accidentMarkers.push(
+        infowindow
     );
 
 }
@@ -5185,7 +5615,7 @@ function renderAccidents(data){
 
 
             /*
-             * Kakao 사고 마커
+             * 사고 마커
              */
 
             addAccidentMarker(
@@ -6689,6 +7119,60 @@ function loadMyLocation(){
 
 
 /* =====================================================
+   KAKAO SDK START
+===================================================== */
+
+function startKakaoMap(){
+
+    if(
+        typeof kakao === "undefined" ||
+        !kakao.maps
+    ){
+
+        /*
+         * defer로 로드되므로 잠시 기다림
+         */
+
+        setTimeout(
+            startKakaoMap,
+            200
+        );
+
+        return;
+
+    }
+
+
+    kakao.maps.load(
+        function(){
+
+            try{
+
+                initializeKakaoMap();
+
+            }
+            catch(err){
+
+                console.error(
+                    "Kakao 지도 초기화 오류:",
+                    err
+                );
+
+
+                showMapError(
+                    "지도 초기화 오류: " +
+                    err.message
+                );
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =====================================================
    INIT
 ===================================================== */
 
@@ -6700,31 +7184,15 @@ window.addEventListener(
 
 
         /*
-         * Kakao Maps SDK 로딩 후 초기화
+         * Kakao Maps SDK 초기화
          */
 
-        if(
-            typeof kakao !== "undefined" &&
-            kakao.maps
-        ){
+        startKakaoMap();
 
-            kakao.maps.load(
-                function(){
 
-                    initializeKakaoMap();
-
-                }
-            );
-
-        }
-        else{
-
-            alert(
-                "Kakao Maps SDK가 로드되지 않았습니다."
-            );
-
-        }
-
+        /*
+         * 사고 자동 새로고침
+         */
 
         startAccidentAutoRefresh();
 
@@ -6770,6 +7238,31 @@ window.addEventListener(
             );
 
         }
+
+    }
+);
+
+
+/* =====================================================
+   ORIENTATION CHANGE
+===================================================== */
+
+window.addEventListener(
+    "orientationchange",
+    function(){
+
+        setTimeout(
+            function(){
+
+                if(map){
+
+                    map.relayout();
+
+                }
+
+            },
+            300
+        );
 
     }
 );
