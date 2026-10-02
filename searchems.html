@@ -1434,8 +1434,7 @@ map.on(
 
 function searchAddress(){
 
-    const address =
-        addressEl.value.trim();
+    const address = addressEl.value.trim();
 
     if(!address){
         return;
@@ -1446,7 +1445,7 @@ function searchAddress(){
         !kakao.maps ||
         !kakao.maps.services
     ){
-        console.warn("Kakao Maps API를 사용할 수 없습니다.");
+        alert("주소 검색 서비스를 사용할 수 없습니다.");
         return;
     }
 
@@ -1458,36 +1457,81 @@ function searchAddress(){
         function(result,status){
 
             if(
-                status ===
-                kakao.maps.services.Status.OK
+                status !==
+                kakao.maps.services.Status.OK ||
+                !result ||
+                !result.length
             ){
 
-                const lat =
-                    parseFloat(result[0].y);
-
-                const lng =
-                    parseFloat(result[0].x);
-
-                latEl.value =
-                    lat.toFixed(6);
-
-                lngEl.value =
-                    lng.toFixed(6);
-
-                map.setView(
-                    [lat,lng],
-                    17
-                );
-
-                setReportPreview(
-                    lat,
-                    lng
-                );
+                alert("입력한 주소의 위치를 찾을 수 없습니다.");
+                return;
             }
+
+            const lat =
+                parseFloat(result[0].y);
+
+            const lng =
+                parseFloat(result[0].x);
+
+            // 좌표 입력
+            latEl.value =
+                lat.toFixed(6);
+
+            lngEl.value =
+                lng.toFixed(6);
+
+            // 지도 중심 이동
+            map.setView(
+                [lat,lng],
+                17
+            );
+
+            // 신고 위치 마커 표시
+            setReportPreview(
+                lat,
+                lng
+            );
+
+            // 주소를 정확한 검색 결과로 갱신
+            if(
+                result[0].road_address &&
+                result[0].road_address.address_name
+            ){
+
+                addressEl.value =
+                    result[0].road_address.address_name;
+
+            }
+            else if(
+                result[0].address &&
+                result[0].address.address_name
+            ){
+
+                addressEl.value =
+                    result[0].address.address_name;
+
+            }
+
         }
     );
 }
 
+addressEl.addEventListener(
+    "keydown",
+    function(e){
+
+        if(e.key === "Enter"){
+
+            e.preventDefault();
+
+            searchAddress();
+
+        }
+
+    }
+);
+
+      
 /* =====================================================
    좌표 → 주소 자동변환
 ===================================================== */      
