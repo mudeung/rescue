@@ -97,6 +97,11 @@ button{
     outline:none;
 }
 
+input::placeholder,
+textarea::placeholder{
+    color:#6b968b;
+}
+
 textarea{
     min-height:80px;
     resize:vertical;
@@ -285,15 +290,31 @@ button:disabled{
     background:#a00000;
 }
 
-.mouse-coords{
-    background:rgba(0,0,0,.8);
-    color:#00ff9d;
-    border:1px solid #00ff9d;
-    border-radius:5px;
-    padding:6px 10px;
-    font-size:12px;
-    font-family:monospace;
-    box-shadow:0 0 8px #00ff9d;
+.location-button{
+    background:#003d5c;
+    border-color:#008dcc;
+    color:white;
+}
+
+.location-button:hover{
+    background:#005579;
+}
+
+.coordinate-button{
+    background:#174a70;
+    border-color:#2196f3;
+    color:white;
+}
+
+.coordinate-button:hover{
+    background:#21638f;
+}
+
+.coordinate-help{
+    color:#8aa;
+    font-size:11px;
+    line-height:1.5;
+    margin:2px 0 7px 0;
 }
 
 .transmission-number{
@@ -364,6 +385,17 @@ button:disabled{
 .no-transmission{
     color:#777;
     border-color:#444;
+}
+
+.mouse-coords{
+    background:rgba(0,0,0,.8);
+    color:#00ff9d;
+    border:1px solid #00ff9d;
+    border-radius:5px;
+    padding:6px 10px;
+    font-size:12px;
+    font-family:monospace;
+    box-shadow:0 0 8px #00ff9d;
 }
 
 @media(max-width:768px){
@@ -472,26 +504,39 @@ button:disabled{
 
 <input
     id="address"
-    placeholder="주소 입력 → 좌표 자동검색"
+    placeholder="주소 입력 (선택사항) → 좌표 자동검색"
+    autocomplete="off"
+>
+
+<div class="coordinate-help">
+    ※ 주소를 몰라도 위도·경도만 입력하면 신고할 수 있습니다.
+</div>
+
+<input
+    id="lat"
+    placeholder="위도 직접 입력 (예: 35.134500)"
+    inputmode="decimal"
     autocomplete="off"
 >
 
 <input
-    id="lat"
-    placeholder="위도"
-    inputmode="decimal"
-    readonly
->
-
-<input
     id="lng"
-    placeholder="경도"
+    placeholder="경도 직접 입력 (예: 126.990200)"
     inputmode="decimal"
-    readonly
+    autocomplete="off"
 >
 
 <button
+    id="applyCoordinateBtn"
+    class="coordinate-button"
+    type="button"
+>
+    📍 입력한 위도·경도로 위치 표시
+</button>
+
+<button
     id="currentReportLocationBtn"
+    class="location-button"
     type="button"
 >
     📍 현재 위치 사용
@@ -553,6 +598,7 @@ const map =
     );
 
 
+const osm =
 L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     {
@@ -562,25 +608,24 @@ L.tileLayer(
 ).addTo(map);
 
 
-const osm =
-L.tileLayer(
-    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-);
-
-
 const topo =
 L.tileLayer(
-    "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
-);
+    "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+    {
+        maxZoom:17,
+        attribution:"&copy; OpenTopoMap contributors"
+    }
+).addTo(map);
 
 
 const satellite =
 L.tileLayer(
-    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    {
+        maxZoom:19,
+        attribution:"Tiles &copy; Esri"
+    }
 );
-
-
-topo.addTo(map);
 
 
 L.control.layers({
@@ -593,7 +638,7 @@ L.control.layers({
 
 
 /* =====================================================
-   COORDINATE
+   COORDINATE DISPLAY
 ===================================================== */
 
 const coordControl =
@@ -712,6 +757,8 @@ let alertedOverdueIds = new Set();
 let firstLoad = true;
 
 let accidentLoading = false;
+
+let addressSearchTimer = null;
 
 
 /* =====================================================
@@ -904,6 +951,70 @@ function getNowTime(){
 
 
 /* =====================================================
+   COORDINATE VALIDATION
+===================================================== */
+
+function validateCoordinates(
+    lat,
+    lng
+){
+
+    lat = Number(lat);
+    lng = Number(lng);
+
+
+    if(
+        !Number.isFinite(lat) ||
+        !Number.isFinite(lng)
+    ){
+
+        return {
+            valid:false,
+            message:
+                "위도와 경도를 정확하게 입력하세요."
+        };
+
+    }
+
+
+    if(
+        lat < -90 ||
+        lat > 90
+    ){
+
+        return {
+            valid:false,
+            message:
+                "위도는 -90 ~ 90 범위로 입력하세요."
+        };
+
+    }
+
+
+    if(
+        lng < -180 ||
+        lng > 180
+    ){
+
+        return {
+            valid:false,
+            message:
+                "경도는 -180 ~ 180 범위로 입력하세요."
+        };
+
+    }
+
+
+    return {
+        valid:true,
+        lat:lat,
+        lng:lng
+    };
+
+}
+
+
+/* =====================================================
    GPS
 ===================================================== */
 
@@ -985,38 +1096,51 @@ async function useCurrentLocationForReport(){
             await getCurrentGPS();
 
 
-        const lat =
-            Number(position.lat);
+        const checked =
+            validateCoordinates(
+                position.lat,
+                position.lng
+            );
 
 
-        const lng =
-            Number(position.lng);
+        if(!checked.valid){
+
+            throw new Error(
+                checked.message
+            );
+
+        }
 
 
         latEl.value =
-            lat.toFixed(6);
+            checked.lat.toFixed(6);
 
 
         lngEl.value =
-            lng.toFixed(6);
+            checked.lng.toFixed(6);
 
 
         map.setView(
-            [lat,lng],
+            [
+                checked.lat,
+                checked.lng
+            ],
             17
         );
 
 
         setReportPreview(
-            lat,
-            lng
+            checked.lat,
+            checked.lng
         );
 
     }
     catch(err){
 
         alert(
-            "현재 위치를 가져오지 못했습니다.\nGPS 권한을 확인하세요."
+            "현재 위치를 가져오지 못했습니다.\n" +
+            "GPS 권한을 확인하세요.\n\n" +
+            err.message
         );
 
     }
@@ -1040,10 +1164,72 @@ document
 
 
 /* =====================================================
+   MANUAL COORDINATE
+===================================================== */
+
+function applyManualCoordinates(){
+
+    const checked =
+        validateCoordinates(
+            latEl.value.trim(),
+            lngEl.value.trim()
+        );
+
+
+    if(!checked.valid){
+
+        alert(
+            checked.message
+        );
+
+        return;
+
+    }
+
+
+    latEl.value =
+        checked.lat.toFixed(6);
+
+
+    lngEl.value =
+        checked.lng.toFixed(6);
+
+
+    setReportPreview(
+        checked.lat,
+        checked.lng
+    );
+
+
+    map.setView(
+        [
+            checked.lat,
+            checked.lng
+        ],
+        17
+    );
+
+}
+
+
+document
+.getElementById(
+    "applyCoordinateBtn"
+)
+.addEventListener(
+    "click",
+    applyManualCoordinates
+);
+
+
+/* =====================================================
    PREVIEW
 ===================================================== */
 
-function setReportPreview(lat,lng){
+function setReportPreview(
+    lat,
+    lng
+){
 
     if(reportPreviewMarker){
 
@@ -1060,7 +1246,18 @@ function setReportPreview(lat,lng){
         )
         .addTo(map)
         .bindPopup(
-            "📍 신고 위치"
+            `
+            <div style="
+                font-family:Arial,sans-serif;
+                color:#111;
+            ">
+                <b>📍 신고 위치</b>
+                <br><br>
+                위도: ${lat.toFixed(6)}
+                <br>
+                경도: ${lng.toFixed(6)}
+            </div>
+            `
         )
         .openPopup();
 
@@ -1068,11 +1265,37 @@ function setReportPreview(lat,lng){
 
 
 /* =====================================================
-   KAKAO
+   MAP CLICK → COORDINATE
 ===================================================== */
 
-let addressSearchTimer = null;
+map.on(
+    "click",
+    function(e){
 
+        /*
+         * 지도 클릭 시
+         * 신고 위치 좌표를 바로 입력
+         */
+        latEl.value =
+            e.latlng.lat.toFixed(6);
+
+
+        lngEl.value =
+            e.latlng.lng.toFixed(6);
+
+
+        setReportPreview(
+            e.latlng.lat,
+            e.latlng.lng
+        );
+
+    }
+);
+
+
+/* =====================================================
+   KAKAO ADDRESS SEARCH
+===================================================== */
 
 function searchAddress(){
 
@@ -1081,9 +1304,6 @@ function searchAddress(){
 
 
     if(!address){
-
-        latEl.value="";
-        lngEl.value="";
 
         return;
 
@@ -1095,6 +1315,10 @@ function searchAddress(){
         !kakao.maps ||
         !kakao.maps.services
     ){
+
+        console.warn(
+            "Kakao Maps API를 사용할 수 없습니다."
+        );
 
         return;
 
@@ -1160,10 +1384,6 @@ addressEl.addEventListener(
         clearTimeout(
             addressSearchTimer
         );
-
-
-        latEl.value="";
-        lngEl.value="";
 
 
         if(
@@ -1246,12 +1466,11 @@ async function submitData(){
         addressEl.value.trim();
 
 
-    const lat =
-        Number(latEl.value);
-
-
-    const lng =
-        Number(lngEl.value);
+    const coordinateResult =
+        validateCoordinates(
+            latEl.value.trim(),
+            lngEl.value.trim()
+        );
 
 
     if(!selectedType){
@@ -1287,31 +1506,6 @@ async function submitData(){
     }
 
 
-    if(!address){
-
-        alert(
-            "주소 입력 필수"
-        );
-
-        return;
-
-    }
-
-
-    if(
-        !Number.isFinite(lat) ||
-        !Number.isFinite(lng)
-    ){
-
-        alert(
-            "주소 좌표를 확인하세요."
-        );
-
-        return;
-
-    }
-
-
     if(
         !/^[0-9\-]{9,13}$/.test(phone)
     ){
@@ -1323,6 +1517,38 @@ async function submitData(){
         return;
 
     }
+
+
+    /*
+     * 주소는 선택사항
+     *
+     * 위도/경도만 있어도 신고 가능
+     */
+    if(!coordinateResult.valid){
+
+        alert(
+            coordinateResult.message
+        );
+
+        return;
+
+    }
+
+
+    const lat =
+        coordinateResult.lat;
+
+
+    const lng =
+        coordinateResult.lng;
+
+
+    /*
+     * 주소가 없으면 좌표를 주소/위치정보로 사용
+     */
+    const finalAddress =
+        address ||
+        `위도 ${lat.toFixed(6)}, 경도 ${lng.toFixed(6)}`;
 
 
     const button =
@@ -1365,7 +1591,7 @@ async function submitData(){
                 phone,
 
             address:
-                address,
+                finalAddress,
 
             lat:
                 lat,
@@ -1493,7 +1719,7 @@ async function postAccident(payload){
 
         data = {
 
-            success:false,
+            result:"error",
 
             message:text
 
@@ -1604,7 +1830,7 @@ function getAccidentField(
 
 
 /* =====================================================
-   필드명 정규화
+   NORMALIZE FIELD
 ===================================================== */
 
 function normalizeFieldName(value){
@@ -1623,8 +1849,7 @@ function normalizeFieldName(value){
 
 
 /* =====================================================
-   전송번호 추출
-   Google Sheets / Apps Script list 응답 대응
+   TRANSMISSION NUMBER
 ===================================================== */
 
 function getTransmissionNumberFromItem(item){
@@ -1636,9 +1861,6 @@ function getTransmissionNumberFromItem(item){
     }
 
 
-    /*
-     * 배열 형태인 경우
-     */
     if(Array.isArray(item)){
 
         for(
@@ -1690,9 +1912,6 @@ function getTransmissionNumberFromItem(item){
     }
 
 
-    /*
-     * 직접적인 필드명 검색
-     */
     const directNames = [
 
         "transmissionNumber",
@@ -1751,9 +1970,6 @@ function getTransmissionNumberFromItem(item){
     }
 
 
-    /*
-     * 정규화된 필드명 검색
-     */
     const normalizedNames = [
 
         "transmissionnumber",
@@ -1809,9 +2025,6 @@ function getTransmissionNumberFromItem(item){
     }
 
 
-    /*
-     * 필드명에 전송번호가 포함된 경우
-     */
     for(
         const key of keys
     ){
@@ -1852,9 +2065,6 @@ function getTransmissionNumberFromItem(item){
     }
 
 
-    /*
-     * 중첩 객체 검사
-     */
     for(
         const key of keys
     ){
@@ -1886,13 +2096,6 @@ function getTransmissionNumberFromItem(item){
     }
 
 
-    /*
-     * 최종 fallback
-     *
-     * 현재 시스템의 전송번호:
-     *
-     * YYMMDDHHMM-XX
-     */
     for(
         const key of keys
     ){
@@ -2530,11 +2733,6 @@ async function loadAccidents(){
             await response.json();
 
 
-        /*
-         * 개발/확인용
-         * 실제 Google Apps Script 응답을
-         * 브라우저 콘솔에서 확인 가능
-         */
         console.log(
             "Google 웹스크립트 사고 목록 원본:",
             data
@@ -2545,12 +2743,6 @@ async function loadAccidents(){
             extractAccidentRows(
                 data
             );
-
-
-        console.log(
-            "사고 목록 rows:",
-            rows
-        );
 
 
         renderAccidents(
@@ -2657,11 +2849,6 @@ function renderAccidents(data){
                 );
 
 
-            /*
-             * 핵심:
-             * Google 웹스크립트 list 응답에서
-             * 전송번호를 안정적으로 추출
-             */
             const transmissionNumber =
                 getTransmissionNumberFromItem(
                     item
@@ -2671,17 +2858,6 @@ function renderAccidents(data){
             const displayTransmissionNumber =
                 transmissionNumber ||
                 "-";
-
-
-            console.log(
-                "사고 전송번호 확인:",
-                {
-                    id:id,
-                    transmissionNumber:
-                        transmissionNumber,
-                    item:item
-                }
-            );
 
 
             const status =
@@ -2857,9 +3033,9 @@ function renderAccidents(data){
             }
 
 
-            /* =================================================
-               지도 마커
-            ================================================= */
+            /*
+             * 지도 마커
+             */
 
             if(
                 Number.isFinite(lat) &&
@@ -2966,6 +3142,22 @@ function renderAccidents(data){
                             elapsed
                         )}
 
+                        <br>
+
+                        <b>위도:</b>
+                        ${Number.isFinite(lat)
+                            ? lat.toFixed(6)
+                            : "-"
+                        }
+
+                        <br>
+
+                        <b>경도:</b>
+                        ${Number.isFinite(lng)
+                            ? lng.toFixed(6)
+                            : "-"
+                        }
+
                         <br><br>
 
                         ${
@@ -3014,9 +3206,9 @@ function renderAccidents(data){
             }
 
 
-            /* =================================================
-               카드
-            ================================================= */
+            /*
+             * 카드
+             */
 
             let cardClass =
                 "case-card";
@@ -3114,10 +3306,6 @@ function renderAccidents(data){
             }
 
 
-            /* =================================================
-               관리 버튼
-            ================================================= */
-
             const manageButtons = `
 
                 <div style="
@@ -3158,10 +3346,6 @@ function renderAccidents(data){
             `;
 
 
-            /* =================================================
-               위치 버튼
-            ================================================= */
-
             const mapButton =
                 Number.isFinite(lat) &&
                 Number.isFinite(lng)
@@ -3183,10 +3367,6 @@ function renderAccidents(data){
                 :
                 "";
 
-
-            /* =================================================
-               연락 + 공유
-            ================================================= */
 
             const contactShareButtons = `
 
@@ -3232,10 +3412,6 @@ function renderAccidents(data){
             `;
 
 
-            /* =================================================
-               전송번호 표시
-            ================================================= */
-
             const transmissionHTML =
 
                 transmissionNumber
@@ -3278,10 +3454,6 @@ function renderAccidents(data){
                 </div>
                 `;
 
-
-            /* =================================================
-               HTML
-            ================================================= */
 
             html += `
 
@@ -3490,6 +3662,7 @@ function renderAccidents(data){
             /*
              * 신규 사고 알림
              */
+
             if(
                 !firstLoad &&
                 !knownIds.has(id)
@@ -3503,6 +3676,7 @@ function renderAccidents(data){
             /*
              * 10분 이상 미처리 알림
              */
+
             if(
                 overdue &&
                 !alertedOverdueIds.has(id)
@@ -3770,7 +3944,18 @@ function focusAccident(
         [lat,lng]
     )
     .setContent(
-        "🆘 사고 신고 위치"
+        `
+        <div style="
+            font-family:Arial,sans-serif;
+            color:#111;
+        ">
+            <b>🆘 사고 신고 위치</b>
+            <br><br>
+            위도: ${lat.toFixed(6)}
+            <br>
+            경도: ${lng.toFixed(6)}
+        </div>
+        `
     )
     .openOn(map);
 
@@ -4003,14 +4188,9 @@ async function updateAccident(
     caseId
 ){
 
-    const lat =
-        Number(
-            latEl.value
-        );
-
-
-    const lng =
-        Number(
+    const coordinateResult =
+        validateCoordinates(
+            latEl.value,
             lngEl.value
         );
 
@@ -4020,9 +4200,7 @@ async function updateAccident(
         !selectedType ||
         !conditionEl.value.trim() ||
         !phoneEl.value.trim() ||
-        !addressEl.value.trim() ||
-        !Number.isFinite(lat) ||
-        !Number.isFinite(lng)
+        !coordinateResult.valid
     ){
 
         alert(
@@ -4032,6 +4210,19 @@ async function updateAccident(
         return;
 
     }
+
+
+    const lat =
+        coordinateResult.lat;
+
+
+    const lng =
+        coordinateResult.lng;
+
+
+    const address =
+        addressEl.value.trim() ||
+        `위도 ${lat.toFixed(6)}, 경도 ${lng.toFixed(6)}`;
 
 
     try{
@@ -4055,7 +4246,7 @@ async function updateAccident(
                     phoneEl.value.trim(),
 
                 address:
-                    addressEl.value.trim(),
+                    address,
 
                 lat:
                     lat,
@@ -4202,12 +4393,6 @@ async function deleteAccident(
                     password
 
             });
-
-
-        console.log(
-            "삭제 결과:",
-            result
-        );
 
 
         if(
@@ -4479,7 +4664,7 @@ window.addEventListener(
                 map.invalidateSize();
 
             },
-            30000
+            300
         );
 
     }
@@ -4517,6 +4702,10 @@ window.addEventListener(
 );
 
 
+/* =====================================================
+   REFRESH SHORTCUT
+===================================================== */
+
 document.addEventListener(
     "keydown",
     function(e){
@@ -4538,7 +4727,7 @@ document.addEventListener(
 
 
 /* =====================================================
-   우클릭 / 단축키
+   DISABLE CONTEXT MENU / DEV SHORTCUT
 ===================================================== */
 
 document.addEventListener(
