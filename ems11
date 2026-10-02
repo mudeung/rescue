@@ -1,340 +1,500 @@
-순서	컬럼
-1	기록ID
-2	저장일시
-3	출동번호
-4	출동일자
-5	출동시간
-6	현장도착시간
-7	현장출발시간
-8	귀소시간
-9	사고장소
-10	사고유형
-11	KTAS
-12	환자성명
-13	성별
-14	나이
-15	생년월일
-16	보호자
-17	연락처
-18	의식상태
-19	주호소
-20	발병/사고시각
-21	환자상태
-22	실시처치
-23	처치기록
-24	이송여부
-25	이송병원
-26	이송시작시간
-27	인계사항
-28	구급대원1
-29	구급대원2
-30	운전요원
-31	기타
-
 /****************************************************
- * 웹 구급일지 Google Apps Script
+ * 🚑 웹 구급일지 - Google Apps Script
  *
- * Google Sheets
- * ├─ 구급일지
- * └─ 활력징후
- *
- * 구급일지 : 환자/출동 정보 1건 = 1행
- * 활력징후 : 측정 1회 = 1행
- *
- * 두 시트는 "기록ID"로 연결
+ * 기능
+ * 1. 웹 HTML → Google Sheets 저장
+ * 2. Google Sheets 헤더 자동 생성
+ * 3. 새로운 항목이 추가되면 새로운 열 자동 생성
+ * 4. 무제한 활력징후 저장
+ * 5. KTAS 저장
+ * 6. GCS 저장
+ * 7. 처치/환자정보/출동정보 저장
+ * 8. 저장일시 자동 기록
  ****************************************************/
 
-const MAIN_SHEET_NAME = "구급일지";
-const VITAL_SHEET_NAME = "활력징후";
+
+/* ==================================================
+   기본 설정
+================================================== */
+
+const SHEET_NAME = "구급일지";
 
 
-/**
- * GET
- */
+/* ==================================================
+   GET
+   웹브라우저에서 Apps Script 주소를 직접 열었을 때
+================================================== */
+
 function doGet(e) {
 
   return ContentService
     .createTextOutput(
       JSON.stringify({
         success: true,
-        message: "웹 구급일지 API 정상 작동"
+        message: "🚑 웹 구급일지 Google Apps Script 정상 작동",
+        time: new Date()
       })
     )
-    .setMimeType(
-      ContentService.MimeType.JSON
-    );
+    .setMimeType(ContentService.MimeType.JSON);
+
 }
 
 
-/**
- * POST
- */
+/* ==================================================
+   POST
+   HTML에서 구급일지 데이터를 받을 때
+================================================== */
+
 function doPost(e) {
 
   try {
 
-    if (
-      !e ||
-      !e.postData ||
-      !e.postData.contents
-    ) {
-      throw new Error("전송된 데이터가 없습니다.");
+    if (!e || !e.postData || !e.postData.contents) {
+
+      return jsonResponse({
+        success: false,
+        message: "전송된 데이터가 없습니다."
+      });
+
     }
 
 
+    /* ----------------------------------------------
+       JSON 데이터 읽기
+    ---------------------------------------------- */
+
     const data =
-      JSON.parse(
-        e.postData.contents
-      );
+      JSON.parse(e.postData.contents);
 
 
-    const ss =
-      SpreadsheetApp
-        .getActiveSpreadsheet();
+    /* ----------------------------------------------
+       Spreadsheet
+    ---------------------------------------------- */
+
+    const spreadsheet =
+      SpreadsheetApp.getActiveSpreadsheet();
 
 
-    /********************************************
-     * 시트 생성
-     ********************************************/
+    /* ----------------------------------------------
+       시트 찾기
+       없으면 자동 생성
+    ---------------------------------------------- */
 
-    const mainSheet =
-      getOrCreateSheet_(
-        ss,
-        MAIN_SHEET_NAME
-      );
+    let sheet =
+      spreadsheet.getSheetByName(SHEET_NAME);
 
 
-    const vitalSheet =
-      getOrCreateSheet_(
-        ss,
-        VITAL_SHEET_NAME
-      );
+    if (!sheet) {
+
+      sheet =
+        spreadsheet.insertSheet(SHEET_NAME);
+
+    }
 
 
-    /********************************************
-     * 기록ID
-     ********************************************/
+    /* ----------------------------------------------
+       저장할 데이터가 없는 경우
+    ---------------------------------------------- */
 
-    const recordId =
-      data.recordId ||
-      createRecordId_();
+    if (
+      !data ||
+      Object.keys(data).length === 0
+    ) {
 
+      return jsonResponse({
+        success: false,
+        message: "저장할 데이터가 없습니다."
+      });
 
-    /********************************************
-     * 구급일지 기본정보
-     ********************************************/
-
-    const mainData = {
-
-      "기록ID":
-        recordId,
-
-      "저장일시":
-        new Date(),
-
-      "출동번호":
-        data.callNumber || "",
-
-      "출동일자":
-        data.date || "",
-
-      "출동시간":
-        data.dispatchTime || "",
-
-      "현장도착시간":
-        data.arrivalTime || "",
-
-      "현장출발시간":
-        data.departureTime || "",
-
-      "귀소시간":
-        data.returnTime || "",
-
-      "사고장소":
-        data.location || "",
-
-      "사고유형":
-        data.accidentType || "",
-
-      "KTAS":
-        data.ktas || "",
-
-      "환자성명":
-        data.patientName || "",
-
-      "성별":
-        data.gender || "",
-
-      "나이":
-        data.age || "",
-
-      "생년월일":
-        data.birthDate || "",
-
-      "보호자":
-        data.guardian || "",
-
-      "연락처":
-        data.phone || "",
-
-      "의식상태":
-        data.consciousness || "",
-
-      "주호소":
-        data.chiefComplaint || "",
-
-      "발병/사고시각":
-        data.onsetTime || "",
-
-      "환자상태":
-        data.symptoms || "",
-
-      "실시처치":
-        Array.isArray(data.treatments)
-          ? data.treatments.join(", ")
-          : "",
-
-      "처치기록":
-        data.treatmentMemo || "",
-
-      "이송여부":
-        data.transport || "",
-
-      "이송병원":
-        data.hospital || "",
-
-      "이송시작시간":
-        data.transportTime || "",
-
-      "인계사항":
-        data.handover || "",
-
-      "구급대원1":
-        data.crew1 || "",
-
-      "구급대원2":
-        data.crew2 || "",
-
-      "운전요원":
-        data.driver || "",
-
-      "기타":
-        data.memo || ""
-
-    };
+    }
 
 
-    /********************************************
-     * 구급일지 저장
-     ********************************************/
+    /* ----------------------------------------------
+       필요한 헤더 생성
+    ---------------------------------------------- */
 
-    appendObjectToSheet_(
-      mainSheet,
-      mainData
+    const headers =
+      buildHeaders(data);
+
+
+    /* ----------------------------------------------
+       Google Sheets 헤더 확인 및 추가
+    ---------------------------------------------- */
+
+    ensureHeaders(
+      sheet,
+      headers
     );
 
 
-    /********************************************
-     * 활력징후 저장
-     ********************************************/
+    /* ----------------------------------------------
+       현재 Google Sheets의 실제 헤더 읽기
+    ---------------------------------------------- */
 
-    const vitals =
-      Array.isArray(data.vitals)
-        ? data.vitals
-        : [];
+    const lastColumn =
+      sheet.getLastColumn();
 
 
-    vitals.forEach(
-      function(vital, index) {
-
-        const vitalData = {
-
-          "기록ID":
-            recordId,
-
-          "측정순번":
-            index + 1,
-
-          "측정시각":
-            vital.time || "",
-
-          "혈압":
-            vital.bp || "",
-
-          "맥박":
-            vital.pulse || "",
-
-          "호흡":
-            vital.resp || "",
-
-          "체온":
-            vital.temp || "",
-
-          "SpO2":
-            vital.spo2 || "",
-
-          "혈당":
-            vital.glucose || "",
-
-          "기타":
-            vital.memo || ""
-
-        };
+    const sheetHeaders =
+      sheet
+        .getRange(
+          1,
+          1,
+          1,
+          lastColumn
+        )
+        .getValues()[0];
 
 
-        appendObjectToSheet_(
-          vitalSheet,
-          vitalData
-        );
+    /* ----------------------------------------------
+       실제 저장 행 생성
+    ---------------------------------------------- */
 
-      }
-    );
+    const row =
+      sheetHeaders.map(header => {
+
+        /* 저장일시 */
+        if (header === "저장일시") {
+
+          return new Date();
+
+        }
 
 
-    /********************************************
-     * 성공 응답
-     ********************************************/
+        /* 데이터 찾기 */
+        const value =
+          data[header];
 
-    return ContentService
-      .createTextOutput(
-        JSON.stringify({
 
-          success: true,
+        /* 배열 */
+        if (Array.isArray(value)) {
 
-          message:
-            "구급일지가 저장되었습니다.",
+          return value.join(", ");
 
-          recordId:
-            recordId,
+        }
 
-          vitalCount:
-            vitals.length
 
-        })
-      )
-      .setMimeType(
-        ContentService.MimeType.JSON
-      );
+        /* 객체 */
+        if (
+          typeof value === "object" &&
+          value !== null
+        ) {
+
+          return JSON.stringify(value);
+
+        }
+
+
+        /* 빈 값 */
+        if (
+          value === undefined ||
+          value === null
+        ) {
+
+          return "";
+
+        }
+
+
+        return value;
+
+      });
+
+
+    /* ----------------------------------------------
+       Google Sheets 마지막 행에 저장
+    ---------------------------------------------- */
+
+    sheet.appendRow(row);
+
+
+    /* ----------------------------------------------
+       스타일 적용
+    ---------------------------------------------- */
+
+    formatSheet(sheet);
+
+
+    /* ----------------------------------------------
+       성공 응답
+    ---------------------------------------------- */
+
+    return jsonResponse({
+
+      success: true,
+
+      message:
+        "구급일지가 Google Sheets에 저장되었습니다.",
+
+      row:
+        sheet.getLastRow(),
+
+      sheet:
+        SHEET_NAME
+
+    });
 
 
   } catch (error) {
 
+
     console.error(error);
 
 
-    return ContentService
-      .createTextOutput(
-        JSON.stringify({
+    return jsonResponse({
 
-          success: false,
+      success: false,
 
-          message:
-            error.message
+      message:
+        "저장 중 오류가 발생했습니다.",
 
-        })
+      error:
+        error.toString()
+
+    });
+
+  }
+
+}
+
+
+/* ==================================================
+   헤더 생성
+================================================== */
+
+function buildHeaders(data) {
+
+  const headers = [];
+
+
+  /* ----------------------------------------------
+     항상 첫 번째 컬럼
+  ---------------------------------------------- */
+
+  headers.push("저장일시");
+
+
+  /* ----------------------------------------------
+     웹에서 전달된 모든 항목
+  ---------------------------------------------- */
+
+  Object.keys(data).forEach(key => {
+
+    if (
+      key &&
+      !headers.includes(key)
+    ) {
+
+      headers.push(key);
+
+    }
+
+  });
+
+
+  return headers;
+
+}
+
+
+/* ==================================================
+   Google Sheets 헤더 자동 생성
+================================================== */
+
+function ensureHeaders(
+  sheet,
+  headers
+) {
+
+
+  /* ----------------------------------------------
+     새 시트인 경우
+  ---------------------------------------------- */
+
+  if (
+    sheet.getLastRow() === 0 ||
+    sheet.getLastColumn() === 0
+  ) {
+
+    sheet
+      .getRange(
+        1,
+        1,
+        1,
+        headers.length
       )
-      .setMimeType(
-        ContentService.MimeType.JSON
+      .setValues([headers]);
+
+
+    formatHeader(sheet);
+
+
+    return;
+
+  }
+
+
+  /* ----------------------------------------------
+     기존 헤더 읽기
+  ---------------------------------------------- */
+
+  const lastColumn =
+    sheet.getLastColumn();
+
+
+  const currentHeaders =
+    sheet
+      .getRange(
+        1,
+        1,
+        1,
+        lastColumn
+      )
+      .getValues()[0];
+
+
+  /* ----------------------------------------------
+     새로운 헤더만 찾기
+  ---------------------------------------------- */
+
+  const newHeaders =
+    headers.filter(header => {
+
+      return !currentHeaders.includes(
+        header
+      );
+
+    });
+
+
+  /* ----------------------------------------------
+     새로운 헤더가 없는 경우
+  ---------------------------------------------- */
+
+  if (
+    newHeaders.length === 0
+  ) {
+
+    return;
+
+  }
+
+
+  /* ----------------------------------------------
+     새로운 열 추가
+  ---------------------------------------------- */
+
+  const startColumn =
+    currentHeaders.length + 1;
+
+
+  sheet
+    .getRange(
+      1,
+      startColumn,
+      1,
+      newHeaders.length
+    )
+    .setValues([
+      newHeaders
+    ]);
+
+
+  formatHeader(sheet);
+
+}
+
+
+/* ==================================================
+   헤더 스타일
+================================================== */
+
+function formatHeader(sheet) {
+
+  const lastColumn =
+    sheet.getLastColumn();
+
+
+  if (lastColumn <= 0) {
+
+    return;
+
+  }
+
+
+  const headerRange =
+    sheet.getRange(
+      1,
+      1,
+      1,
+      lastColumn
+    );
+
+
+  headerRange
+    .setBackground("#d71920")
+    .setFontColor("#ffffff")
+    .setFontWeight("bold")
+    .setHorizontalAlignment("center")
+    .setVerticalAlignment("middle");
+
+
+  /* 첫 번째 행 고정 */
+
+  sheet.setFrozenRows(1);
+
+
+  /* 열 너비 자동 조정 */
+
+  sheet.autoResizeColumns(
+    1,
+    lastColumn
+  );
+
+}
+
+
+/* ==================================================
+   전체 시트 스타일
+================================================== */
+
+function formatSheet(sheet) {
+
+  const lastRow =
+    sheet.getLastRow();
+
+  const lastColumn =
+    sheet.getLastColumn();
+
+
+  if (
+    lastRow < 1 ||
+    lastColumn < 1
+  ) {
+
+    return;
+
+  }
+
+
+  /* 헤더 */
+
+  formatHeader(sheet);
+
+
+  /* 본문 */
+
+  if (lastRow >= 2) {
+
+    sheet
+      .getRange(
+        2,
+        1,
+        lastRow - 1,
+        lastColumn
+      )
+      .setVerticalAlignment(
+        "middle"
       );
 
   }
@@ -342,214 +502,205 @@ function doPost(e) {
 }
 
 
-/**
- * 시트가 없으면 자동 생성
- */
-function getOrCreateSheet_(
-  ss,
-  sheetName
-) {
+/* ==================================================
+   JSON 응답
+================================================== */
+
+function jsonResponse(data) {
+
+  return ContentService
+    .createTextOutput(
+      JSON.stringify(data)
+    )
+    .setMimeType(
+      ContentService.MimeType.JSON
+    );
+
+}
+
+
+/* ==================================================
+   테스트용 함수
+   Apps Script에서 직접 실행 가능
+================================================== */
+
+function testSave() {
+
+
+  const testData = {
+
+    "출동번호": "TEST-001",
+
+    "출동일자": "2026-10-02",
+
+    "출동시간": "14:00",
+
+    "현장도착시간": "14:10",
+
+    "사고장소": "무등산",
+
+    "사고유형": "외상",
+
+    "환자이름": "테스트",
+
+    "성별": "남성",
+
+    "나이": "40",
+
+    "주호소": "흉통",
+
+    "KTAS참고": "흉통",
+
+    "최종KTAS": "3",
+
+    "GCS": "15",
+
+    "GCS상태": "정상",
+
+    "vital_1_time": "14:15",
+
+    "vital_1_bp": "120/80",
+
+    "vital_1_pulse": "80",
+
+    "vital_1_resp": "18",
+
+    "vital_1_temp": "36.5",
+
+    "vital_1_spo2": "98",
+
+    "vital_1_glucose": "110",
+
+    "vital_2_time": "14:30",
+
+    "vital_2_bp": "118/78",
+
+    "vital_2_pulse": "82",
+
+    "vital_2_resp": "18",
+
+    "vital_2_temp": "36.6",
+
+    "vital_2_spo2": "99",
+
+    "vital_2_glucose": "108",
+
+    "vital_3_time": "14:45",
+
+    "vital_3_bp": "115/75",
+
+    "vital_3_pulse": "84",
+
+    "vital_3_resp": "19",
+
+    "vital_3_temp": "36.7",
+
+    "vital_3_spo2": "98",
+
+    "vital_3_glucose": "106",
+
+    "처치": "산소투여",
+
+    "이송여부": "이송",
+
+    "이송병원": "테스트병원",
+
+    "구급대원1": "홍길동",
+
+    "구급대원2": "김철수"
+
+  };
+
+
+  const spreadsheet =
+    SpreadsheetApp.getActiveSpreadsheet();
+
 
   let sheet =
-    ss.getSheetByName(
-      sheetName
+    spreadsheet.getSheetByName(
+      SHEET_NAME
     );
 
 
   if (!sheet) {
 
     sheet =
-      ss.insertSheet(
-        sheetName
+      spreadsheet.insertSheet(
+        SHEET_NAME
       );
 
   }
 
 
-  return sheet;
-
-}
-
-
-/**
- * Object 데이터를 Sheet에 저장
- *
- * 필요한 컬럼이 없으면
- * 자동으로 컬럼 생성
- */
-function appendObjectToSheet_(
-  sheet,
-  data
-) {
-
   const headers =
-    Object.keys(data);
+    buildHeaders(testData);
 
 
-  let existingHeaders = [];
-
-
-  /********************************************
-   * 기존 헤더 확인
-   ********************************************/
-
-  if (
-    sheet.getLastRow() >= 1 &&
-    sheet.getLastColumn() >= 1
-  ) {
-
-    existingHeaders =
-      sheet
-        .getRange(
-          1,
-          1,
-          1,
-          sheet.getLastColumn()
-        )
-        .getValues()[0];
-
-  }
-
-
-  /********************************************
-   * 필요한 컬럼 자동 추가
-   ********************************************/
-
-  headers.forEach(
-    function(header) {
-
-      if (
-        existingHeaders
-          .indexOf(header) === -1
-      ) {
-
-        sheet
-          .getRange(
-            1,
-            existingHeaders.length + 1
-          )
-          .setValue(header);
-
-        existingHeaders.push(
-          header
-        );
-
-      }
-
-    }
+  ensureHeaders(
+    sheet,
+    headers
   );
 
 
-  /********************************************
-   * 헤더 순서에 맞춰 데이터 생성
-   ********************************************/
+  const currentHeaders =
+    sheet
+      .getRange(
+        1,
+        1,
+        1,
+        sheet.getLastColumn()
+      )
+      .getValues()[0];
+
 
   const row =
-    existingHeaders.map(
-      function(header) {
+    currentHeaders.map(header => {
 
-        if (
-          data[header] !== undefined
-        ) {
+      if (
+        header === "저장일시"
+      ) {
 
-          return data[header];
+        return new Date();
 
-        }
+      }
+
+
+      const value =
+        testData[header];
+
+
+      if (
+        value === undefined ||
+        value === null
+      ) {
 
         return "";
 
       }
-    );
 
 
-  /********************************************
-   * 데이터 저장
-   ********************************************/
+      if (
+        Array.isArray(value)
+      ) {
+
+        return value.join(", ");
+
+      }
+
+
+      return value;
+
+    });
+
 
   sheet.appendRow(row);
 
 
-  /********************************************
-   * 헤더 스타일
-   ********************************************/
-
-  formatHeader_(sheet);
-
-}
+  formatSheet(sheet);
 
 
-/**
- * 헤더 스타일
- */
-function formatHeader_(sheet) {
-
-  const lastColumn =
-    sheet.getLastColumn();
-
-
-  if (lastColumn === 0) {
-    return;
-  }
-
-
-  sheet
-    .getRange(
-      1,
-      1,
-      1,
-      lastColumn
-    )
-    .setFontWeight("bold")
-    .setBackground("#d71920")
-    .setFontColor("#ffffff")
-    .setHorizontalAlignment("center");
-
-
-  sheet
-    .setFrozenRows(1);
-
-
-  sheet
-    .autoResizeColumns(
-      1,
-      lastColumn
-    );
-
-}
-
-
-/**
- * 기록ID 생성
- *
- * 예:
- * EMS-20261002-153025-4821
- */
-function createRecordId_() {
-
-  const now =
-    new Date();
-
-
-  const date =
-    Utilities.formatDate(
-      now,
-      Session.getScriptTimeZone(),
-      "yyyyMMdd-HHmmss"
-    );
-
-
-  const random =
-    Math.floor(
-      1000 +
-      Math.random() * 9000
-    );
-
-
-  return (
-    "EMS-" +
-    date +
-    "-" +
-    random
+  Logger.log(
+    "테스트 데이터 저장 완료"
   );
 
 }
