@@ -1298,32 +1298,21 @@ function searchAddress(){
     const address =
         addressEl.value.trim();
 
-
     if(!address){
-
         return;
-
     }
-
 
     if(
         typeof kakao === "undefined" ||
         !kakao.maps ||
         !kakao.maps.services
     ){
-
-        console.warn(
-            "Kakao Maps API를 사용할 수 없습니다."
-        );
-
+        console.warn("Kakao Maps API를 사용할 수 없습니다.");
         return;
-
     }
-
 
     const geocoder =
         new kakao.maps.services.Geocoder();
-
 
     geocoder.addressSearch(
         address,
@@ -1335,71 +1324,181 @@ function searchAddress(){
             ){
 
                 const lat =
-                    parseFloat(
-                        result[0].y
-                    );
-
+                    parseFloat(result[0].y);
 
                 const lng =
-                    parseFloat(
-                        result[0].x
-                    );
-
+                    parseFloat(result[0].x);
 
                 latEl.value =
                     lat.toFixed(6);
 
-
                 lngEl.value =
                     lng.toFixed(6);
-
 
                 map.setView(
                     [lat,lng],
                     17
                 );
 
-
                 setReportPreview(
                     lat,
                     lng
                 );
-
             }
-
         }
     );
+}
 
+/* =====================================================
+   좌표 → 주소 자동변환
+===================================================== */      
+
+function searchAddressFromCoordinates(){
+
+    const lat =
+        Number(latEl.value.trim());
+
+    const lng =
+        Number(lngEl.value.trim());
+
+    if(
+        !Number.isFinite(lat) ||
+        !Number.isFinite(lng)
+    ){
+        return;
+    }
+
+    if(
+        lat < -90 ||
+        lat > 90 ||
+        lng < -180 ||
+        lng > 180
+    ){
+        return;
+    }
+
+    if(
+        typeof kakao === "undefined" ||
+        !kakao.maps ||
+        !kakao.maps.services
+    ){
+        console.warn("Kakao Maps API를 사용할 수 없습니다.");
+        return;
+    }
+
+    const geocoder =
+        new kakao.maps.services.Geocoder();
+
+    geocoder.coord2Address(
+        lng,
+        lat,
+        function(result,status){
+
+            if(
+                status !==
+                kakao.maps.services.Status.OK
+            ){
+                return;
+            }
+
+            if(
+                result &&
+                result.length > 0
+            ){
+
+                const roadAddress =
+                    result[0].road_address;
+
+                const jibunAddress =
+                    result[0].address;
+
+                let address = "";
+
+                if(
+                    roadAddress &&
+                    roadAddress.address_name
+                ){
+
+                    address =
+                        roadAddress.address_name;
+
+                }
+                else if(
+                    jibunAddress &&
+                    jibunAddress.address_name
+                ){
+
+                    address =
+                        jibunAddress.address_name;
+
+                }
+
+                if(address){
+
+                    addressEl.value =
+                        address;
+                }
+            }
+        }
+    );
 }
 
 
-addressEl.addEventListener(
-    "input",
-    function(){
+/* =====================================================
+   좌표 입력 시 자동 변환 추가      
+===================================================== */
 
-        clearTimeout(
-            addressSearchTimer
+let coordinateSearchTimer = null;
+
+function autoSearchAddressFromCoordinates(){
+
+    clearTimeout(coordinateSearchTimer);
+
+    coordinateSearchTimer =
+        setTimeout(
+            function(){
+
+                const lat =
+                    Number(latEl.value.trim());
+
+                const lng =
+                    Number(lngEl.value.trim());
+
+                if(
+                    Number.isFinite(lat) &&
+                    Number.isFinite(lng)
+                ){
+
+                    searchAddressFromCoordinates();
+
+                    setReportPreview(
+                        lat,
+                        lng
+                    );
+
+                    map.setView(
+                        [lat,lng],
+                        17
+                    );
+                }
+
+            },
+            700
         );
+}
 
 
-        if(
-            addressEl.value.trim().length < 2
-        ){
-
-            return;
-
-        }
-
-
-        addressSearchTimer =
-            setTimeout(
-                searchAddress,
-                500
-            );
-
-    }
+latEl.addEventListener(
+    "input",
+    autoSearchAddressFromCoordinates
 );
 
+lngEl.addEventListener(
+    "input",
+    autoSearchAddressFromCoordinates
+);
+
+      
 
 /* =====================================================
    TYPE
