@@ -1,0 +1,522 @@
+/****************************************************
+ * 웹 구급일지 Google Apps Script
+ *
+ * Google Sheets
+ * ├─ 구급일지
+ * └─ 활력징후
+ *
+ * 구급일지 : 환자/출동 정보 1건 = 1행
+ * 활력징후 : 측정 1회 = 1행
+ *
+ * 두 시트는 "기록ID"로 연결
+ ****************************************************/
+
+const MAIN_SHEET_NAME = "구급일지";
+const VITAL_SHEET_NAME = "활력징후";
+
+
+/**
+ * GET
+ */
+function doGet(e) {
+
+  return ContentService
+    .createTextOutput(
+      JSON.stringify({
+        success: true,
+        message: "웹 구급일지 API 정상 작동"
+      })
+    )
+    .setMimeType(
+      ContentService.MimeType.JSON
+    );
+}
+
+
+/**
+ * POST
+ */
+function doPost(e) {
+
+  try {
+
+    if (
+      !e ||
+      !e.postData ||
+      !e.postData.contents
+    ) {
+      throw new Error("전송된 데이터가 없습니다.");
+    }
+
+
+    const data =
+      JSON.parse(
+        e.postData.contents
+      );
+
+
+    const ss =
+      SpreadsheetApp
+        .getActiveSpreadsheet();
+
+
+    /********************************************
+     * 시트 생성
+     ********************************************/
+
+    const mainSheet =
+      getOrCreateSheet_(
+        ss,
+        MAIN_SHEET_NAME
+      );
+
+
+    const vitalSheet =
+      getOrCreateSheet_(
+        ss,
+        VITAL_SHEET_NAME
+      );
+
+
+    /********************************************
+     * 기록ID
+     ********************************************/
+
+    const recordId =
+      data.recordId ||
+      createRecordId_();
+
+
+    /********************************************
+     * 구급일지 기본정보
+     ********************************************/
+
+    const mainData = {
+
+      "기록ID":
+        recordId,
+
+      "저장일시":
+        new Date(),
+
+      "출동번호":
+        data.callNumber || "",
+
+      "출동일자":
+        data.date || "",
+
+      "출동시간":
+        data.dispatchTime || "",
+
+      "현장도착시간":
+        data.arrivalTime || "",
+
+      "현장출발시간":
+        data.departureTime || "",
+
+      "귀소시간":
+        data.returnTime || "",
+
+      "사고장소":
+        data.location || "",
+
+      "사고유형":
+        data.accidentType || "",
+
+      "KTAS":
+        data.ktas || "",
+
+      "환자성명":
+        data.patientName || "",
+
+      "성별":
+        data.gender || "",
+
+      "나이":
+        data.age || "",
+
+      "생년월일":
+        data.birthDate || "",
+
+      "보호자":
+        data.guardian || "",
+
+      "연락처":
+        data.phone || "",
+
+      "의식상태":
+        data.consciousness || "",
+
+      "주호소":
+        data.chiefComplaint || "",
+
+      "발병/사고시각":
+        data.onsetTime || "",
+
+      "환자상태":
+        data.symptoms || "",
+
+      "실시처치":
+        Array.isArray(data.treatments)
+          ? data.treatments.join(", ")
+          : "",
+
+      "처치기록":
+        data.treatmentMemo || "",
+
+      "이송여부":
+        data.transport || "",
+
+      "이송병원":
+        data.hospital || "",
+
+      "이송시작시간":
+        data.transportTime || "",
+
+      "인계사항":
+        data.handover || "",
+
+      "구급대원1":
+        data.crew1 || "",
+
+      "구급대원2":
+        data.crew2 || "",
+
+      "운전요원":
+        data.driver || "",
+
+      "기타":
+        data.memo || ""
+
+    };
+
+
+    /********************************************
+     * 구급일지 저장
+     ********************************************/
+
+    appendObjectToSheet_(
+      mainSheet,
+      mainData
+    );
+
+
+    /********************************************
+     * 활력징후 저장
+     ********************************************/
+
+    const vitals =
+      Array.isArray(data.vitals)
+        ? data.vitals
+        : [];
+
+
+    vitals.forEach(
+      function(vital, index) {
+
+        const vitalData = {
+
+          "기록ID":
+            recordId,
+
+          "측정순번":
+            index + 1,
+
+          "측정시각":
+            vital.time || "",
+
+          "혈압":
+            vital.bp || "",
+
+          "맥박":
+            vital.pulse || "",
+
+          "호흡":
+            vital.resp || "",
+
+          "체온":
+            vital.temp || "",
+
+          "SpO2":
+            vital.spo2 || "",
+
+          "혈당":
+            vital.glucose || "",
+
+          "기타":
+            vital.memo || ""
+
+        };
+
+
+        appendObjectToSheet_(
+          vitalSheet,
+          vitalData
+        );
+
+      }
+    );
+
+
+    /********************************************
+     * 성공 응답
+     ********************************************/
+
+    return ContentService
+      .createTextOutput(
+        JSON.stringify({
+
+          success: true,
+
+          message:
+            "구급일지가 저장되었습니다.",
+
+          recordId:
+            recordId,
+
+          vitalCount:
+            vitals.length
+
+        })
+      )
+      .setMimeType(
+        ContentService.MimeType.JSON
+      );
+
+
+  } catch (error) {
+
+    console.error(error);
+
+
+    return ContentService
+      .createTextOutput(
+        JSON.stringify({
+
+          success: false,
+
+          message:
+            error.message
+
+        })
+      )
+      .setMimeType(
+        ContentService.MimeType.JSON
+      );
+
+  }
+
+}
+
+
+/**
+ * 시트가 없으면 자동 생성
+ */
+function getOrCreateSheet_(
+  ss,
+  sheetName
+) {
+
+  let sheet =
+    ss.getSheetByName(
+      sheetName
+    );
+
+
+  if (!sheet) {
+
+    sheet =
+      ss.insertSheet(
+        sheetName
+      );
+
+  }
+
+
+  return sheet;
+
+}
+
+
+/**
+ * Object 데이터를 Sheet에 저장
+ *
+ * 필요한 컬럼이 없으면
+ * 자동으로 컬럼 생성
+ */
+function appendObjectToSheet_(
+  sheet,
+  data
+) {
+
+  const headers =
+    Object.keys(data);
+
+
+  let existingHeaders = [];
+
+
+  /********************************************
+   * 기존 헤더 확인
+   ********************************************/
+
+  if (
+    sheet.getLastRow() >= 1 &&
+    sheet.getLastColumn() >= 1
+  ) {
+
+    existingHeaders =
+      sheet
+        .getRange(
+          1,
+          1,
+          1,
+          sheet.getLastColumn()
+        )
+        .getValues()[0];
+
+  }
+
+
+  /********************************************
+   * 필요한 컬럼 자동 추가
+   ********************************************/
+
+  headers.forEach(
+    function(header) {
+
+      if (
+        existingHeaders
+          .indexOf(header) === -1
+      ) {
+
+        sheet
+          .getRange(
+            1,
+            existingHeaders.length + 1
+          )
+          .setValue(header);
+
+        existingHeaders.push(
+          header
+        );
+
+      }
+
+    }
+  );
+
+
+  /********************************************
+   * 헤더 순서에 맞춰 데이터 생성
+   ********************************************/
+
+  const row =
+    existingHeaders.map(
+      function(header) {
+
+        if (
+          data[header] !== undefined
+        ) {
+
+          return data[header];
+
+        }
+
+        return "";
+
+      }
+    );
+
+
+  /********************************************
+   * 데이터 저장
+   ********************************************/
+
+  sheet.appendRow(row);
+
+
+  /********************************************
+   * 헤더 스타일
+   ********************************************/
+
+  formatHeader_(sheet);
+
+}
+
+
+/**
+ * 헤더 스타일
+ */
+function formatHeader_(sheet) {
+
+  const lastColumn =
+    sheet.getLastColumn();
+
+
+  if (lastColumn === 0) {
+    return;
+  }
+
+
+  sheet
+    .getRange(
+      1,
+      1,
+      1,
+      lastColumn
+    )
+    .setFontWeight("bold")
+    .setBackground("#d71920")
+    .setFontColor("#ffffff")
+    .setHorizontalAlignment("center");
+
+
+  sheet
+    .setFrozenRows(1);
+
+
+  sheet
+    .autoResizeColumns(
+      1,
+      lastColumn
+    );
+
+}
+
+
+/**
+ * 기록ID 생성
+ *
+ * 예:
+ * EMS-20261002-153025-4821
+ */
+function createRecordId_() {
+
+  const now =
+    new Date();
+
+
+  const date =
+    Utilities.formatDate(
+      now,
+      Session.getScriptTimeZone(),
+      "yyyyMMdd-HHmmss"
+    );
+
+
+  const random =
+    Math.floor(
+      1000 +
+      Math.random() * 9000
+    );
+
+
+  return (
+    "EMS-" +
+    date +
+    "-" +
+    random
+  );
+
+}
