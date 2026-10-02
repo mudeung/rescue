@@ -1911,7 +1911,7 @@ function setMapCenter(
 
 function setAddressStatus(
     text,
-    type=""
+    type = ""
 ){
 
     addressStatusEl.textContent =
@@ -1933,31 +1933,51 @@ function setAddressStatus(
 
 /* =====================================================
    ADDRESS → COORDINATE
+   주소 입력 → 좌표 변환 → 지도 이동 → 핀 이동
 ===================================================== */
 
 function searchAddress(){
 
-    const address = addressEl.value.trim();
+    const address =
+        addressEl.value.trim();
 
     if(!address){
+
+        setAddressStatus("");
+
         return;
+
     }
+
 
     if(
         typeof kakao === "undefined" ||
         !kakao.maps ||
         !kakao.maps.services
     ){
-        alert("주소 검색 서비스를 사용할 수 없습니다.");
+
+        setAddressStatus(
+            "⚠ 주소 검색 서비스를 사용할 수 없습니다.",
+            "error"
+        );
+
         return;
+
     }
+
+
+    setAddressStatus(
+        "🔎 주소 위치를 찾는 중..."
+    );
+
 
     const geocoder =
         new kakao.maps.services.Geocoder();
 
+
     geocoder.addressSearch(
         address,
-        function(result,status){
+        function(result, status){
 
             if(
                 status !==
@@ -1966,43 +1986,70 @@ function searchAddress(){
                 !result.length
             ){
 
-                alert("입력한 주소의 위치를 찾을 수 없습니다.");
+                setAddressStatus(
+                    "⚠ 입력한 주소의 위치를 찾을 수 없습니다.",
+                    "error"
+                );
+
                 return;
+
             }
 
+
+            /* -----------------------------------------
+               좌표
+            ----------------------------------------- */
+
             const lat =
-                parseFloat(result[0].y);
+                parseFloat(
+                    result[0].y
+                );
 
             const lng =
-                parseFloat(result[0].x);
+                parseFloat(
+                    result[0].x
+                );
 
-            // 좌표 입력
+
+            if(
+                !Number.isFinite(lat) ||
+                !Number.isFinite(lng)
+            ){
+
+                setAddressStatus(
+                    "⚠ 주소 좌표가 올바르지 않습니다.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            /* -----------------------------------------
+               좌표 입력란 갱신
+            ----------------------------------------- */
+
             latEl.value =
                 lat.toFixed(6);
 
             lngEl.value =
                 lng.toFixed(6);
 
-            // 지도 중심 이동
-            map.setView(
-                [lat,lng],
-                17
-            );
 
-            // 신고 위치 마커 표시
-            setReportPreview(
-                lat,
-                lng
-            );
+            /* -----------------------------------------
+               주소 입력란을 정확한 주소로 갱신
+            ----------------------------------------- */
 
-            // 주소를 정확한 검색 결과로 갱신
             if(
                 result[0].road_address &&
                 result[0].road_address.address_name
             ){
 
                 addressEl.value =
-                    result[0].road_address.address_name;
+                    result[0]
+                        .road_address
+                        .address_name;
 
             }
             else if(
@@ -2011,32 +2058,76 @@ function searchAddress(){
             ){
 
                 addressEl.value =
-                    result[0].address.address_name;
+                    result[0]
+                        .address
+                        .address_name;
 
             }
 
+
+            /* -----------------------------------------
+               지도 이동
+            ----------------------------------------- */
+
+            if(
+                typeof setMapCenter === "function"
+            ){
+
+                setMapCenter(
+                    lat,
+                    lng,
+                    17
+                );
+
+            }
+            else if(
+                typeof map !== "undefined" &&
+                map &&
+                typeof map.setView === "function"
+            ){
+
+                map.setView(
+                    [lat, lng],
+                    17
+                );
+
+            }
+
+
+            /* -----------------------------------------
+               신고 위치 핀 이동
+            ----------------------------------------- */
+
+            if(
+                typeof setReportPreview === "function"
+            ){
+
+                setReportPreview(
+                    lat,
+                    lng
+                );
+
+            }
+
+
+            /* -----------------------------------------
+               완료
+            ----------------------------------------- */
+
+            setAddressStatus(
+                "✅ 주소 위치로 이동했습니다.",
+                "success"
+            );
+
         }
     );
+
 }
-
-addressEl.addEventListener(
-    "keydown",
-    function(e){
-
-        if(e.key === "Enter"){
-
-            e.preventDefault();
-
-            searchAddress();
-
-        }
-
-    }
-);
 
 
 /* =====================================================
    ADDRESS INPUT
+   입력 후 600ms 뒤 자동 검색
 ===================================================== */
 
 addressEl.addEventListener(
@@ -2048,9 +2139,11 @@ addressEl.addEventListener(
         );
 
 
-        if(
-            addressEl.value.trim().length < 2
-        ){
+        const address =
+            addressEl.value.trim();
+
+
+        if(address.length < 2){
 
             setAddressStatus("");
 
@@ -2061,9 +2154,37 @@ addressEl.addEventListener(
 
         addressSearchTimer =
             setTimeout(
-                searchAddress,
+                function(){
+
+                    searchAddress();
+
+                },
                 600
             );
+
+    }
+);
+
+
+/* =====================================================
+   ADDRESS ENTER
+===================================================== */
+
+addressEl.addEventListener(
+    "keydown",
+    function(e){
+
+        if(e.key === "Enter"){
+
+            e.preventDefault();
+
+            clearTimeout(
+                addressSearchTimer
+            );
+
+            searchAddress();
+
+        }
 
     }
 );
@@ -2076,7 +2197,7 @@ addressEl.addEventListener(
 function reverseGeocode(
     lat,
     lng,
-    updateStatus=true
+    updateStatus = true
 ){
 
     if(!kakaoGeocoder){
@@ -2084,7 +2205,7 @@ function reverseGeocode(
         if(updateStatus){
 
             setAddressStatus(
-                "Kakao 주소변환 서비스를 사용할 수 없습니다.",
+                "⚠ Kakao 주소변환 서비스를 사용할 수 없습니다.",
                 "error"
             );
 
@@ -2121,7 +2242,7 @@ function reverseGeocode(
     kakaoGeocoder.coord2Address(
         checked.lng,
         checked.lat,
-        function(result,status){
+        function(result, status){
 
             if(
                 status !==
@@ -2168,19 +2289,15 @@ function reverseGeocode(
             const roadAddress =
                 item.road_address &&
                 item.road_address.address_name
-                ?
-                item.road_address.address_name
-                :
-                "";
+                    ? item.road_address.address_name
+                    : "";
 
 
             const jibunAddress =
                 item.address &&
                 item.address.address_name
-                ?
-                item.address.address_name
-                :
-                "";
+                    ? item.address.address_name
+                    : "";
 
 
             const finalAddress =
@@ -2219,23 +2336,9 @@ function reverseGeocode(
 
 }
 
-addressEl.addEventListener(
-    "keydown",
-    function(e){
 
-        if(e.key === "Enter"){
-
-            e.preventDefault();
-
-            searchAddress();
-
-        }
-
-    }
-);
- 
 /* =====================================================
-   LAT/LNG INPUT → ADDRESS
+   LAT / LNG INPUT → ADDRESS + MAP + PIN
 ===================================================== */
 
 function scheduleCoordinateAddressSearch(){
@@ -2285,19 +2388,49 @@ function scheduleCoordinateAddressSearch(){
         setTimeout(
             function(){
 
-                setReportPreview(
-                    checked.lat,
-                    checked.lng
-                );
+                /* 핀 이동 */
+                if(
+                    typeof setReportPreview === "function"
+                ){
+
+                    setReportPreview(
+                        checked.lat,
+                        checked.lng
+                    );
+
+                }
 
 
-                setMapCenter(
-                    checked.lat,
-                    checked.lng,
-                    3
-                );
+                /* 지도 이동 */
+                if(
+                    typeof setMapCenter === "function"
+                ){
+
+                    setMapCenter(
+                        checked.lat,
+                        checked.lng,
+                        17
+                    );
+
+                }
+                else if(
+                    typeof map !== "undefined" &&
+                    map &&
+                    typeof map.setView === "function"
+                ){
+
+                    map.setView(
+                        [
+                            checked.lat,
+                            checked.lng
+                        ],
+                        17
+                    );
+
+                }
 
 
+                /* 좌표 → 주소 */
                 reverseGeocode(
                     checked.lat,
                     checked.lng,
@@ -2316,10 +2449,12 @@ latEl.addEventListener(
     scheduleCoordinateAddressSearch
 );
 
+
 lngEl.addEventListener(
     "input",
     scheduleCoordinateAddressSearch
 );
+
 
 
 /* =====================================================
