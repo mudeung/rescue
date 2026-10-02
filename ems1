@@ -1,857 +1,771 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
-
 <meta charset="UTF-8">
-
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>웹 구급일지</title>
 
 <style>
+*{box-sizing:border-box}
 
-* {
-    box-sizing: border-box;
+body{
+    margin:0;
+    font-family:Arial,"Malgun Gothic",sans-serif;
+    background:#eef2f5;
+    color:#222;
 }
 
-body {
-    margin: 0;
-    font-family:
-        Arial,
-        "Malgun Gothic",
-        sans-serif;
-
-    background: #eef2f5;
-    color: #222;
+.container{
+    max-width:1100px;
+    margin:20px auto;
+    padding:15px;
 }
 
-.container {
-    max-width: 1100px;
-    margin: 30px auto;
-    padding: 20px;
+.header{
+    background:#d71920;
+    color:#fff;
+    padding:20px;
+    border-radius:12px 12px 0 0;
 }
 
-.header {
-    background: #d71920;
-    color: white;
-    padding: 20px;
-    border-radius: 12px 12px 0 0;
+.header h1{
+    margin:0;
+    font-size:26px;
 }
 
-.header h1 {
-    margin: 0;
-    font-size: 26px;
+.header p{
+    margin:6px 0 0;
 }
 
-.header p {
-    margin: 6px 0 0;
-    opacity: .9;
+.card{
+    background:#fff;
+    padding:20px;
+    margin-bottom:15px;
+    border-radius:10px;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
 }
 
-.card {
-    background: white;
-    padding: 22px;
-    margin-bottom: 15px;
-    border-radius: 10px;
-
-    box-shadow:
-        0 2px 8px
-        rgba(0,0,0,.08);
+.card h2{
+    margin-top:0;
+    border-left:5px solid #d71920;
+    padding-left:10px;
+    font-size:19px;
 }
 
-.card h2 {
-    margin-top: 0;
-
-    border-left:
-        5px solid #d71920;
-
-    padding-left: 10px;
-
-    font-size: 19px;
+.grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:15px;
 }
 
-.grid {
-    display: grid;
-
-    grid-template-columns:
-        repeat(3, 1fr);
-
-    gap: 15px;
+.field{
+    display:flex;
+    flex-direction:column;
 }
 
-.field {
-    display: flex;
-    flex-direction: column;
+.full{
+    grid-column:1/-1;
 }
 
-.field.full {
-    grid-column: 1 / -1;
-}
-
-label {
-    font-weight: bold;
-    margin-bottom: 6px;
-    font-size: 14px;
+label{
+    font-weight:bold;
+    margin-bottom:6px;
+    font-size:14px;
 }
 
 input,
 select,
-textarea {
-
-    width: 100%;
-
-    padding: 10px;
-
-    border:
-        1px solid #ccc;
-
-    border-radius: 6px;
-
-    font-size: 14px;
+textarea{
+    width:100%;
+    padding:10px;
+    border:1px solid #ccc;
+    border-radius:6px;
+    font-size:14px;
 }
 
-textarea {
-    min-height: 100px;
-    resize: vertical;
+textarea{
+    min-height:100px;
+    resize:vertical;
 }
 
-
-/* KTAS */
-
-.ktas-box {
-    padding: 15px;
-
-    border-radius: 8px;
-
-    background: #f7f7f7;
-
-    border:
-        1px solid #ddd;
+.check-group{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
 }
 
-.ktas-description {
-    margin-top: 8px;
-
-    padding: 10px;
-
-    border-radius: 6px;
-
-    background: #fff;
-
-    font-size: 13px;
-
-    color: #555;
+.check-group label{
+    font-weight:normal;
+    display:flex;
+    align-items:center;
+    gap:5px;
 }
 
-
-/* 활력징후 */
-
-.vital-wrapper {
-    overflow-x: auto;
+.ktas-assist{
+    margin-top:18px;
+    padding:15px;
+    border-radius:8px;
+    background:#f8fafc;
+    border:1px solid #ddd;
 }
 
-.vital-table {
-    width: 100%;
+.ktas-warning{
+    background:#fff1f2;
+    border-color:#fecdd3;
+    color:#9f1239;
+}
 
-    border-collapse:
-        collapse;
+.ktas-normal{
+    background:#f0fdf4;
+    border-color:#bbf7d0;
+    color:#166534;
+}
 
-    min-width: 900px;
+.gcs-result{
+    margin-top:12px;
+    padding:12px;
+    border-radius:7px;
+    background:#f8fafc;
+    font-size:18px;
+    font-weight:bold;
+}
+
+.gcs-warning{
+    display:none;
+    margin-top:10px;
+    padding:12px;
+    border-radius:7px;
+    background:#fee2e2;
+    color:#991b1b;
+    font-weight:bold;
+}
+
+.vital-wrapper{
+    overflow-x:auto;
+}
+
+.vital-table{
+    width:100%;
+    min-width:950px;
+    border-collapse:collapse;
 }
 
 .vital-table th,
-.vital-table td {
-
-    border:
-        1px solid #ddd;
-
-    padding: 8px;
-
-    text-align: center;
+.vital-table td{
+    border:1px solid #ddd;
+    padding:7px;
+    text-align:center;
 }
 
-.vital-table th {
-
-    background:
-        #f4f4f4;
-
-    white-space:
-        nowrap;
+.vital-table th{
+    background:#f4f4f4;
 }
 
-.vital-table input {
-    min-width: 80px;
+.vital-table input{
+    min-width:75px;
 }
 
-.vital-number {
-    font-weight: bold;
+.vital-abnormal{
+    background:#fff1f2 !important;
+    border:2px solid #ef4444 !important;
 }
 
-
-/* 버튼 */
-
-.buttons {
-
-    display: flex;
-
-    flex-wrap: wrap;
-
-    gap: 10px;
-
-    margin-top: 20px;
+.vital-alert{
+    display:none;
+    margin-top:12px;
+    padding:12px;
+    border-radius:7px;
+    background:#fff7ed;
+    border:1px solid #fdba74;
+    color:#9a3412;
 }
 
-button {
-
-    border: none;
-
-    padding:
-        13px 22px;
-
-    border-radius: 7px;
-
-    font-size: 15px;
-
-    font-weight: bold;
-
-    cursor: pointer;
+.add-vital{
+    background:#d71920;
+    color:#fff;
+    margin-bottom:12px;
 }
 
-button:hover {
-    opacity: .85;
+.delete-vital{
+    background:#ef4444;
+    color:#fff;
+    padding:7px 10px;
+    font-size:12px;
 }
 
-.save {
-    background: #1976d2;
-    color: white;
+.buttons{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-top:20px;
 }
 
-.sheet {
-    background: #168a45;
-    color: white;
+button{
+    border:0;
+    padding:12px 20px;
+    border-radius:7px;
+    font-weight:bold;
+    cursor:pointer;
 }
 
-.print {
-    background: #444;
-    color: white;
+.save{
+    background:#1976d2;
+    color:#fff;
 }
 
-.reset {
-    background: #eee;
-    color: #333;
+.sheet{
+    background:#168a45;
+    color:#fff;
 }
 
-.add-vital {
-
-    background: #d71920;
-
-    color: white;
-
-    margin-bottom: 12px;
+.txt{
+    background:#7c3aed;
+    color:#fff;
 }
 
-.delete-vital {
-
-    background: #ef4444;
-
-    color: white;
-
-    padding:
-        7px 10px;
-
-    font-size: 12px;
+.print{
+    background:#444;
+    color:#fff;
 }
 
-
-/* 처치 */
-
-.check-group {
-
-    display: flex;
-
-    flex-wrap: wrap;
-
-    gap: 15px;
+.reset{
+    background:#eee;
+    color:#333;
 }
 
-.check-group label {
-
-    font-weight: normal;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 5px;
+.status{
+    display:none;
+    margin-top:15px;
+    padding:12px;
+    border-radius:7px;
+    white-space:pre-line;
 }
 
-
-/* 상태 */
-
-.status {
-
-    margin-top: 15px;
-
-    padding: 12px;
-
-    border-radius: 7px;
-
-    display: none;
+.status.success{
+    display:block;
+    background:#dcfce7;
+    color:#166534;
 }
 
-.status.success {
-
-    display: block;
-
-    background: #dcfce7;
-
-    color: #166534;
+.status.error{
+    display:block;
+    background:#fee2e2;
+    color:#991b1b;
 }
 
-.status.error {
-
-    display: block;
-
-    background: #fee2e2;
-
-    color: #991b1b;
+.footer{
+    text-align:center;
+    color:#777;
+    font-size:12px;
+    margin:20px;
 }
 
-
-/* footer */
-
-.footer {
-
-    text-align: center;
-
-    color: #777;
-
-    font-size: 12px;
-
-    margin-top: 20px;
-}
-
-
-/* 모바일 */
-
-@media(max-width:700px) {
-
-    .grid {
-        grid-template-columns: 1fr;
+@media(max-width:700px){
+    .grid{
+        grid-template-columns:1fr;
     }
 
-    .container {
-        margin: 10px;
-        padding: 5px;
+    .container{
+        margin:5px;
+        padding:5px;
     }
-
 }
 
-
-/* 인쇄 */
-
-@media print {
-
-    body {
-        background: white;
+@media print{
+    body{
+        background:#fff;
     }
 
-    .container {
-        max-width: none;
-        margin: 0;
-        padding: 0;
+    .container{
+        max-width:none;
+        margin:0;
+        padding:0;
     }
 
     .buttons,
     .add-vital,
     .delete-vital,
-    .status {
-        display: none !important;
+    .status{
+        display:none!important;
     }
 
-    .card {
-
-        box-shadow: none;
-
-        border:
-            1px solid #ddd;
-
-        page-break-inside:
-            avoid;
+    .card{
+        box-shadow:none;
+        border:1px solid #ddd;
+        page-break-inside:avoid;
     }
 
-    .header {
-
-        background:
-            #d71920 !important;
-
-        -webkit-print-color-adjust:
-            exact;
-
-        print-color-adjust:
-            exact;
+    .header{
+        background:#d71920!important;
+        -webkit-print-color-adjust:exact;
+        print-color-adjust:exact;
     }
-
 }
-
 </style>
-
 </head>
-
 
 <body>
 
 <div class="container">
 
-
-<!-- HEADER -->
-
 <div class="header">
-
     <h1>🚑 웹 구급일지</h1>
-
-    <p>
-        구급활동 기록 및 환자 처치 기록
-    </p>
-
+    <p>구급활동 기록 · 환자평가 · 활력징후 · 처치 · 이송기록</p>
 </div>
 
 
-<!-- 출동정보 -->
-
+<!-- 1 출동정보 -->
 <div class="card">
-
 <h2>1. 출동 정보</h2>
 
 <div class="grid">
 
 <div class="field">
-
 <label>출동번호</label>
-
-<input
-    type="text"
-    id="callNumber"
->
-
+<input type="text" id="callNumber">
 </div>
 
-
 <div class="field">
-
 <label>출동일자</label>
-
-<input
-    type="date"
-    id="date"
->
-
+<input type="date" id="date">
 </div>
 
-
 <div class="field">
-
 <label>출동시간</label>
-
-<input
-    type="time"
-    id="dispatchTime"
->
-
+<input type="time" id="dispatchTime">
 </div>
 
-
 <div class="field">
-
 <label>현장 도착시간</label>
-
-<input
-    type="time"
-    id="arrivalTime"
->
-
+<input type="time" id="arrivalTime">
 </div>
 
-
 <div class="field">
-
 <label>현장 출발시간</label>
-
-<input
-    type="time"
-    id="departureTime"
->
-
+<input type="time" id="departureTime">
 </div>
-
 
 <div class="field">
-
 <label>귀소시간</label>
-
-<input
-    type="time"
-    id="returnTime"
->
-
+<input type="time" id="returnTime">
 </div>
-
 
 <div class="field full">
-
 <label>사고/출동 장소</label>
-
-<input
-    type="text"
-    id="location"
-    placeholder="주소 또는 사고 장소"
->
-
+<input type="text" id="location">
 </div>
 
 </div>
-
 </div>
 
 
-<!-- 사고유형 / KTAS -->
-
+<!-- 2 사고유형 -->
 <div class="card">
-
-<h2>2. 사고유형 및 KTAS</h2>
+<h2>2. 사고유형</h2>
 
 <div class="grid">
 
-
 <div class="field">
-
 <label>사고유형</label>
 
 <select id="accidentType">
 
-<option value="">
-선택
-</option>
+<option value="">선택</option>
 
-<option>
-질환
-</option>
+<optgroup label="질환">
+<option>흉통</option>
+<option>호흡곤란</option>
+<option>심정지</option>
+<option>뇌졸중 의심</option>
+<option>경련</option>
+<option>의식저하</option>
+<option>실신</option>
+<option>저혈당</option>
+<option>고혈당</option>
+<option>복통</option>
+<option>발열</option>
+</optgroup>
 
-<option>
-외상
-</option>
+<optgroup label="외상">
+<option>실족·추락</option>
+<option>낙상</option>
+<option>교통사고</option>
+<option>충돌</option>
+<option>절단</option>
+<option>열상</option>
+<option>골절 의심</option>
+<option>심한 출혈</option>
+</optgroup>
 
-<option>
-교통사고
-</option>
+<optgroup label="환경">
+<option>저체온증</option>
+<option>열탈진</option>
+<option>열사병</option>
+<option>탈수</option>
+<option>동상</option>
+<option>번개 손상</option>
+</optgroup>
 
-<option>
-추락
-</option>
+<optgroup label="중독·동물">
+<option>중독</option>
+<option>벌 쏘임</option>
+<option>뱀 물림</option>
+<option>야생동물 공격</option>
+</optgroup>
 
-<option>
-실족
-</option>
+<optgroup label="조난">
+<option>길 잃음</option>
+<option>고립</option>
+<option>체력고갈</option>
+<option>장비부족</option>
+</optgroup>
 
-<option>
-익수
-</option>
-
-<option>
-화상
-</option>
-
-<option>
-중독
-</option>
-
-<option>
-동물/곤충
-</option>
-
-<option>
-환경응급
-</option>
-
-<option>
-심정지
-</option>
-
-<option>
-기타
-</option>
-
-</select>
-
-</div>
-
-
-<div class="field">
-
-<label>KTAS 분류</label>
-
-<select
-    id="ktas"
-    onchange="updateKTASDescription()"
->
-
-<option value="">
-선택
-</option>
-
-<option value="KTAS 1">
-KTAS 1 - 소생
-</option>
-
-<option value="KTAS 2">
-KTAS 2 - 긴급
-</option>
-
-<option value="KTAS 3">
-KTAS 3 - 응급
-</option>
-
-<option value="KTAS 4">
-KTAS 4 - 준응급
-</option>
-
-<option value="KTAS 5">
-KTAS 5 - 비응급
-</option>
+<option>기타</option>
 
 </select>
-
-</div>
-
-
-<div
-    class="field full"
->
-
-<div
-    id="ktasDescription"
-    class="ktas-description"
->
-KTAS 단계를 선택하면 설명이 표시됩니다.
 </div>
 
 </div>
-
-</div>
-
 </div>
 
 
-<!-- 환자정보 -->
-
+<!-- 3 환자정보 -->
 <div class="card">
-
 <h2>3. 환자 정보</h2>
 
 <div class="grid">
 
-
 <div class="field">
-
 <label>성명</label>
-
-<input
-    type="text"
-    id="patientName"
->
-
+<input type="text" id="patientName">
 </div>
 
-
 <div class="field">
-
 <label>성별</label>
-
 <select id="gender">
-
-<option value="">
-선택
-</option>
-
-<option>
-남성
-</option>
-
-<option>
-여성
-</option>
-
-<option>
-미상
-</option>
-
+<option value="">선택</option>
+<option>남성</option>
+<option>여성</option>
+<option>미상</option>
 </select>
-
 </div>
 
-
 <div class="field">
-
 <label>나이</label>
-
-<input
-    type="number"
-    id="age"
-    min="0"
-    max="150"
->
-
+<input type="number" id="age" min="0" max="150">
 </div>
 
-
 <div class="field">
-
 <label>생년월일</label>
-
-<input
-    type="date"
-    id="birthDate"
->
-
+<input type="date" id="birthDate">
 </div>
 
-
 <div class="field">
-
 <label>보호자</label>
+<input type="text" id="guardian">
+</div>
 
-<input
-    type="text"
-    id="guardian"
->
+<div class="field">
+<label>연락처</label>
+<input type="tel" id="phone">
+</div>
 
+</div>
+</div>
+
+
+<!-- 4 GCS -->
+<div class="card">
+<h2>4. 의식평가 GCS</h2>
+
+<div class="grid">
+
+<div class="field">
+<label>Eye (E)</label>
+
+<select id="eye" onchange="calculateGCS()">
+<option value="4">4 - 자발적으로 눈을 뜸</option>
+<option value="3">3 - 말에 눈을 뜸</option>
+<option value="2">2 - 통증에 눈을 뜸</option>
+<option value="1">1 - 눈을 뜨지 않음</option>
+</select>
 </div>
 
 
 <div class="field">
+<label>Verbal (V)</label>
 
-<label>연락처</label>
+<select id="verbal" onchange="calculateGCS()">
+<option value="5">5 - 지남력 정상</option>
+<option value="4">4 - 혼돈된 대화</option>
+<option value="3">3 - 부적절한 말</option>
+<option value="2">2 - 이해할 수 없는 소리</option>
+<option value="1">1 - 반응 없음</option>
+</select>
+</div>
 
-<input
-    type="tel"
-    id="phone"
-    placeholder="010-0000-0000"
+
+<div class="field">
+<label>Motor (M)</label>
+
+<select id="motor" onchange="calculateGCS()">
+<option value="6">6 - 명령에 따름</option>
+<option value="5">5 - 통증 국소화</option>
+<option value="4">4 - 통증에 움츠림</option>
+<option value="3">3 - 이상굴곡</option>
+<option value="2">2 - 이상신전</option>
+<option value="1">1 - 움직임 없음</option>
+</select>
+</div>
+
+</div>
+
+
+<div class="gcs-result">
+GCS :
+<span id="gcsResult"></span>
+</div>
+
+<div
+    id="gcsWarning"
+    class="gcs-warning"
 >
-
+⚠️ GCS 8점 이하입니다. 기도 및 호흡상태를 즉시 확인하고 환자의 전체 상태를 평가하십시오.
 </div>
 
 </div>
 
-</div>
 
-
-<!-- 환자상태 -->
-
+<!-- 5 KTAS -->
 <div class="card">
 
-<h2>4. 환자 상태</h2>
+<h2>5. KTAS 환자 중증도 평가</h2>
 
 <div class="grid">
 
 
 <div class="field">
+<label>생명위협 여부</label>
 
-<label>의식상태</label>
+<div class="check-group">
 
-<select id="consciousness">
+<label>
+<input
+type="radio"
+name="lifeThreat"
+value="있음"
+onchange="evaluateKTAS()"
+>
+있음
+</label>
 
-<option value="">
-선택
-</option>
+<label>
+<input
+type="radio"
+name="lifeThreat"
+value="없음"
+onchange="evaluateKTAS()"
+>
+없음
+</label>
 
-<option>
-Alert
-</option>
+</div>
+</div>
 
-<option>
-Verbal
-</option>
 
-<option>
-Pain
-</option>
+<div class="field">
+<label>기도</label>
 
-<option>
-Unresponsive
-</option>
-
+<select id="airway" onchange="evaluateKTAS()">
+<option value="">선택</option>
+<option value="정상">유지</option>
+<option value="부분폐쇄">부분폐쇄</option>
+<option value="위험">완전폐쇄/위험</option>
 </select>
-
 </div>
 
 
 <div class="field">
+<label>호흡</label>
 
-<label>주호소</label>
-
-<input
-    type="text"
-    id="chiefComplaint"
->
-
+<select id="breathing" onchange="evaluateKTAS()">
+<option value="">선택</option>
+<option value="정상">정상</option>
+<option value="이상">이상</option>
+<option value="호흡부전">호흡부전 의심</option>
+<option value="무호흡">무호흡</option>
+</select>
 </div>
 
 
 <div class="field">
+<label>순환</label>
 
-<label>발병/사고 시각</label>
+<select id="circulation" onchange="evaluateKTAS()">
+<option value="">선택</option>
+<option value="안정">안정</option>
+<option value="불안정">불안정</option>
+<option value="심정지">심정지</option>
+</select>
+</div>
 
-<input
-    type="time"
-    id="onsetTime"
->
 
+<div class="field">
+<label>의식</label>
+
+<select id="ktasConsciousness" onchange="evaluateKTAS()">
+<option value="">선택</option>
+<option value="Alert">Alert</option>
+<option value="Verbal">Verbal</option>
+<option value="Pain">Pain</option>
+<option value="Unresponsive">Unresponsive</option>
+</select>
 </div>
 
 
 <div class="field full">
+<label>주요 응급증상</label>
+
+<div class="check-group">
 
 <label>
-환자 상태 및 증상
+<input
+type="checkbox"
+name="ktasSymptom"
+value="호흡곤란"
+onchange="evaluateKTAS()"
+>
+호흡곤란
 </label>
 
-<textarea
-    id="symptoms"
-    placeholder="환자의 상태, 증상, 사고 상황 등을 기록하세요."
-></textarea>
+<label>
+<input
+type="checkbox"
+name="ktasSymptom"
+value="흉통"
+onchange="evaluateKTAS()"
+>
+흉통
+</label>
 
+<label>
+<input
+type="checkbox"
+name="ktasSymptom"
+value="심한출혈"
+onchange="evaluateKTAS()"
+>
+심한 출혈
+</label>
+
+<label>
+<input
+type="checkbox"
+name="ktasSymptom"
+value="경련"
+onchange="evaluateKTAS()"
+>
+경련
+</label>
+
+<label>
+<input
+type="checkbox"
+name="ktasSymptom"
+value="뇌졸중의심"
+onchange="evaluateKTAS()"
+>
+뇌졸중 의심
+</label>
+
+<label>
+<input
+type="checkbox"
+name="ktasSymptom"
+value="심한외상"
+onchange="evaluateKTAS()"
+>
+심한 외상
+</label>
+
+<label>
+<input
+type="checkbox"
+name="ktasSymptom"
+value="심한통증"
+onchange="evaluateKTAS()"
+>
+심한 통증
+</label>
+
+<label>
+<input
+type="checkbox"
+name="ktasSymptom"
+value="중독"
+onchange="evaluateKTAS()"
+>
+중독
+</label>
+
+</div>
 </div>
 
 </div>
 
+
+<div
+id="ktasAssist"
+class="ktas-assist"
+>
+환자 상태를 입력하면 KTAS 평가 참고사항이 표시됩니다.
 </div>
 
 
-<!-- 활력징후 -->
+<div
+style="
+margin-top:18px;
+padding:15px;
+background:#fff7ed;
+border:1px solid #fed7aa;
+border-radius:8px;
+"
+>
 
-<div class="card">
+<label>최종 KTAS</label>
 
-<h2>5. 활력징후</h2>
+<select id="ktas">
 
-<p style="color:#666;font-size:13px;">
+<option value="">선택</option>
+<option value="KTAS 1">KTAS 1 - 소생</option>
+<option value="KTAS 2">KTAS 2 - 긴급</option>
+<option value="KTAS 3">KTAS 3 - 응급</option>
+<option value="KTAS 4">KTAS 4 - 준응급</option>
+<option value="KTAS 5">KTAS 5 - 비응급</option>
 
-측정할 때마다 아래 버튼으로 새로운 활력징후를 추가할 수 있습니다.
+</select>
 
+<p style="font-size:12px;color:#666">
+평가 참고사항을 확인한 후 환자의 전체 상태에 따라 최종 KTAS를 선택하십시오.
 </p>
 
+</div>
+
+</div>
+
+
+<!-- 6 활력징후 -->
+<div class="card">
+
+<h2>6. 활력징후</h2>
 
 <button
-    type="button"
-    class="add-vital"
-    onclick="addVitalRow()"
+type="button"
+class="add-vital"
+onclick="addVitalRow()"
 >
 ＋ 활력징후 추가
 </button>
-
 
 <div class="vital-wrapper">
 
@@ -860,320 +774,236 @@ Unresponsive
 <thead>
 
 <tr>
-
 <th>순번</th>
-
 <th>측정시각</th>
-
 <th>혈압</th>
-
 <th>맥박</th>
-
 <th>호흡</th>
-
 <th>체온</th>
-
 <th>SpO₂</th>
-
 <th>혈당</th>
-
 <th>기타</th>
-
 <th>삭제</th>
-
 </tr>
 
 </thead>
 
-
-<tbody id="vitalBody">
-
-</tbody>
+<tbody id="vitalBody"></tbody>
 
 </table>
 
 </div>
 
+
+<div
+id="vitalAlert"
+class="vital-alert"
+></div>
+
 </div>
 
 
-<!-- 처치 -->
-
+<!-- 7 상태 -->
 <div class="card">
 
-<h2>6. 실시한 처치</h2>
+<h2>7. 환자 상태 및 증상</h2>
 
+<textarea
+id="symptoms"
+placeholder="환자의 상태, 증상, 사고 상황 등을 기록하세요."
+></textarea>
+
+<div class="grid" style="margin-top:15px">
+
+<div class="field">
+<label>발병/사고 시각</label>
+<input type="time" id="onsetTime">
+</div>
+
+<div class="field">
+<label>주호소</label>
+<input type="text" id="chiefComplaint">
+</div>
+
+</div>
+
+</div>
+
+
+<!-- 8 처치 -->
+<div class="card">
+
+<h2>8. 실시한 처치</h2>
 
 <div class="check-group">
 
 <label>
-<input
-    type="checkbox"
-    name="treatment"
-    value="기도확보"
->
+<input type="checkbox" name="treatment" value="기도확보">
 기도확보
 </label>
 
-
 <label>
-<input
-    type="checkbox"
-    name="treatment"
-    value="산소투여"
->
+<input type="checkbox" name="treatment" value="산소투여">
 산소투여
 </label>
 
-
 <label>
-<input
-    type="checkbox"
-    name="treatment"
-    value="심폐소생술"
->
+<input type="checkbox" name="treatment" value="심폐소생술">
 심폐소생술
 </label>
 
-
 <label>
-<input
-    type="checkbox"
-    name="treatment"
-    value="AED"
->
+<input type="checkbox" name="treatment" value="AED">
 AED
 </label>
 
-
 <label>
-<input
-    type="checkbox"
-    name="treatment"
-    value="지혈"
->
+<input type="checkbox" name="treatment" value="지혈">
 지혈
 </label>
 
-
 <label>
-<input
-    type="checkbox"
-    name="treatment"
-    value="부목/고정"
->
+<input type="checkbox" name="treatment" value="부목/고정">
 부목/고정
 </label>
 
-
 <label>
-<input
-    type="checkbox"
-    name="treatment"
-    value="환자이송"
->
+<input type="checkbox" name="treatment" value="환자이송">
 환자이송
 </label>
 
 </div>
 
-
 <br>
 
-
 <textarea
-    id="treatmentMemo"
-    placeholder="기타 처치 내용 및 처치 경과"
+id="treatmentMemo"
+placeholder="기타 처치 내용 및 처치 경과"
 ></textarea>
 
 </div>
 
 
-<!-- 이송 -->
-
+<!-- 9 이송 -->
 <div class="card">
 
-<h2>7. 이송 정보</h2>
+<h2>9. 이송 정보</h2>
 
 <div class="grid">
 
-
 <div class="field">
-
 <label>이송 여부</label>
 
 <select id="transport">
-
-<option value="">
-선택
-</option>
-
-<option>
-이송
-</option>
-
-<option>
-미이송
-</option>
-
-<option>
-현장처치
-</option>
-
+<option value="">선택</option>
+<option>이송</option>
+<option>미이송</option>
+<option>현장처치</option>
 </select>
-
 </div>
 
-
 <div class="field">
-
 <label>이송 병원</label>
-
-<input
-    type="text"
-    id="hospital"
->
-
+<input type="text" id="hospital">
 </div>
-
 
 <div class="field">
-
 <label>이송 시작시간</label>
-
-<input
-    type="time"
-    id="transportTime"
->
-
+<input type="time" id="transportTime">
 </div>
-
 
 <div class="field full">
-
-<label>
-이송 사유 / 환자 인계사항
-</label>
-
-<textarea
-    id="handover"
-></textarea>
-
+<label>환자 인계사항</label>
+<textarea id="handover"></textarea>
 </div>
 
 </div>
-
 </div>
 
 
-<!-- 대원 -->
-
+<!-- 10 대원 -->
 <div class="card">
 
-<h2>8. 구급대원 정보</h2>
+<h2>10. 구급대원 정보</h2>
 
 <div class="grid">
 
-
 <div class="field">
-
 <label>구급대원 1</label>
-
-<input
-    type="text"
-    id="crew1"
->
-
+<input type="text" id="crew1">
 </div>
 
-
 <div class="field">
-
 <label>구급대원 2</label>
-
-<input
-    type="text"
-    id="crew2"
->
-
+<input type="text" id="crew2">
 </div>
-
 
 <div class="field">
-
 <label>운전요원</label>
-
-<input
-    type="text"
-    id="driver"
->
-
+<input type="text" id="driver">
 </div>
 
 </div>
-
 </div>
 
 
-<!-- 기타 -->
-
+<!-- 11 기타 -->
 <div class="card">
 
-<h2>9. 기타</h2>
+<h2>11. 기타</h2>
 
 <textarea
-    id="memo"
-    placeholder="기타 특이사항"
+id="memo"
+placeholder="기타 특이사항"
 ></textarea>
 
 
 <div class="buttons">
 
 <button
-    class="save"
-    onclick="saveLocal()"
+class="save"
+onclick="saveLocal()"
 >
 💾 임시저장
 </button>
 
-
 <button
-    class="sheet"
-    onclick="saveToGoogleSheets()"
+class="sheet"
+onclick="saveToGoogleSheets()"
 >
 ☁️ Google Sheets 저장
 </button>
 
+<button
+class="txt"
+onclick="saveTXT()"
+>
+📄 TXT 저장
+</button>
 
 <button
-    class="print"
-    onclick="window.print()"
+class="print"
+onclick="window.print()"
 >
 🖨️ 인쇄
 </button>
 
-
 <button
-    class="reset"
-    onclick="resetForm()"
+class="reset"
+onclick="resetForm()"
 >
 🔄 초기화
 </button>
 
 </div>
 
-
 <div id="status" class="status"></div>
 
 </div>
 
-
 <div class="footer">
-
 웹 구급일지
-
 </div>
-
 
 </div>
 
@@ -1181,9 +1011,9 @@ AED
 <script>
 
 /*************************************************
- * Google Apps Script Web App 주소
+ * Google Apps Script 주소
  *
- * 아래 주소를 본인의 Apps Script /exec 주소로 변경
+ * 본인의 /exec 주소로 변경하세요.
  *************************************************/
 
 const GOOGLE_SCRIPT_URL =
@@ -1191,46 +1021,41 @@ const GOOGLE_SCRIPT_URL =
 
 
 /*************************************************
- * 페이지 초기화
+ * 시작
  *************************************************/
 
-window.addEventListener(
-    "load",
-    function() {
+window.addEventListener("load",()=>{
 
-        setToday();
+    setToday();
 
-        loadLocal();
+    loadLocal();
 
-        if (
-            document.querySelectorAll(
-                "#vitalBody tr"
-            ).length === 0
-        ) {
+    calculateGCS();
 
-            addVitalRow();
-
-        }
-
+    if(
+        document.querySelectorAll("#vitalBody tr").length===0
+    ){
+        addVitalRow();
     }
-);
+
+});
 
 
 /*************************************************
- * 오늘 날짜
+ * 날짜
  *************************************************/
 
-function setToday() {
+function setToday(){
 
-    const date =
+    const el=
         document.getElementById("date");
 
-    if (!date.value) {
+    if(!el.value){
 
-        date.value =
+        el.value=
             new Date()
-                .toISOString()
-                .split("T")[0];
+            .toISOString()
+            .split("T")[0];
 
     }
 
@@ -1238,157 +1063,414 @@ function setToday() {
 
 
 /*************************************************
- * KTAS 설명
+ * GCS
  *************************************************/
 
-function updateKTASDescription() {
+function calculateGCS(){
 
-    const value =
-        document.getElementById("ktas").value;
+    const eye=
+        Number(
+            document.getElementById("eye").value
+        );
 
-    const box =
+    const verbal=
+        Number(
+            document.getElementById("verbal").value
+        );
+
+    const motor=
+        Number(
+            document.getElementById("motor").value
+        );
+
+    const total=
+        eye+verbal+motor;
+
+
+    let state="";
+    let color="";
+
+
+    if(total===15){
+
+        state="정상 범위";
+        color="#2563eb";
+
+    }else if(total>=13){
+
+        state="경도 의식저하";
+        color="#16a34a";
+
+    }else if(total>=9){
+
+        state="중등도 의식저하";
+        color="#d97706";
+
+    }else{
+
+        state="중증 의식저하";
+        color="#dc2626";
+
+    }
+
+
+    const result=
         document.getElementById(
-            "ktasDescription"
+            "gcsResult"
+        );
+
+    result.textContent=
+        `${total}점 (${state})`;
+
+    result.style.color=color;
+
+
+    const warning=
+        document.getElementById(
+            "gcsWarning"
         );
 
 
-    const descriptions = {
+    if(total<=8){
 
-        "KTAS 1":
-            "소생: 즉각적인 처치가 필요한 상태",
+        warning.style.display="block";
 
-        "KTAS 2":
-            "긴급: 생명 또는 신체기능에 위협이 있어 신속한 평가와 처치가 필요한 상태",
+    }else{
 
-        "KTAS 3":
-            "응급: 응급한 상태로 평가와 처치가 필요한 상태",
+        warning.style.display="none";
 
-        "KTAS 4":
-            "준응급: 비교적 안정적이나 평가와 처치가 필요한 상태",
-
-        "KTAS 5":
-            "비응급: 긴급성이 낮은 상태"
-
-    };
+    }
 
 
-    box.textContent =
-        descriptions[value] ||
-        "KTAS 단계를 선택하면 설명이 표시됩니다.";
+    evaluateKTAS();
 
 }
 
 
 /*************************************************
- * 활력징후 행 추가
+ * KTAS 평가 참고
  *************************************************/
 
-function addVitalRow(data = {}) {
+function evaluateKTAS(){
 
-    const tbody =
+    const lifeThreat=
+        document.querySelector(
+            'input[name="lifeThreat"]:checked'
+        )?.value || "";
+
+
+    const airway=
+        document.getElementById(
+            "airway"
+        ).value;
+
+
+    const breathing=
+        document.getElementById(
+            "breathing"
+        ).value;
+
+
+    const circulation=
+        document.getElementById(
+            "circulation"
+        ).value;
+
+
+    const consciousness=
+        document.getElementById(
+            "ktasConsciousness"
+        ).value;
+
+
+    const gcs=
+        getGCS();
+
+
+    const symptoms=
+        Array.from(
+            document.querySelectorAll(
+                'input[name="ktasSymptom"]:checked'
+            )
+        ).map(
+            el=>el.value
+        );
+
+
+    const warnings=[];
+
+
+    if(
+        lifeThreat==="있음" ||
+        airway==="위험" ||
+        breathing==="무호흡" ||
+        breathing==="호흡부전" ||
+        circulation==="심정지" ||
+        consciousness==="Unresponsive"
+    ){
+
+        warnings.push(
+            "생명위협 소견이 확인되었습니다."
+        );
+
+    }
+
+
+    if(gcs<=8){
+
+        warnings.push(
+            `GCS ${gcs}점: 중증 의식저하가 확인되었습니다.`
+        );
+
+    }
+
+
+    if(
+        symptoms.includes("호흡곤란")
+    ){
+
+        warnings.push(
+            "호흡곤란: 호흡수와 SpO₂를 함께 평가하십시오."
+        );
+
+    }
+
+
+    if(
+        symptoms.includes("흉통")
+    ){
+
+        warnings.push(
+            "흉통: 발병시각, 활력징후 및 동반증상을 확인하십시오."
+        );
+
+    }
+
+
+    if(
+        symptoms.includes("심한출혈")
+    ){
+
+        warnings.push(
+            "심한 출혈: 출혈 정도와 순환상태를 평가하십시오."
+        );
+
+    }
+
+
+    if(
+        symptoms.includes("뇌졸중의심")
+    ){
+
+        warnings.push(
+            "뇌졸중 의심: 증상 발생시각과 신경학적 상태를 확인하십시오."
+        );
+
+    }
+
+
+    if(
+        symptoms.includes("경련")
+    ){
+
+        warnings.push(
+            "경련: 지속시간, 반복 여부 및 의식회복 여부를 확인하십시오."
+        );
+
+    }
+
+
+    if(
+        symptoms.includes("심한외상")
+    ){
+
+        warnings.push(
+            "심한 외상: 손상기전 및 생명위협 손상을 평가하십시오."
+        );
+
+    }
+
+
+    if(
+        symptoms.includes("중독")
+    ){
+
+        warnings.push(
+            "중독: 노출물질, 노출량 및 노출시간을 확인하십시오."
+        );
+
+    }
+
+
+    const box=
+        document.getElementById(
+            "ktasAssist"
+        );
+
+
+    if(warnings.length===0){
+
+        box.className=
+            "ktas-assist ktas-normal";
+
+        box.innerHTML=
+            "현재 입력된 정보에서 별도의 고위험 참고사항이 표시되지 않았습니다. 환자의 전체 상태를 종합하여 최종 KTAS를 선택하십시오.";
+
+    }else{
+
+        box.className=
+            "ktas-assist ktas-warning";
+
+        box.innerHTML=
+            "<strong>⚠️ KTAS 평가 참고사항</strong>" +
+            "<ul>" +
+            warnings.map(
+                x=>`<li>${escapeHtml(x)}</li>`
+            ).join("") +
+            "</ul>";
+
+    }
+
+}
+
+
+/*************************************************
+ * GCS 가져오기
+ *************************************************/
+
+function getGCS(){
+
+    return(
+        Number(
+            document.getElementById("eye").value
+        )+
+        Number(
+            document.getElementById("verbal").value
+        )+
+        Number(
+            document.getElementById("motor").value
+        )
+    );
+
+}
+
+
+/*************************************************
+ * 활력징후 추가
+ *************************************************/
+
+function addVitalRow(data={}){
+
+    const tbody=
         document.getElementById(
             "vitalBody"
         );
 
 
-    const number =
-        tbody.children.length + 1;
+    const number=
+        tbody.children.length+1;
 
 
-    const tr =
+    const tr=
         document.createElement("tr");
 
 
-    tr.innerHTML = `
+    tr.innerHTML=`
 
-        <td class="vital-number">
-            ${number}
-        </td>
+<td class="vital-number">
+${number}
+</td>
 
-        <td>
-            <input
-                type="time"
-                class="vital-time"
-                value="${escapeHtml(data.time || "")}"
-            >
-        </td>
+<td>
+<input
+type="time"
+class="vital-time"
+value="${escapeHtml(data.time||"")}"
+oninput="checkVitalSigns(this.closest('tr'))"
+>
+</td>
 
-        <td>
-            <input
-                type="text"
-                class="vital-bp"
-                placeholder="120/80"
-                value="${escapeHtml(data.bp || "")}"
-            >
-        </td>
+<td>
+<input
+type="text"
+class="vital-bp"
+placeholder="120/80"
+value="${escapeHtml(data.bp||"")}"
+oninput="checkVitalSigns(this.closest('tr'))"
+>
+</td>
 
-        <td>
-            <input
-                type="number"
-                class="vital-pulse"
-                value="${escapeHtml(data.pulse || "")}"
-            >
-        </td>
+<td>
+<input
+type="number"
+class="vital-pulse"
+value="${escapeHtml(data.pulse||"")}"
+oninput="checkVitalSigns(this.closest('tr'))"
+>
+</td>
 
-        <td>
-            <input
-                type="number"
-                class="vital-resp"
-                value="${escapeHtml(data.resp || "")}"
-            >
-        </td>
+<td>
+<input
+type="number"
+class="vital-resp"
+value="${escapeHtml(data.resp||"")}"
+oninput="checkVitalSigns(this.closest('tr'))"
+>
+</td>
 
-        <td>
-            <input
-                type="number"
-                step="0.1"
-                class="vital-temp"
-                value="${escapeHtml(data.temp || "")}"
-            >
-        </td>
+<td>
+<input
+type="number"
+step="0.1"
+class="vital-temp"
+value="${escapeHtml(data.temp||"")}"
+oninput="checkVitalSigns(this.closest('tr'))"
+>
+</td>
 
-        <td>
-            <input
-                type="number"
-                class="vital-spo2"
-                value="${escapeHtml(data.spo2 || "")}"
-            >
-        </td>
+<td>
+<input
+type="number"
+class="vital-spo2"
+value="${escapeHtml(data.spo2||"")}"
+oninput="checkVitalSigns(this.closest('tr'))"
+>
+</td>
 
-        <td>
-            <input
-                type="number"
-                class="vital-glucose"
-                value="${escapeHtml(data.glucose || "")}"
-            >
-        </td>
+<td>
+<input
+type="number"
+class="vital-glucose"
+value="${escapeHtml(data.glucose||"")}"
+oninput="checkVitalSigns(this.closest('tr'))"
+>
+</td>
 
-        <td>
-            <input
-                type="text"
-                class="vital-memo"
-                value="${escapeHtml(data.memo || "")}"
-            >
-        </td>
+<td>
+<input
+type="text"
+class="vital-memo"
+value="${escapeHtml(data.memo||"")}"
+>
+</td>
 
-        <td>
-
-            <button
-                type="button"
-                class="delete-vital"
-                onclick="deleteVitalRow(this)"
-            >
-                삭제
-            </button>
-
-        </td>
-
-    `;
+<td>
+<button
+type="button"
+class="delete-vital"
+onclick="deleteVitalRow(this)"
+>
+삭제
+</button>
+</td>
+`;
 
 
     tbody.appendChild(tr);
 
     renumberVitals();
+
+    checkVitalSigns(tr);
 
 }
 
@@ -1397,286 +1479,482 @@ function addVitalRow(data = {}) {
  * 활력징후 삭제
  *************************************************/
 
-function deleteVitalRow(button) {
+function deleteVitalRow(button){
 
-    const tr =
-        button.closest("tr");
-
-    tr.remove();
+    button.closest("tr").remove();
 
     renumberVitals();
 
+    checkAllVitals();
+
 }
 
 
 /*************************************************
- * 활력징후 번호 재정렬
+ * 번호
  *************************************************/
 
-function renumberVitals() {
+function renumberVitals(){
 
-    const rows =
-        document.querySelectorAll(
-            "#vitalBody tr"
-        );
+    document
+    .querySelectorAll("#vitalBody tr")
+    .forEach((row,index)=>{
+
+        row.querySelector(
+            ".vital-number"
+        ).textContent=index+1;
+
+    });
+
+}
 
 
-    rows.forEach(
-        function(row, index) {
+/*************************************************
+ * 활력징후 이상 참고
+ *
+ * 숫자는 진단/KTAS 자동결정이 아니라
+ * 기록 확인을 위한 경고용입니다.
+ *************************************************/
 
+function checkVitalSigns(row){
+
+    if(!row) return;
+
+
+    const pulse=
+        Number(
             row.querySelector(
-                ".vital-number"
-            ).textContent =
-                index + 1;
-
-        }
-    );
-
-}
-
-
-/*************************************************
- * 활력징후 데이터 수집
- *************************************************/
-
-function collectVitals() {
-
-    const rows =
-        document.querySelectorAll(
-            "#vitalBody tr"
+                ".vital-pulse"
+            ).value
         );
 
 
-    const vitals = [];
+    const resp=
+        Number(
+            row.querySelector(
+                ".vital-resp"
+            ).value
+        );
 
 
-    rows.forEach(
-        function(row) {
-
-            vitals.push({
-
-                time:
-                    row.querySelector(
-                        ".vital-time"
-                    ).value,
-
-                bp:
-                    row.querySelector(
-                        ".vital-bp"
-                    ).value,
-
-                pulse:
-                    row.querySelector(
-                        ".vital-pulse"
-                    ).value,
-
-                resp:
-                    row.querySelector(
-                        ".vital-resp"
-                    ).value,
-
-                temp:
-                    row.querySelector(
-                        ".vital-temp"
-                    ).value,
-
-                spo2:
-                    row.querySelector(
-                        ".vital-spo2"
-                    ).value,
-
-                glucose:
-                    row.querySelector(
-                        ".vital-glucose"
-                    ).value,
-
-                memo:
-                    row.querySelector(
-                        ".vital-memo"
-                    ).value
-
-            });
-
-        }
-    );
+    const spo2=
+        Number(
+            row.querySelector(
+                ".vital-spo2"
+            ).value
+        );
 
 
-    return vitals;
+    const temp=
+        Number(
+            row.querySelector(
+                ".vital-temp"
+            ).value
+        );
+
+
+    const glucose=
+        Number(
+            row.querySelector(
+                ".vital-glucose"
+            ).value
+        );
+
+
+    row.querySelector(".vital-pulse")
+        .classList.toggle(
+            "vital-abnormal",
+            pulse>0 &&
+            (pulse<50 || pulse>120)
+        );
+
+
+    row.querySelector(".vital-resp")
+        .classList.toggle(
+            "vital-abnormal",
+            resp>0 &&
+            (resp<10 || resp>30)
+        );
+
+
+    row.querySelector(".vital-spo2")
+        .classList.toggle(
+            "vital-abnormal",
+            spo2>0 &&
+            spo2<92
+        );
+
+
+    row.querySelector(".vital-temp")
+        .classList.toggle(
+            "vital-abnormal",
+            temp>0 &&
+            (temp<35 || temp>=38)
+        );
+
+
+    row.querySelector(".vital-glucose")
+        .classList.toggle(
+            "vital-abnormal",
+            glucose>0 &&
+            (glucose<70 || glucose>250)
+        );
+
+
+    checkAllVitals();
 
 }
 
 
 /*************************************************
- * 처치 데이터
+ * 전체 활력징후 경고
  *************************************************/
 
-function collectTreatments() {
+function checkAllVitals(){
+
+    const alerts=[];
+
+
+    document
+    .querySelectorAll("#vitalBody tr")
+    .forEach((row,index)=>{
+
+        const pulse=
+            Number(
+                row.querySelector(
+                    ".vital-pulse"
+                ).value
+            );
+
+        const resp=
+            Number(
+                row.querySelector(
+                    ".vital-resp"
+                ).value
+            );
+
+        const spo2=
+            Number(
+                row.querySelector(
+                    ".vital-spo2"
+                ).value
+            );
+
+        const temp=
+            Number(
+                row.querySelector(
+                    ".vital-temp"
+                ).value
+            );
+
+        const glucose=
+            Number(
+                row.querySelector(
+                    ".vital-glucose"
+                ).value
+            );
+
+
+        if(
+            pulse &&
+            (pulse<50 || pulse>120)
+        ){
+
+            alerts.push(
+                `${index+1}차: 맥박 ${pulse}`
+            );
+
+        }
+
+
+        if(
+            resp &&
+            (resp<10 || resp>30)
+        ){
+
+            alerts.push(
+                `${index+1}차: 호흡수 ${resp}`
+            );
+
+        }
+
+
+        if(
+            spo2 &&
+            spo2<92
+        ){
+
+            alerts.push(
+                `${index+1}차: SpO₂ ${spo2}%`
+            );
+
+        }
+
+
+        if(
+            temp &&
+            (temp<35 || temp>=38)
+        ){
+
+            alerts.push(
+                `${index+1}차: 체온 ${temp}℃`
+            );
+
+        }
+
+
+        if(
+            glucose &&
+            (glucose<70 || glucose>250)
+        ){
+
+            alerts.push(
+                `${index+1}차: 혈당 ${glucose}`
+            );
+
+        }
+
+    });
+
+
+    const box=
+        document.getElementById(
+            "vitalAlert"
+        );
+
+
+    if(alerts.length===0){
+
+        box.style.display="none";
+
+        box.innerHTML="";
+
+    }else{
+
+        box.style.display="block";
+
+        box.innerHTML=
+            "<strong>⚠️ 활력징후 확인 필요</strong><br>" +
+            alerts
+            .map(
+                x=>escapeHtml(x)
+            )
+            .join("<br>");
+
+    }
+
+}
+
+
+/*************************************************
+ * 활력징후 수집
+ *************************************************/
+
+function collectVitals(){
+
+    return Array.from(
+        document.querySelectorAll(
+            "#vitalBody tr"
+        )
+    ).map(row=>({
+
+        time:
+            row.querySelector(
+                ".vital-time"
+            ).value,
+
+        bp:
+            row.querySelector(
+                ".vital-bp"
+            ).value,
+
+        pulse:
+            row.querySelector(
+                ".vital-pulse"
+            ).value,
+
+        resp:
+            row.querySelector(
+                ".vital-resp"
+            ).value,
+
+        temp:
+            row.querySelector(
+                ".vital-temp"
+            ).value,
+
+        spo2:
+            row.querySelector(
+                ".vital-spo2"
+            ).value,
+
+        glucose:
+            row.querySelector(
+                ".vital-glucose"
+            ).value,
+
+        memo:
+            row.querySelector(
+                ".vital-memo"
+            ).value
+
+    }));
+
+}
+
+
+/*************************************************
+ * 처치
+ *************************************************/
+
+function collectTreatments(){
 
     return Array.from(
         document.querySelectorAll(
             'input[name="treatment"]:checked'
         )
     ).map(
-        checkbox =>
-            checkbox.value
+        x=>x.value
     );
 
 }
 
 
 /*************************************************
- * 전체 데이터 수집
+ * 전체 데이터
  *************************************************/
 
-function collectData() {
+function collectData(){
 
-    return {
+    return{
 
         callNumber:
-            document.getElementById(
-                "callNumber"
-            ).value,
+            value("callNumber"),
 
         date:
-            document.getElementById(
-                "date"
-            ).value,
+            value("date"),
 
         dispatchTime:
-            document.getElementById(
-                "dispatchTime"
-            ).value,
+            value("dispatchTime"),
 
         arrivalTime:
-            document.getElementById(
-                "arrivalTime"
-            ).value,
+            value("arrivalTime"),
 
         departureTime:
-            document.getElementById(
-                "departureTime"
-            ).value,
+            value("departureTime"),
 
         returnTime:
-            document.getElementById(
-                "returnTime"
-            ).value,
+            value("returnTime"),
 
         location:
-            document.getElementById(
-                "location"
-            ).value,
+            value("location"),
 
         accidentType:
-            document.getElementById(
-                "accidentType"
-            ).value,
-
-        ktas:
-            document.getElementById(
-                "ktas"
-            ).value,
+            value("accidentType"),
 
         patientName:
-            document.getElementById(
-                "patientName"
-            ).value,
+            value("patientName"),
 
         gender:
-            document.getElementById(
-                "gender"
-            ).value,
+            value("gender"),
 
         age:
-            document.getElementById(
-                "age"
-            ).value,
+            value("age"),
 
         birthDate:
-            document.getElementById(
-                "birthDate"
-            ).value,
+            value("birthDate"),
 
         guardian:
-            document.getElementById(
-                "guardian"
-            ).value,
+            value("guardian"),
 
         phone:
-            document.getElementById(
-                "phone"
-            ).value,
+            value("phone"),
 
         consciousness:
-            document.getElementById(
-                "consciousness"
-            ).value,
+            value("ktasConsciousness"),
 
         chiefComplaint:
-            document.getElementById(
-                "chiefComplaint"
-            ).value,
+            value("chiefComplaint"),
 
         onsetTime:
-            document.getElementById(
-                "onsetTime"
-            ).value,
+            value("onsetTime"),
 
         symptoms:
-            document.getElementById(
-                "symptoms"
-            ).value,
+            value("symptoms"),
+
+        ktas:
+            value("ktas"),
+
+        ktasLifeThreat:
+            document.querySelector(
+                'input[name="lifeThreat"]:checked'
+            )?.value || "",
+
+        ktasAirway:
+            value("airway"),
+
+        ktasBreathing:
+            value("breathing"),
+
+        ktasCirculation:
+            value("circulation"),
+
+        ktasConsciousness:
+            value("ktasConsciousness"),
+
+        ktasSymptoms:
+            Array.from(
+                document.querySelectorAll(
+                    'input[name="ktasSymptom"]:checked'
+                )
+            ).map(
+                x=>x.value
+            ),
+
+        gcsEye:
+            value("eye"),
+
+        gcsVerbal:
+            value("verbal"),
+
+        gcsMotor:
+            value("motor"),
+
+        gcsTotal:
+            getGCS(),
+
+        vitals:
+            collectVitals(),
 
         treatments:
             collectTreatments(),
 
         treatmentMemo:
-            document.getElementById(
-                "treatmentMemo"
-            ).value,
+            value("treatmentMemo"),
 
         transport:
-            document.getElementById(
-                "transport"
-            ).value,
+            value("transport"),
 
         hospital:
-            document.getElementById(
-                "hospital"
-            ).value,
+            value("hospital"),
 
         transportTime:
-            document.getElementById(
-                "transportTime"
-            ).value,
+            value("transportTime"),
 
         handover:
-            document.getElementById(
-                "handover"
-            ).value,
+            value("handover"),
 
         crew1:
-            document.getElementById(
-                "crew1"
-            ).value,
+            value("crew1"),
 
         crew2:
-            document.getElementById(
-                "crew2"
-            ).value,
+            value("crew2"),
 
         driver:
-            document.getElementById(
-                "driver"
-            ).value,
+            value("driver"),
 
         memo:
-            document.getElementById(
-                "memo"
-            ).value,
-
-        vitals:
-            collectVitals()
+            value("memo")
 
     };
 
@@ -1687,39 +1965,35 @@ function collectData() {
  * Google Sheets 저장
  *************************************************/
 
-async function saveToGoogleSheets() {
+async function saveToGoogleSheets(){
 
-    const data =
+    const data=
         collectData();
 
 
     showStatus(
-        "Google Sheets에 저장 중입니다...",
+        "Google Sheets 저장 중...",
         "success"
     );
 
 
-    try {
+    try{
 
-        const response =
+        const response=
             await fetch(
                 GOOGLE_SCRIPT_URL,
                 {
-
-                    method: "POST",
-
-                    body:
-                        JSON.stringify(data)
-
+                    method:"POST",
+                    body:JSON.stringify(data)
                 }
             );
 
 
-        const result =
+        const result=
             await response.json();
 
 
-        if (!result.success) {
+        if(!result.success){
 
             throw new Error(
                 result.message ||
@@ -1732,10 +2006,8 @@ async function saveToGoogleSheets() {
         showStatus(
 
             "✅ Google Sheets 저장 완료\n" +
-
             "기록ID: " +
             result.recordId +
-
             "\n활력징후: " +
             result.vitalCount +
             "건",
@@ -1745,12 +2017,9 @@ async function saveToGoogleSheets() {
         );
 
 
-        /*
-         * 기록ID를 로컬에도 보관
-         */
-
-        data.recordId =
+        data.recordId=
             result.recordId;
+
 
         localStorage.setItem(
             "ambulanceReport",
@@ -1758,17 +2027,14 @@ async function saveToGoogleSheets() {
         );
 
 
-    } catch (error) {
+    }catch(error){
 
         console.error(error);
 
         showStatus(
-
-            "❌ Google Sheets 저장 실패\n" +
+            "❌ Google Sheets 저장 실패\n"+
             error.message,
-
             "error"
-
         );
 
     }
@@ -1777,12 +2043,162 @@ async function saveToGoogleSheets() {
 
 
 /*************************************************
- * 브라우저 임시저장
+ * TXT 저장
  *************************************************/
 
-function saveLocal() {
+function saveTXT(){
 
-    const data =
+    const data=
+        collectData();
+
+
+    const text=`
+
+🚑 웹 구급일지
+
+[출동정보]
+
+출동번호 : ${data.callNumber}
+출동일자 : ${data.date}
+출동시간 : ${data.dispatchTime}
+현장도착 : ${data.arrivalTime}
+현장출발 : ${data.departureTime}
+귀소시간 : ${data.returnTime}
+사고장소 : ${data.location}
+
+[사고유형]
+
+${data.accidentType}
+
+[환자정보]
+
+성명 : ${data.patientName}
+성별 : ${data.gender}
+나이 : ${data.age}
+생년월일 : ${data.birthDate}
+보호자 : ${data.guardian}
+연락처 : ${data.phone}
+
+[의식평가]
+
+GCS : ${data.gcsTotal}
+E : ${data.gcsEye}
+V : ${data.gcsVerbal}
+M : ${data.gcsMotor}
+
+[KTAS]
+
+최종 KTAS : ${data.ktas}
+
+생명위협 : ${data.ktasLifeThreat}
+기도 : ${data.ktasAirway}
+호흡 : ${data.ktasBreathing}
+순환 : ${data.ktasCirculation}
+
+주요증상 :
+${data.ktasSymptoms.join(", ")}
+
+[활력징후]
+`;
+
+
+    data.vitals.forEach(
+        (v,index)=>{
+
+            text.concat(`
+${index+1}차
+측정시각 : ${v.time}
+혈압 : ${v.bp}
+맥박 : ${v.pulse}
+호흡 : ${v.resp}
+체온 : ${v.temp}
+SpO₂ : ${v.spo2}
+혈당 : ${v.glucose}
+기타 : ${v.memo}
+
+`);
+
+        }
+    );
+
+
+    const finalText=
+        text +
+`
+
+[환자상태]
+
+${data.symptoms}
+
+[처치]
+
+${data.treatments.join(", ")}
+
+${data.treatmentMemo}
+
+[이송]
+
+이송여부 : ${data.transport}
+병원 : ${data.hospital}
+이송시작 : ${data.transportTime}
+
+인계사항 :
+${data.handover}
+
+[구급대원]
+
+${data.crew1}
+${data.crew2}
+운전요원 : ${data.driver}
+
+[기타]
+
+${data.memo}
+
+작성일시 :
+${new Date().toLocaleString("ko-KR")}
+`;
+
+
+    const blob=
+        new Blob(
+            [finalText],
+            {
+                type:
+                    "text/plain;charset=utf-8"
+            }
+        );
+
+
+    const url=
+        URL.createObjectURL(blob);
+
+
+    const a=
+        document.createElement("a");
+
+
+    a.href=url;
+
+    a.download=
+        `구급일지_${data.date || "기록"}.txt`;
+
+
+    a.click();
+
+
+    URL.revokeObjectURL(url);
+
+}
+
+
+/*************************************************
+ * 임시저장
+ *************************************************/
+
+function saveLocal(){
+
+    const data=
         collectData();
 
 
@@ -1801,226 +2217,180 @@ function saveLocal() {
 
 
 /*************************************************
- * 임시저장 데이터 불러오기
+ * 임시저장 복원
  *************************************************/
 
-function loadLocal() {
+function loadLocal(){
 
-    const saved =
+    const saved=
         localStorage.getItem(
             "ambulanceReport"
         );
 
 
-    if (!saved) return;
+    if(!saved)return;
 
 
-    try {
+    try{
 
-        const data =
+        const data=
             JSON.parse(saved);
 
 
-        setValue(
+        const ids=[
             "callNumber",
-            data.callNumber
-        );
-
-        setValue(
             "date",
-            data.date
-        );
-
-        setValue(
             "dispatchTime",
-            data.dispatchTime
-        );
-
-        setValue(
             "arrivalTime",
-            data.arrivalTime
-        );
-
-        setValue(
             "departureTime",
-            data.departureTime
-        );
-
-        setValue(
             "returnTime",
-            data.returnTime
-        );
-
-        setValue(
             "location",
-            data.location
-        );
-
-        setValue(
             "accidentType",
-            data.accidentType
-        );
-
-        setValue(
-            "ktas",
-            data.ktas
-        );
-
-        updateKTASDescription();
-
-
-        setValue(
             "patientName",
-            data.patientName
-        );
-
-        setValue(
             "gender",
-            data.gender
-        );
-
-        setValue(
             "age",
-            data.age
-        );
-
-        setValue(
             "birthDate",
-            data.birthDate
-        );
-
-        setValue(
             "guardian",
-            data.guardian
-        );
-
-        setValue(
             "phone",
-            data.phone
-        );
-
-        setValue(
-            "consciousness",
-            data.consciousness
-        );
-
-        setValue(
             "chiefComplaint",
-            data.chiefComplaint
-        );
-
-        setValue(
             "onsetTime",
-            data.onsetTime
-        );
-
-        setValue(
             "symptoms",
-            data.symptoms
-        );
-
-        setValue(
+            "ktas",
+            "airway",
+            "breathing",
+            "circulation",
+            "ktasConsciousness",
+            "eye",
+            "verbal",
+            "motor",
             "treatmentMemo",
-            data.treatmentMemo
-        );
-
-        setValue(
             "transport",
-            data.transport
-        );
-
-        setValue(
             "hospital",
-            data.hospital
-        );
-
-        setValue(
             "transportTime",
-            data.transportTime
-        );
-
-        setValue(
             "handover",
-            data.handover
-        );
-
-        setValue(
             "crew1",
-            data.crew1
-        );
-
-        setValue(
             "crew2",
-            data.crew2
-        );
-
-        setValue(
             "driver",
-            data.driver
-        );
+            "memo"
+        ];
 
-        setValue(
-            "memo",
-            data.memo
-        );
+
+        ids.forEach(id=>{
+
+            if(
+                data[id]!==undefined
+            ){
+
+                const el=
+                    document.getElementById(id);
+
+                if(el){
+                    el.value=data[id];
+                }
+
+            }
+
+        });
 
 
         /*
-         * 처치 복원
+         * 생명위협
+         */
+
+        if(data.ktasLifeThreat){
+
+            const radio=
+                document.querySelector(
+                    `input[name="lifeThreat"][value="${data.ktasLifeThreat}"]`
+                );
+
+            if(radio){
+                radio.checked=true;
+            }
+
+        }
+
+
+        /*
+         * KTAS 주요증상
          */
 
         document
-            .querySelectorAll(
-                'input[name="treatment"]'
-            )
-            .forEach(
-                function(checkbox) {
+        .querySelectorAll(
+            'input[name="ktasSymptom"]'
+        )
+        .forEach(el=>{
 
-                    checkbox.checked =
-                        Array.isArray(
-                            data.treatments
-                        ) &&
-                        data.treatments.includes(
-                            checkbox.value
-                        );
+            el.checked=
+                Array.isArray(
+                    data.ktasSymptoms
+                ) &&
+                data.ktasSymptoms.includes(
+                    el.value
+                );
 
-                }
-            );
+        });
 
 
         /*
-         * 활력징후 복원
+         * 처치
          */
 
-        const tbody =
+        document
+        .querySelectorAll(
+            'input[name="treatment"]'
+        )
+        .forEach(el=>{
+
+            el.checked=
+                Array.isArray(
+                    data.treatments
+                ) &&
+                data.treatments.includes(
+                    el.value
+                );
+
+        });
+
+
+        /*
+         * 활력징후
+         */
+
+        const tbody=
             document.getElementById(
                 "vitalBody"
             );
 
-        tbody.innerHTML = "";
+        tbody.innerHTML="";
 
 
-        if (
+        if(
             Array.isArray(data.vitals) &&
             data.vitals.length
-        ) {
+        ){
 
             data.vitals.forEach(
-                function(vital) {
-
+                vital=>{
                     addVitalRow(vital);
-
                 }
             );
 
-        } else {
+        }else{
 
             addVitalRow();
 
         }
 
 
-    } catch (error) {
+        calculateGCS();
+
+        evaluateKTAS();
+
+        checkAllVitals();
+
+
+    }catch(error){
 
         console.error(
             "복원 실패:",
@@ -2033,38 +2403,16 @@ function loadLocal() {
 
 
 /*************************************************
- * 값 설정
- *************************************************/
-
-function setValue(id, value) {
-
-    const element =
-        document.getElementById(id);
-
-    if (
-        element &&
-        value !== undefined &&
-        value !== null
-    ) {
-
-        element.value = value;
-
-    }
-
-}
-
-
-/*************************************************
  * 초기화
  *************************************************/
 
-function resetForm() {
+function resetForm(){
 
-    if (
+    if(
         !confirm(
             "작성한 내용을 모두 삭제하시겠습니까?"
         )
-    ) {
+    ){
 
         return;
 
@@ -2072,34 +2420,28 @@ function resetForm() {
 
 
     document
-        .querySelectorAll(
-            "input, select, textarea"
-        )
-        .forEach(
-            function(element) {
+    .querySelectorAll(
+        "input,select,textarea"
+    )
+    .forEach(el=>{
 
-                if (
-                    element.type ===
-                    "checkbox"
-                ) {
+        if(el.type==="checkbox" ||
+           el.type==="radio"){
 
-                    element.checked =
-                        false;
+            el.checked=false;
 
-                } else {
+        }else{
 
-                    element.value =
-                        "";
+            el.value="";
 
-                }
+        }
 
-            }
-        );
+    });
 
 
     document.getElementById(
         "vitalBody"
-    ).innerHTML = "";
+    ).innerHTML="";
 
 
     addVitalRow();
@@ -2112,7 +2454,11 @@ function resetForm() {
 
     setToday();
 
-    updateKTASDescription();
+    calculateGCS();
+
+    evaluateKTAS();
+
+    checkAllVitals();
 
 
     showStatus(
@@ -2124,40 +2470,45 @@ function resetForm() {
 
 
 /*************************************************
- * 상태 메시지
+ * 값
  *************************************************/
 
-function showStatus(
-    message,
-    type
-) {
+function value(id){
 
-    const status =
-        document.getElementById(
-            "status"
-        );
-
-
-    status.textContent =
-        message;
-
-
-    status.className =
-        "status " + type;
+    return document.getElementById(id)?.value || "";
 
 }
 
 
 /*************************************************
- * HTML 특수문자 처리
+ * 상태 메시지
  *************************************************/
 
-function escapeHtml(value) {
+function showStatus(message,type){
 
-    if (
-        value === undefined ||
-        value === null
-    ) {
+    const el=
+        document.getElementById(
+            "status"
+        );
+
+    el.textContent=message;
+
+    el.className=
+        "status "+type;
+
+}
+
+
+/*************************************************
+ * HTML escape
+ *************************************************/
+
+function escapeHtml(value){
+
+    if(
+        value===undefined ||
+        value===null
+    ){
 
         return "";
 
@@ -2165,36 +2516,15 @@ function escapeHtml(value) {
 
 
     return String(value)
-
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-
-        .replace(
-            /</g,
-            "&lt;"
-        )
-
-        .replace(
-            />/g,
-            "&gt;"
-        )
-
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-
-        .replace(
-            /'/g,
-            "&#039;"
-        );
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
 
 }
 
 </script>
 
 </body>
-
 </html>
