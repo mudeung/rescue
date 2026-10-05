@@ -51,24 +51,350 @@
 <style>
 
 /* =====================================================
-   AI SEARCH BUTTON
-   오른쪽 하단 배치
+   GLOBAL
+===================================================== */
+
+*{
+    box-sizing:border-box;
+}
+
+html,
+body{
+    margin:0;
+    padding:0;
+    width:100%;
+    height:100%;
+}
+
+body{
+    background:#050b18;
+    color:#00ff9d;
+    font-family:monospace;
+    overflow:hidden;
+}
+
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+header{
+    height:50px;
+    background:#071a2f;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:bold;
+    font-size:18px;
+    border-bottom:1px solid #123c55;
+    position:relative;
+    z-index:2000;
+}
+
+
+/* =====================================================
+   MAP
+===================================================== */
+
+#map{
+    position:absolute;
+    top:50px;
+    left:0;
+    right:0;
+    bottom:0;
+    width:100%;
+    height:calc(100vh - 50px);
+}
+
+
+/* =====================================================
+   사고정보 건수
+===================================================== */
+
+#accidentCount{
+    position:absolute;
+    top:65px;
+    left:50%;
+    transform:translateX(-50%);
+    z-index:1500;
+    padding:10px 20px;
+    background:rgba(0,0,0,.90);
+    color:#00ff9d;
+    border:2px solid #00ff9d;
+    border-radius:8px;
+    font-family:monospace;
+    font-size:17px;
+    font-weight:bold;
+    box-shadow:0 0 12px rgba(0,255,157,.6);
+    white-space:nowrap;
+    pointer-events:none;
+}
+
+
+/* =====================================================
+   모바일 사고정보
+===================================================== */
+
+@media(max-width:768px){
+
+    #aiSearchButton{
+        bottom:20px;
+        right:15px;
+        top:auto;
+
+        padding:8px 10px;
+        font-size:12px;
+    }
+
+    #aiSearchPanel{
+        bottom:70px;
+        left:10px;
+        right:10px;
+        top:auto;
+
+        width:auto;
+        max-height:calc(100vh - 90px);
+    }
+
+}
+
+
+/* =====================================================
+   좌표
+===================================================== */
+
+.mouse-coords{
+    background:rgba(0,0,0,.88);
+    color:#00ff9d;
+    border:1px solid #00ff9d;
+    border-radius:5px;
+    padding:6px 10px;
+    font-size:12px;
+    font-family:monospace;
+    box-shadow:0 0 8px #00ff9d;
+}
+
+
+/* =====================================================
+   팝업
+===================================================== */
+
+.leaflet-popup-content-wrapper{
+    background:#ffffff !important;
+    color:#111111 !important;
+    border-radius:8px;
+}
+
+.leaflet-popup-content{
+    color:#111111 !important;
+    font-family:
+        Arial,
+        "Malgun Gothic",
+        sans-serif !important;
+    font-size:14px;
+    line-height:1.55;
+    margin:14px !important;
+}
+
+.leaflet-popup-tip{
+    background:#ffffff !important;
+}
+
+
+/* =====================================================
+   사고 팝업
+===================================================== */
+
+.accident-popup{
+    min-width:270px;
+    color:#111111 !important;
+    background:#ffffff !important;
+}
+
+.accident-popup *{
+    color:#111111;
+}
+
+.popup-title{
+    font-size:17px;
+    font-weight:bold;
+    color:#b00000 !important;
+    margin-bottom:8px;
+}
+
+.popup-status{
+    display:inline-block;
+    padding:4px 9px;
+    border-radius:5px;
+    color:#ffffff !important;
+    font-weight:bold;
+    margin-bottom:8px;
+}
+
+.popup-received{
+    background:#d50000;
+}
+
+.popup-arrived{
+    background:#ef6c00;
+}
+
+.popup-done{
+    background:#666666;
+}
+
+.popup-row{
+    margin-top:5px;
+}
+
+.popup-label{
+    font-weight:bold;
+    color:#333333 !important;
+}
+
+.popup-value{
+    color:#111111 !important;
+    word-break:break-word;
+}
+
+
+/* =====================================================
+   전송번호
+===================================================== */
+
+.transmission-number{
+    display:inline-block;
+    color:#0057b8 !important;
+    font-weight:bold;
+    font-size:15px;
+    background:#eef6ff;
+    border-radius:4px;
+    padding:2px 5px;
+}
+
+
+/* =====================================================
+   팝업 버튼
+===================================================== */
+
+.popup-buttons{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:6px;
+    margin-top:12px;
+}
+
+.popup-button{
+    display:block;
+    width:100%;
+    padding:8px 5px;
+    border:none;
+    border-radius:5px;
+    text-align:center;
+    text-decoration:none;
+    cursor:pointer;
+    font-size:13px;
+    font-weight:bold;
+    color:#ffffff !important;
+}
+
+.call-button{
+    background:#700000;
+}
+
+.map-button{
+    background:#1769aa;
+}
+
+.share-button{
+    background:#555555;
+}
+
+.arrive-button{
+    background:#ef6c00;
+}
+
+.complete-button{
+    background:#2e7d32;
+}
+
+.status-message{
+    margin-top:8px;
+    padding:7px;
+    background:#eeeeee;
+    border-radius:4px;
+    color:#333333 !important;
+    font-size:12px;
+}
+
+
+/* =====================================================
+   지도 컨트롤
+===================================================== */
+
+.leaflet-control-layers{
+    z-index:1600 !important;
+}
+
+
+/* =====================================================
+   모바일 팝업
+===================================================== */
+
+@media(max-width:768px){
+
+    .accident-popup{
+        min-width:240px;
+    }
+
+    .leaflet-popup-content{
+        font-size:13px;
+        margin:11px !important;
+    }
+
+}
+
+
+/* =====================================================
+   신규 사고 강조
+===================================================== */
+
+.new-accident-marker{
+    animation:markerPulse 1s infinite;
+}
+
+@keyframes markerPulse{
+
+    0%{
+        opacity:.5;
+        transform:scale(.8);
+    }
+
+    50%{
+        opacity:1;
+        transform:scale(1.15);
+    }
+
+    100%{
+        opacity:.5;
+        transform:scale(.8);
+    }
+
+}
+
+
+/* =====================================================
+   LOCAL AI SEARCH BUTTON
 ===================================================== */
 
 #aiSearchButton{
     position:absolute;
-
     bottom:20px;
     right:20px;
-
-    top:auto;
-    left:auto;
-
     z-index:1800;
 
     background:#071a2f;
     color:#00ff9d;
-
     border:2px solid #00ff9d;
     border-radius:8px;
 
@@ -80,460 +406,308 @@
 
     cursor:pointer;
 
-    box-shadow:
-        0 0 12px rgba(0,255,157,.45);
-
-    transition:
-        background .2s,
-        box-shadow .2s,
-        transform .2s;
+    box-shadow:0 0 12px rgba(0,255,157,.45);
 }
 
 
 #aiSearchButton:hover{
-
     background:#0b3048;
-
-    box-shadow:
-        0 0 18px rgba(0,255,157,.75);
-
-    transform:translateY(-2px);
+    box-shadow:0 0 18px rgba(0,255,157,.75);
 }
 
 
 /* =====================================================
-   AI SEARCH PANEL
-   버튼 바로 위에 표시
+   AI PANEL
 ===================================================== */
 
 #aiSearchPanel{
+    display:none;
+    position:absolute;
+    top:115px;
+    right:15px;
+    width:410px;
+    max-width:calc(100vw - 30px);
+    max-height:calc(100vh - 135px);
+    z-index:1900;
+    background:rgba(3,12,25,.97);
+    border:2px solid #00ff9d;
+    border-radius:10px;
+    color:#00ff9d;
+    font-family:monospace;
+    box-shadow:0 0 25px rgba(0,255,157,.35);
+}
 
+.ai-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:12px 14px;
+    background:#071a2f;
+    border-bottom:1px solid #14506a;
+    font-weight:bold;
+}
+
+.ai-header-title{
+    display:flex;
+    align-items:center;
+    gap:6px;
+}
+
+.ai-header-sub{
+    color:#6abf9d;
+    font-size:10px;
+    font-weight:normal;
+}
+
+.ai-header button{
+    border:none;
+    background:none;
+    color:#00ff9d;
+    font-size:18px;
+    cursor:pointer;
+}
+
+.ai-body{
+    padding:14px;
+    overflow-y:auto;
+    max-height:calc(100vh - 190px);
+}
+
+.ai-description{
+    color:#9fffd5;
+    font-size:12px;
+    line-height:1.5;
+    margin-bottom:10px;
+}
+
+.ai-input-row{
+    display:flex;
+    gap:6px;
+}
+
+#aiQuestion{
+    flex:1;
+    min-width:0;
+    background:#020913;
+    color:#ffffff;
+    border:1px solid #00ff9d;
+    border-radius:6px;
+    padding:10px;
+    font-family:monospace;
+    outline:none;
+}
+
+#aiQuestion:focus{
+    box-shadow:0 0 8px rgba(0,255,157,.5);
+}
+
+.ai-input-row button{
+    background:#00a86b;
+    color:#ffffff;
+    border:none;
+    border-radius:6px;
+    padding:0 14px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.ai-input-row button:hover{
+    background:#00c77d;
+}
+
+.ai-examples{
+    display:flex;
+    flex-wrap:wrap;
+    gap:5px;
+    margin-top:9px;
+}
+
+.ai-examples button{
+    background:#10283a;
+    color:#8fffd2;
+    border:1px solid #246078;
+    border-radius:5px;
+    padding:5px 7px;
+    font-size:11px;
+    cursor:pointer;
+}
+
+.ai-examples button:hover{
+    background:#173e54;
+}
+
+.ai-result{
+    margin-top:12px;
+    min-height:90px;
+    max-height:380px;
+    overflow-y:auto;
+    background:#020913;
+    border:1px solid #123c55;
+    border-radius:6px;
+    padding:10px;
+    color:#d7fff0;
+    font-size:13px;
+    line-height:1.6;
+}
+
+.ai-result-title{
+    color:#00ff9d;
+    font-size:15px;
+    font-weight:bold;
+    margin-bottom:8px;
+}
+
+.ai-result-item{
+    padding:9px;
+    margin-top:7px;
+    background:#071a2f;
+    border-left:3px solid #ff3333;
+    border-radius:4px;
+    cursor:pointer;
+}
+
+.ai-result-item:hover{
+    background:#0d2940;
+}
+
+.ai-result-item.arrived{
+    border-left-color:#ff9800;
+}
+
+.ai-result-item.done{
+    border-left-color:#777777;
+}
+
+.ai-help{
+    margin-top:10px;
+    padding:8px;
+    background:#071a2f;
+    border-radius:5px;
+    color:#7fbfa7;
+    font-size:11px;
+    line-height:1.6;
+}
+
+.ai-loading{
+    color:#00ff9d;
+    animation:aiBlink 1s infinite;
+}
+
+@keyframes aiBlink{
+    50%{
+        opacity:.35;
+    }
+}
+
+.ai-status-badge{
+    display:inline-block;
+    padding:2px 6px;
+    border-radius:4px;
+    font-size:10px;
+    color:#ffffff;
+}
+
+.ai-status-received{
+    background:#d50000;
+}
+
+.ai-status-arrived{
+    background:#ef6c00;
+}
+
+.ai-status-done{
+    background:#666666;
+}
+
+@media(max-width:768px){
+
+    #aiSearchButton{
+        bottom:20px;
+        right:15px;
+        top:auto;
+
+        padding:8px 10px;
+        font-size:12px;
+    }
+
+    #aiSearchPanel{
     display:none;
 
     position:absolute;
 
     bottom:75px;
-    right:20px;
-
-    top:auto;
-    left:auto;
+    right:15px;
 
     width:410px;
     max-width:calc(100vw - 30px);
-
     max-height:calc(100vh - 100px);
 
     z-index:1900;
 
     background:rgba(3,12,25,.97);
-
     border:2px solid #00ff9d;
-
     border-radius:10px;
 
     color:#00ff9d;
-
     font-family:monospace;
 
-    box-shadow:
-        0 0 25px rgba(0,255,157,.35);
+    box-shadow:0 0 25px rgba(0,255,157,.35);
 }
-
-
-/* =====================================================
-   AI HEADER
-===================================================== */
-
-.ai-header{
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:space-between;
-
-    padding:12px 14px;
-
-    background:#071a2f;
-
-    border-bottom:1px solid #14506a;
-
-    font-weight:bold;
-}
-
-
-.ai-header-title{
-
-    display:flex;
-
-    align-items:center;
-
-    gap:6px;
-}
-
-
-.ai-header-sub{
-
-    color:#6abf9d;
-
-    font-size:10px;
-
-    font-weight:normal;
-}
-
-
-.ai-header button{
-
-    border:none;
-
-    background:none;
-
-    color:#00ff9d;
-
-    font-size:18px;
-
-    cursor:pointer;
-}
-
-
-/* =====================================================
-   AI BODY
-===================================================== */
-
-.ai-body{
-
-    padding:14px;
-
-    overflow-y:auto;
-
-    max-height:calc(100vh - 155px);
-}
-
-
-.ai-description{
-
-    color:#9fffd5;
-
-    font-size:12px;
-
-    line-height:1.5;
-
-    margin-bottom:10px;
-}
-
-
-/* =====================================================
-   AI INPUT
-===================================================== */
-
-.ai-input-row{
-
-    display:flex;
-
-    gap:6px;
-}
-
-
-#aiQuestion{
-
-    flex:1;
-
-    min-width:0;
-
-    background:#020913;
-
-    color:#ffffff;
-
-    border:1px solid #00ff9d;
-
-    border-radius:6px;
-
-    padding:10px;
-
-    font-family:monospace;
-
-    outline:none;
-}
-
-
-#aiQuestion:focus{
-
-    box-shadow:
-        0 0 8px rgba(0,255,157,.5);
-}
-
-
-.ai-input-row button{
-
-    background:#00a86b;
-
-    color:#ffffff;
-
-    border:none;
-
-    border-radius:6px;
-
-    padding:0 14px;
-
-    font-weight:bold;
-
-    cursor:pointer;
-}
-
-
-.ai-input-row button:hover{
-
-    background:#00c77d;
-}
-
-
-/* =====================================================
-   AI EXAMPLES
-===================================================== */
-
-.ai-examples{
-
-    display:flex;
-
-    flex-wrap:wrap;
-
-    gap:5px;
-
-    margin-top:9px;
-}
-
-
-.ai-examples button{
-
-    background:#10283a;
-
-    color:#8fffd2;
-
-    border:1px solid #246078;
-
-    border-radius:5px;
-
-    padding:5px 7px;
-
-    font-size:11px;
-
-    cursor:pointer;
-}
-
-
-.ai-examples button:hover{
-
-    background:#173e54;
-}
-
-
-/* =====================================================
-   AI RESULT
-===================================================== */
-
-.ai-result{
-
-    margin-top:12px;
-
-    min-height:90px;
-
-    max-height:380px;
-
-    overflow-y:auto;
-
-    background:#020913;
-
-    border:1px solid #123c55;
-
-    border-radius:6px;
-
-    padding:10px;
-
-    color:#d7fff0;
-
-    font-size:13px;
-
-    line-height:1.6;
-}
-
-
-.ai-result-title{
-
-    color:#00ff9d;
-
-    font-size:15px;
-
-    font-weight:bold;
-
-    margin-bottom:8px;
-}
-
-
-.ai-result-item{
-
-    padding:9px;
-
-    margin-top:7px;
-
-    background:#071a2f;
-
-    border-left:3px solid #ff3333;
-
-    border-radius:4px;
-
-    cursor:pointer;
-}
-
-
-.ai-result-item:hover{
-
-    background:#0d2940;
-}
-
-
-.ai-result-item.arrived{
-
-    border-left-color:#ff9800;
-}
-
-
-.ai-result-item.done{
-
-    border-left-color:#777777;
-}
-
-
-/* =====================================================
-   AI HELP
-===================================================== */
-
-.ai-help{
-
-    margin-top:10px;
-
-    padding:8px;
-
-    background:#071a2f;
-
-    border-radius:5px;
-
-    color:#7fbfa7;
-
-    font-size:11px;
-
-    line-height:1.6;
-}
-
-
-/* =====================================================
-   AI LOADING
-===================================================== */
-
-.ai-loading{
-
-    color:#00ff9d;
-
-    animation:aiBlink 1s infinite;
-}
-
-
-@keyframes aiBlink{
-
-    50%{
-        opacity:.35;
-    }
-
-}
-
-
-/* =====================================================
-   AI STATUS
-===================================================== */
-
-.ai-status-badge{
-
-    display:inline-block;
-
-    padding:2px 6px;
-
-    border-radius:4px;
-
-    font-size:10px;
-
-    color:#ffffff;
-}
-
-
-.ai-status-received{
-
-    background:#d50000;
-}
-
-
-.ai-status-arrived{
-
-    background:#ef6c00;
-}
-
-
-.ai-status-done{
-
-    background:#666666;
-}
-
-
-/* =====================================================
-   MOBILE
-===================================================== */
-
-@media(max-width:768px){
-
-    #aiSearchButton{
-
-        bottom:20px;
-        right:15px;
-
-        top:auto;
-        left:auto;
-
-        padding:8px 10px;
-
-        font-size:12px;
-    }
-
-
-    #aiSearchPanel{
-
-        bottom:70px;
-
-        left:10px;
-        right:10px;
-
-        top:auto;
-
-        width:auto;
-
-        max-width:none;
-
-        max-height:calc(100vh - 90px);
-    }
 
 
     .ai-body{
-
-        max-height:calc(100vh - 145px);
+        max-height:calc(100vh - 175px);
     }
 
-
     .ai-result{
-
         max-height:45vh;
     }
 
 }
 
-</style>
 
+/* =====================================================
+   VWORLD 지도 오류 표시
+===================================================== */
+
+#vworldMapError{
+    display:none;
+    position:absolute;
+    top:60px;
+    left:50%;
+    transform:translateX(-50%);
+    z-index:1700;
+    background:rgba(120,0,0,.95);
+    color:#ffffff;
+    border:1px solid #ff5555;
+    border-radius:6px;
+    padding:8px 12px;
+    font-family:monospace;
+    font-size:12px;
+    pointer-events:none;
+}
+
+
+/* =====================================================
+   VWorld Layer Control
+===================================================== */
+
+.leaflet-control-layers-expanded{
+    background:rgba(3,12,25,.94) !important;
+    color:#00ff9d !important;
+    border:1px solid #00ff9d !important;
+    box-shadow:0 0 12px rgba(0,255,157,.3);
+}
+
+.leaflet-control-layers label{
+    color:#00ff9d !important;
+}
+
+.leaflet-control-layers-separator{
+    border-top:1px solid #14506a !important;
+}
+
+</style>
 
 </head>
 
