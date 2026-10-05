@@ -48,7 +48,6 @@ body{
     overflow:hidden;
 }
 
-
 /* =====================================================
    HEADER
 ===================================================== */
@@ -66,7 +65,6 @@ header{
     z-index:2000;
 }
 
-
 /* =====================================================
    MAP
 ===================================================== */
@@ -81,9 +79,8 @@ header{
     height:calc(100vh - 50px);
 }
 
-
 /* =====================================================
-   사고정보 건수
+   사고 건수
 ===================================================== */
 
 #accidentCount{
@@ -105,20 +102,6 @@ header{
     pointer-events:none;
 }
 
-@media(max-width:768px){
-
-    #accidentCount{
-        top:auto;
-        bottom:20px;
-        left:50%;
-        transform:translateX(-50%);
-        font-size:14px;
-        padding:8px 12px;
-    }
-
-}
-
-
 /* =====================================================
    좌표
 ===================================================== */
@@ -134,19 +117,18 @@ header{
     box-shadow:0 0 8px #00ff9d;
 }
 
-
 /* =====================================================
    팝업
 ===================================================== */
 
 .leaflet-popup-content-wrapper{
-    background:#ffffff !important;
-    color:#111111 !important;
+    background:#fff !important;
+    color:#111 !important;
     border-radius:8px;
 }
 
 .leaflet-popup-content{
-    color:#111111 !important;
+    color:#111 !important;
     font-family:
         Arial,
         "Malgun Gothic",
@@ -157,22 +139,17 @@ header{
 }
 
 .leaflet-popup-tip{
-    background:#ffffff !important;
+    background:#fff !important;
 }
-
-
-/* =====================================================
-   사고 팝업
-===================================================== */
 
 .accident-popup{
     min-width:270px;
-    color:#111111 !important;
-    background:#ffffff !important;
+    color:#111 !important;
+    background:#fff !important;
 }
 
 .accident-popup *{
-    color:#111111;
+    color:#111;
 }
 
 .popup-title{
@@ -186,7 +163,7 @@ header{
     display:inline-block;
     padding:4px 9px;
     border-radius:5px;
-    color:#ffffff !important;
+    color:#fff !important;
     font-weight:bold;
     margin-bottom:8px;
 }
@@ -200,7 +177,7 @@ header{
 }
 
 .popup-done{
-    background:#666666;
+    background:#666;
 }
 
 .popup-row{
@@ -209,18 +186,13 @@ header{
 
 .popup-label{
     font-weight:bold;
-    color:#333333 !important;
+    color:#333 !important;
 }
 
 .popup-value{
-    color:#111111 !important;
+    color:#111 !important;
     word-break:break-word;
 }
-
-
-/* =====================================================
-   전송번호 강조
-===================================================== */
 
 .transmission-number{
     display:inline-block;
@@ -231,11 +203,6 @@ header{
     border-radius:4px;
     padding:2px 5px;
 }
-
-
-/* =====================================================
-   팝업 버튼
-===================================================== */
 
 .popup-buttons{
     display:grid;
@@ -255,7 +222,7 @@ header{
     cursor:pointer;
     font-size:13px;
     font-weight:bold;
-    color:#ffffff !important;
+    color:#fff !important;
 }
 
 .call-button{
@@ -267,7 +234,7 @@ header{
 }
 
 .share-button{
-    background:#555555;
+    background:#555;
 }
 
 .arrive-button{
@@ -281,76 +248,36 @@ header{
 .status-message{
     margin-top:8px;
     padding:7px;
-    background:#eeeeee;
+    background:#eee;
     border-radius:4px;
-    color:#333333 !important;
+    color:#333 !important;
     font-size:12px;
 }
 
-
 /* =====================================================
-   지도 컨트롤
+   Leaflet Layer Control
 ===================================================== */
 
 .leaflet-control-layers{
     z-index:1600 !important;
+    font-family:
+        Arial,
+        "Malgun Gothic",
+        sans-serif;
 }
 
+.leaflet-control-layers-expanded{
+    background:rgba(255,255,255,.96);
+}
 
 /* =====================================================
-   모바일 팝업
-===================================================== */
-
-@media(max-width:768px){
-
-    .accident-popup{
-        min-width:240px;
-    }
-
-    .leaflet-popup-content{
-        font-size:13px;
-        margin:11px !important;
-    }
-
-}
-
-
-/* =====================================================
-   신규 사고 강조
-===================================================== */
-
-.new-accident-marker{
-    animation:markerPulse 1s infinite;
-}
-
-@keyframes markerPulse{
-
-    0%{
-        opacity:.5;
-        transform:scale(.8);
-    }
-
-    50%{
-        opacity:1;
-        transform:scale(1.15);
-    }
-
-    100%{
-        opacity:.5;
-        transform:scale(.8);
-    }
-
-}
-
-
-/* =====================================================
-   LOCAL AI SEARCH BUTTON
+   AI BUTTON
 ===================================================== */
 
 #aiSearchButton{
     position:absolute;
-    top:65px;
     right:15px;
+    bottom:20px;
     z-index:1800;
     background:#071a2f;
     color:#00ff9d;
@@ -369,7 +296,6 @@ header{
     box-shadow:0 0 18px rgba(0,255,157,.75);
 }
 
-
 /* =====================================================
    AI PANEL
 ===================================================== */
@@ -377,11 +303,11 @@ header{
 #aiSearchPanel{
     display:none;
     position:absolute;
-    top:115px;
     right:15px;
+    bottom:70px;
     width:410px;
     max-width:calc(100vw - 30px);
-    max-height:calc(100vh - 135px);
+    max-height:calc(100vh - 100px);
     z-index:1900;
     background:rgba(3,12,25,.97);
     border:2px solid #00ff9d;
@@ -424,7 +350,7 @@ header{
 .ai-body{
     padding:14px;
     overflow-y:auto;
-    max-height:calc(100vh - 190px);
+    max-height:calc(100vh - 150px);
 }
 
 .ai-description{
@@ -443,7 +369,7 @@ header{
     flex:1;
     min-width:0;
     background:#020913;
-    color:#ffffff;
+    color:#fff;
     border:1px solid #00ff9d;
     border-radius:6px;
     padding:10px;
@@ -451,22 +377,14 @@ header{
     outline:none;
 }
 
-#aiQuestion:focus{
-    box-shadow:0 0 8px rgba(0,255,157,.5);
-}
-
 .ai-input-row button{
     background:#00a86b;
-    color:#ffffff;
+    color:#fff;
     border:none;
     border-radius:6px;
     padding:0 14px;
     font-weight:bold;
     cursor:pointer;
-}
-
-.ai-input-row button:hover{
-    background:#00c77d;
 }
 
 .ai-examples{
@@ -484,10 +402,6 @@ header{
     padding:5px 7px;
     font-size:11px;
     cursor:pointer;
-}
-
-.ai-examples button:hover{
-    background:#173e54;
 }
 
 .ai-result{
@@ -520,16 +434,12 @@ header{
     cursor:pointer;
 }
 
-.ai-result-item:hover{
-    background:#0d2940;
-}
-
 .ai-result-item.arrived{
     border-left-color:#ff9800;
 }
 
 .ai-result-item.done{
-    border-left-color:#777777;
+    border-left-color:#777;
 }
 
 .ai-help{
@@ -553,49 +463,36 @@ header{
     }
 }
 
-.ai-status-badge{
-    display:inline-block;
-    padding:2px 6px;
-    border-radius:4px;
-    font-size:10px;
-    color:#ffffff;
-}
-
-.ai-status-received{
-    background:#d50000;
-}
-
-.ai-status-arrived{
-    background:#ef6c00;
-}
-
-.ai-status-done{
-    background:#666666;
-}
-
 @media(max-width:768px){
 
+    #accidentCount{
+        top:auto;
+        bottom:20px;
+        font-size:14px;
+        padding:8px 12px;
+    }
+
     #aiSearchButton{
-        top:65px;
         right:10px;
+        bottom:15px;
         padding:8px 10px;
         font-size:12px;
     }
 
     #aiSearchPanel{
-        top:108px;
         left:10px;
         right:10px;
+        bottom:60px;
         width:auto;
-        max-height:calc(100vh - 120px);
     }
 
-    .ai-body{
-        max-height:calc(100vh - 175px);
+    .accident-popup{
+        min-width:240px;
     }
 
-    .ai-result{
-        max-height:45vh;
+    .leaflet-popup-content{
+        font-size:13px;
+        margin:11px !important;
     }
 
 }
