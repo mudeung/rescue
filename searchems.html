@@ -1808,9 +1808,7 @@ async function submitData(){
 
     if(!selectedType){
 
-        alert(
-            "신고 유형을 선택하세요."
-        );
+        alert("신고 유형을 선택하세요.");
 
         return;
 
@@ -1819,9 +1817,7 @@ async function submitData(){
 
     if(!condition){
 
-        alert(
-            "상황 입력 필수"
-        );
+        alert("상황 입력 필수");
 
         return;
 
@@ -1830,9 +1826,7 @@ async function submitData(){
 
     if(!phone){
 
-        alert(
-            "연락처 입력 필수"
-        );
+        alert("연락처 입력 필수");
 
         return;
 
@@ -1843,9 +1837,7 @@ async function submitData(){
         !/^[0-9\-]{9,13}$/.test(phone)
     ){
 
-        alert(
-            "연락처 형식 오류"
-        );
+        alert("연락처 형식 오류");
 
         return;
 
@@ -1854,9 +1846,7 @@ async function submitData(){
 
     if(!coordinateResult.valid){
 
-        alert(
-            coordinateResult.message
-        );
+        alert(coordinateResult.message);
 
         return;
 
@@ -1881,6 +1871,9 @@ async function submitData(){
         );
 
     button.disabled = true;
+
+    button.textContent =
+        "⏳ 신고 접수 중...";
 
 
     try{
@@ -1955,25 +1948,54 @@ async function submitData(){
         }
 
 
+        /* 서버에서 반환한 전송번호가 있으면 사용 */
+
+        const savedTransmissionNumber =
+            getTransmissionNumberFromItem(
+                result
+            ) ||
+            result.transmissionNumber ||
+            transmissionNumber;
+
+
+        /* 정상 접수 완료 문구 */
+
         alert(
-            "🆘 신고가 접수되었습니다.\n\n" +
-            "전송번호: " +
-            transmissionNumber
+            "🆘 신고접수 완료\n\n" +
+
+            "신고 유형 : " +
+            selectedType +
+            "\n" +
+
+            "전송번호 : " +
+            savedTransmissionNumber +
+            "\n\n" +
+
+            "🚑 무등산특수산악구조대에\n" +
+            "신고가 정상적으로 접수되었습니다."
         );
 
 
         resetReportForm();
+
 
         await loadAccidents();
 
     }
     catch(err){
 
-        console.error(err);
+        console.error(
+            "신고 접수 오류:",
+            err
+        );
+
 
         alert(
-            "신고 접수 실패\n\n" +
-            err.message
+            "❌ 신고접수 실패\n\n" +
+            (
+                err.message ||
+                "알 수 없는 오류가 발생했습니다."
+            )
         );
 
     }
@@ -1981,19 +2003,12 @@ async function submitData(){
 
         button.disabled = false;
 
+        button.textContent =
+            "🆘 신고접수";
+
     }
 
 }
-
-
-document
-.getElementById(
-    "submitReportBtn"
-)
-.addEventListener(
-    "click",
-    submitData
-);
 
 
 /* =====================================================
