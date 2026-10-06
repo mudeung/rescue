@@ -8,7 +8,12 @@
 <meta name="viewport"
       content="width=device-width, initial-scale=1.0">
 
-<title>무등산특수산악구조대 SEARCH & RESCUE AI SYSTEM</title>
+<meta name="theme-color"
+      content="#050b18">
+
+<title>
+무등산특수산악구조대 SEARCH & RESCUE AI SYSTEM
+</title>
 
 <link
     rel="stylesheet"
@@ -20,11 +25,18 @@
     href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css"
 />
 
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script
+    src="https://unpkg.com/leaflet/dist/leaflet.js">
+</script>
 
-<script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
+<script
+    src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js">
+</script>
 
-<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
+<script
+    src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services">
+</script>
+
 
 <style>
 
@@ -58,6 +70,8 @@ header{
     border-bottom:1px solid #123c55;
     position:relative;
     z-index:1000;
+    text-align:center;
+    padding:0 10px;
 }
 
 #container{
@@ -95,6 +109,13 @@ button{
     color:#00ff9d;
     font-family:monospace;
     outline:none;
+}
+
+input:focus,
+textarea:focus{
+    box-shadow:
+        0 0 0 1px #00ff9d,
+        0 0 8px rgba(0,255,157,.25);
 }
 
 input::placeholder,
@@ -400,6 +421,32 @@ button:disabled{
     box-shadow:0 0 8px #00ff9d;
 }
 
+.system-status{
+    margin-top:8px;
+    padding:8px;
+    background:#001a14;
+    border:1px solid #123c55;
+    color:#8aa;
+    font-size:11px;
+    line-height:1.5;
+}
+
+.system-status.ok{
+    border-color:#00ff9d;
+    color:#00ff9d;
+}
+
+.system-status.error{
+    border-color:#ff3333;
+    color:#ff7777;
+}
+
+.loading{
+    text-align:center;
+    padding:20px;
+    color:#8aa;
+}
+
 @media(max-width:768px){
 
     body{
@@ -415,7 +462,7 @@ button:disabled{
     #panel{
         width:100%;
         min-width:0;
-        height:48vh;
+        height:52vh;
         order:2;
         border-right:none;
         border-top:1px solid #123c55;
@@ -423,12 +470,13 @@ button:disabled{
 
     #map{
         width:100%;
-        height:52vh;
+        height:48vh;
+        min-height:360px;
         order:1;
     }
 
     header{
-        font-size:15px;
+        font-size:14px;
     }
 
 }
@@ -437,15 +485,20 @@ button:disabled{
 
 </head>
 
+
 <body>
+
 
 <header>
     🛰 무등산특수산악구조대 SEARCH & RESCUE AI SYSTEM
 </header>
 
+
 <div id="container">
 
+
 <div id="panel">
+
 
 <img
     class="logo"
@@ -453,9 +506,11 @@ button:disabled{
     alt="달콩이 이미지"
 >
 
+
 <div class="section-title">
     🆘 산악사고 신고접수
 </div>
+
 
 <div class="type-grid">
 
@@ -493,22 +548,27 @@ button:disabled{
 
 </div>
 
+
 <textarea
     id="condition"
     placeholder="상황 입력"
 ></textarea>
 
+
 <input
     id="phone"
     placeholder="연락처 (010-0000-0000)"
     autocomplete="off"
+    inputmode="tel"
 >
+
 
 <input
     id="address"
-    placeholder="주소 입력 → 잠시 후 좌표 자동검색"
+    placeholder="주소 입력 → 약 0.7초 후 좌표 자동검색"
     autocomplete="off"
 >
+
 
 <input
     id="lat"
@@ -517,6 +577,7 @@ button:disabled{
     autocomplete="off"
 >
 
+
 <input
     id="lng"
     placeholder="경도 입력 (예: 126.990200)"
@@ -524,11 +585,19 @@ button:disabled{
     autocomplete="off"
 >
 
+
 <div class="coordinate-help">
-    💡 주소 또는 위도·경도를 입력하면 약 0.7초 후 자동으로
-    서로 변환되고 지도 위치가 이동합니다.<br>
-    💡 지도에서 원하는 위치를 클릭해도 주소와 좌표가 자동 입력됩니다.
+
+    💡 주소 또는 위도·경도를 입력하면 약 0.7초 후
+    서로 변환되고 지도 위치가 이동합니다.
+
+    <br>
+
+    💡 지도에서 원하는 위치를 클릭하면
+    주소와 좌표가 자동 입력됩니다.
+
 </div>
+
 
 <button
     id="currentReportLocationBtn"
@@ -538,6 +607,7 @@ button:disabled{
     📍 현재 위치 사용
 </button>
 
+
 <button
     id="applyCoordinateBtn"
     class="coordinate-button"
@@ -545,6 +615,7 @@ button:disabled{
 >
     📍 입력한 위도·경도로 위치 표시
 </button>
+
 
 <button
     id="submitReportBtn"
@@ -554,19 +625,37 @@ button:disabled{
     🆘 신고접수
 </button>
 
+
+<div
+    id="systemStatus"
+    class="system-status"
+>
+    시스템 초기화 중...
+</div>
+
+
 <div class="section-title">
     🆘 사고 신고 목록
 </div>
 
+
 <div id="caseList">
-    로딩중...
-</div>
+
+    <div class="loading">
+        사고 목록 로딩중...
+    </div>
 
 </div>
+
+
+</div>
+
 
 <div id="map"></div>
 
+
 </div>
+
 
 <audio
     id="alertSound"
@@ -579,6 +668,7 @@ button:disabled{
 >
 
 </audio>
+
 
 <script>
 
@@ -674,11 +764,18 @@ map.on(
     "mousemove",
     function(e){
 
-        coordControl._div.innerHTML =
-            "Lat : " +
-            e.latlng.lat.toFixed(6) +
-            "<br>Lng : " +
-            e.latlng.lng.toFixed(6);
+        if(
+            coordControl &&
+            coordControl._div
+        ){
+
+            coordControl._div.innerHTML =
+                "Lat : " +
+                e.latlng.lat.toFixed(6) +
+                "<br>Lng : " +
+                e.latlng.lng.toFixed(6);
+
+        }
 
     }
 );
@@ -688,8 +785,15 @@ map.on(
     "mouseout",
     function(){
 
-        coordControl._div.innerHTML =
-            "Lat : --<br>Lng : --";
+        if(
+            coordControl &&
+            coordControl._div
+        ){
+
+            coordControl._div.innerHTML =
+                "Lat : --<br>Lng : --";
+
+        }
 
     }
 );
@@ -702,8 +806,9 @@ map.on(
 const drawnItems =
     new L.FeatureGroup();
 
-
-map.addLayer(drawnItems);
+map.addLayer(
+    drawnItems
+);
 
 
 map.addControl(
@@ -726,7 +831,9 @@ map.on(
     L.Draw.Event.CREATED,
     function(e){
 
-        drawnItems.addLayer(e.layer);
+        drawnItems.addLayer(
+            e.layer
+        );
 
     }
 );
@@ -737,11 +844,13 @@ map.on(
 ===================================================== */
 
 const sosLayer =
-    L.layerGroup().addTo(map);
+    L.layerGroup()
+    .addTo(map);
 
 
 const accidentLayer =
-    L.layerGroup().addTo(map);
+    L.layerGroup()
+    .addTo(map);
 
 
 /* =====================================================
@@ -766,28 +875,87 @@ let addressSearchTimer = null;
 
 let coordinateSearchTimer = null;
 
+let isAddressConversion = false;
+
+let isCoordinateConversion = false;
+
+let currentRows = [];
+
+let editModeCaseId = null;
+
 
 /* =====================================================
    DOM
 ===================================================== */
 
 const conditionEl =
-    document.getElementById("condition");
+    document.getElementById(
+        "condition"
+    );
 
 const phoneEl =
-    document.getElementById("phone");
+    document.getElementById(
+        "phone"
+    );
 
 const addressEl =
-    document.getElementById("address");
+    document.getElementById(
+        "address"
+    );
 
 const latEl =
-    document.getElementById("lat");
+    document.getElementById(
+        "lat"
+    );
 
 const lngEl =
-    document.getElementById("lng");
+    document.getElementById(
+        "lng"
+    );
 
 const caseList =
-    document.getElementById("caseList");
+    document.getElementById(
+        "caseList"
+    );
+
+const systemStatus =
+    document.getElementById(
+        "systemStatus"
+    );
+
+
+/* =====================================================
+   STATUS UI
+===================================================== */
+
+function setSystemStatus(
+    message,
+    type="normal"
+){
+
+    systemStatus.textContent =
+        message;
+
+    systemStatus.className =
+        "system-status";
+
+    if(type==="ok"){
+
+        systemStatus.classList.add(
+            "ok"
+        );
+
+    }
+
+    if(type==="error"){
+
+        systemStatus.classList.add(
+            "error"
+        );
+
+    }
+
+}
 
 
 /* =====================================================
@@ -795,15 +963,20 @@ const caseList =
 ===================================================== */
 
 let DEVICE_ID =
-    localStorage.getItem("DEVICE_ID");
+    localStorage.getItem(
+        "DEVICE_ID"
+    );
 
 
 if(!DEVICE_ID){
 
     DEVICE_ID =
         window.crypto &&
-        typeof crypto.randomUUID === "function"
+        typeof crypto.randomUUID ===
+            "function"
+
         ? crypto.randomUUID()
+
         : "DEVICE-" +
           Date.now() +
           "-" +
@@ -823,9 +996,13 @@ if(!DEVICE_ID){
    DEVICE CODE
 ===================================================== */
 
-function makeDeviceCode(deviceId){
+function makeDeviceCode(
+    deviceId
+){
 
-    let hash = 2166136261;
+    let hash =
+        2166136261;
+
 
     for(
         let i=0;
@@ -833,7 +1010,8 @@ function makeDeviceCode(deviceId){
         i++
     ){
 
-        hash ^= deviceId.charCodeAt(i);
+        hash ^=
+            deviceId.charCodeAt(i);
 
         hash =
             Math.imul(
@@ -843,7 +1021,9 @@ function makeDeviceCode(deviceId){
 
     }
 
+
     hash >>>= 0;
+
 
     return (
         hash % 1296
@@ -856,16 +1036,22 @@ function makeDeviceCode(deviceId){
 
 
 let DEVICE_CODE =
-    localStorage.getItem("DEVICE_CODE");
+    localStorage.getItem(
+        "DEVICE_CODE"
+    );
 
 
 if(
     !DEVICE_CODE ||
-    !/^[0-9A-Z]{2}$/.test(DEVICE_CODE)
+    !/^[0-9A-Z]{2}$/.test(
+        DEVICE_CODE
+    )
 ){
 
     DEVICE_CODE =
-        makeDeviceCode(DEVICE_ID);
+        makeDeviceCode(
+            DEVICE_ID
+        );
 
     localStorage.setItem(
         "DEVICE_CODE",
@@ -908,6 +1094,7 @@ function getTransmissionNumber(
             date.getMinutes()
         ).padStart(2,"0");
 
+
     return (
         year +
         month +
@@ -930,13 +1117,24 @@ function getNowTime(){
     const d =
         new Date();
 
+
     return (
         d.getFullYear() + "-" +
-        String(d.getMonth()+1).padStart(2,"0") + "-" +
-        String(d.getDate()).padStart(2,"0") + " " +
-        String(d.getHours()).padStart(2,"0") + ":" +
-        String(d.getMinutes()).padStart(2,"0") + ":" +
-        String(d.getSeconds()).padStart(2,"0")
+        String(
+            d.getMonth()+1
+        ).padStart(2,"0") + "-" +
+        String(
+            d.getDate()
+        ).padStart(2,"0") + " " +
+        String(
+            d.getHours()
+        ).padStart(2,"0") + ":" +
+        String(
+            d.getMinutes()
+        ).padStart(2,"0") + ":" +
+        String(
+            d.getSeconds()
+        ).padStart(2,"0")
     );
 
 }
@@ -951,8 +1149,20 @@ function validateCoordinates(
     lng
 ){
 
-    lat = Number(lat);
-    lng = Number(lng);
+    lat =
+        Number(
+            String(lat)
+            .trim()
+            .replace(/,/g,".")
+        );
+
+    lng =
+        Number(
+            String(lng)
+            .trim()
+            .replace(/,/g,".")
+        );
+
 
     if(
         !Number.isFinite(lat) ||
@@ -967,6 +1177,7 @@ function validateCoordinates(
 
     }
 
+
     if(
         lat < -90 ||
         lat > 90
@@ -980,6 +1191,7 @@ function validateCoordinates(
 
     }
 
+
     if(
         lng < -180 ||
         lng > 180
@@ -992,6 +1204,7 @@ function validateCoordinates(
         };
 
     }
+
 
     return {
         valid:true,
@@ -1011,17 +1224,20 @@ function getCurrentGPS(){
     return new Promise(
         function(resolve,reject){
 
-            if(!navigator.geolocation){
+            if(
+                !navigator.geolocation
+            ){
 
                 reject(
                     new Error(
-                        "GPS_NOT_SUPPORTED"
+                        "이 브라우저에서는 GPS를 지원하지 않습니다."
                     )
                 );
 
                 return;
 
             }
+
 
             navigator.geolocation.getCurrentPosition(
 
@@ -1044,7 +1260,44 @@ function getCurrentGPS(){
 
                 function(error){
 
-                    reject(error);
+                    let message =
+                        "현재 위치를 가져오지 못했습니다.";
+
+                    if(
+                        error.code ===
+                        error.PERMISSION_DENIED
+                    ){
+
+                        message =
+                            "위치 권한이 거부되었습니다.";
+
+                    }
+
+                    if(
+                        error.code ===
+                        error.POSITION_UNAVAILABLE
+                    ){
+
+                        message =
+                            "현재 위치 정보를 사용할 수 없습니다.";
+
+                    }
+
+                    if(
+                        error.code ===
+                        error.TIMEOUT
+                    ){
+
+                        message =
+                            "GPS 위치 확인 시간이 초과되었습니다.";
+
+                    }
+
+                    reject(
+                        new Error(
+                            message
+                        )
+                    );
 
                 },
 
@@ -1073,12 +1326,19 @@ async function useCurrentLocationForReport(){
             "currentReportLocationBtn"
         );
 
-    button.disabled = true;
+
+    button.disabled =
+        true;
+
+    button.textContent =
+        "📡 GPS 위치 확인 중...";
+
 
     try{
 
         const position =
             await getCurrentGPS();
+
 
         const checked =
             validateCoordinates(
@@ -1086,7 +1346,10 @@ async function useCurrentLocationForReport(){
                 position.lng
             );
 
-        if(!checked.valid){
+
+        if(
+            !checked.valid
+        ){
 
             throw new Error(
                 checked.message
@@ -1094,11 +1357,13 @@ async function useCurrentLocationForReport(){
 
         }
 
+
         latEl.value =
             checked.lat.toFixed(6);
 
         lngEl.value =
             checked.lng.toFixed(6);
+
 
         map.setView(
             [
@@ -1111,26 +1376,48 @@ async function useCurrentLocationForReport(){
             }
         );
 
+
         setReportPreview(
             checked.lat,
             checked.lng
         );
 
+
         searchAddressFromCoordinates();
+
+
+        setSystemStatus(
+            "GPS 위치 확인 완료",
+            "ok"
+        );
 
     }
     catch(err){
 
+        console.error(
+            err
+        );
+
+
         alert(
-            "현재 위치를 가져오지 못했습니다.\n" +
-            "GPS 권한을 확인하세요.\n\n" +
+            "❌ 현재 위치를 가져오지 못했습니다.\n\n" +
             err.message
+        );
+
+
+        setSystemStatus(
+            "GPS 위치 확인 실패",
+            "error"
         );
 
     }
     finally{
 
-        button.disabled = false;
+        button.disabled =
+            false;
+
+        button.textContent =
+            "📍 현재 위치 사용";
 
     }
 
@@ -1156,15 +1443,22 @@ function setReportPreview(
     lng
 ){
 
-    lat = Number(lat);
-    lng = Number(lng);
+    lat =
+        Number(lat);
+
+    lng =
+        Number(lng);
+
 
     if(
         !Number.isFinite(lat) ||
         !Number.isFinite(lng)
     ){
+
         return;
+
     }
+
 
     if(reportPreviewMarker){
 
@@ -1184,18 +1478,24 @@ function setReportPreview(
             )
             .addTo(map);
 
+
         reportPreviewMarker.on(
             "dragend",
             function(){
 
                 const position =
-                    reportPreviewMarker.getLatLng();
+                    reportPreviewMarker
+                    .getLatLng();
+
 
                 latEl.value =
-                    position.lat.toFixed(6);
+                    position.lat
+                    .toFixed(6);
 
                 lngEl.value =
-                    position.lng.toFixed(6);
+                    position.lng
+                    .toFixed(6);
+
 
                 searchAddressFromCoordinates();
 
@@ -1204,23 +1504,39 @@ function setReportPreview(
 
     }
 
+
     reportPreviewMarker
-        .bindPopup(
-            `
-            <div style="
-                font-family:Arial,sans-serif;
-                color:#111;
+    .bindPopup(
+        `
+        <div style="
+            font-family:Arial,sans-serif;
+            color:#111;
+        ">
+
+            <b>📍 신고 위치</b>
+
+            <br><br>
+
+            위도:
+            ${lat.toFixed(6)}
+
+            <br>
+
+            경도:
+            ${lng.toFixed(6)}
+
+            <br><br>
+
+            <span style="
+                color:#777;
+                font-size:11px;
             ">
-                <b>📍 신고 위치</b>
-                <br><br>
-                위도:
-                ${lat.toFixed(6)}
-                <br>
-                경도:
-                ${lng.toFixed(6)}
-            </div>
-            `
-        );
+                마커를 드래그하여 위치를 변경할 수 있습니다.
+            </span>
+
+        </div>
+        `
+    );
 
 }
 
@@ -1234,9 +1550,20 @@ function searchAddress(){
     const address =
         addressEl.value.trim();
 
+
     if(!address){
+
         return;
+
     }
+
+
+    if(isAddressConversion){
+
+        return;
+
+    }
+
 
     if(
         typeof kakao === "undefined" ||
@@ -1252,154 +1579,181 @@ function searchAddress(){
 
     }
 
-    const geocoder =
-        new kakao.maps.services.Geocoder();
 
-    geocoder.addressSearch(
-        address,
-        function(result,status){
-
-            if(
-                status !==
-                kakao.maps.services.Status.OK ||
-                !result ||
-                result.length === 0
-            ){
-
-                console.warn(
-                    "주소를 찾을 수 없습니다:",
-                    address
-                );
-
-                return;
-
-            }
-
-            const item =
-                result[0];
-
-            const lat =
-                Number(item.y);
-
-            const lng =
-                Number(item.x);
-
-            if(
-                !Number.isFinite(lat) ||
-                !Number.isFinite(lng)
-            ){
-                return;
-            }
+    isAddressConversion =
+        true;
 
 
-            /* 좌표 자동 입력 */
+    try{
 
-            latEl.value =
-                lat.toFixed(6);
-
-            lngEl.value =
-                lng.toFixed(6);
+        const geocoder =
+            new kakao.maps.services.Geocoder();
 
 
-            /* 정확한 주소 */
+        geocoder.addressSearch(
+            address,
+            function(result,status){
 
-            let exactAddress =
-                address;
+                try{
 
-            if(
-                item.road_address &&
-                item.road_address.address_name
-            ){
+                    if(
+                        status !==
+                        kakao.maps.services.Status.OK ||
+                        !result ||
+                        result.length === 0
+                    ){
 
-                exactAddress =
-                    item.road_address.address_name;
+                        return;
 
-            }
-            else if(
-                item.address &&
-                item.address.address_name
-            ){
-
-                exactAddress =
-                    item.address.address_name;
-
-            }
-
-            addressEl.value =
-                exactAddress;
+                    }
 
 
-            /* 지도 이동 */
+                    const item =
+                        result[0];
 
-            map.setView(
-                [lat,lng],
-                17,
-                {
-                    animate:true
+
+                    const lat =
+                        Number(item.y);
+
+                    const lng =
+                        Number(item.x);
+
+
+                    if(
+                        !Number.isFinite(lat) ||
+                        !Number.isFinite(lng)
+                    ){
+
+                        return;
+
+                    }
+
+
+                    latEl.value =
+                        lat.toFixed(6);
+
+                    lngEl.value =
+                        lng.toFixed(6);
+
+
+                    let exactAddress =
+                        address;
+
+
+                    if(
+                        item.road_address &&
+                        item.road_address.address_name
+                    ){
+
+                        exactAddress =
+                            item.road_address.address_name;
+
+                    }
+                    else if(
+                        item.address &&
+                        item.address.address_name
+                    ){
+
+                        exactAddress =
+                            item.address.address_name;
+
+                    }
+
+
+                    addressEl.value =
+                        exactAddress;
+
+
+                    map.setView(
+                        [lat,lng],
+                        17,
+                        {
+                            animate:true
+                        }
+                    );
+
+
+                    setReportPreview(
+                        lat,
+                        lng
+                    );
+
+
+                    L.popup()
+                    .setLatLng(
+                        [lat,lng]
+                    )
+                    .setContent(
+                        `
+                        <div style="
+                            font-family:Arial,sans-serif;
+                            color:#111;
+                            min-width:260px;
+                            line-height:1.6;
+                        ">
+
+                            <b style="font-size:15px;">
+                                📍 신고 위치
+                            </b>
+
+                            <hr>
+
+                            <b>주소</b><br>
+
+                            ${escapeHTML(
+                                exactAddress
+                            )}
+
+                            <br><br>
+
+                            <b>위도</b> :
+                            ${lat.toFixed(6)}
+
+                            <br>
+
+                            <b>경도</b> :
+                            ${lng.toFixed(6)}
+
+                        </div>
+                        `
+                    )
+                    .openOn(map);
+
+
+                    setSystemStatus(
+                        "주소 → 좌표 변환 완료",
+                        "ok"
+                    );
+
                 }
-            );
+                finally{
 
+                    isAddressConversion =
+                        false;
 
-            /* 핀 이동 */
+                }
 
-            setReportPreview(
-                lat,
-                lng
-            );
+            }
+        );
 
+    }
+    catch(error){
 
-            /* 팝업 */
+        isAddressConversion =
+            false;
 
-            L.popup()
-            .setLatLng(
-                [lat,lng]
-            )
-            .setContent(
-                `
-                <div style="
-                    font-family:Arial,sans-serif;
-                    color:#111;
-                    min-width:260px;
-                    line-height:1.6;
-                ">
+        console.error(
+            "주소 검색 오류:",
+            error
+        );
 
-                    <b style="
-                        font-size:15px;
-                    ">
-                        📍 신고 위치
-                    </b>
-
-                    <hr>
-
-                    <b>주소</b><br>
-
-                    ${escapeHTML(
-                        exactAddress
-                    )}
-
-                    <br><br>
-
-                    <b>위도</b> :
-                    ${lat.toFixed(6)}
-
-                    <br>
-
-                    <b>경도</b> :
-                    ${lng.toFixed(6)}
-
-                </div>
-                `
-            )
-            .openOn(map);
-
-        }
-    );
+    }
 
 }
 
 
 /* =====================================================
-   ADDRESS INPUT AUTO SEARCH
+   ADDRESS INPUT
 ===================================================== */
 
 addressEl.addEventListener(
@@ -1410,12 +1764,17 @@ addressEl.addEventListener(
             addressSearchTimer
         );
 
+
         const address =
             addressEl.value.trim();
 
+
         if(!address){
+
             return;
+
         }
+
 
         addressSearchTimer =
             setTimeout(
@@ -1437,32 +1796,26 @@ addressEl.addEventListener(
 
 function searchAddressFromCoordinates(){
 
-    const lat =
-        Number(
-            latEl.value.trim()
-        );
+    if(isCoordinateConversion){
 
-    const lng =
-        Number(
+        return;
+
+    }
+
+
+    const checked =
+        validateCoordinates(
+            latEl.value.trim(),
             lngEl.value.trim()
         );
 
 
     if(
-        !Number.isFinite(lat) ||
-        !Number.isFinite(lng)
+        !checked.valid
     ){
-        return;
-    }
 
-
-    if(
-        lat < -90 ||
-        lat > 90 ||
-        lng < -180 ||
-        lng > 180
-    ){
         return;
+
     }
 
 
@@ -1481,124 +1834,163 @@ function searchAddressFromCoordinates(){
     }
 
 
-    /* 지도 이동 */
-
-    map.setView(
-        [lat,lng],
-        17,
-        {
-            animate:true
-        }
-    );
+    isCoordinateConversion =
+        true;
 
 
-    /* 핀 이동 */
+    try{
 
-    setReportPreview(
-        lat,
-        lng
-    );
+        map.setView(
+            [
+                checked.lat,
+                checked.lng
+            ],
+            17,
+            {
+                animate:true
+            }
+        );
 
 
-    /* 좌표 → 주소 */
+        setReportPreview(
+            checked.lat,
+            checked.lng
+        );
 
-    const geocoder =
-        new kakao.maps.services.Geocoder();
 
-    geocoder.coord2Address(
-        lng,
-        lat,
-        function(result,status){
+        const geocoder =
+            new kakao.maps.services.Geocoder();
 
-            if(
-                status !==
-                kakao.maps.services.Status.OK ||
-                !result ||
-                result.length === 0
-            ){
 
-                return;
+        geocoder.coord2Address(
+            checked.lng,
+            checked.lat,
+            function(result,status){
+
+                try{
+
+                    if(
+                        status !==
+                        kakao.maps.services.Status.OK ||
+                        !result ||
+                        result.length === 0
+                    ){
+
+                        return;
+
+                    }
+
+
+                    const item =
+                        result[0];
+
+
+                    let address = "";
+
+
+                    if(
+                        item.road_address &&
+                        item.road_address.address_name
+                    ){
+
+                        address =
+                            item.road_address.address_name;
+
+                    }
+                    else if(
+                        item.address &&
+                        item.address.address_name
+                    ){
+
+                        address =
+                            item.address.address_name;
+
+                    }
+
+
+                    if(address){
+
+                        addressEl.value =
+                            address;
+
+                    }
+
+
+                    L.popup()
+                    .setLatLng(
+                        [
+                            checked.lat,
+                            checked.lng
+                        ]
+                    )
+                    .setContent(
+                        `
+                        <div style="
+                            font-family:Arial,sans-serif;
+                            color:#111;
+                            min-width:260px;
+                            line-height:1.6;
+                        ">
+
+                            <b style="
+                                font-size:15px;
+                            ">
+                                📍 신고 위치
+                            </b>
+
+                            <hr>
+
+                            <b>주소</b><br>
+
+                            ${escapeHTML(
+                                address ||
+                                "주소 없음"
+                            )}
+
+                            <br><br>
+
+                            <b>위도</b> :
+                            ${checked.lat.toFixed(6)}
+
+                            <br>
+
+                            <b>경도</b> :
+                            ${checked.lng.toFixed(6)}
+
+                        </div>
+                        `
+                    )
+                    .openOn(map);
+
+
+                    setSystemStatus(
+                        "좌표 → 주소 변환 완료",
+                        "ok"
+                    );
+
+                }
+                finally{
+
+                    isCoordinateConversion =
+                        false;
+
+                }
 
             }
+        );
 
-            const item =
-                result[0];
+    }
+    catch(error){
 
-            let address = "";
+        isCoordinateConversion =
+            false;
 
+        console.error(
+            "좌표 주소변환 오류:",
+            error
+        );
 
-            if(
-                item.road_address &&
-                item.road_address.address_name
-            ){
-
-                address =
-                    item.road_address.address_name;
-
-            }
-            else if(
-                item.address &&
-                item.address.address_name
-            ){
-
-                address =
-                    item.address.address_name;
-
-            }
-
-
-            if(address){
-
-                addressEl.value =
-                    address;
-
-            }
-
-
-            L.popup()
-            .setLatLng(
-                [lat,lng]
-            )
-            .setContent(
-                `
-                <div style="
-                    font-family:Arial,sans-serif;
-                    color:#111;
-                    min-width:260px;
-                    line-height:1.6;
-                ">
-
-                    <b style="
-                        font-size:15px;
-                    ">
-                        📍 신고 위치
-                    </b>
-
-                    <hr>
-
-                    <b>주소</b><br>
-
-                    ${escapeHTML(
-                        address || "주소 없음"
-                    )}
-
-                    <br><br>
-
-                    <b>위도</b> :
-                    ${lat.toFixed(6)}
-
-                    <br>
-
-                    <b>경도</b> :
-                    ${lng.toFixed(6)}
-
-                </div>
-                `
-            )
-            .openOn(map);
-
-        }
-    );
+    }
 
 }
 
@@ -1613,36 +2005,24 @@ function autoSearchAddressFromCoordinates(){
         coordinateSearchTimer
     );
 
+
     coordinateSearchTimer =
         setTimeout(
             function(){
 
-                const lat =
-                    Number(
-                        latEl.value.trim()
-                    );
-
-                const lng =
-                    Number(
+                const checked =
+                    validateCoordinates(
+                        latEl.value.trim(),
                         lngEl.value.trim()
                     );
 
 
                 if(
-                    !Number.isFinite(lat) ||
-                    !Number.isFinite(lng)
+                    !checked.valid
                 ){
-                    return;
-                }
 
-
-                if(
-                    lat < -90 ||
-                    lat > 90 ||
-                    lng < -180 ||
-                    lng > 180
-                ){
                     return;
+
                 }
 
 
@@ -1667,7 +2047,7 @@ lngEl.addEventListener(
 
 
 /* =====================================================
-   MAP CLICK → COORDINATE + ADDRESS
+   MAP CLICK
 ===================================================== */
 
 map.on(
@@ -1701,7 +2081,7 @@ map.on(
 
 
 /* =====================================================
-   MANUAL COORDINATE BUTTON
+   MANUAL COORDINATE
 ===================================================== */
 
 document
@@ -1719,7 +2099,9 @@ document
             );
 
 
-        if(!checked.valid){
+        if(
+            !checked.valid
+        ){
 
             alert(
                 checked.message
@@ -1748,7 +2130,9 @@ document
 ===================================================== */
 
 document
-.querySelectorAll(".type-btn")
+.querySelectorAll(
+    ".type-btn"
+)
 .forEach(
     function(btn){
 
@@ -1770,9 +2154,11 @@ document
                     }
                 );
 
+
                 btn.classList.add(
                     "active"
                 );
+
 
                 selectedType =
                     btn.dataset.type;
@@ -1785,10 +2171,85 @@ document
 
 
 /* =====================================================
+   PHONE
+===================================================== */
+
+function normalizePhone(
+    phone
+){
+
+    return String(
+        phone || ""
+    )
+    .replace(
+        /[\s-]/g,
+        ""
+    );
+
+}
+
+
+function formatPhone(
+    phone
+){
+
+    const value =
+        normalizePhone(
+            phone
+        );
+
+
+    if(
+        /^01[016789]\d{7,8}$/.test(
+            value
+        )
+    ){
+
+        if(value.length===10){
+
+            return (
+                value.slice(0,3) +
+                "-" +
+                value.slice(3,6) +
+                "-" +
+                value.slice(6)
+            );
+
+        }
+
+
+        return (
+            value.slice(0,3) +
+            "-" +
+            value.slice(3,7) +
+            "-" +
+            value.slice(7)
+        );
+
+    }
+
+
+    return phone;
+
+}
+
+
+/* =====================================================
    SUBMIT
 ===================================================== */
 
 async function submitData(){
+
+    if(editModeCaseId){
+
+        await updateAccident(
+            editModeCaseId
+        );
+
+        return;
+
+    }
+
 
     const condition =
         conditionEl.value.trim();
@@ -1799,6 +2260,7 @@ async function submitData(){
     const address =
         addressEl.value.trim();
 
+
     const coordinateResult =
         validateCoordinates(
             latEl.value.trim(),
@@ -1808,7 +2270,9 @@ async function submitData(){
 
     if(!selectedType){
 
-        alert("신고 유형을 선택하세요.");
+        alert(
+            "신고 유형을 선택하세요."
+        );
 
         return;
 
@@ -1817,27 +2281,33 @@ async function submitData(){
 
     if(!condition){
 
-        alert("상황 입력 필수");
+        alert(
+            "상황 입력 필수"
+        );
+
+        conditionEl.focus();
 
         return;
 
     }
 
 
-    if(!phone){
-
-        alert("연락처 입력 필수");
-
-        return;
-
-    }
+    const normalizedPhone =
+        normalizePhone(
+            phone
+        );
 
 
-    if(
-        !/^[0-9\-]{9,13}$/.test(phone)
-    ){
+    if(!/^01[016789]\d{7,8}$/.test(
+        normalizedPhone
+    )){
 
-        alert("연락처 형식 오류");
+        alert(
+            "연락처 형식이 올바르지 않습니다.\n\n" +
+            "예: 010-1234-5678"
+        );
+
+        phoneEl.focus();
 
         return;
 
@@ -1846,7 +2316,9 @@ async function submitData(){
 
     if(!coordinateResult.valid){
 
-        alert(coordinateResult.message);
+        alert(
+            coordinateResult.message
+        );
 
         return;
 
@@ -1870,7 +2342,9 @@ async function submitData(){
             "submitReportBtn"
         );
 
-    button.disabled = true;
+
+    button.disabled =
+        true;
 
     button.textContent =
         "⏳ 신고 접수 중...";
@@ -1886,7 +2360,8 @@ async function submitData(){
 
         const payload = {
 
-            action:"create",
+            action:
+                "create",
 
             transmissionNumber:
                 transmissionNumber,
@@ -1904,7 +2379,9 @@ async function submitData(){
                 condition,
 
             phone:
-                phone,
+                formatPhone(
+                    normalizedPhone
+                ),
 
             address:
                 finalAddress,
@@ -1917,7 +2394,9 @@ async function submitData(){
 
             kakaoMapURL:
                 "https://map.kakao.com/link/map/" +
-                lat + "," + lng,
+                lat +
+                "," +
+                lng,
 
             createdAt:
                 getNowTime(),
@@ -1936,19 +2415,21 @@ async function submitData(){
 
         if(
             !result ||
-            result.result !== "success"
+            result.result !==
+                "success"
         ){
 
             throw new Error(
-                result && result.message
-                ? result.message
-                : "신고 접수 실패"
+                result &&
+                result.message
+                ?
+                result.message
+                :
+                "신고 접수 실패"
             );
 
         }
 
-
-        /* 서버에서 반환한 전송번호가 있으면 사용 */
 
         const savedTransmissionNumber =
             getTransmissionNumberFromItem(
@@ -1957,8 +2438,6 @@ async function submitData(){
             result.transmissionNumber ||
             transmissionNumber;
 
-
-        /* 정상 접수 완료 문구 */
 
         alert(
             "🆘 신고접수 완료\n\n" +
@@ -1981,6 +2460,12 @@ async function submitData(){
 
         await loadAccidents();
 
+
+        setSystemStatus(
+            "신고 접수 완료",
+            "ok"
+        );
+
     }
     catch(err){
 
@@ -1998,10 +2483,17 @@ async function submitData(){
             )
         );
 
+
+        setSystemStatus(
+            "신고 접수 실패",
+            "error"
+        );
+
     }
     finally{
 
-        button.disabled = false;
+        button.disabled =
+            false;
 
         button.textContent =
             "🆘 신고접수";
@@ -2011,23 +2503,39 @@ async function submitData(){
 }
 
 
+document
+.getElementById(
+    "submitReportBtn"
+)
+.addEventListener(
+    "click",
+    submitData
+);
+
+
 /* =====================================================
    POST API
 ===================================================== */
 
-async function postAccident(payload){
+async function postAccident(
+    payload
+){
 
     const response =
         await fetch(
             ACCIDENT_API_URL,
             {
                 method:"POST",
+
                 headers:{
                     "Content-Type":
                         "text/plain;charset=utf-8"
                 },
+
                 body:
-                    JSON.stringify(payload)
+                    JSON.stringify(
+                        payload
+                    )
             }
         );
 
@@ -2042,16 +2550,21 @@ async function postAccident(payload){
     try{
 
         data =
-            JSON.parse(text);
+            JSON.parse(
+                text
+            );
 
     }
-    catch(e){
+    catch(error){
 
         data = {
 
-            result:"error",
+            result:
+                "error",
 
-            message:text
+            message:
+                text ||
+                "서버 응답을 해석할 수 없습니다."
 
         };
 
@@ -2062,7 +2575,8 @@ async function postAccident(payload){
 
         throw new Error(
             data.message ||
-            "HTTP " + response.status
+            "HTTP " +
+            response.status
         );
 
     }
@@ -2079,17 +2593,26 @@ async function postAccident(payload){
 
 function resetReportForm(){
 
-    conditionEl.value = "";
+    conditionEl.value =
+        "";
 
-    phoneEl.value = "";
+    phoneEl.value =
+        "";
 
-    addressEl.value = "";
+    addressEl.value =
+        "";
 
-    latEl.value = "";
+    latEl.value =
+        "";
 
-    lngEl.value = "";
+    lngEl.value =
+        "";
 
-    selectedType = "";
+    selectedType =
+        "";
+
+    editModeCaseId =
+        null;
 
 
     document
@@ -2113,9 +2636,20 @@ function resetReportForm(){
             reportPreviewMarker
         );
 
-        reportPreviewMarker = null;
+        reportPreviewMarker =
+            null;
 
     }
+
+
+    const submitButton =
+        document.getElementById(
+            "submitReportBtn"
+        );
+
+
+    submitButton.textContent =
+        "🆘 신고접수";
 
 }
 
@@ -2162,17 +2696,39 @@ function getAccidentField(
    NORMALIZE FIELD
 ===================================================== */
 
-function normalizeFieldName(value){
+function normalizeFieldName(
+    value
+){
 
-    return String(value ?? "")
-        .trim()
-        .replace(/\s+/g,"")
-        .replace(/_/g,"")
-        .replace(/-/g,"")
-        .replace(/\./g,"")
-        .replace(/\(/g,"")
-        .replace(/\)/g,"")
-        .toLowerCase();
+    return String(
+        value ?? ""
+    )
+    .trim()
+    .replace(
+        /\s+/g,
+        ""
+    )
+    .replace(
+        /_/g,
+        ""
+    )
+    .replace(
+        /-/g,
+        ""
+    )
+    .replace(
+        /\./g,
+        ""
+    )
+    .replace(
+        /\(/g,
+        ""
+    )
+    .replace(
+        /\)/g,
+        ""
+    )
+    .toLowerCase();
 
 }
 
@@ -2181,7 +2737,9 @@ function normalizeFieldName(value){
    TRANSMISSION NUMBER
 ===================================================== */
 
-function getTransmissionNumberFromItem(item){
+function getTransmissionNumberFromItem(
+    item
+){
 
     if(!item){
 
@@ -2200,7 +2758,9 @@ function getTransmissionNumberFromItem(item){
                 value === undefined ||
                 value === null
             ){
+
                 continue;
+
             }
 
 
@@ -2209,7 +2769,9 @@ function getTransmissionNumberFromItem(item){
 
 
             if(!text){
+
                 continue;
+
             }
 
 
@@ -2310,7 +2872,9 @@ function getTransmissionNumberFromItem(item){
 
 
     const keys =
-        Object.keys(item);
+        Object.keys(
+            item
+        );
 
 
     for(
@@ -2486,7 +3050,17 @@ function getAccidentId(
     index
 ){
 
-    const value =
+    if(!item){
+
+        return (
+            "UNKNOWN_" +
+            index
+        );
+
+    }
+
+
+    const directId =
         getAccidentField(
             item,
             [
@@ -2494,14 +3068,21 @@ function getAccidentId(
                 "ID",
                 "caseId",
                 "caseID",
+                "case_id",
                 "사고ID"
             ]
         );
 
 
-    if(value !== ""){
+    if(
+        directId !== undefined &&
+        directId !== null &&
+        String(directId).trim() !== ""
+    ){
 
-        return String(value);
+        return String(
+            directId
+        ).trim();
 
     }
 
@@ -2512,28 +3093,78 @@ function getAccidentId(
         );
 
 
-    if(transmissionNumber !== ""){
+    if(transmissionNumber){
 
-        return String(
-            transmissionNumber
+        return transmissionNumber;
+
+    }
+
+
+    const startTime =
+        getAccidentStartTime(
+            item
+        );
+
+
+    if(startTime){
+
+        return (
+            String(startTime) +
+            "_" +
+            String(index)
         );
 
     }
 
 
-    return (
-        String(
-            getAccidentField(
-                item,
-                [
-                    "createdAt",
-                    "timestamp"
-                ]
-            )
-        ) +
-        "_" +
-        String(index)
-    );
+    return [
+        getAccidentField(
+            item,
+            [
+                "type",
+                "accidentType",
+                "신고유형",
+                "유형"
+            ]
+        ),
+
+        getAccidentField(
+            item,
+            [
+                "phone",
+                "tel",
+                "연락처"
+            ]
+        ),
+
+        getAccidentField(
+            item,
+            [
+                "lat",
+                "latitude",
+                "위도"
+            ]
+        ),
+
+        getAccidentField(
+            item,
+            [
+                "lng",
+                "longitude",
+                "경도"
+            ]
+        ),
+
+        index
+
+    ]
+    .map(
+        value =>
+            String(
+                value ?? ""
+            ).trim()
+    )
+    .join("_");
 
 }
 
@@ -2542,7 +3173,9 @@ function getAccidentId(
    START TIME
 ===================================================== */
 
-function getAccidentStartTime(item){
+function getAccidentStartTime(
+    item
+){
 
     return getAccidentField(
         item,
@@ -2563,10 +3196,14 @@ function getAccidentStartTime(item){
    STATUS
 ===================================================== */
 
-function normalizeStatus(value){
+function normalizeStatus(
+    value
+){
 
     const status =
-        String(value || "")
+        String(
+            value || ""
+        )
         .trim()
         .toUpperCase();
 
@@ -2616,7 +3253,9 @@ function getElapsedTime(
 
 
     const start =
-        new Date(startTime);
+        new Date(
+            startTime
+        );
 
 
     if(
@@ -2666,7 +3305,7 @@ function getElapsedTime(
         );
 
 
-    diff%=3600;
+    diff %= 3600;
 
 
     const minute =
@@ -2680,11 +3319,14 @@ function getElapsedTime(
 
 
     return (
-        String(hour).padStart(2,"0") +
+        String(hour)
+        .padStart(2,"0") +
         ":" +
-        String(minute).padStart(2,"0") +
+        String(minute)
+        .padStart(2,"0") +
         ":" +
-        String(second).padStart(2,"0")
+        String(second)
+        .padStart(2,"0")
     );
 
 }
@@ -2694,7 +3336,9 @@ function getElapsedTime(
    SHARE
 ===================================================== */
 
-async function shareAccident(data){
+async function shareAccident(
+    data
+){
 
     const type =
         getAccidentField(
@@ -2726,7 +3370,9 @@ async function shareAccident(data){
         "접수";
 
 
-    if(status==="ARRIVED"){
+    if(
+        status === "ARRIVED"
+    ){
 
         statusText =
             "현장도착";
@@ -2734,7 +3380,9 @@ async function shareAccident(data){
     }
 
 
-    if(status==="DONE"){
+    if(
+        status === "DONE"
+    ){
 
         statusText =
             "처리완료";
@@ -2837,7 +3485,9 @@ async function shareAccident(data){
 
         mapURL =
             "https://map.kakao.com/link/map/" +
-            lat + "," + lng;
+            lat +
+            "," +
+            lng;
 
     }
 
@@ -2859,7 +3509,8 @@ ${mapURL ? "사고위치: " + mapURL : ""}`;
 
         if(
             navigator.share &&
-            typeof navigator.share === "function"
+            typeof navigator.share ===
+                "function"
         ){
 
             await navigator.share({
@@ -2934,7 +3585,8 @@ ${mapURL ? "사고위치: " + mapURL : ""}`;
 
         if(
             err &&
-            err.name==="AbortError"
+            err.name ===
+                "AbortError"
         ){
 
             return;
@@ -2961,7 +3613,9 @@ ${mapURL ? "사고위치: " + mapURL : ""}`;
    LIST RESPONSE PARSER
 ===================================================== */
 
-function extractAccidentRows(data){
+function extractAccidentRows(
+    data
+){
 
     if(Array.isArray(data)){
 
@@ -3010,6 +3664,37 @@ function extractAccidentRows(data){
     }
 
 
+    if(
+        data &&
+        data.data &&
+        typeof data.data ===
+            "object"
+    ){
+
+        if(
+            Array.isArray(
+                data.data.rows
+            )
+        ){
+
+            return data.data.rows;
+
+        }
+
+
+        if(
+            Array.isArray(
+                data.data.items
+            )
+        ){
+
+            return data.data.items;
+
+        }
+
+    }
+
+
     return [];
 
 }
@@ -3028,7 +3713,8 @@ async function loadAccidents(){
     }
 
 
-    accidentLoading=true;
+    accidentLoading =
+        true;
 
 
     try{
@@ -3039,12 +3725,19 @@ async function loadAccidents(){
                 "?action=list&t=" +
                 Date.now(),
                 {
-                    cache:"no-store"
+                    method:"GET",
+                    cache:"no-store",
+                    headers:{
+                        "Accept":
+                            "application/json"
+                    }
                 }
             );
 
 
-        if(!response.ok){
+        if(
+            !response.ok
+        ){
 
             throw new Error(
                 "HTTP " +
@@ -3054,14 +3747,44 @@ async function loadAccidents(){
         }
 
 
-        const data =
-            await response.json();
+        const text =
+            await response.text();
 
 
-        console.log(
-            "Google 웹스크립트 사고 목록 원본:",
-            data
-        );
+        if(
+            !text.trim()
+        ){
+
+            throw new Error(
+                "서버에서 빈 응답을 받았습니다."
+            );
+
+        }
+
+
+        let data;
+
+
+        try{
+
+            data =
+                JSON.parse(
+                    text
+                );
+
+        }
+        catch(error){
+
+            console.error(
+                "JSON 파싱 실패:",
+                text
+            );
+
+            throw new Error(
+                "서버 응답이 올바른 JSON 형식이 아닙니다."
+            );
+
+        }
 
 
         const rows =
@@ -3070,8 +3793,32 @@ async function loadAccidents(){
             );
 
 
+        if(
+            !Array.isArray(rows)
+        ){
+
+            throw new Error(
+                "사고 목록 데이터 형식이 올바르지 않습니다."
+            );
+
+        }
+
+
+        currentRows =
+            rows;
+
+
         renderAccidents(
             rows
+        );
+
+
+        setSystemStatus(
+            "시스템 정상 · 마지막 갱신 " +
+            new Date().toLocaleTimeString(
+                "ko-KR"
+            ),
+            "ok"
         );
 
     }
@@ -3080,6 +3827,12 @@ async function loadAccidents(){
         console.error(
             "사고 목록 조회 오류:",
             err
+        );
+
+
+        setSystemStatus(
+            "사고 목록 조회 실패",
+            "error"
         );
 
 
@@ -3094,8 +3847,23 @@ async function loadAccidents(){
                     <br><br>
 
                     ${escapeHTML(
-                        err.message
+                        err.message ||
+                        "알 수 없는 오류"
                     )}
+
+                    <br><br>
+
+                    <button
+                        type="button"
+                        onclick="loadAccidents()"
+                        style="
+                            background:#003d5c;
+                            color:white;
+                            border:1px solid #008dcc;
+                        "
+                    >
+                        🔄 다시 불러오기
+                    </button>
 
                 </div>
                 `;
@@ -3105,7 +3873,8 @@ async function loadAccidents(){
     }
     finally{
 
-        accidentLoading=false;
+        accidentLoading =
+            false;
 
     }
 
@@ -3116,52 +3885,74 @@ async function loadAccidents(){
    RENDER
 ===================================================== */
 
-function renderAccidents(data){
+function renderAccidents(
+    data
+){
 
     accidentLayer.clearLayers();
 
 
     const rows =
-        [...data].sort(
-            function(a,b){
-
-                const ta =
-                    new Date(
-                        getAccidentStartTime(a)
-                    ).getTime();
+        Array.isArray(data)
+        ? [...data]
+        : [];
 
 
-                const tb =
-                    new Date(
-                        getAccidentStartTime(b)
-                    ).getTime();
+    rows.sort(
+        function(a,b){
+
+            const ta =
+                new Date(
+                    getAccidentStartTime(a)
+                ).getTime();
 
 
-                if(
-                    Number.isNaN(ta)
-                ){
-
-                    return 1;
-
-                }
+            const tb =
+                new Date(
+                    getAccidentStartTime(b)
+                ).getTime();
 
 
-                if(
-                    Number.isNaN(tb)
-                ){
+            if(
+                Number.isNaN(ta) &&
+                Number.isNaN(tb)
+            ){
 
-                    return -1;
-
-                }
-
-
-                return tb-ta;
+                return 0;
 
             }
-        );
 
 
-    let html="";
+            if(
+                Number.isNaN(ta)
+            ){
+
+                return 1;
+
+            }
+
+
+            if(
+                Number.isNaN(tb)
+            ){
+
+                return -1;
+
+            }
+
+
+            return tb-ta;
+
+        }
+    );
+
+
+    let html =
+        "";
+
+
+    const currentIds =
+        new Set();
 
 
     rows.forEach(
@@ -3172,6 +3963,11 @@ function renderAccidents(data){
                     item,
                     index
                 );
+
+
+            currentIds.add(
+                String(id)
+            );
 
 
             const transmissionNumber =
@@ -3300,11 +4096,12 @@ function renderAccidents(data){
                 );
 
 
-            let overdue=false;
+            let overdue =
+                false;
 
 
             if(
-                status==="RECEIVED" &&
+                status === "RECEIVED" &&
                 startTime
             ){
 
@@ -3320,8 +4117,9 @@ function renderAccidents(data){
 
                     overdue =
                         (
-                            Date.now()-start
-                        )/60000 >= 10;
+                            Date.now() -
+                            start
+                        ) / 60000 >= 10;
 
                 }
 
@@ -3336,7 +4134,9 @@ function renderAccidents(data){
                 "status-received";
 
 
-            if(status==="ARRIVED"){
+            if(
+                status === "ARRIVED"
+            ){
 
                 statusText =
                     "현장도착";
@@ -3347,7 +4147,9 @@ function renderAccidents(data){
             }
 
 
-            if(status==="DONE"){
+            if(
+                status === "DONE"
+            ){
 
                 statusText =
                     "처리완료";
@@ -3358,6 +4160,10 @@ function renderAccidents(data){
             }
 
 
+            /*
+             * 지도 사고 마커
+             */
+
             if(
                 Number.isFinite(lat) &&
                 Number.isFinite(lng)
@@ -3367,7 +4173,9 @@ function renderAccidents(data){
                     "red";
 
 
-                if(status==="ARRIVED"){
+                if(
+                    status === "ARRIVED"
+                ){
 
                     markerColor =
                         "orange";
@@ -3375,7 +4183,9 @@ function renderAccidents(data){
                 }
 
 
-                if(status==="DONE"){
+                if(
+                    status === "DONE"
+                ){
 
                     markerColor =
                         "#777";
@@ -3385,10 +4195,14 @@ function renderAccidents(data){
 
                 const marker =
                     L.circleMarker(
-                        [lat,lng],
+                        [
+                            lat,
+                            lng
+                        ],
                         {
                             radius:
-                                status==="DONE"
+                                status ===
+                                "DONE"
                                 ? 8
                                 : 11,
 
@@ -3401,17 +4215,18 @@ function renderAccidents(data){
                             fillOpacity:
                                 .85,
 
-                            weight:
-                                3
+                            weight:3
                         }
                     );
 
 
-                marker.bindPopup(`
+                marker.bindPopup(
+                    `
                     <div style="
                         font-family:Arial,sans-serif;
                         min-width:240px;
                         color:#111;
+                        line-height:1.5;
                     ">
 
                         <b>
@@ -3428,12 +4243,16 @@ function renderAccidents(data){
                         <br>
 
                         <b>유형:</b>
-                        ${escapeHTML(type)}
+                        ${escapeHTML(
+                            type
+                        )}
 
                         <br>
 
                         <b>상태:</b>
-                        ${escapeHTML(statusText)}
+                        ${escapeHTML(
+                            statusText
+                        )}
 
                         <br>
 
@@ -3463,24 +4282,6 @@ function renderAccidents(data){
                             elapsed
                         )}
 
-                        <br>
-
-                        <b>위도:</b>
-                        ${
-                            Number.isFinite(lat)
-                            ? lat.toFixed(6)
-                            : "-"
-                        }
-
-                        <br>
-
-                        <b>경도:</b>
-                        ${
-                            Number.isFinite(lng)
-                            ? lng.toFixed(6)
-                            : "-"
-                        }
-
                         <br><br>
 
                         ${
@@ -3506,7 +4307,8 @@ function renderAccidents(data){
                         }
 
                     </div>
-                `);
+                    `
+                );
 
 
                 marker.on(
@@ -3514,7 +4316,10 @@ function renderAccidents(data){
                     function(){
 
                         map.setView(
-                            [lat,lng],
+                            [
+                                lat,
+                                lng
+                            ],
                             17
                         );
 
@@ -3533,13 +4338,17 @@ function renderAccidents(data){
                 "case-card";
 
 
-            if(status==="DONE"){
+            if(
+                status === "DONE"
+            ){
 
                 cardClass +=
                     " done";
 
             }
-            else if(status==="ARRIVED"){
+            else if(
+                status === "ARRIVED"
+            ){
 
                 cardClass +=
                     " arrived";
@@ -3549,7 +4358,7 @@ function renderAccidents(data){
 
             if(
                 overdue &&
-                status==="RECEIVED"
+                status === "RECEIVED"
             ){
 
                 cardClass +=
@@ -3562,28 +4371,34 @@ function renderAccidents(data){
                 "🆘";
 
 
-            if(type==="응급환자"){
+            if(
+                type === "응급환자"
+            ){
 
                 typeIcon =
                     "🚑";
 
             }
             else if(
-                type==="구조출동" ||
-                type==="구조신고"
+                type === "구조출동" ||
+                type === "구조신고"
             ){
 
                 typeIcon =
                     "🚓";
 
             }
-            else if(type==="조난"){
+            else if(
+                type === "조난"
+            ){
 
                 typeIcon =
                     "🆘";
 
             }
-            else if(type==="기타"){
+            else if(
+                type === "기타"
+            ){
 
                 typeIcon =
                     "✏️";
@@ -3595,38 +4410,50 @@ function renderAccidents(data){
                 "";
 
 
-            if(status==="RECEIVED"){
+            if(
+                status === "RECEIVED"
+            ){
 
-                actionButtons = `
+                actionButtons =
+                    `
                     <button
                         class="arrive-btn"
                         type="button"
-                        onclick="updateAccidentStatus('${escapeJS(id)}','ARRIVED')"
+                        onclick="updateAccidentStatus(
+                            '${escapeJS(id)}',
+                            'ARRIVED'
+                        )"
                     >
                         🚓 현장 도착
                     </button>
-                `;
+                    `;
 
             }
 
 
-            if(status==="ARRIVED"){
+            if(
+                status === "ARRIVED"
+            ){
 
-                actionButtons = `
+                actionButtons =
+                    `
                     <button
                         class="complete-btn"
                         type="button"
-                        onclick="updateAccidentStatus('${escapeJS(id)}','DONE')"
+                        onclick="updateAccidentStatus(
+                            '${escapeJS(id)}',
+                            'DONE'
+                        )"
                     >
                         ✅ 구조 완료
                     </button>
-                `;
+                    `;
 
             }
 
 
-            const manageButtons = `
-
+            const manageButtons =
+                `
                 <div style="
                     display:grid;
                     grid-template-columns:1fr 1fr;
@@ -3636,7 +4463,9 @@ function renderAccidents(data){
 
                     <button
                         type="button"
-                        onclick="editAccident('${escapeJS(id)}')"
+                        onclick="editAccident(
+                            '${escapeJS(id)}'
+                        )"
                         style="
                             background:#174a70;
                             color:white;
@@ -3649,7 +4478,9 @@ function renderAccidents(data){
 
                     <button
                         type="button"
-                        onclick="deleteAccident('${escapeJS(id)}')"
+                        onclick="deleteAccident(
+                            '${escapeJS(id)}'
+                        )"
                         style="
                             background:#700000;
                             color:white;
@@ -3661,18 +4492,22 @@ function renderAccidents(data){
                     </button>
 
                 </div>
-
-            `;
+                `;
 
 
             const mapButton =
                 Number.isFinite(lat) &&
                 Number.isFinite(lng)
+
                 ?
+
                 `
                 <button
                     type="button"
-                    onclick="focusAccident(${lat},${lng})"
+                    onclick="focusAccident(
+                        ${lat},
+                        ${lng}
+                    )"
                     style="
                         background:#003d5c;
                         color:white;
@@ -3683,57 +4518,51 @@ function renderAccidents(data){
                     📍 사고 위치 보기
                 </button>
                 `
+
                 :
+
                 "";
 
 
-            const contactShareButtons = `
+            const contactShareButtons =
+                `
+                <div class="case-action-row">
 
-                ${
-                    phone
-                    ?
-                    `
-                    <div class="case-action-row">
+                    ${
+                        phone
+                        ?
 
+                        `
                         <a
                             href="tel:${escapeAttribute(phone)}"
                             class="case-action-btn call-btn"
                         >
                             📞 연락
                         </a>
+                        `
 
-                        <button
-                            type="button"
-                            class="case-action-btn share-btn"
-                            onclick="shareAccidentById('${escapeJS(id)}')"
-                        >
-                            📤 공유
-                        </button>
+                        :
 
-                    </div>
-                    `
-                    :
-                    `
-                    <div class="case-action-row">
+                        ""
+                    }
 
-                        <button
-                            type="button"
-                            class="case-action-btn share-btn"
-                            onclick="shareAccidentById('${escapeJS(id)}')"
-                        >
-                            📤 공유
-                        </button>
+                    <button
+                        type="button"
+                        class="case-action-btn share-btn"
+                        onclick="shareAccidentById(
+                            '${escapeJS(id)}'
+                        )"
+                    >
+                        📤 공유
+                    </button>
 
-                    </div>
-                    `
-                }
-
-            `;
+                </div>
+                `;
 
 
             const transmissionHTML =
-
                 transmissionNumber
+
                 ?
 
                 `
@@ -3764,9 +4593,7 @@ function renderAccidents(data){
                         전송번호
                     </span>
 
-                    <span style="
-                        color:#777;
-                    ">
+                    <span style="color:#777;">
                         미수신
                     </span>
 
@@ -3774,11 +4601,11 @@ function renderAccidents(data){
                 `;
 
 
-            html += `
-
+            html +=
+                `
                 <div
                     class="${cardClass}"
-                    data-case-id="${escapeHTML(id)}"
+                    data-case-id="${escapeAttribute(id)}"
                 >
 
                     <div style="
@@ -3789,11 +4616,8 @@ function renderAccidents(data){
                     ">
 
                         <strong>
-
                             ${typeIcon}
-
                             ${escapeHTML(type)}
-
                         </strong>
 
                         <span class="${statusClass}">
@@ -3808,7 +4632,8 @@ function renderAccidents(data){
 
                     ${
                         overdue &&
-                        status==="RECEIVED"
+                        status === "RECEIVED"
+
                         ?
 
                         `
@@ -3867,6 +4692,7 @@ function renderAccidents(data){
 
                         ${
                             phone
+
                             ?
 
                             `
@@ -3896,7 +4722,6 @@ function renderAccidents(data){
                     >
 
                         접수:
-
                         ${escapeHTML(
                             startTime || "-"
                         )}
@@ -3907,7 +4732,6 @@ function renderAccidents(data){
                     <div class="time">
 
                         경과:
-
                         ${escapeHTML(
                             elapsed
                         )}
@@ -3917,13 +4741,13 @@ function renderAccidents(data){
 
                     ${
                         endTime
+
                         ?
 
                         `
                         <div class="time">
 
                             완료:
-
                             ${escapeHTML(
                                 endTime
                             )}
@@ -3940,6 +4764,7 @@ function renderAccidents(data){
                     ${
                         Number.isFinite(lat) &&
                         Number.isFinite(lng)
+
                         ?
 
                         `
@@ -3971,13 +4796,20 @@ function renderAccidents(data){
                     ${manageButtons}
 
                 </div>
+                `;
 
-            `;
 
+            /*
+             * 신규 사고 알림
+             *
+             * 최초 로딩에서는 알림을 울리지 않습니다.
+             */
 
             if(
                 !firstLoad &&
-                !knownIds.has(id)
+                !knownIds.has(
+                    String(id)
+                )
             ){
 
                 playAlert();
@@ -3985,12 +4817,23 @@ function renderAccidents(data){
             }
 
 
+            /*
+             * 10분 이상 미처리 알림
+             *
+             * 한 사고당 한 번만 울립니다.
+             */
+
             if(
                 overdue &&
-                !alertedOverdueIds.has(id)
+                status === "RECEIVED" &&
+                !alertedOverdueIds.has(
+                    String(id)
+                )
             ){
 
-                alertedOverdueIds.add(id);
+                alertedOverdueIds.add(
+                    String(id)
+                );
 
 
                 if(!firstLoad){
@@ -4002,7 +4845,32 @@ function renderAccidents(data){
             }
 
 
-            knownIds.add(id);
+            knownIds.add(
+                String(id)
+            );
+
+        }
+    );
+
+
+    /*
+     * 더 이상 존재하지 않는 사고 ID 제거
+     */
+
+    alertedOverdueIds.forEach(
+        function(id){
+
+            if(
+                !currentIds.has(
+                    String(id)
+                )
+            ){
+
+                alertedOverdueIds.delete(
+                    id
+                );
+
+            }
 
         }
     );
@@ -4020,7 +4888,8 @@ function renderAccidents(data){
         `;
 
 
-    firstLoad=false;
+    firstLoad =
+        false;
 
 }
 
@@ -4046,64 +4915,53 @@ async function shareAccidentById(
 
     try{
 
-        const response =
-            await fetch(
-                ACCIDENT_API_URL +
-                "?action=list&t=" +
-                Date.now(),
-                {
-                    cache:"no-store"
-                }
-            );
+        const target =
+            currentRows.find(
+                function(row,index){
 
-
-        if(!response.ok){
-
-            throw new Error(
-                "HTTP " +
-                response.status
-            );
-
-        }
-
-
-        const data =
-            await response.json();
-
-
-        const rows =
-            extractAccidentRows(
-                data
-            );
-
-
-        let target =
-            null;
-
-
-        rows.forEach(
-            function(row,index){
-
-                if(
-                    String(
+                    return String(
                         getAccidentId(
                             row,
                             index
                         )
                     ) ===
-                    String(caseId)
-                ){
-
-                    target =
-                        row;
+                    String(caseId);
 
                 }
-
-            }
-        );
+            );
 
 
-        if(!target){
+        if(target){
+
+            await shareAccident(
+                target
+            );
+
+            return;
+
+        }
+
+
+        await loadAccidents();
+
+
+        const refreshedTarget =
+            currentRows.find(
+                function(row,index){
+
+                    return String(
+                        getAccidentId(
+                            row,
+                            index
+                        )
+                    ) ===
+                    String(caseId);
+
+                }
+            );
+
+
+        if(!refreshedTarget){
 
             alert(
                 "공유할 신고 내용을 찾을 수 없습니다."
@@ -4115,14 +4973,14 @@ async function shareAccidentById(
 
 
         await shareAccident(
-            target
+            refreshedTarget
         );
 
     }
     catch(err){
 
         console.error(
-            "공유용 신고 조회 오류:",
+            "공유 오류:",
             err
         );
 
@@ -4141,36 +4999,91 @@ async function shareAccidentById(
    ESCAPE
 ===================================================== */
 
-function escapeHTML(value){
+function escapeHTML(
+    value
+){
 
-    return String(value ?? "")
-        .replace(/&/g,"&amp;")
-        .replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;")
-        .replace(/"/g,"&quot;")
-        .replace(/'/g,"&#039;");
+    return String(
+        value ?? ""
+    )
+    .replace(
+        /&/g,
+        "&amp;"
+    )
+    .replace(
+        /</g,
+        "&lt;"
+    )
+    .replace(
+        />/g,
+        "&gt;"
+    )
+    .replace(
+        /"/g,
+        "&quot;"
+    )
+    .replace(
+        /'/g,
+        "&#039;"
+    );
 
 }
 
 
-function escapeAttribute(value){
+function escapeAttribute(
+    value
+){
 
-    return String(value ?? "")
-        .replace(/\\/g,"\\\\")
-        .replace(/"/g,"&quot;")
-        .replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;");
+    return String(
+        value ?? ""
+    )
+    .replace(
+        /&/g,
+        "&amp;"
+    )
+    .replace(
+        /"/g,
+        "&quot;"
+    )
+    .replace(
+        /'/g,
+        "&#039;"
+    )
+    .replace(
+        /</g,
+        "&lt;"
+    )
+    .replace(
+        />/g,
+        "&gt;"
+    );
 
 }
 
 
-function escapeJS(value){
+function escapeJS(
+    value
+){
 
-    return String(value ?? "")
-        .replace(/\\/g,"\\\\")
-        .replace(/'/g,"\\'")
-        .replace(/\r/g,"\\r")
-        .replace(/\n/g,"\\n");
+    return String(
+        value ?? ""
+    )
+    .replace(
+        /\\/g,
+        "\\\\"
+    )
+    .replace(
+        /'/g,
+        "\\'"
+    )
+    .replace(
+        /\r/g,
+        "\\r"
+    )
+    .replace(
+        /\n/g,
+        "\\n"
+    );
 
 }
 
@@ -4202,14 +5115,20 @@ function focusAccident(
 
 
     map.setView(
-        [lat,lng],
+        [
+            lat,
+            lng
+        ],
         17
     );
 
 
     L.popup()
     .setLatLng(
-        [lat,lng]
+        [
+            lat,
+            lng
+        ]
     )
     .setContent(
         `
@@ -4218,7 +5137,9 @@ function focusAccident(
             color:#111;
         ">
 
-            <b>🆘 사고 신고 위치</b>
+            <b>
+                🆘 사고 신고 위치
+            </b>
 
             <br><br>
 
@@ -4239,6 +5160,55 @@ function focusAccident(
 
 
 /* =====================================================
+   FIND CASE
+===================================================== */
+
+function findAccidentById(
+    caseId
+){
+
+    if(!caseId){
+
+        return null;
+
+    }
+
+
+    for(
+        let index=0;
+        index<currentRows.length;
+        index++
+    ){
+
+        const row =
+            currentRows[index];
+
+
+        const id =
+            getAccidentId(
+                row,
+                index
+            );
+
+
+        if(
+            String(id) ===
+            String(caseId)
+        ){
+
+            return row;
+
+        }
+
+    }
+
+
+    return null;
+
+}
+
+
+/* =====================================================
    EDIT
 ===================================================== */
 
@@ -4248,51 +5218,22 @@ async function editAccident(
 
     try{
 
-        const response =
-            await fetch(
-                ACCIDENT_API_URL +
-                "?action=list&t=" +
-                Date.now(),
-                {
-                    cache:"no-store"
-                }
-            );
-
-
-        const data =
-            await response.json();
-
-
-        const rows =
-            extractAccidentRows(
-                data
-            );
-
-
         let item =
-            null;
+            findAccidentById(
+                caseId
+            );
 
 
-        rows.forEach(
-            function(row,index){
+        if(!item){
 
-                if(
-                    String(
-                        getAccidentId(
-                            row,
-                            index
-                        )
-                    ) ===
-                    String(caseId)
-                ){
+            await loadAccidents();
 
-                    item =
-                        row;
+            item =
+                findAccidentById(
+                    caseId
+                );
 
-                }
-
-            }
-        );
+        }
 
 
         if(!item){
@@ -4300,6 +5241,17 @@ async function editAccident(
             alert(
                 "수정할 신고 내용을 찾을 수 없습니다."
             );
+
+            return;
+
+        }
+
+
+        if(
+            !confirm(
+                "✏ 이 신고 내용을 수정하시겠습니까?"
+            )
+        ){
 
             return;
 
@@ -4399,7 +5351,6 @@ async function editAccident(
                 latEl.value
             );
 
-
         const editLng =
             Number(
                 lngEl.value
@@ -4412,7 +5363,10 @@ async function editAccident(
         ){
 
             map.setView(
-                [editLat,editLng],
+                [
+                    editLat,
+                    editLng
+                ],
                 17
             );
 
@@ -4425,29 +5379,43 @@ async function editAccident(
         }
 
 
-        if(
-            !confirm(
-                "✏ 현재 입력창의 내용으로 신고를 수정하시겠습니까?"
-            )
-        ){
-
-            return;
-
-        }
+        editModeCaseId =
+            String(caseId);
 
 
-        await updateAccident(
-            caseId
+        const submitButton =
+            document.getElementById(
+                "submitReportBtn"
+            );
+
+
+        submitButton.textContent =
+            "✏ 신고 수정 저장";
+
+
+        window.scrollTo(
+            {
+                top:0,
+                behavior:"smooth"
+            }
+        );
+
+
+        setSystemStatus(
+            "신고 수정 모드",
+            "ok"
         );
 
     }
     catch(err){
 
-        console.error(err);
+        console.error(
+            err
+        );
 
 
         alert(
-            "신고 수정 중 오류가 발생했습니다.\n" +
+            "신고 수정 준비 중 오류가 발생했습니다.\n\n" +
             err.message
         );
 
@@ -4488,6 +5456,27 @@ async function updateAccident(
     }
 
 
+    const normalizedPhone =
+        normalizePhone(
+            phoneEl.value.trim()
+        );
+
+
+    if(
+        !/^01[016789]\d{7,8}$/.test(
+            normalizedPhone
+        )
+    ){
+
+        alert(
+            "연락처 형식이 올바르지 않습니다."
+        );
+
+        return;
+
+    }
+
+
     const lat =
         coordinateResult.lat;
 
@@ -4498,6 +5487,19 @@ async function updateAccident(
     const address =
         addressEl.value.trim() ||
         `위도 ${lat.toFixed(6)}, 경도 ${lng.toFixed(6)}`;
+
+
+    const button =
+        document.getElementById(
+            "submitReportBtn"
+        );
+
+
+    button.disabled =
+        true;
+
+    button.textContent =
+        "⏳ 수정 저장 중...";
 
 
     try{
@@ -4518,7 +5520,9 @@ async function updateAccident(
                     conditionEl.value.trim(),
 
                 phone:
-                    phoneEl.value.trim(),
+                    formatPhone(
+                        normalizedPhone
+                    ),
 
                 address:
                     address,
@@ -4531,14 +5535,17 @@ async function updateAccident(
 
                 kakaoMapURL:
                     "https://map.kakao.com/link/map/" +
-                    lat + "," + lng
+                    lat +
+                    "," +
+                    lng
 
             });
 
 
         if(
             !result ||
-            result.result !== "success"
+            result.result !==
+                "success"
         ){
 
             throw new Error(
@@ -4560,18 +5567,42 @@ async function updateAccident(
 
         resetReportForm();
 
+
         await loadAccidents();
+
+
+        setSystemStatus(
+            "신고 수정 완료",
+            "ok"
+        );
 
     }
     catch(err){
 
-        console.error(err);
+        console.error(
+            err
+        );
 
 
         alert(
-            "신고 수정 실패\n\n" +
+            "❌ 신고 수정 실패\n\n" +
             err.message
         );
+
+
+        setSystemStatus(
+            "신고 수정 실패",
+            "error"
+        );
+
+    }
+    finally{
+
+        button.disabled =
+            false;
+
+        button.textContent =
+            "🆘 신고접수";
 
     }
 
@@ -4603,14 +5634,16 @@ async function deleteAccident(
         );
 
 
-    if(password===null){
+    if(password === null){
 
         return;
 
     }
 
 
-    if(password.trim()===""){
+    if(
+        password.trim() === ""
+    ){
 
         alert(
             "❌ 삭제 비밀번호를 입력하세요."
@@ -4636,8 +5669,20 @@ async function deleteAccident(
     try{
 
         const cards =
-            document.querySelectorAll(
-                `[data-case-id="${CSS.escape(String(caseId))}"]`
+            Array.from(
+                document.querySelectorAll(
+                    ".case-card[data-case-id]"
+                )
+            )
+            .filter(
+                function(card){
+
+                    return (
+                        card.dataset.caseId ===
+                        String(caseId)
+                    );
+
+                }
             );
 
 
@@ -4671,7 +5716,8 @@ async function deleteAccident(
 
         if(
             !result ||
-            result.result !== "success"
+            result.result !==
+                "success"
         ){
 
             throw new Error(
@@ -4691,7 +5737,23 @@ async function deleteAccident(
         );
 
 
+        knownIds.delete(
+            String(caseId)
+        );
+
+
+        alertedOverdueIds.delete(
+            String(caseId)
+        );
+
+
         await loadAccidents();
+
+
+        setSystemStatus(
+            "신고 삭제 완료",
+            "ok"
+        );
 
     }
     catch(err){
@@ -4744,11 +5806,14 @@ async function updateAccidentStatus(
     let message =
         "처리하시겠습니까?";
 
+
     let action =
         "";
 
 
-    if(status==="ARRIVED"){
+    if(
+        status === "ARRIVED"
+    ){
 
         message =
             "🚓 현장 도착으로 변경하시겠습니까?";
@@ -4759,7 +5824,9 @@ async function updateAccidentStatus(
     }
 
 
-    if(status==="DONE"){
+    if(
+        status === "DONE"
+    ){
 
         message =
             "✅ 구조 완료로 변경하시겠습니까?";
@@ -4777,7 +5844,11 @@ async function updateAccidentStatus(
     }
 
 
-    if(!confirm(message)){
+    if(
+        !confirm(
+            message
+        )
+    ){
 
         return;
 
@@ -4800,7 +5871,8 @@ async function updateAccidentStatus(
 
         if(
             !result ||
-            result.result !== "success"
+            result.result !==
+                "success"
         ){
 
             throw new Error(
@@ -4816,7 +5888,7 @@ async function updateAccidentStatus(
 
 
         alert(
-            status==="ARRIVED"
+            status === "ARRIVED"
             ?
             "🚓 현장 도착 처리 완료"
             :
@@ -4826,15 +5898,33 @@ async function updateAccidentStatus(
 
         await loadAccidents();
 
+
+        setSystemStatus(
+            status === "ARRIVED"
+            ?
+            "현장 도착 처리 완료"
+            :
+            "구조 완료 처리 완료",
+            "ok"
+        );
+
     }
     catch(err){
 
-        console.error(err);
+        console.error(
+            err
+        );
 
 
         alert(
-            "상태 변경 실패\n\n" +
+            "❌ 상태 변경 실패\n\n" +
             err.message
+        );
+
+
+        setSystemStatus(
+            "상태 변경 실패",
+            "error"
         );
 
     }
@@ -4861,29 +5951,41 @@ function playAlert(){
     }
 
 
-    audio.currentTime =
-        0;
+    try{
+
+        audio.currentTime =
+            0;
 
 
-    const promise =
-        audio.play();
+        const promise =
+            audio.play();
 
 
-    if(
-        promise &&
-        typeof promise.catch ===
-        "function"
-    ){
+        if(
+            promise &&
+            typeof promise.catch ===
+                "function"
+        ){
 
-        promise.catch(
-            function(err){
+            promise.catch(
+                function(err){
 
-                console.log(
-                    "알림음 재생 제한:",
-                    err
-                );
+                    console.log(
+                        "알림음 재생 제한:",
+                        err
+                    );
 
-            }
+                }
+            );
+
+        }
+
+    }
+    catch(error){
+
+        console.log(
+            "알림음 오류:",
+            error
         );
 
     }
@@ -4903,6 +6005,9 @@ function startAccidentAutoRefresh(){
             accidentTimer
         );
 
+        accidentTimer =
+            null;
+
     }
 
 
@@ -4911,7 +6016,24 @@ function startAccidentAutoRefresh(){
 
     accidentTimer =
         setInterval(
-            loadAccidents,
+            function(){
+
+                /*
+                 * 다른 탭에 있을 때는 요청하지 않음
+                 */
+
+                if(
+                    document.hidden
+                ){
+
+                    return;
+
+                }
+
+
+                loadAccidents();
+
+            },
             60000
         );
 
@@ -4919,36 +6041,16 @@ function startAccidentAutoRefresh(){
 
 
 /* =====================================================
-   INIT
+   VISIBILITY
 ===================================================== */
-
-window.addEventListener(
-    "load",
-    function(){
-
-        loadAccidents();
-
-        startAccidentAutoRefresh();
-
-
-        setTimeout(
-            function(){
-
-                map.invalidateSize();
-
-            },
-            300
-        );
-
-    }
-);
-
 
 document.addEventListener(
     "visibilitychange",
     function(){
 
-        if(!document.hidden){
+        if(
+            !document.hidden
+        ){
 
             loadAccidents();
 
@@ -4957,6 +6059,10 @@ document.addEventListener(
     }
 );
 
+
+/* =====================================================
+   RESIZE
+===================================================== */
 
 window.addEventListener(
     "resize",
@@ -4968,8 +6074,37 @@ window.addEventListener(
                 map.invalidateSize();
 
             },
-            100
+            150
         );
+
+    }
+);
+
+
+/* =====================================================
+   INIT
+===================================================== */
+
+window.addEventListener(
+    "load",
+    function(){
+
+        setSystemStatus(
+            "시스템 연결 중..."
+        );
+
+
+        setTimeout(
+            function(){
+
+                map.invalidateSize();
+
+            },
+            300
+        );
+
+
+        startAccidentAutoRefresh();
 
     }
 );
@@ -4986,7 +6121,8 @@ document.addEventListener(
         if(
             e.ctrlKey &&
             e.shiftKey &&
-            e.key.toLowerCase()==="r"
+            e.key.toLowerCase() ===
+                "r"
         ){
 
             e.preventDefault();
@@ -5000,7 +6136,41 @@ document.addEventListener(
 
 
 /* =====================================================
-   CONTEXT MENU / DEV SHORTCUT
+   CANCEL EDIT
+===================================================== */
+
+document.addEventListener(
+    "keydown",
+    function(e){
+
+        if(
+            e.key === "Escape" &&
+            editModeCaseId
+        ){
+
+            if(
+                confirm(
+                    "수정 모드를 취소하시겠습니까?"
+                )
+            ){
+
+                resetReportForm();
+
+                setSystemStatus(
+                    "수정 모드 취소",
+                    "ok"
+                );
+
+            }
+
+        }
+
+    }
+);
+
+
+/* =====================================================
+   CONTEXT MENU
 ===================================================== */
 
 document.addEventListener(
@@ -5013,11 +6183,17 @@ document.addEventListener(
 );
 
 
+/* =====================================================
+   DEV SHORTCUT BLOCK
+===================================================== */
+
 document.addEventListener(
     "keydown",
     function(e){
 
-        if(e.key==="F12"){
+        if(
+            e.key === "F12"
+        ){
 
             e.preventDefault();
 
@@ -5026,7 +6202,8 @@ document.addEventListener(
 
         if(
             e.ctrlKey &&
-            e.key.toLowerCase()==="u"
+            e.key.toLowerCase() ===
+                "u"
         ){
 
             e.preventDefault();
@@ -5037,7 +6214,8 @@ document.addEventListener(
         if(
             e.ctrlKey &&
             e.shiftKey &&
-            e.key.toLowerCase()==="i"
+            e.key.toLowerCase() ===
+                "i"
         ){
 
             e.preventDefault();
@@ -5048,7 +6226,8 @@ document.addEventListener(
         if(
             e.ctrlKey &&
             e.shiftKey &&
-            e.key.toLowerCase()==="j"
+            e.key.toLowerCase() ===
+                "j"
         ){
 
             e.preventDefault();
@@ -5059,7 +6238,8 @@ document.addEventListener(
         if(
             e.ctrlKey &&
             e.shiftKey &&
-            e.key.toLowerCase()==="c"
+            e.key.toLowerCase() ===
+                "c"
         ){
 
             e.preventDefault();
@@ -5069,7 +6249,8 @@ document.addEventListener(
 
         if(
             e.ctrlKey &&
-            e.key.toLowerCase()==="s"
+            e.key.toLowerCase() ===
+                "s"
         ){
 
             e.preventDefault();
