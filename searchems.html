@@ -4118,13 +4118,24 @@ function renderAccidents(
             const transmissionNumber =
     getTransmissionNumberFromItem(item);
 
-console.log("[전송번호 확인]", {
-    item: item,
-    transmissionNumber: transmissionNumber
-});
+// 전송번호
+const transmissionNumber =
+    getTransmissionNumberFromItem(item);
 
 const displayTransmissionNumber =
     transmissionNumber || "-";
+
+// 사고번호
+const accidentNumber = String(
+    getAccidentField(item, [
+        "accidentNumber",
+        "accidentNo",
+        "사고번호"
+    ]) || ""
+).trim();
+
+const displayAccidentNumber =
+    accidentNumber || "미발급";
 
 
             const status =
@@ -4774,7 +4785,13 @@ const displayTransmissionNumber =
 
 
                     ${transmissionHTML}
-
+                    
+<div class="accident-number">
+    <span>사고번호</span>
+    <strong>
+        ${escapeHTML(displayAccidentNumber)}
+    </strong>
+</div>
 
                     ${
                         overdue &&
