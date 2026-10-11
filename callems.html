@@ -659,17 +659,19 @@ async function submitData(){
         phoneEl.value.trim();
 
     const address =
-        addressEl.value.trim();
+    addressEl.value.trim();
 
-    const lat =
-        Number(
-            latEl.value
-        );
+const latText =
+    latEl.value.trim();
 
-    const lng =
-        Number(
-            lngEl.value
-        );
+const lngText =
+    lngEl.value.trim();
+
+const lat =
+    Number(latText);
+
+const lng =
+    Number(lngText);
 
 
     if(!selectedType){
@@ -722,18 +724,19 @@ async function submitData(){
     }
 
 
-    if(
-        !Number.isFinite(lat) ||
-        !Number.isFinite(lng)
-    ){
+    if (
+    latText === "" ||
+    lngText === "" ||
+    !Number.isFinite(lat) ||
+    !Number.isFinite(lng)
+) {
+    alert(
+        "📍 주소를 입력하고 주소 검색으로 " +
+        "위도와 경도를 확인해주세요."
+    );
 
-        alert(
-            "📍 주소 검색으로 위치를 확인해주세요."
-        );
-
-        return;
-
-    }
+    return;
+}
 
 
     if(
