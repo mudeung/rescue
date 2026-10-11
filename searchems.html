@@ -2347,7 +2347,7 @@ async function submitData() {
 
     try {
         const transmissionNumber =
-            getTransmissionNumber(new Date());
+    getTransmissionNumber(new Date());
 
         const payload = {
             action: "create",
@@ -2382,18 +2382,18 @@ async function submitData() {
             );
         }
 
-        const savedTransmissionNumber =
-            result.sendId ||
-            result.transmissionNumber ||
-            transmissionNumber;
+        cconst savedTransmissionNumber =
+    result.accidentNumber ||
+    result.transmissionNumber ||
+    result.sendId ||
+    transmissionNumber;
 
-        alert(
-            "🆘 신고접수 완료\n\n" +
-            "신고 유형 : " + selectedType + "\n" +
-            "전송번호 : " + savedTransmissionNumber + "\n\n" +
-            "🚑 무등산특수산악구조대에\n" +
-            "신고가 정상적으로 접수되었습니다."
-        );
+alert(
+    "🆘 신고접수 완료\n\n" +
+    "🆘 사고번호: " + savedTransmissionNumber +
+    "\n\n🚑 무등산특수산악구조대에\n" +
+    "신고가 정상적으로 접수되었습니다."
+);
 
         resetReportForm();
 
@@ -2437,12 +2437,25 @@ async function postAccident(payload) {
         );
     }
 
-    const transmissionNumber =
-        String(payload.transmissionNumber || "").trim();
+    const transmissionNumber = String(
+    payload.transmissionNumber ||
+    payload.sendId ||
+    payload.deviceId ||
+    payload.transmissionNo ||
+    ""
+).trim();
 
-    if (!transmissionNumber) {
-        throw new Error("전송번호가 없어 저장 여부를 확인할 수 없습니다.");
-    }
+if (!transmissionNumber) {
+    console.error(
+        "전송번호 확인 실패. 실제 payload:",
+        payload
+    );
+
+    throw new Error(
+        "전송번호를 확인할 수 없습니다. " +
+        "신고 데이터의 전송번호 필드를 확인해 주세요."
+    );
+}
 
     // POST는 한 번만 전송합니다.
     try {
