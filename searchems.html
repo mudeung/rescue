@@ -2424,7 +2424,8 @@ document
     .addEventListener("click", submitData);
       
 /* =====================================================
-   POST API - 응답 오류 진단 및 중복 접수 방지
+   POST API - CORS 대응 및 저장 여부 확인
+   주의: POST 요청은 재전송하지 않음
 ===================================================== */
 
 async function postAccident(payload) {
@@ -2436,56 +2437,75 @@ async function postAccident(payload) {
         );
     }
 
+    const transmissionNumber =
+        String(payload.transmissionNumber || "").trim();
+
+    if (!transmissionNumber) {
+        throw new Error("전송번호가 없어 저장 여부를 확인할 수 없습니다.");
+    }
+
+    // POST는 한 번만 전송합니다.
     try {
-        const response = await fetch(url, {
+        await fetch(url, {
             method: "POST",
+            mode: "no-cors",
             headers: {
                 "Content-Type": "text/plain;charset=utf-8"
             },
-            body: JSON.stringify(payload),
-            redirect: "follow"
+            body: JSON.stringify(payload)
         });
-
-        const text = await response.text();
-
-        console.log("HTTP 상태:", response.status);
-        console.log("응답 본문:", text);
-
-        let data;
-
-        try {
-            data = JSON.parse(text);
-        } catch {
-            throw new Error(
-                "서버 응답을 JSON으로 해석할 수 없습니다."
-            );
-        }
-
-        if (!response.ok) {
-            throw new Error(
-                data.message || `HTTP ${response.status}`
-            );
-        }
-
-        if (data.result !== "success") {
-            throw new Error(
-                data.message || "신고 접수 실패"
-            );
-        }
-
-        return data;
-
     } catch (error) {
-        console.error("[신고 접수 오류]", error);
+        console.error("[신고 전송 오류]", error);
 
         throw new Error(
-            "신고 결과를 확인할 수 없습니다. " +
-            "신고 목록에서 접수 여부를 먼저 확인해 주세요. " +
-            "원인: " + (error.message || String(error))
+            "신고 전송 결과를 확인할 수 없습니다. " +
+            "신고 목록을 확인한 후 재접수 여부를 결정해 주세요."
         );
     }
-}
 
+    // 응답 본문 대신 JSONP 목록에서 저장 여부를 확인합니다.
+    for (let attempt = 0; attempt < 10; attempt++) {
+        if (attempt > 0) {
+            await new Promise(resolve =>
+                setTimeout(resolve, 1000)
+            );
+        }
+
+        try {
+            const data = await getAccidentsJSONP();
+            const rows = extractAccidentRows(data);
+
+            if (!Array.isArray(rows)) {
+                throw new Error("사고 목록 형식이 올바르지 않습니다.");
+            }
+
+            const saved = rows.find(item =>
+                String(item.sendId || "").trim() ===
+                transmissionNumber
+            );
+
+            if (saved) {
+                return {
+                    ...saved,
+                    result: "success",
+                    transmissionNumber
+                };
+            }
+        } catch (error) {
+            console.warn(
+                "[신고 저장 확인 오류]",
+                attempt + 1,
+                error
+            );
+        }
+    }
+
+    throw new Error(
+        "신고 전송 요청은 완료됐지만 저장 여부를 확인하지 못했습니다. " +
+        "신고 목록과 스프레드시트를 확인한 후 재접수해 주세요."
+    );
+}
+      
 /* =====================================================
    RESET
 ===================================================== */
