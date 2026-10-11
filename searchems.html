@@ -2283,11 +2283,15 @@ function formatPhone(
 
 
 /* =====================================================
-   SUBMIT - 수정 버전
+   SUBMIT - 신고 접수
+   - 전송번호 필수 확인
+   - 사고번호와 전송번호 분리 표시
+   - 중복 클릭 방지
 ===================================================== */
 
 async function submitData() {
 
+    // 수정 모드이면 기존 수정 기능 사용
     if (editModeCaseId) {
         await updateAccident(editModeCaseId);
         return;
@@ -2346,14 +2350,23 @@ async function submitData() {
     button.textContent = "⏳ 신고 접수 중...";
 
     try {
-        const transmissionNumber =
-    getTransmissionNumber(new Date());
+        // 전송번호 생성
+        const transmissionNumber = String(
+            getTransmissionNumber(new Date()) || ""
+        ).trim();
+
+        if (!transmissionNumber) {
+            throw new Error(
+                "전송번호를 생성하지 못했습니다. 다시 확인해 주세요."
+            );
+        }
 
         const payload = {
             action: "create",
 
-            // 서버 createAccident()의 필드명에 맞춤
+            // 서버 호환용 전송번호 필드
             sendId: transmissionNumber,
+            transmissionNumber: transmissionNumber,
 
             deviceId: DEVICE_ID,
             deviceCode: DEVICE_CODE,
@@ -2374,26 +2387,37 @@ async function submitData() {
             status: "RECEIVED"
         };
 
+        // POST는 postAccident 내부에서 한 번만 실행
         const result = await postAccident(payload);
 
         if (!result || result.result !== "success") {
             throw new Error(
-                result?.message || "신고 접수 실패"
+                result?.message || "신고 접수 결과를 확인하지 못했습니다."
             );
         }
 
-        const savedTransmissionNumber =
-    result.accidentNumber ||
-    result.transmissionNumber ||
-    result.sendId ||
-    transmissionNumber;
+        // 서버 발급 사고번호
+        const savedAccidentNumber = String(
+            result.accidentNumber || ""
+        ).trim();
 
-alert(
-    "🆘 신고접수 완료\n\n" +
-    "🆘 사고번호: " + savedTransmissionNumber +
-    "\n\n🚑 무등산특수산악구조대에\n" +
-    "신고가 정상적으로 접수되었습니다."
-);
+        // 저장된 전송번호
+        const savedTransmissionNumber = String(
+            getTransmissionNumberFromItem(result) ||
+            result.sendId ||
+            result.transmissionNumber ||
+            transmissionNumber
+        ).trim();
+
+        alert(
+            "🆘 신고 접수 완료\n\n" +
+            "사고번호: " +
+            (savedAccidentNumber || "미발급") +
+            "\n전송번호: " +
+            (savedTransmissionNumber || "미수신") +
+            "\n\n🚑 무등산 특수산악구조대에\n" +
+            "신고가 정상적으로 접수되었습니다."
+        );
 
         resetReportForm();
 
@@ -2407,8 +2431,8 @@ alert(
         alert(
             "❌ 신고 결과 확인 실패\n\n" +
             (err.message || "알 수 없는 오류") +
-            "\n\n신고 목록에서 접수 여부를 먼저 확인하세요. " +
-            "중복 신고 방지를 위해 확인 전 재접수하지 마세요."
+            "\n\n사고 목록과 Google Sheets에서 접수 여부를 먼저 확인하세요." +
+            "\n중복 신고 방지를 위해 확인 전 재접수하지 마세요."
         );
 
         setSystemStatus("신고 결과 확인 필요", "error");
@@ -2425,14 +2449,15 @@ document
       
 /* =====================================================
    POST API - 신고 및 사고 처리 요청
-   no-cors 응답 대신 JSONP 사고 목록으로 결과 확인
-   POST 재전송 금지
+   - POST 재전송 금지
+   - JSONP 사고 목록으로 결과 확인
+   - 전송번호 및 사고번호 분리
 ===================================================== */
 
 async function postAccident(payload) {
     const url = ACCIDENT_API_URL;
 
-    if (!url || !url.endsWith("/exec")) {
+    if (!url || !/\/exec(?:\?|$)/.test(url)) {
         throw new Error(
             "Google Apps Script 배포 URL을 확인해 주세요."
         );
@@ -2442,22 +2467,38 @@ async function postAccident(payload) {
         throw new Error("요청 작업(action)이 없습니다.");
     }
 
-    const action = String(payload.action).trim();
+    const action = String(payload.action).trim().toLowerCase();
 
-    // 신규 신고에만 전송번호 필수
+    const request = { ...payload };
+
+    // 전송번호 필드명 통일
     const transmissionNumber = String(
-        payload.transmissionNumber ||
-        payload.sendId ||
+        request.sendId ||
+        request.transmissionNumber ||
+        request.transmissionNo ||
+        request.transferNumber ||
         ""
     ).trim();
 
-    if (action === "create" && !transmissionNumber) {
-        throw new Error(
-            "전송번호가 없습니다. 신고 데이터를 확인해 주세요."
-        );
+    if (action === "create") {
+        if (!transmissionNumber) {
+            throw new Error(
+                "전송번호가 없습니다. 신고 데이터를 확인해 주세요."
+            );
+        }
+
+        request.sendId = transmissionNumber;
+        request.transmissionNumber = transmissionNumber;
     }
 
-    // POST는 반드시 한 번만 전송
+    if (
+        ["update", "delete", "complete", "finish"].includes(action) &&
+        !request.id
+    ) {
+        throw new Error("처리할 신고 ID가 없습니다.");
+    }
+
+    // POST는 반드시 한 번만 전송합니다.
     try {
         await fetch(url, {
             method: "POST",
@@ -2465,19 +2506,20 @@ async function postAccident(payload) {
             headers: {
                 "Content-Type": "text/plain;charset=utf-8"
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(request)
         });
     } catch (error) {
         console.error("[사고 요청 전송 오류]", error);
 
         throw new Error(
             "요청 전송 결과를 확인할 수 없습니다. " +
-            "사고 목록을 확인한 후 재시도 여부를 결정해 주세요."
+            "사고 목록과 Google Sheets를 확인해 주세요. " +
+            "중복 방지를 위해 자동 재전송하지 않습니다."
         );
     }
 
-    // JSONP 목록에서 요청 결과를 확인합니다.
-    // 확인에 실패해도 POST 요청을 다시 보내지 않습니다.
+    // POST 응답은 no-cors 모드에서 읽을 수 없으므로
+    // JSONP 목록을 조회해 처리 결과를 확인합니다.
     for (let attempt = 0; attempt < 10; attempt++) {
         if (attempt > 0) {
             await new Promise(resolve =>
@@ -2486,8 +2528,8 @@ async function postAccident(payload) {
         }
 
         try {
-            const data = await getAccidentsJSONP();
-            const rows = extractAccidentRows(data);
+            const response = await getAccidentsJSONP();
+            const rows = extractAccidentRows(response);
 
             if (!Array.isArray(rows)) {
                 continue;
@@ -2496,10 +2538,10 @@ async function postAccident(payload) {
             const findTarget = () =>
                 rows.find((item, index) =>
                     String(getAccidentId(item, index)) ===
-                    String(payload.id)
+                    String(request.id)
                 );
 
-            // 신규 신고: 전송번호로 저장 여부 확인
+            // 신규 신고: 전송번호가 일치하는 저장 데이터 확인
             if (action === "create") {
                 const saved = rows.find(item =>
                     getTransmissionNumberFromItem(item) ===
@@ -2510,14 +2552,23 @@ async function postAccident(payload) {
                     return {
                         ...saved,
                         result: "success",
-                        transmissionNumber
+                        id: getAccidentId(saved, 0),
+                        sendId: getTransmissionNumberFromItem(saved),
+                        transmissionNumber:
+                            getTransmissionNumberFromItem(saved),
+                        accidentNumber: String(
+                            getAccidentField(saved, [
+                                "accidentNumber",
+                                "사고번호"
+                            ]) || ""
+                        ).trim()
                     };
                 }
 
                 continue;
             }
 
-            // 수정: 해당 사고가 존재하고 주요 필드가 반영됐는지 확인
+            // 신고 수정: 저장된 주요 항목 비교
             if (action === "update") {
                 const saved = findTarget();
 
@@ -2528,26 +2579,26 @@ async function postAccident(payload) {
                 const savedType = String(
                     getAccidentField(saved, [
                         "type", "accidentType", "신고유형", "유형"
-                    ])
+                    ]) || ""
                 ).trim();
 
                 const savedSymptom = String(
                     getAccidentField(saved, [
                         "symptom", "condition", "description",
                         "상황", "내용"
-                    ])
+                    ]) || ""
                 ).trim();
 
                 const savedPhone = normalizePhone(
                     getAccidentField(saved, [
                         "phone", "tel", "telephone", "연락처"
-                    ])
+                    ]) || ""
                 );
 
                 const savedAddress = String(
                     getAccidentField(saved, [
                         "address", "주소", "location", "장소"
-                    ])
+                    ]) || ""
                 ).trim();
 
                 const savedLat = Number(
@@ -2563,14 +2614,14 @@ async function postAccident(payload) {
                 );
 
                 const matches =
-                    savedType === String(payload.type).trim() &&
-                    savedSymptom === String(payload.symptom).trim() &&
-                    savedPhone === normalizePhone(payload.phone) &&
-                    savedAddress === String(payload.address).trim() &&
+                    savedType === String(request.type || "").trim() &&
+                    savedSymptom === String(request.symptom || "").trim() &&
+                    savedPhone === normalizePhone(request.phone || "") &&
+                    savedAddress === String(request.address || "").trim() &&
                     Number.isFinite(savedLat) &&
                     Number.isFinite(savedLng) &&
-                    Math.abs(savedLat - Number(payload.lat)) < 0.000001 &&
-                    Math.abs(savedLng - Number(payload.lng)) < 0.000001;
+                    Math.abs(savedLat - Number(request.lat)) < 0.000001 &&
+                    Math.abs(savedLng - Number(request.lng)) < 0.000001;
 
                 if (matches) {
                     return {
@@ -2582,14 +2633,12 @@ async function postAccident(payload) {
                 continue;
             }
 
-            // 삭제: 목록에서 사고가 사라졌는지 확인
+            // 삭제: 목록에서 해당 신고가 사라졌는지 확인
             if (action === "delete") {
-                const saved = findTarget();
-
-                if (!saved) {
+                if (!findTarget()) {
                     return {
                         result: "success",
-                        id: String(payload.id)
+                        id: String(request.id)
                     };
                 }
 
@@ -2637,9 +2686,9 @@ async function postAccident(payload) {
     }
 
     throw new Error(
-        "요청을 전송했지만 처리 결과를 확인하지 못했습니다. " +
-        "사고 목록과 Google Sheets를 확인해 주세요. " +
-        "중복 처리를 방지하기 위해 확인 전 재요청하지 마세요."
+        "요청은 전송했지만 저장 결과를 확인하지 못했습니다.\n" +
+        "사고 목록과 Google Sheets를 확인해 주세요.\n" +
+        "중복 신고 방지를 위해 자동 재전송하지 않았습니다."
     );
 }
       
