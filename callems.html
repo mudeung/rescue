@@ -183,23 +183,6 @@ let loadingList = false;
 const $ = id => document.getElementById(id);
 
 const conditionEl = $("condition");
-const accidentTypeEl = $("accidentType");
-
-// 사고유형 선택 시 상황 입력란에 자동 반영
-accidentTypeEl.addEventListener("change", () => {
-  const type = accidentTypeEl.value;
-
-  if (!type) return;
-
-  conditionEl.value = type + ": ";
-
-  // 커서를 입력 끝으로 이동
-  conditionEl.focus();
-  conditionEl.setSelectionRange(
-    conditionEl.value.length,
-    conditionEl.value.length
-  );
-});
 const phoneEl = $("phone");
 const addressEl = $("address");
 const latEl = $("lat");
