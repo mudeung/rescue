@@ -2382,7 +2382,7 @@ async function submitData() {
             );
         }
 
-        cconst savedTransmissionNumber =
+        const savedTransmissionNumber =
     result.accidentNumber ||
     result.transmissionNumber ||
     result.sendId ||
@@ -2424,8 +2424,9 @@ document
     .addEventListener("click", submitData);
       
 /* =====================================================
-   POST API - CORS 대응 및 저장 여부 확인
-   주의: POST 요청은 재전송하지 않음
+   POST API - 신고 및 사고 처리 요청
+   no-cors 응답 대신 JSONP 사고 목록으로 결과 확인
+   POST 재전송 금지
 ===================================================== */
 
 async function postAccident(payload) {
@@ -2437,27 +2438,26 @@ async function postAccident(payload) {
         );
     }
 
+    if (!payload || !payload.action) {
+        throw new Error("요청 작업(action)이 없습니다.");
+    }
+
+    const action = String(payload.action).trim();
+
+    // 신규 신고에만 전송번호 필수
     const transmissionNumber = String(
-    payload.transmissionNumber ||
-    payload.sendId ||
-    payload.deviceId ||
-    payload.transmissionNo ||
-    ""
-).trim();
+        payload.transmissionNumber ||
+        payload.sendId ||
+        ""
+    ).trim();
 
-if (!transmissionNumber) {
-    console.error(
-        "전송번호 확인 실패. 실제 payload:",
-        payload
-    );
+    if (action === "create" && !transmissionNumber) {
+        throw new Error(
+            "전송번호가 없습니다. 신고 데이터를 확인해 주세요."
+        );
+    }
 
-    throw new Error(
-        "전송번호를 확인할 수 없습니다. " +
-        "신고 데이터의 전송번호 필드를 확인해 주세요."
-    );
-}
-
-    // POST는 한 번만 전송합니다.
+    // POST는 반드시 한 번만 전송
     try {
         await fetch(url, {
             method: "POST",
@@ -2468,15 +2468,16 @@ if (!transmissionNumber) {
             body: JSON.stringify(payload)
         });
     } catch (error) {
-        console.error("[신고 전송 오류]", error);
+        console.error("[사고 요청 전송 오류]", error);
 
         throw new Error(
-            "신고 전송 결과를 확인할 수 없습니다. " +
-            "신고 목록을 확인한 후 재접수 여부를 결정해 주세요."
+            "요청 전송 결과를 확인할 수 없습니다. " +
+            "사고 목록을 확인한 후 재시도 여부를 결정해 주세요."
         );
     }
 
-    // 응답 본문 대신 JSONP 목록에서 저장 여부를 확인합니다.
+    // JSONP 목록에서 요청 결과를 확인합니다.
+    // 확인에 실패해도 POST 요청을 다시 보내지 않습니다.
     for (let attempt = 0; attempt < 10; attempt++) {
         if (attempt > 0) {
             await new Promise(resolve =>
@@ -2489,24 +2490,146 @@ if (!transmissionNumber) {
             const rows = extractAccidentRows(data);
 
             if (!Array.isArray(rows)) {
-                throw new Error("사고 목록 형식이 올바르지 않습니다.");
+                continue;
             }
 
-            const saved = rows.find(item =>
-                String(item.sendId || "").trim() ===
-                transmissionNumber
+            const findTarget = () =>
+                rows.find((item, index) =>
+                    String(getAccidentId(item, index)) ===
+                    String(payload.id)
+                );
+
+            // 신규 신고: 전송번호로 저장 여부 확인
+            if (action === "create") {
+                const saved = rows.find(item =>
+                    getTransmissionNumberFromItem(item) ===
+                    transmissionNumber
+                );
+
+                if (saved) {
+                    return {
+                        ...saved,
+                        result: "success",
+                        transmissionNumber
+                    };
+                }
+
+                continue;
+            }
+
+            // 수정: 해당 사고가 존재하고 주요 필드가 반영됐는지 확인
+            if (action === "update") {
+                const saved = findTarget();
+
+                if (!saved) {
+                    continue;
+                }
+
+                const savedType = String(
+                    getAccidentField(saved, [
+                        "type", "accidentType", "신고유형", "유형"
+                    ])
+                ).trim();
+
+                const savedSymptom = String(
+                    getAccidentField(saved, [
+                        "symptom", "condition", "description",
+                        "상황", "내용"
+                    ])
+                ).trim();
+
+                const savedPhone = normalizePhone(
+                    getAccidentField(saved, [
+                        "phone", "tel", "telephone", "연락처"
+                    ])
+                );
+
+                const savedAddress = String(
+                    getAccidentField(saved, [
+                        "address", "주소", "location", "장소"
+                    ])
+                ).trim();
+
+                const savedLat = Number(
+                    getAccidentField(saved, [
+                        "lat", "latitude", "위도"
+                    ])
+                );
+
+                const savedLng = Number(
+                    getAccidentField(saved, [
+                        "lng", "longitude", "경도"
+                    ])
+                );
+
+                const matches =
+                    savedType === String(payload.type).trim() &&
+                    savedSymptom === String(payload.symptom).trim() &&
+                    savedPhone === normalizePhone(payload.phone) &&
+                    savedAddress === String(payload.address).trim() &&
+                    Number.isFinite(savedLat) &&
+                    Number.isFinite(savedLng) &&
+                    Math.abs(savedLat - Number(payload.lat)) < 0.000001 &&
+                    Math.abs(savedLng - Number(payload.lng)) < 0.000001;
+
+                if (matches) {
+                    return {
+                        ...saved,
+                        result: "success"
+                    };
+                }
+
+                continue;
+            }
+
+            // 삭제: 목록에서 사고가 사라졌는지 확인
+            if (action === "delete") {
+                const saved = findTarget();
+
+                if (!saved) {
+                    return {
+                        result: "success",
+                        id: String(payload.id)
+                    };
+                }
+
+                continue;
+            }
+
+            // 현장 도착 / 구조 완료
+            if (action === "complete" || action === "finish") {
+                const saved = findTarget();
+
+                if (!saved) {
+                    continue;
+                }
+
+                const expectedStatus =
+                    action === "complete" ? "ARRIVED" : "DONE";
+
+                const actualStatus = normalizeStatus(
+                    getAccidentField(saved, [
+                        "status", "state", "상태", "처리상태"
+                    ])
+                );
+
+                if (actualStatus === expectedStatus) {
+                    return {
+                        ...saved,
+                        result: "success"
+                    };
+                }
+
+                continue;
+            }
+
+            throw new Error(
+                "지원하지 않는 요청 작업입니다: " + action
             );
 
-            if (saved) {
-                return {
-                    ...saved,
-                    result: "success",
-                    transmissionNumber
-                };
-            }
         } catch (error) {
             console.warn(
-                "[신고 저장 확인 오류]",
+                "[요청 결과 확인 오류]",
                 attempt + 1,
                 error
             );
@@ -2514,8 +2637,9 @@ if (!transmissionNumber) {
     }
 
     throw new Error(
-        "신고 전송 요청은 완료됐지만 저장 여부를 확인하지 못했습니다. " +
-        "신고 목록과 스프레드시트를 확인한 후 재접수해 주세요."
+        "요청을 전송했지만 처리 결과를 확인하지 못했습니다. " +
+        "사고 목록과 Google Sheets를 확인해 주세요. " +
+        "중복 처리를 방지하기 위해 확인 전 재요청하지 마세요."
     );
 }
       
