@@ -1236,56 +1236,60 @@ function getTransmissionNumber(item){
 
 
 /* =====================================================
-   ID
+   사고번호
+   예: 2610111554-XX-014
 ===================================================== */
 
-function getAccidentId(item,index){
+function getAccidentId(item, index){
 
-    const value =
-        getField(
-            item,
-            [
-                "id",
-                "ID",
-                "caseId",
-                "caseID",
-                "사고ID"
-            ]
-        );
+    const value = getField(
+        item,
+        [
+            "사고번호",
+            "사고 번호",
+            "accidentNumber",
+            "accidentNo",
+            "accidentId",
+            "caseNumber",
+            "caseNo",
+            "caseId",
+            "caseID",
+            "id",
+            "ID"
+        ]
+    );
 
     if(value !== ""){
-        return String(value);
+        return String(value).trim();
     }
 
-    const createdAt =
-        getField(
-            item,
-            [
-                "createdAt",
-                "timestamp",
-                "접수시간"
-            ]
-        );
-
-    const address =
-        getField(
-            item,
-            [
-                "address",
-                "주소"
-            ]
-        );
-
+    // 사고번호가 없을 때만 기존 대체 ID 사용
     return (
-        String(createdAt) +
+        String(
+            getField(
+                item,
+                [
+                    "createdAt",
+                    "timestamp",
+                    "접수시간"
+                ]
+            )
+        ) +
         "|" +
-        String(address) +
+        String(
+            getField(
+                item,
+                [
+                    "address",
+                    "주소"
+                ]
+            )
+        ) +
         "|" +
         String(index)
     );
 
 }
-
 
 /* =====================================================
    START TIME
