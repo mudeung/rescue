@@ -748,10 +748,9 @@ button:disabled{
 <script>
 
 /* =====================================================
-   비밀번호설정
+   메인 화면 잠금
 ===================================================== */
-const MAIN_PASSWORD = "knps";
-const LOGIN_KEY = "MUDEUNG_RESCUE_AUTH";
+const MAIN_PASSWORD = "KNPS";
 
 const loginScreen = document.getElementById("loginScreen");
 const mainApp = document.getElementById("mainApp");
@@ -759,50 +758,19 @@ const loginForm = document.getElementById("loginForm");
 const loginPassword = document.getElementById("loginPassword");
 const loginError = document.getElementById("loginError");
 
-// 로그인 상태 확인 및 화면 표시
-function showMainApp() {
-    loginScreen.style.display = "none";
-    mainApp.classList.remove("locked");
-
-    setTimeout(function() {
-        if (typeof map !== "undefined") {
-            map.invalidateSize();
-        }
-    }, 200);
-}
-
-function showLoginScreen() {
-    loginScreen.style.display = "flex";
-    mainApp.classList.add("locked");
-}
-
-// 저장된 로그인 상태 확인
-try {
-    if (localStorage.getItem(LOGIN_KEY) === "true") {
-        showMainApp();
-    } else {
-        showLoginScreen();
-    }
-} catch (error) {
-    showLoginScreen();
-}
-
-// 로그인 처리
 loginForm.addEventListener("submit", function(e) {
     e.preventDefault();
 
     if (loginPassword.value === MAIN_PASSWORD) {
-        try {
-            localStorage.setItem(LOGIN_KEY, "true");
-        } catch (error) {
-            loginError.textContent =
-                "로그인 상태를 저장할 수 없습니다.";
-            return;
-        }
+        loginScreen.style.display = "none";
+        mainApp.classList.remove("locked");
 
         loginPassword.value = "";
         loginError.textContent = "";
-        showMainApp();
+
+        setTimeout(function() {
+            map.invalidateSize();
+        }, 200);
     } else {
         loginError.textContent =
             "비밀번호가 올바르지 않습니다.";
