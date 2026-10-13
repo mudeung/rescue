@@ -6404,7 +6404,7 @@ document.addEventListener(
 
 
 /* =====================================================
-   CANCEL EDIT
+   REFRESH SHORTCUT
 ===================================================== */
 
 document.addEventListener(
@@ -6412,24 +6412,14 @@ document.addEventListener(
     function(e){
 
         if(
-            e.key === "Escape" &&
-            editModeCaseId
+            e.ctrlKey &&
+            e.shiftKey &&
+            e.key.toLowerCase()==="r"
         ){
 
-            if(
-                confirm(
-                    "수정 모드를 취소하시겠습니까?"
-                )
-            ){
+            e.preventDefault();
 
-                resetReportForm();
-
-                setSystemStatus(
-                    "수정 모드 취소",
-                    "ok"
-                );
-
-            }
+            loadAccidents();
 
         }
 
@@ -6438,33 +6428,96 @@ document.addEventListener(
 
 
 /* =====================================================
-   CONTEXT MENU
+   BASIC SECURITY UI
 ===================================================== */
 
-document.addEventListener("contextmenu", function(e) {
-    e.preventDefault();
-});
+document.addEventListener(
+    "contextmenu",
+    function(e){
 
-/* =====================================================
-   DEV SHORTCUT BLOCK
-===================================================== */
-
-document.addEventListener("keydown", function(e) {
-    const key = e.key.toLowerCase();
-
-    const blocked =
-        e.key === "F12" ||
-        (e.ctrlKey && key === "u") ||
-        (e.ctrlKey && e.shiftKey && key === "i") ||
-        (e.ctrlKey && e.shiftKey && key === "j") ||
-        (e.ctrlKey && e.shiftKey && key === "c") ||
-        (e.ctrlKey && key === "s");
-
-    if (blocked) {
         e.preventDefault();
-        e.stopPropagation();
+
     }
-});
+);
+
+
+document.addEventListener(
+    "keydown",
+    function(e){
+
+        if(e.key==="F12"){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+
+        if(
+            e.ctrlKey &&
+            e.key.toLowerCase()==="u"
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+
+        if(
+            e.ctrlKey &&
+            e.shiftKey &&
+            e.key.toLowerCase()==="i"
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+
+        if(
+            e.ctrlKey &&
+            e.shiftKey &&
+            e.key.toLowerCase()==="j"
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+
+        if(
+            e.ctrlKey &&
+            e.shiftKey &&
+            e.key.toLowerCase()==="c"
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+
+        if(
+            e.ctrlKey &&
+            e.key.toLowerCase()==="s"
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+    }
+);
       
 </script>
 
