@@ -1780,90 +1780,44 @@ async function updatePendingCount(){
 // SEND ONE RECORD
 // =========================================================
 
-async function sendRecord(record){
+// =========================================================
+// SEND ONE RECORD
+// =========================================================
+
+async function sendRecord(record) {
 
     const payload = {
-
-        name:
-            record.name,
-
-        device:
-            record.device,
-
-        lat:
-            record.lat,
-
-        lng:
-            record.lng,
-
-        accuracy:
-            record.accuracy,
-
-        speed:
-            record.speed,
-
-        heading:
-            record.heading,
-
-        status:
-            record.status,
-
-        startTime:
-            record.startTime || "",
-
-        endTime:
-            record.endTime || "",
-
-        recordedAt:
-            record.recordedAt || "",
-
-        localSavedAt:
-            record.savedAt || ""
-
+        name: record.name,
+        device: record.device,
+        lat: record.lat,
+        lng: record.lng,
+        accuracy: record.accuracy,
+        speed: record.speed,
+        heading: record.heading,
+        status: record.status,
+        startTime: record.startTime || "",
+        endTime: record.endTime || "",
+        recordedAt: record.recordedAt || "",
+        localSavedAt: record.savedAt || ""
     };
 
+    const response = await fetch(
+        API_URL,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "text/plain;charset=utf-8"
+            },
+            body: JSON.stringify(payload)
+        }
+    );
 
-    const response =
-        await fetch(
-
-            API_URL,
-
-            {
-
-                method:
-                    "POST",
-
-                headers: {
-
-                    "Content-Type":
-                        "text/plain;charset=utf-8"
-
-                },
-
-                body:
-                    JSON.stringify(
-                        payload
-                    )
-
-            }
-
-        );
-
-
-    if(!response.ok){
-
-        throw new Error(
-            "HTTP " +
-            response.status
-        );
-
+    if (!response.ok) {
+        throw new Error("HTTP " + response.status);
     }
 
-
     return true;
-
 }
-
 
 // =========================================================
 // SEND PENDING QUEUE
@@ -2437,11 +2391,13 @@ async function releaseWakeLock(){
 // GPS SUCCESS
 // =========================================================
 
-async function handleGPSPosition(pos){
+// =========================================================
+// GPS SUCCESS
+// =========================================================
 
-    gpsLastUpdate =
-        Date.now();
+async function handleGPSPosition(pos) {
 
+    gpsLastUpdate = Date.now();
 
     setStatus(
         gpsStatus,
@@ -2449,85 +2405,34 @@ async function handleGPSPosition(pos){
         "on"
     );
 
-
-    /*
-       ★ 중요 ★
-       STOP 이후에는 GPS 위치 자체는 계속 받지만
-       기록은 절대 하지 않는다.
-    */
-
-    if(!isTracking){
-
-        return;
-
-    }
-
-
-    const newPosition = {
-
-        name:
-            myName,
-
-        device:
-            DEVICE_ID,
-
-        lat:
-            pos.coords.latitude,
-
-        lng:
-            pos.coords.longitude,
-
-        accuracy:
-            pos.coords.accuracy,
-
-        speed:
-            pos.coords.speed,
-
-        heading:
-            pos.coords.heading,
-
-        status:
-            "normal",
-
-        startTime:
-            startTime,
-
-        endTime:
-            "",
-
-        recordedAt:
-            getNowTime()
-
+    // GPS 위치는 STOP 이후에도 갱신
+    lastPos = {
+        name: myName,
+        device: DEVICE_ID,
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+        accuracy: pos.coords.accuracy,
+        speed: pos.coords.speed,
+        heading: pos.coords.heading,
+        status: "normal",
+        startTime: startTime,
+        endTime: "",
+        recordedAt: getNowTime()
     };
 
-
-    lastPos =
-        newPosition;
-
-
-    /*
-       추적 중에는 지도 중심을
-       현재 GPS 위치로 이동
-    */
-
-    if(isTracking){
-
-        map.setCenter(
-
-            new kakao.maps.LatLng(
-
-                lastPos.lat,
-
-                lastPos.lng
-
-            )
-
-        );
-
+    // STOP 상태에서는 자동 기록하지 않음
+    if (!isTracking) {
+        return;
     }
 
+    // 추적 중일 때만 지도 중심 이동
+    map.setCenter(
+        new kakao.maps.LatLng(
+            lastPos.lat,
+            lastPos.lng
+        )
+    );
 }
-
 
 // =========================================================
 // GPS ERROR
@@ -3480,8 +3385,8 @@ if (navigator.onLine) {
 } else {
     alert("🚨 SOS 기록을 휴대폰에 저장했습니다.\n오프라인 전송 대기 중입니다.");
 }
+    
 }
-
 
 // =========================================================
 // MOBILE AUTO CENTER
