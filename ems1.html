@@ -1805,7 +1805,6 @@ function renumberVitals(){
 
 /*************************************************
  * 활력징후 이상 참고
- *
  * 숫자는 진단/KTAS 자동결정이 아니라
  * 기록 확인을 위한 경고용입니다.
  *************************************************/
@@ -1899,6 +1898,28 @@ function checkVitalSigns(row){
 
 }
 
+const bpInput = row.querySelector(".vital-bp");
+const bpMatch = bpInput.value.trim().match(
+    /^(\d{2,3})\s*\/\s*(\d{2,3})$/
+);
+
+let abnormalBP = false;
+
+if (bpMatch) {
+    const systolic = Number(bpMatch[1]);
+    const diastolic = Number(bpMatch[2]);
+
+    abnormalBP =
+        systolic < 90 ||
+        systolic >= 180 ||
+        diastolic < 60 ||
+        diastolic >= 120;
+}
+
+bpInput.classList.toggle(
+    "vital-abnormal",
+    abnormalBP
+);    
 
 /*************************************************
  * 전체 활력징후 경고
@@ -2283,9 +2304,27 @@ async function saveToGoogleSheets(){
             );
 
 
-        const result=
-            await response.json();
+        if (!response.ok) {
+    throw new Error(
+        `HTTP 오류: ${response.status}`
+    );
+}
 
+const responseText = await response.text();
+let result;
+
+try {
+    result = JSON.parse(responseText);
+} catch {
+    throw new Error(
+        "서버가 JSON 응답을 반환하지 않았습니다. " +
+        "Apps Script의 배포 설정과 응답 형식을 확인하세요."
+    );
+}
+
+if (!result.success) {
+    throw new Error(result.message || "저장 실패");
+}
 
         if(!result.success){
 
