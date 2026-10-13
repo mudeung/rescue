@@ -771,6 +771,52 @@ button:disabled{
 
 }
 
+/* =====================================================
+   메인 화면 잠금
+===================================================== */      
+#loginScreen {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: #050b18;
+}
+
+.login-box {
+    width: 100%;
+    max-width: 380px;
+    padding: 25px;
+    border: 1px solid #00ff9d;
+    background: #07101f;
+    box-shadow: 0 0 25px rgba(0,255,157,.15);
+    text-align: center;
+}
+
+.login-box h2 {
+    color: #00ff9d;
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.login-box p {
+    color: #8aa;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+#loginError {
+    color: #ff5555;
+    font-size: 13px;
+    min-height: 20px;
+}
+
+#mainApp.locked {
+    display: none;
+}
+      
 </style>
 
 </head>
@@ -778,6 +824,39 @@ button:disabled{
 
 <body>
 
+/* =====================================================
+   메인 화면 잠금
+===================================================== */
+<!-- 로그인 화면 -->
+<div id="loginScreen">
+    <div class="login-box">
+        <h2>🛰 SEARCH & RESCUE</h2>
+        <p>무등산특수산악구조대<br>시스템 접근 인증</p>
+
+        <form id="loginForm">
+            <input
+                type="password"
+                id="loginPassword"
+                placeholder="접속 비밀번호 입력"
+                autocomplete="current-password"
+                required
+            >
+
+            <button type="submit">
+                🔐 시스템 접속
+            </button>
+
+            <div id="loginError" role="alert"></div>
+        </form>
+    </div>
+</div>
+
+<!-- 기존 메인 화면 -->
+<div id="mainApp" class="locked">
+    <!-- 기존 header와 container를 이 안에 배치 -->
+</div>
+
+      
 
 <header>
     🛰 무등산특수산악구조대 SEARCH & RESCUE AI SYSTEM
@@ -1125,7 +1204,39 @@ button:disabled{
 
 
 <script>
+/* =====================================================
+   메인 화면 잠금
+===================================================== */
+const MAIN_PASSWORD = "KNPS";
 
+const loginScreen = document.getElementById("loginScreen");
+const mainApp = document.getElementById("mainApp");
+const loginForm = document.getElementById("loginForm");
+const loginPassword = document.getElementById("loginPassword");
+const loginError = document.getElementById("loginError");
+
+loginForm.addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    if (loginPassword.value === MAIN_PASSWORD) {
+        loginScreen.style.display = "none";
+        mainApp.classList.remove("locked");
+
+        loginPassword.value = "";
+        loginError.textContent = "";
+
+        setTimeout(function() {
+            map.invalidateSize();
+        }, 200);
+    } else {
+        loginError.textContent =
+            "비밀번호가 올바르지 않습니다.";
+
+        loginPassword.value = "";
+        loginPassword.focus();
+    }
+});
+      
 /* =====================================================
    API
 ===================================================== */
