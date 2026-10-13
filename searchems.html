@@ -6466,120 +6466,33 @@ document.addEventListener(
 
 
 /* =====================================================
-   REFRESH SHORTCUT
+   CONTEXT MENU
 ===================================================== */
 
-document.addEventListener(
-    "keydown",
-    function(e){
-
-        if(
-            e.ctrlKey &&
-            e.shiftKey &&
-            e.key.toLowerCase()==="r"
-        ){
-
-            e.preventDefault();
-
-            loadAccidents();
-
-        }
-
-    }
-);
-
+document.addEventListener("contextmenu", function(e) {
+    e.preventDefault();
+});
 
 /* =====================================================
-   BASIC SECURITY UI
+   DEV SHORTCUT BLOCK
 ===================================================== */
 
-document.addEventListener(
-    "contextmenu",
-    function(e){
+document.addEventListener("keydown", function(e) {
+    const key = e.key.toLowerCase();
 
+    const blocked =
+        e.key === "F12" ||
+        (e.ctrlKey && key === "u") ||
+        (e.ctrlKey && e.shiftKey && key === "i") ||
+        (e.ctrlKey && e.shiftKey && key === "j") ||
+        (e.ctrlKey && e.shiftKey && key === "c") ||
+        (e.ctrlKey && key === "s");
+
+    if (blocked) {
         e.preventDefault();
-
+        e.stopPropagation();
     }
-);
-
-
-document.addEventListener(
-    "keydown",
-    function(e){
-
-        if(e.key==="F12"){
-
-            e.preventDefault();
-
-            return false;
-
-        }
-
-
-        if(
-            e.ctrlKey &&
-            e.key.toLowerCase()==="u"
-        ){
-
-            e.preventDefault();
-
-            return false;
-
-        }
-
-
-        if(
-            e.ctrlKey &&
-            e.shiftKey &&
-            e.key.toLowerCase()==="i"
-        ){
-
-            e.preventDefault();
-
-            return false;
-
-        }
-
-
-        if(
-            e.ctrlKey &&
-            e.shiftKey &&
-            e.key.toLowerCase()==="j"
-        ){
-
-            e.preventDefault();
-
-            return false;
-
-        }
-
-
-        if(
-            e.ctrlKey &&
-            e.shiftKey &&
-            e.key.toLowerCase()==="c"
-        ){
-
-            e.preventDefault();
-
-            return false;
-
-        }
-
-
-        if(
-            e.ctrlKey &&
-            e.key.toLowerCase()==="s"
-        ){
-
-            e.preventDefault();
-
-            return false;
-
-        }
-
-    }
-);
+});
       
 </script>
 
