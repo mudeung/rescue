@@ -470,57 +470,67 @@ button{
 
 @media (min-width: 601px) and (max-width: 1024px) {
 
-    /* 생명위협 여부 및 응급증상 선택 영역 */
-    #ktasAssist {
-        overflow-wrap: break-word;
+    /* KTAS 카드 내부의 그리드 넘침 방지 */
+    .card .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px 14px;
     }
 
     .card .field {
         min-width: 0;
     }
 
-    /* 라디오 버튼과 체크박스 줄바꿈 허용 */
+    /* 생명위협 여부 등 선택 영역 */
+    #ktas .check-group,
     .card .check-group {
         display: flex;
         flex-wrap: wrap;
         align-items: flex-start;
-        gap: 10px 16px;
+        gap: 12px 18px;
         overflow: visible;
         white-space: normal;
         min-width: 0;
     }
 
-    /* 선택 버튼과 글씨가 겹치지 않도록 배치 */
+    /* 라디오·체크박스와 글씨를 한 묶음으로 정렬 */
     .card .check-group label {
         display: inline-flex;
+        flex-direction: row;
         align-items: center;
-        gap: 7px;
-        flex-shrink: 1;
-        min-width: 0;
-        white-space: normal;
-        line-height: 1.5;
+        justify-content: flex-start;
+        gap: 8px;
         margin: 0;
+        padding: 3px 0;
+        min-width: 0;
+        flex: 0 1 auto;
+        white-space: normal;
+        line-height: 1.6;
+        font-size: 14px;
     }
 
+    /* 전역 input { width:100% } 스타일 덮어쓰기 */
     .card .check-group input[type="radio"],
     .card .check-group input[type="checkbox"] {
-        flex: 0 0 18px;
         width: 18px;
+        min-width: 18px;
         height: 18px;
+        flex: 0 0 18px;
         margin: 0;
         padding: 0;
     }
 
-    /* 주요 응급증상은 두 열로 표시 */
+    /* 주요 응급증상: 두 열로 배치 */
     .card .field.full .check-group {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
         gap: 12px 16px;
     }
 
     .card .field.full .check-group label {
-        justify-content: flex-start;
-        overflow-wrap: anywhere;
+        width: 100%;
+        overflow-wrap: break-word;
+        word-break: keep-all;
     }
 }
     
