@@ -2528,6 +2528,10 @@ async function handleGPSPosition(pos){
 // GPS ERROR
 // =========================================================
 
+// =========================================================
+// GPS ERROR
+// =========================================================
+
 function handleGPSError(err){
 
     console.log(
@@ -2535,6 +2539,18 @@ function handleGPSError(err){
         err
     );
 
+    // STOP 이후에는 기록 OFF 상태 유지
+    if(!isTracking){
+
+        setStatus(
+            gpsStatus,
+            "📍 기록 OFF",
+            "warn"
+        );
+
+        return;
+
+    }
 
     setStatus(
         gpsStatus,
@@ -3445,22 +3461,19 @@ async function sendSOS(){
     };
 
 
-    await saveAndSend(
-        data
-    );
+const saved = await saveAndSend(data);
 
+setStatus(gpsStatus, "📍 GPS ON", "on");
 
-    setStatus(
-        gpsStatus,
-        "📍 GPS ON",
-        "on"
-    );
+if (saved === false) {
+    alert("🚨 SOS 기록을 저장하지 못했습니다.");
+    return;
+}
 
-
-    alert(
-        "🚨 SOS 기록 저장 및 전송 완료"
-    );
-
+if (navigator.onLine) {
+    alert("🚨 SOS 기록을 휴대폰에 저장했습니다.\n서버 전송 상태는 별도 확인이 필요합니다.");
+} else {
+    alert("🚨 SOS 기록을 휴대폰에 저장했습니다.\n오프라인 전송 대기 중입니다.");
 }
 
 
@@ -4644,16 +4657,9 @@ function showHistory(data){
     }
 
 
-    if(
-        data.length > 0 &&
-        grouped
-    ){
-
-        map.setBounds(
-            bounds
-        );
-
-    }
+   if (Object.keys(grouped).length > 0) {
+    map.setBounds(bounds);
+}
 
 }
 
