@@ -206,6 +206,24 @@
 
         }
 
+.battery-box {
+    margin-top: 10px;
+    padding: 12px;
+    background: #fff8e1;
+    border-left: 4px solid #f9a825;
+    border-radius: 5px;
+    line-height: 1.7;
+    font-size: 15px;
+    font-weight: bold;
+    color: #333;
+}
+
+.battery-box.battery-low {
+    background: #ffebee;
+    border-left-color: #d32f2f;
+    color: #d32f2f;
+}
+        
     </style>
 
 
@@ -349,9 +367,14 @@
 
             <div
                 id="addressInfo"
-                class="address-box"
-            >
+                class="address-box">
 
+                
+             <div id="batteryInfo" class="battery-box">
+              🔋 배터리 잔량 확인 중...
+             </div>
+
+                
                 <div class="address-title">
 
                     🏠 현재 위치 주소
@@ -443,7 +466,75 @@
 
         let geocoder;
 
+/* =========================================
+   배터리 정보
+========================================= */
 
+let currentBatteryLevel = null;
+let currentBatteryCharging = null;
+
+async function updateBatteryInfo() {
+
+    const batteryInfo =
+        document.getElementById("batteryInfo");
+
+    if (!("getBattery" in navigator)) {
+        batteryInfo.textContent =
+            "🔋 배터리 잔량 확인 불가";
+        return;
+    }
+
+    try {
+        const battery = await navigator.getBattery();
+
+        function update() {
+
+            currentBatteryLevel =
+                Math.round(battery.level * 100);
+
+            currentBatteryCharging =
+                battery.charging;
+
+            const chargingText =
+                battery.charging
+                    ? "⚡ 충전 중"
+                    : "🔌 충전 중 아님";
+
+            batteryInfo.textContent =
+                `🔋 배터리 잔량: ${currentBatteryLevel}% · ${chargingText}`;
+
+            if (currentBatteryLevel <= 20) {
+                batteryInfo.classList.add("battery-low");
+            } else {
+                batteryInfo.classList.remove("battery-low");
+            }
+        }
+
+        update();
+
+        battery.addEventListener(
+            "levelchange",
+            update
+        );
+
+        battery.addEventListener(
+            "chargingchange",
+            update
+        );
+
+    } catch (error) {
+
+        currentBatteryLevel = null;
+        currentBatteryCharging = null;
+
+        batteryInfo.textContent =
+            "🔋 배터리 잔량 확인 불가";
+    }
+}
+
+updateBatteryInfo();
+
+        
         /* =====================================================
            문자 수신 구조대 번호
         ====================================================== */
@@ -1140,7 +1231,19 @@
                문자 내용
             ================================================== */
 
-            const smsText =
+            const batteryText =
+    currentBatteryLevel === null
+        ? "확인 불가"
+        : `${currentBatteryLevel}%` +
+          (
+              currentBatteryCharging === null
+                  ? ""
+                  : currentBatteryCharging
+                      ? " (충전 중)"
+                      : " (충전 중 아님)"
+          );
+
+const smsText =
 
 `🚨 [산악구조요청]
 
@@ -1148,6 +1251,9 @@
 ${sendId}
 
 📝 위치공유시스템에서 전송
+
+🔋 휴대전화 배터리:
+${batteryText}
 
 🏠 주소:
 ${currentAddress}
@@ -1161,7 +1267,6 @@ ${lng}
 🗺 카카오맵:
 ${kakaoMapURL}
 `;
-
 
             /* =================================================
                화면 전송 상태
