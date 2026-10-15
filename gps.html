@@ -471,13 +471,19 @@ let currentBatteryLevel = null;
 let currentBatteryCharging = null;
 
 async function updateBatteryInfo() {
+    const batteryInfo = document.getElementById("batteryInfo");
 
-    const batteryInfo =
-        document.getElementById("batteryInfo");
+    function showBatteryUnavailable(message) {
+        currentBatteryLevel = null;
+        currentBatteryCharging = null;
+        batteryInfo.textContent = "🔋 " + message;
+        batteryInfo.classList.remove("battery-low");
+    }
 
-    if (!("getBattery" in navigator)) {
-        batteryInfo.textContent =
-            "🔋 배터리 잔량 확인 불가";
+    if (typeof navigator.getBattery !== "function") {
+        showBatteryUnavailable(
+            "이 브라우저는 배터리 잔량 확인을 지원하지 않습니다."
+        );
         return;
     }
 
@@ -485,52 +491,37 @@ async function updateBatteryInfo() {
         const battery = await navigator.getBattery();
 
         function update() {
+            currentBatteryLevel = Math.round(battery.level * 100);
+            currentBatteryCharging = battery.charging;
 
-            currentBatteryLevel =
-                Math.round(battery.level * 100);
-
-            currentBatteryCharging =
-                battery.charging;
-
-            const chargingText =
-                battery.charging
-                    ? "⚡ 충전 중"
-                    : "🔌 충전 중 아님";
+            const chargingText = battery.charging
+                ? "⚡ 충전 중"
+                : "🔌 충전 중 아님";
 
             batteryInfo.textContent =
                 `🔋 배터리 잔량: ${currentBatteryLevel}% · ${chargingText}`;
 
-            if (currentBatteryLevel <= 20) {
-                batteryInfo.classList.add("battery-low");
-            } else {
-                batteryInfo.classList.remove("battery-low");
-            }
+            batteryInfo.classList.toggle(
+                "battery-low",
+                currentBatteryLevel <= 20
+            );
         }
 
         update();
 
-        battery.addEventListener(
-            "levelchange",
-            update
-        );
-
-        battery.addEventListener(
-            "chargingchange",
-            update
-        );
+        battery.addEventListener("levelchange", update);
+        battery.addEventListener("chargingchange", update);
 
     } catch (error) {
+        console.error("배터리 확인 오류:", error);
 
-        currentBatteryLevel = null;
-        currentBatteryCharging = null;
-
-        batteryInfo.textContent =
-            "🔋 배터리 잔량 확인 불가";
+        showBatteryUnavailable(
+            "배터리 정보를 가져올 수 없습니다."
+        );
     }
 }
 
 updateBatteryInfo();
-
         
         /* =====================================================
            문자 수신 구조대 번호
