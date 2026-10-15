@@ -491,21 +491,24 @@ async function updateBatteryInfo() {
         const battery = await navigator.getBattery();
 
         function update() {
-            currentBatteryLevel = Math.round(battery.level * 100);
-            currentBatteryCharging = battery.charging;
+    currentBatteryLevel =
+        Math.round(battery.level * 100);
 
-            const chargingText = battery.charging
-                ? "⚡ 충전 중"
-                : "🔌 충전 중 아님";
+    currentBatteryCharging = battery.charging;
 
-            batteryInfo.textContent =
-                `🔋 배터리 잔량: ${currentBatteryLevel}% · ${chargingText}`;
+    console.log("배터리 원본 잔량:", battery.level);
+    console.log("배터리 잔량(%):", currentBatteryLevel);
+    console.log("충전 상태:", battery.charging);
 
-            batteryInfo.classList.toggle(
-                "battery-low",
-                currentBatteryLevel <= 20
-            );
-        }
+    batteryInfo.textContent =
+        `🔋 배터리 잔량: ${currentBatteryLevel}% · ` +
+        (battery.charging ? "⚡ 충전 중" : "🔌 충전 중 아님");
+
+    batteryInfo.classList.toggle(
+        "battery-low",
+        currentBatteryLevel <= 20
+    );
+}
 
         update();
 
