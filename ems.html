@@ -616,19 +616,37 @@ $("getLocation").addEventListener("click", () => {
    기록 문자열 생성
 ========================= */
 
-function buildRecord(data, gcs) {
-  const lines = Object.entries(data).map(([key, value]) => {
-    return `${key}: ${value === "" ? "(미입력)" : value}`;
-  });
 
+/* =========================
+   기록 문자열 생성
+========================= */
+
+function buildRecord(data, gcs) {
+  const excludedKeys = [
+    "GCS_E",
+    "GCS_V",
+    "GCS_M",
+    "GCS 눈뜨기",
+    "GCS언어반응",
+    "GCS 언어반응",
+    "GCS운동반응",
+    "GCS 운동반응",
+    "GCS"
+  ];
+
+  const lines = Object.entries(data)
+    .filter(([key]) => !excludedKeys.includes(key))
+    .map(([key, value]) => {
+      return `${key}: ${value === "" ? "(미입력)" : value}`;
+    });
+
+  // GCS 총점만 한 번 표시
   lines.push(`GCS: ${gcs.result}`);
-  lines.push(`GCS 눈뜨기(E): ${gcs.eye}`);
-  lines.push(`GCS 언어반응(V): ${gcs.verbal}`);
-  lines.push(`GCS 운동반응(M): ${gcs.motor}`);
   lines.push(`기록 생성시간: ${new Date().toLocaleString("ko-KR")}`);
 
   return lines.join("\n");
 }
+
 
 /* =========================
    화면에 기록 표시
