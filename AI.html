@@ -26,477 +26,447 @@
 
 <style>
 
-*{
-    box-sizing:border-box;
+/* =====================================================
+   사고 현황 관제 시스템 — DARK NEON UI
+===================================================== */
+
+* {
+    box-sizing: border-box;
 }
 
 html,
-body{
-    margin:0;
-    padding:0;
-    width:100%;
-    height:100%;
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
 }
 
-body{
-    background:#050b18;
-    color:#00ff9d;
-    font-family:monospace;
-    overflow:hidden;
+body {
+    background: #050b18;
+    color: #00ff9d;
+    font-family: monospace;
+    overflow: hidden;
 }
 
 /* =====================================================
    HEADER
 ===================================================== */
 
-header{
-    height:50px;
-    background:#071a2f;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-weight:bold;
-    font-size:18px;
-    border-bottom:1px solid #123c55;
-    position:relative;
-    z-index:2000;
+header {
+    height: 50px;
+    background: #071a2f;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+    border-bottom: 1px solid #123c55;
+    position: relative;
+    z-index: 2000;
 }
 
 /* =====================================================
    MAP
 ===================================================== */
 
-#map{
-    position:absolute;
-    top:50px;
-    left:0;
-    right:0;
-    bottom:0;
-    width:100%;
-    height:calc(100vh - 50px);
+#map {
+    position: absolute;
+    top: 50px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: calc(100vh - 50px);
 }
 
 /* =====================================================
    사고 건수
 ===================================================== */
 
-#accidentCount{
-    position:absolute;
-    top:65px;
-    left:50%;
-    transform:translateX(-50%);
-    z-index:1500;
-    padding:10px 20px;
-    background:rgba(0,0,0,.90);
-    color:#00ff9d;
-    border:2px solid #00ff9d;
-    border-radius:8px;
-    font-family:monospace;
-    font-size:17px;
-    font-weight:bold;
-    box-shadow:0 0 12px rgba(0,255,157,.6);
-    white-space:nowrap;
-    pointer-events:none;
+#accidentCount {
+    position: absolute;
+    top: 65px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1500;
+    padding: 10px 20px;
+    background: rgba(0, 0, 0, 0.90);
+    color: #00ff9d;
+    border: 2px solid #00ff9d;
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 17px;
+    font-weight: bold;
+    box-shadow: 0 0 12px rgba(0, 255, 157, 0.6);
+    white-space: nowrap;
+    pointer-events: none;
 }
 
 /* =====================================================
-   좌표
+   좌표 표시
 ===================================================== */
 
-.mouse-coords{
-    background:rgba(0,0,0,.88);
-    color:#00ff9d;
-    border:1px solid #00ff9d;
-    border-radius:5px;
-    padding:6px 10px;
-    font-size:12px;
-    font-family:monospace;
-    box-shadow:0 0 8px #00ff9d;
+.mouse-coords {
+    background: rgba(0, 0, 0, 0.88);
+    color: #00ff9d;
+    border: 1px solid #00ff9d;
+    border-radius: 5px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-family: monospace;
+    box-shadow: 0 0 8px #00ff9d;
 }
 
 /* =====================================================
-   팝업
+   Leaflet 팝업
 ===================================================== */
 
-.leaflet-popup-content-wrapper{
-    background:#fff !important;
-    color:#111 !important;
-    border-radius:8px;
+.leaflet-popup-content-wrapper {
+    background: #fff !important;
+    color: #111 !important;
+    border-radius: 8px;
 }
 
-.leaflet-popup-content{
-    color:#111 !important;
-    font-family:
-        Arial,
-        "Malgun Gothic",
-        sans-serif !important;
-    font-size:14px;
-    line-height:1.55;
-    margin:14px !important;
+.leaflet-popup-content {
+    color: #111 !important;
+    font-family: Arial, "Malgun Gothic", sans-serif !important;
+    font-size: 14px;
+    line-height: 1.55;
+    margin: 14px !important;
 }
 
-.leaflet-popup-tip{
-    background:#fff !important;
+.leaflet-popup-tip {
+    background: #fff !important;
 }
 
-.accident-popup{
-    min-width:270px;
-    color:#111 !important;
-    background:#fff !important;
+.accident-popup {
+    min-width: 270px;
+    color: #111 !important;
+    background: #fff !important;
 }
 
-.accident-popup *{
-    color:#111;
+.accident-popup * {
+    color: #111;
 }
 
-.popup-title{
-    font-size:17px;
-    font-weight:bold;
-    color:#b00000 !important;
-    margin-bottom:8px;
+.popup-title {
+    font-size: 17px;
+    font-weight: bold;
+    color: #b00000 !important;
+    margin-bottom: 8px;
 }
 
-.popup-status{
-    display:inline-block;
-    padding:4px 9px;
-    border-radius:5px;
-    color:#fff !important;
-    font-weight:bold;
-    margin-bottom:8px;
+.popup-status {
+    display: inline-block;
+    padding: 4px 9px;
+    border-radius: 5px;
+    color: #fff !important;
+    font-weight: bold;
+    margin-bottom: 8px;
 }
 
-.popup-received{
-    background:#d50000;
+.popup-received {
+    background: #d50000;
 }
 
-.popup-arrived{
-    background:#ef6c00;
+.popup-arrived {
+    background: #ef6c00;
 }
 
-.popup-done{
-    background:#666;
+.popup-done {
+    background: #666;
 }
 
-.popup-row{
-    margin-top:5px;
+.popup-row {
+    margin-top: 5px;
 }
 
-.popup-label{
-    font-weight:bold;
-    color:#333 !important;
+.popup-label {
+    font-weight: bold;
+    color: #333 !important;
 }
 
-.popup-value{
-    color:#111 !important;
-    word-break:break-word;
+.popup-value {
+    color: #111 !important;
+    word-break: break-word;
 }
 
-.transmission-number{
-    display:inline-block;
-    color:#0057b8 !important;
-    font-weight:bold;
-    font-size:15px;
-    background:#eef6ff;
-    border-radius:4px;
-    padding:2px 5px;
-}
-
-.popup-buttons{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:6px;
-    margin-top:12px;
-}
-
-.popup-button{
-    display:block;
-    width:100%;
-    padding:8px 5px;
-    border:none;
-    border-radius:5px;
-    text-align:center;
-    text-decoration:none;
-    cursor:pointer;
-    font-size:13px;
-    font-weight:bold;
-    color:#fff !important;
-}
-
-.call-button{
-    background:#700000;
-}
-
-.map-button{
-    background:#1769aa;
-}
-
-.share-button{
-    background:#555;
-}
-
-.arrive-button{
-    background:#ef6c00;
-}
-
-.complete-button{
-    background:#2e7d32;
-}
-
-.status-message{
-    margin-top:8px;
-    padding:7px;
-    background:#eee;
-    border-radius:4px;
-    color:#333 !important;
-    font-size:12px;
+.transmission-number {
+    display: inline-block;
+    color: #0057b8 !important;
+    font-weight: bold;
+    font-size: 15px;
+    background: #eef6ff;
+    border-radius: 4px;
+    padding: 2px 5px;
 }
 
 /* =====================================================
-   Leaflet Layer Control
+   사고 팝업 버튼
 ===================================================== */
 
-.leaflet-control-layers{
-    z-index:1600 !important;
-    font-family:
-        Arial,
-        "Malgun Gothic",
-        sans-serif;
+.popup-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 12px;
 }
 
-.leaflet-control-layers-expanded{
-    background:rgba(255,255,255,.96);
+.popup-button {
+    display: block;
+    width: 100%;
+    padding: 8px 5px;
+    border: none;
+    border-radius: 5px;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: bold;
+    color: #fff !important;
+}
+
+.call-button {
+    background: #700000;
+}
+
+.map-button {
+    background: #1769aa;
+}
+
+.share-button {
+    background: #555;
+}
+
+.arrive-button {
+    background: #ef6c00;
+}
+
+.complete-button {
+    background: #2e7d32;
+}
+
+.status-message {
+    margin-top: 8px;
+    padding: 7px;
+    background: #eee;
+    border-radius: 4px;
+    color: #333 !important;
+    font-size: 12px;
 }
 
 /* =====================================================
-   AI BUTTON
+   Leaflet 레이어 컨트롤
 ===================================================== */
 
-#aiSearchButton{
-    position:absolute;
-    right:15px;
-    bottom:20px;
-    z-index:1800;
-    background:#071a2f;
-    color:#00ff9d;
-    border:2px solid #00ff9d;
-    border-radius:8px;
-    padding:10px 15px;
-    font-family:monospace;
-    font-size:14px;
-    font-weight:bold;
-    cursor:pointer;
-    box-shadow:0 0 12px rgba(0,255,157,.45);
+.leaflet-control-layers {
+    z-index: 1600 !important;
+    font-family: Arial, "Malgun Gothic", sans-serif;
 }
 
-#aiSearchButton:hover{
-    background:#0b3048;
-    box-shadow:0 0 18px rgba(0,255,157,.75);
+.leaflet-control-layers-expanded {
+    background: rgba(255, 255, 255, 0.96);
 }
 
 /* =====================================================
-   AI PANEL
+   AI 검색 버튼
 ===================================================== */
 
-#aiSearchPanel{
-    display:none;
-    position:absolute;
-    right:15px;
-    bottom:70px;
-    width:410px;
-    max-width:calc(100vw - 30px);
-    max-height:calc(100vh - 100px);
-    z-index:1900;
-    background:rgba(3,12,25,.97);
-    border:2px solid #00ff9d;
-    border-radius:10px;
-    color:#00ff9d;
-    font-family:monospace;
-    box-shadow:0 0 25px rgba(0,255,157,.35);
+#aiSearchButton {
+    position: absolute;
+    right: 15px;
+    bottom: 20px;
+    z-index: 1800;
+    background: #071a2f;
+    color: #00ff9d;
+    border: 2px solid #00ff9d;
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-family: monospace;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 0 12px rgba(0, 255, 157, 0.45);
+    transition: background 0.2s, box-shadow 0.2s;
 }
 
-.ai-header{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:12px 14px;
-    background:#071a2f;
-    border-bottom:1px solid #14506a;
-    font-weight:bold;
-}
-
-.ai-header-title{
-    display:flex;
-    align-items:center;
-    gap:6px;
-}
-
-.ai-header-sub{
-    color:#6abf9d;
-    font-size:10px;
-    font-weight:normal;
-}
-
-.ai-header button{
-    border:none;
-    background:none;
-    color:#00ff9d;
-    font-size:18px;
-    cursor:pointer;
-}
-
-.ai-body{
-    padding:14px;
-    overflow-y:auto;
-    max-height:calc(100vh - 150px);
-}
-
-.ai-description{
-    color:#9fffd5;
-    font-size:12px;
-    line-height:1.5;
-    margin-bottom:10px;
-}
-
-.ai-input-row{
-    display:flex;
-    gap:6px;
-}
-
-#aiQuestion{
-    flex:1;
-    min-width:0;
-    background:#020913;
-    color:#fff;
-    border:1px solid #00ff9d;
-    border-radius:6px;
-    padding:10px;
-    font-family:monospace;
-    outline:none;
-}
-
-.ai-input-row button{
-    background:#00a86b;
-    color:#fff;
-    border:none;
-    border-radius:6px;
-    padding:0 14px;
-    font-weight:bold;
-    cursor:pointer;
-}
-
-.ai-examples{
-    display:flex;
-    flex-wrap:wrap;
-    gap:5px;
-    margin-top:9px;
-}
-
-.ai-examples button{
-    background:#10283a;
-    color:#8fffd2;
-    border:1px solid #246078;
-    border-radius:5px;
-    padding:5px 7px;
-    font-size:11px;
-    cursor:pointer;
-}
-
-.ai-result{
-    margin-top:12px;
-    min-height:90px;
-    max-height:380px;
-    overflow-y:auto;
-    background:#020913;
-    border:1px solid #123c55;
-    border-radius:6px;
-    padding:10px;
-    color:#d7fff0;
-    font-size:13px;
-    line-height:1.6;
-}
-
-.ai-result-title{
-    color:#00ff9d;
-    font-size:15px;
-    font-weight:bold;
-    margin-bottom:8px;
-}
-
-.ai-result-item{
-    padding:9px;
-    margin-top:7px;
-    background:#071a2f;
-    border-left:3px solid #ff3333;
-    border-radius:4px;
-    cursor:pointer;
-}
-
-.ai-result-item.arrived{
-    border-left-color:#ff9800;
-}
-
-.ai-result-item.done{
-    border-left-color:#777;
-}
-
-.ai-help{
-    margin-top:10px;
-    padding:8px;
-    background:#071a2f;
-    border-radius:5px;
-    color:#7fbfa7;
-    font-size:11px;
-    line-height:1.6;
-}
-
-.ai-loading{
-    color:#00ff9d;
-    animation:aiBlink 1s infinite;
-}
-
-@keyframes aiBlink{
-    50%{
-        opacity:.35;
-    }
-}
-
-@media(max-width:768px){
-
-    #accidentCount{
-        top:auto;
-        bottom:20px;
-        font-size:14px;
-        padding:8px 12px;
-    }
-
-    #aiSearchButton{
-        right:10px;
-        bottom:15px;
-        padding:8px 10px;
-        font-size:12px;
-    }
-
-    #aiSearchPanel{
-        left:10px;
-        right:10px;
-        bottom:60px;
-        width:auto;
-    }
-
-    .accident-popup{
-        min-width:240px;
-    }
-
-    .leaflet-popup-content{
-        font-size:13px;
-        margin:11px !important;
-    }
-
+#aiSearchButton:hover {
+    background: #0b3048;
+    box-shadow: 0 0 18px rgba(0, 255, 157, 0.75);
 }
 
 /* =====================================================
-   비밀번호설정
+   AI 검색 패널
 ===================================================== */
+
+#aiSearchPanel {
+    display: none;
+    position: absolute;
+    right: 15px;
+    bottom: 70px;
+    width: 410px;
+    max-width: calc(100vw - 30px);
+    max-height: calc(100vh - 100px);
+    z-index: 1900;
+    background: rgba(3, 12, 25, 0.97);
+    border: 2px solid #00ff9d;
+    border-radius: 10px;
+    color: #00ff9d;
+    font-family: monospace;
+    box-shadow: 0 0 25px rgba(0, 255, 157, 0.35);
+}
+
+.ai-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: #071a2f;
+    border-bottom: 1px solid #14506a;
+    font-weight: bold;
+}
+
+.ai-header-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ai-header-sub {
+    color: #6abf9d;
+    font-size: 10px;
+    font-weight: normal;
+}
+
+.ai-header button {
+    border: none;
+    background: none;
+    color: #00ff9d;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.ai-body {
+    padding: 14px;
+    overflow-y: auto;
+    max-height: calc(100vh - 150px);
+}
+
+.ai-description {
+    color: #9fffd5;
+    font-size: 12px;
+    line-height: 1.5;
+    margin-bottom: 10px;
+}
+
+.ai-input-row {
+    display: flex;
+    gap: 6px;
+}
+
+#aiQuestion {
+    flex: 1;
+    min-width: 0;
+    background: #020913;
+    color: #fff;
+    border: 1px solid #00ff9d;
+    border-radius: 6px;
+    padding: 10px;
+    font-family: monospace;
+    outline: none;
+}
+
+.ai-input-row button {
+    background: #00a86b;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 0 14px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.ai-examples {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 9px;
+}
+
+.ai-examples button {
+    background: #10283a;
+    color: #8fffd2;
+    border: 1px solid #246078;
+    border-radius: 5px;
+    padding: 5px 7px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.ai-result {
+    margin-top: 12px;
+    min-height: 90px;
+    max-height: 380px;
+    overflow-y: auto;
+    background: #020913;
+    border: 1px solid #123c55;
+    border-radius: 6px;
+    padding: 10px;
+    color: #d7fff0;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.ai-result-title {
+    color: #00ff9d;
+    font-size: 15px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.ai-result-item {
+    padding: 9px;
+    margin-top: 7px;
+    background: #071a2f;
+    border-left: 3px solid #ff3333;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.ai-result-item.arrived {
+    border-left-color: #ff9800;
+}
+
+.ai-result-item.done {
+    border-left-color: #777;
+}
+
+.ai-help {
+    margin-top: 10px;
+    padding: 8px;
+    background: #071a2f;
+    border-radius: 5px;
+    color: #7fbfa7;
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+.ai-loading {
+    color: #00ff9d;
+    animation: aiBlink 1s infinite;
+}
+
+@keyframes aiBlink {
+    50% {
+        opacity: 0.35;
+    }
+}
+
+/* =====================================================
+   로그인 화면
+===================================================== */
+
 #loginScreen {
     position: fixed;
     inset: 0;
@@ -505,43 +475,152 @@ header{
     align-items: center;
     justify-content: center;
     padding: 20px;
-    background: #050b18;
+    background:
+        radial-gradient(
+            ellipse at center,
+            rgba(0, 255, 157, 0.055) 0%,
+            transparent 60%
+        ),
+        #050b18;
 }
 
 .login-box {
+    position: relative;
     width: 100%;
     max-width: 380px;
-    padding: 25px;
+    padding: 30px 25px;
     border: 1px solid #00ff9d;
-    background: #07101f;
-    box-shadow: 0 0 25px rgba(0,255,157,.15);
+    border-radius: 10px;
+    background: linear-gradient(
+        160deg,
+        #091729 0%,
+        #07101f 55%,
+        #041019 100%
+    );
+    box-shadow:
+        0 0 12px rgba(0, 255, 157, 0.13),
+        0 0 30px rgba(0, 255, 157, 0.08),
+        inset 0 0 20px rgba(0, 255, 157, 0.025);
     text-align: center;
 }
 
+/* 로그인 제목 */
+
 .login-box h2 {
+    margin: 0 0 10px;
     color: #00ff9d;
+    font-family: monospace;
     font-size: 20px;
-    margin-bottom: 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-shadow:
+        0 0 5px rgba(0, 255, 157, 0.55),
+        0 0 14px rgba(0, 255, 157, 0.20);
 }
+
+/* 로그인 설명 */
 
 .login-box p {
-    color: #8aa;
+    color: #8aa99f;
+    font-family: monospace;
     font-size: 12px;
-    line-height: 1.6;
+    line-height: 1.7;
 }
 
-#loginError {
-    color: #ff5555;
-    font-size: 13px;
-    min-height: 20px;
+/* =====================================================
+   시스템 접속 아이콘 — NEON HUD
+===================================================== */
+
+.system-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 64px;
+    height: 64px;
+    margin: 5px auto 20px;
+
+    color: #00ff9d;
+    background: linear-gradient(
+        145deg,
+        #08251f 0%,
+        #00100e 100%
+    );
+
+    border: 1px solid #00ff9d;
+    border-radius: 12px;
+
+    box-shadow:
+        0 0 6px rgba(0, 255, 157, 0.65),
+        0 0 18px rgba(0, 255, 157, 0.20),
+        inset 0 0 12px rgba(0, 255, 157, 0.10);
+
+    font-family: monospace;
+    font-size: 30px;
+    font-weight: bold;
+
+    text-shadow:
+        0 0 6px rgba(0, 255, 157, 0.9),
+        0 0 14px rgba(0, 255, 157, 0.45);
+
+    transition:
+        box-shadow 0.25s ease,
+        border-color 0.25s ease,
+        transform 0.25s ease;
 }
 
-#mainApp.locked {
-    display: none;
+/* 외곽 HUD 프레임 */
+
+.system-icon::before {
+    content: "";
+    position: absolute;
+    inset: -5px;
+    border: 1px solid rgba(0, 255, 157, 0.25);
+    border-radius: 15px;
+    pointer-events: none;
 }
 
+/* 상태 표시 LED */
 
-/* 입력란 디자인 통일 */
+.system-icon::after {
+    content: "";
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 9px;
+    height: 9px;
+    background: #00ff9d;
+    border: 2px solid #050b18;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #00ff9d;
+}
+
+/* SVG 및 이미지 아이콘 */
+
+.system-icon svg,
+.system-icon img {
+    display: block;
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+/* 아이콘 호버 효과 */
+
+.system-icon:hover {
+    border-color: #7dffca;
+    box-shadow:
+        0 0 10px rgba(0, 255, 157, 0.85),
+        0 0 28px rgba(0, 255, 157, 0.35),
+        inset 0 0 16px rgba(0, 255, 157, 0.16);
+    transform: translateY(-2px);
+}
+
+/* =====================================================
+   입력란 공통 디자인
+===================================================== */
+
 input,
 textarea,
 select {
@@ -550,7 +629,7 @@ select {
     padding: 10px;
     margin-bottom: 6px;
     border: 1px solid #00ff9d;
-    border-radius: 0;
+    border-radius: 4px;
     background: #001a14;
     color: #00ff9d;
     font-family: monospace;
@@ -558,7 +637,6 @@ select {
     outline: none;
 }
 
-/* 입력란 포커스 */
 input:focus,
 textarea:focus,
 select:focus {
@@ -568,60 +646,121 @@ select:focus {
         0 0 8px rgba(0, 255, 157, 0.25);
 }
 
-/* 안내 문구 */
 input::placeholder,
 textarea::placeholder {
     color: #6b968b;
     opacity: 1;
 }
 
-/* 시스템 접속 아이콘 공통 스타일
-   HTML에서 class="system-icon" 적용 */
-.system-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    height: 48px;
-    margin: 0 auto 12px;
-    border: 1px solid #00ff9d;
-    background: #001a14;
-    color: #00ff9d;
-    box-shadow: 0 0 8px rgba(0, 255, 157, 0.25);
-    font-size: 24px;
+/* =====================================================
+   로그인 오류 메시지
+===================================================== */
+
+#loginError {
+    color: #ff5555;
+    font-size: 13px;
+    min-height: 20px;
 }
 
+/* 잠금 상태 */
 
-/* 시스템 접속 아이콘 */
-.system-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    height: 48px;
-    margin: 5px auto 12px;
-    background: #001a14;
-    color: #00ff9d;
-    border: 1px solid #00ff9d;
-    box-shadow: 0 0 8px #00ff9d;
-    font-family: monospace;
-    font-size: 24px;
-    font-weight: bold;
+#mainApp.locked {
+    display: none;
 }
 
-/* 아이콘 내부 SVG 또는 이미지 */
-.system-icon svg,
-.system-icon img {
-    width: 28px;
-    height: 28px;
-    object-fit: contain;
+/* =====================================================
+   모바일 반응형
+===================================================== */
+
+@media (max-width: 768px) {
+
+    header {
+        font-size: 16px;
+    }
+
+    #accidentCount {
+        top: auto;
+        bottom: 20px;
+        font-size: 14px;
+        padding: 8px 12px;
+        max-width: calc(100vw - 20px);
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    #aiSearchButton {
+        right: 10px;
+        bottom: 15px;
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+
+    #aiSearchPanel {
+        left: 10px;
+        right: 10px;
+        bottom: 60px;
+        width: auto;
+        max-width: none;
+        max-height: calc(100dvh - 80px);
+    }
+
+    .ai-body {
+        max-height: calc(100dvh - 150px);
+    }
+
+    .accident-popup {
+        min-width: 240px;
+    }
+
+    .leaflet-popup-content {
+        font-size: 13px;
+        margin: 11px !important;
+    }
+
+    .login-box {
+        max-width: 360px;
+        padding: 25px 20px;
+    }
+
+    .system-icon {
+        width: 60px;
+        height: 60px;
+        margin-bottom: 18px;
+    }
 }
 
-/* 시스템 접속 제목 */
-.login-box h2 {
-    color: #00ff9d;
-    font-family: monospace;
-    text-shadow: 0 0 8px rgba(0, 255, 157, 0.35);
+/* =====================================================
+   작은 모바일 화면
+===================================================== */
+
+@media (max-width: 380px) {
+
+    .login-box {
+        padding: 22px 16px;
+    }
+
+    .login-box h2 {
+        font-size: 18px;
+    }
+
+    .system-icon {
+        width: 56px;
+        height: 56px;
+        font-size: 26px;
+    }
+}
+
+/* 모션 감소 설정 존중 */
+
+@media (prefers-reduced-motion: reduce) {
+    .system-icon,
+    #aiSearchButton {
+        transition: none;
+    }
+
+    .ai-loading {
+        animation: none;
+    }
 }
 
       
@@ -631,12 +770,40 @@ textarea::placeholder {
 
 <body>
 
+
 <!-- 로그인 화면 -->
 <div id="loginScreen">
     <div class="login-box">
-        <h2>🛰 SEARCH & RESCUE</h2>
-        <p>무등산특수산악구조대<br>시스템 접근 인증</p>
 
+        <!-- 네온 보안 아이콘 -->
+        <div class="system-icon" aria-label="시스템 보안 아이콘">
+            <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+            >
+                <path d="M12 3 20 6v5c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6l8-3Z"/>
+                <rect x="8" y="10" width="8" height="6" rx="1"/>
+                <path d="M10 10V8.5a2 2 0 0 1 4 0V10"/>
+                <circle cx="12" cy="13" r=".7" fill="currentColor"/>
+            </svg>
+        </div>
+
+        <!-- 시스템 제목 -->
+        <h2>SYSTEM ACCESS</h2>
+
+        <p>🛰 SEARCH &amp; RESCUE</p>
+
+        <p>
+            무등산특수산악구조대<br>
+            시스템 접근 인증
+        </p>
+
+        <!-- 기존 로그인 기능 유지 -->
         <form id="loginForm">
             <input
                 type="password"
@@ -652,8 +819,10 @@ textarea::placeholder {
 
             <div id="loginError" role="alert"></div>
         </form>
+
     </div>
 </div>
+
       
 <header>
 🛰 SEARCH & RESCUE AI Ver1.2
