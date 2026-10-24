@@ -426,12 +426,12 @@ function calculateGCS() {
 
 calculateGCS();
 
+
 /* =========================
    카카오 지도 초기화
 ========================= */
 
-// 지도 객체는 이곳에서 한 번만 선언합니다.
-function initializeMap(lat, lng) {
+function initializeMap(lat, lng, showMarker = false) {
   if (!kakaoReady || !window.kakao?.maps) {
     return false;
   }
@@ -442,26 +442,35 @@ function initializeMap(lat, lng) {
   try {
     const position = new kakao.maps.LatLng(lat, lng);
 
+    // 지도만 생성하고 초기 핀은 표시하지 않음
     if (!kakaoMap) {
       kakaoMap = new kakao.maps.Map(container, {
         center: position,
         level: 5
       });
-
-      mapMarker = new kakao.maps.Marker({
-        position: position
-      });
-
-      mapMarker.setMap(kakaoMap);
     } else {
       kakaoMap.setCenter(position);
-      mapMarker.setPosition(position);
     }
 
-    // 지도 컨테이너가 표시된 후 크기를 다시 계산합니다.
-    kakao.maps.event.trigger(kakaoMap, "resize");
+    // GPS 확인 완료 후에만 핀 표시
+    if (showMarker) {
+      if (!mapMarker) {
+        mapMarker = new kakao.maps.Marker({
+          position: position
+        });
+        mapMarker.setMap(kakaoMap);
+      } else {
+        mapMarker.setPosition(position);
+        mapMarker.setMap(kakaoMap);
+      }
+    } else if (mapMarker) {
+      mapMarker.setMap(null);
+      mapMarker = null;
+    }
 
+    kakao.maps.event.trigger(kakaoMap, "resize");
     return true;
+
   } catch (error) {
     console.error("지도 초기화 오류:", error);
     setStatus(
@@ -473,7 +482,10 @@ function initializeMap(lat, lng) {
   }
 }
 
-// SDK 로딩 후에만 kakao.maps.load를 호출합니다.
+/* =========================
+   카카오 지도 SDK 로딩
+========================= */
+
 window.addEventListener("load", function () {
   if (!window.kakao || !window.kakao.maps) {
     mapLoadFailed = true;
@@ -490,15 +502,19 @@ window.addEventListener("load", function () {
     kakao.maps.load(function () {
       kakaoReady = true;
 
-      // GPS를 먼저 확인했다면 해당 위치를, 아니면 무등산 인근을 표시합니다.
-      const lat = latitude !== null ? latitude : 35.13;
-      const lng = longitude !== null ? longitude : 126.99;
-
-      const success = initializeMap(lat, lng);
+      // 초기에는 무등산 중심 지도만 표시하고 핀은 생성하지 않음
+      const success = initializeMap(
+        latitude !== null ? latitude : 35.13,
+        longitude !== null ? longitude : 126.99,
+        latitude !== null && longitude !== null
+      );
 
       if (success && latitude === null) {
-        setStatus("gpsStatus", "지도 준비 완료. 현재 위치를 확인해 주세요.");
-      } else if (success && latitude !== null) {
+        setStatus(
+          "gpsStatus",
+          "지도 준비 완료. 현재 위치를 확인해 주세요."
+        );
+      } else if (success) {
         setStatus("gpsStatus", "GPS 위치 및 지도 표시 완료");
       }
     });
@@ -545,8 +561,7 @@ $("getLocation").addEventListener("click", () => {
         `위도: ${latitude.toFixed(6)}, 경도: ${longitude.toFixed(6)}`;
 
       if (kakaoReady) {
-        const success = initializeMap(latitude, longitude);
-
+        const success = initializeMap(latitude, longitude, true);
         setStatus(
           "gpsStatus",
           success
