@@ -16,7 +16,7 @@
 (function () {
     const params = new URLSearchParams(location.search);
 
-    // expires 매개변수가 없는 기존 주소는 그대로 사용
+    // expires가 없는 기존 주소는 무기한 접속 허용
     if (!params.has("expires")) {
         window.MUDEUNG_LINK_EXPIRED = false;
         return;
@@ -25,6 +25,7 @@
     const rawExpires = params.get("expires");
     const expires = Number(rawExpires);
 
+    // 만료 값이 잘못되었거나 만료 시각이 지났으면 차단
     window.MUDEUNG_LINK_EXPIRED =
         rawExpires === "" ||
         !Number.isSafeInteger(expires) ||
