@@ -3,466 +3,758 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1d4ed8">
 <title>🚑 무등산특수구조팀 구조출동 기록지</title>
 
-<!-- Tailwind CDN -->
 <script src="https://cdn.tailwindcss.com"></script>
-<!-- Kakao Map SDK -->
-<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
+
+<!-- 카카오 지도 SDK: 실제 사용 시 본인 앱 키 확인 -->
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"
+        defer></script>
 
 <style>
-/* 전체 배경 */
-body{
-  background:#eef1f5;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-  transition:background 0.3s;
+* { box-sizing: border-box; }
+
+body {
+  background: #eef1f5;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+               Roboto, sans-serif;
+  transition: background-color .3s;
 }
 
-/* 🚨 중증 점멸 */
-@keyframes criticalFlash{
-  0%{background-color:#fee2e2;}
-  50%{background-color:#dc2626;}
-  100%{background-color:#fee2e2;}
-}
-.critical-mode{
-  animation:criticalFlash 0.8s infinite;
+.header {
+  text-align: center;
+  font-weight: 800;
+  font-size: 20px;
+  margin: 18px 0;
+  color: #1d4ed8;
 }
 
-/* 카드 */
-.card{
-  background:#fff;
-  border-radius:14px;
-  padding:16px;
-  margin-bottom:16px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.05);
-  border-left:5px solid #2563eb;
-}
-.card h2{
-  font-weight:700;
-  font-size:15px;
-  margin-bottom:10px;
-  color:#1e3a8a;
+.card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.05);
+  border-left: 5px solid #2563eb;
 }
 
-/* 입력폼 */
-input,select,textarea{
-  width:100%;
-  border:1px solid #d1d5db;
-  border-radius:10px;
-  padding:12px;
-  margin-bottom:10px;
-  font-size:15px;
-  background:#f9fafb;
-}
-input:focus,select:focus,textarea:focus{
-  outline:none;
-  border-color:#2563eb;
-  background:#fff;
-  box-shadow:0 0 0 2px rgba(37,99,235,0.15);
-}
-textarea{min-height:100px;}
-
-/* 버튼 */
-button{
-  width:100%;
-  padding:14px;
-  border-radius:12px;
-  font-size:16px;
-  font-weight:600;
+.card h2 {
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 12px;
+  color: #1e3a8a;
 }
 
-/* 좌표 박스 */
-.coordinate-box{
-  background:#e0e7ff;
-  padding:10px;
-  border-radius:8px;
-  font-size:13px;
-  margin-bottom:8px;
+input, select, textarea {
+  display: block;
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 10px;
+  font-size: 15px;
+  background: #f9fafb;
+  color: #111827;
 }
 
-/* 지도 */
-#map{
-  width:100%;
-  height:220px;
-  border-radius:12px;
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(37,99,235,.15);
 }
 
-/* 기록보드 */
-.board-item{
-  white-space:pre-line;
-  font-size:13px;
-  background:#f3f4f6;
-  padding:12px;
-  border-radius:10px;
-  line-height:1.5;
+textarea { min-height: 100px; resize: vertical; }
+
+button {
+  width: 100%;
+  padding: 13px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-/* 헤더 */
-.header{
-  text-align:center;
-  font-weight:800;
-  font-size:20px;
-  margin:18px 0;
-  color:#1d4ed8;
+button:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+
+#map {
+  width: 100%;
+  height: 240px;
+  border-radius: 12px;
+  margin-top: 10px;
+  background: #f3f4f6;
+}
+
+.coordinate-box {
+  background: #e0e7ff;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 8px;
+  overflow-wrap: anywhere;
+}
+
+.board-item {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  background: #f3f4f6;
+  padding: 12px;
+  border-radius: 10px;
+  line-height: 1.7;
+  margin-bottom: 10px;
+}
+
+.status {
+  font-size: 13px;
+  margin: 8px 0;
+  overflow-wrap: anywhere;
+}
+
+.critical-mode {
+  animation: criticalFlash .8s infinite;
+}
+
+@keyframes criticalFlash {
+  0%, 100% { background-color: #fee2e2; }
+  50% { background-color: #dc2626; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .critical-mode { animation: none; background: #fee2e2; }
+}
+
+@media print {
+  body { background: white; }
+  .no-print, form, #map { display: none !important; }
+  .card { box-shadow: none; break-inside: avoid; }
+  .header { color: black; }
 }
 </style>
 </head>
+
 <body id="mainBody">
- 
+
 <div class="container mx-auto max-w-2xl p-4">
 
-  <h2 class="header">🚑 무등산특수구조팀 출동 기록지</h2>
+  <h1 class="header">🚑 무등산특수구조팀 출동 기록지</h1>
 
-  <!-- 달콩이 이미지 -->
-<img src="https://mudeung.github.io/rescue/logogomir1.png"
-     alt="달콩이 이미지"
-     style="display:block; margin:0 auto;">
+  <img
+    src="https://mudeung.github.io/rescue/logogomir1.png"
+    alt="달콩이 이미지"
+    style="display:block; margin:0 auto 18px; max-width:100%; height:auto;"
+  >
 
-<br>
-  
-  <form id="recordForm">   
+  <form id="recordForm">
 
-  <!-- 현장도착 -->
-    <div class="card">
+    <!-- 현장 정보 -->
+    <section class="card">
       <h2>현장정보</h2>
-      <input type="datetime-local" name="도착시간" required>
-      <input type="text" name="사고장소" placeholder="사고장소" required>
-      <input type="text" name="주증상" placeholder="환자 증상" required>
-      
-    <div class="card">
-      <h2>사고유형</h2>
-    <select id="accidentType" required>
-    <option value="">선택하세요</option>
 
-    <optgroup label="외상 (Trauma)">
-        <option>실족·추락</option>
-        <option>낙석</option>
-        <option>미끄러짐</option>
-        <option>등산스틱/장비 손상</option>
-        <option>충돌(나무, 바위 등)</option>
-        <option>절단·열상</option>
-    </optgroup>
+      <label for="arrivalTime" class="block text-sm mb-1">현장 도착시간</label>
+      <input id="arrivalTime" type="datetime-local"
+             name="도착시간" required>
 
-    <optgroup label="질환 (Medical)">
-        <option>흉통</option>
-        <option>심정지</option>
-        <option>호흡곤란</option>
-        <option>뇌졸중 의심</option>
-        <option>경련</option>
-        <option>의식저하</option>
-        <option>저혈당</option>
-        <option>고혈당</option>
-    </optgroup>
+      <label for="accidentPlace" class="block text-sm mb-1">사고장소</label>
+      <input id="accidentPlace" type="text"
+             name="사고장소" placeholder="사고장소" required>
 
-    <optgroup label="환경 (Environmental)">
-        <option>저체온증</option>
-        <option>열탈진</option>
-        <option>열사병</option>
-        <option>탈수</option>
-        <option>번개 손상</option>
-        <option>동상</option>
-    </optgroup>
+      <label for="symptoms" class="block text-sm mb-1">환자 증상</label>
+      <input id="symptoms" type="text"
+             name="주증상" placeholder="환자 증상" required>
 
-    <optgroup label="조난·고립 (Stranded)">
-        <option>길 잃음</option>
-        <option>야간 고립</option>
-        <option>체력 고갈</option>
-        <option>장비 부족</option>
-    </optgroup>
+      <h2 class="mt-4">사고유형</h2>
+      <select id="accidentType" name="사고유형" required>
+        <option value="">선택하세요</option>
 
-    <optgroup label="동물·곤충">
-        <option>벌 쏘임</option>
-        <option>뱀 물림</option>
-        <option>야생동물 공격</option>
-    </optgroup>
-</select>
+        <optgroup label="외상 (Trauma)">
+          <option>실족·추락</option>
+          <option>낙석</option>
+          <option>미끄러짐</option>
+          <option>등산스틱/장비 손상</option>
+          <option>충돌(나무, 바위 등)</option>
+          <option>절단·열상</option>
+        </optgroup>
+
+        <optgroup label="질환 (Medical)">
+          <option>흉통</option>
+          <option>심정지</option>
+          <option>호흡곤란</option>
+          <option>뇌졸중 의심</option>
+          <option>경련</option>
+          <option>의식저하</option>
+          <option>저혈당</option>
+          <option>고혈당</option>
+        </optgroup>
+
+        <optgroup label="환경 (Environmental)">
+          <option>저체온증</option>
+          <option>열탈진</option>
+          <option>열사병</option>
+          <option>탈수</option>
+          <option>번개 손상</option>
+          <option>동상</option>
+        </optgroup>
+
+        <optgroup label="조난·고립 (Stranded)">
+          <option>길 잃음</option>
+          <option>야간 고립</option>
+          <option>체력 고갈</option>
+          <option>장비 부족</option>
+        </optgroup>
+
+        <optgroup label="동물·곤충">
+          <option>벌 쏘임</option>
+          <option>뱀 물림</option>
+          <option>야생동물 공격</option>
+        </optgroup>
+      </select>
+    </section>
+
+    <!-- GPS -->
+    <section class="card">
+      <h2>현장 GPS 위치</h2>
+
+      <button type="button" id="getLocation"
+              class="bg-blue-600 text-white">
+        📍 현재 위치 확인
+      </button>
+
+      <p id="gpsStatus" class="status" role="status" aria-live="polite">
+        위치 확인 전
+      </p>
+
+      <div id="locationDisplay" class="coordinate-box">
+        위도·경도 미확인
       </div>
- 
-    <!-- 의식평가 GCS -->
-    <div class="card">
-      <h2>의식평가(GCS)</h2>
 
+      <input type="hidden" id="latitude" name="위도">
+      <input type="hidden" id="longitude" name="경도">
+
+      <div id="map" aria-label="현장 위치 지도"></div>
+
+      <p class="text-xs text-gray-500 mt-2">
+        GPS 사용 시 위치 권한을 허용해야 합니다.
+        HTTPS 환경에서 사용해 주세요.
+      </p>
+    </section>
+
+    <!-- GCS -->
+    <section class="card">
+      <h2>의식평가 (GCS)</h2>
+
+      <label for="eye" class="block text-sm mb-1">눈뜨기 반응 (E)</label>
       <select id="eye">
-<option value="4">자발적으로 눈을 뜬다</option>
-<option value="3">말로 지시했을때 눈을 뜬다</option>
-<option value="2">통증 자극에 의해 눈을 뜬다</option>
-<option value="1">어떠한 자극에도 눈을 뜨지 못한다</option>
+        <option value="4">4점 - 자발적으로 눈을 뜸</option>
+        <option value="3">3점 - 말소리에 눈을 뜸</option>
+        <option value="2">2점 - 압박 자극에 눈을 뜸</option>
+        <option value="1">1점 - 눈뜨기 반응 없음</option>
       </select>
 
+      <label for="verbal" class="block text-sm mb-1">언어 반응 (V)</label>
       <select id="verbal">
-<option value="5">정확한 반응(6하원칙에 지남력 있는 상태)</option>
-<option value="4">대화 혼란(대화가능하나, 계속적 대화 교환 안됨)</option>
-<option value="3">언어혼란(동문서답, 혼란된 말을 함)</option>
-<option value="2">이해 할수 없는 소리(신음소리만)</option>
-<option value="1">반응이 없음(아무런 소리를 내지 않음)</option>
+        <option value="5">5점 - 지남력 있음</option>
+        <option value="4">4점 - 혼란스러운 대화</option>
+        <option value="3">3점 - 부적절한 단어</option>
+        <option value="2">2점 - 이해할 수 없는 소리</option>
+        <option value="1">1점 - 언어 반응 없음</option>
       </select>
 
+      <label for="motor" class="block text-sm mb-1">운동 반응 (M)</label>
       <select id="motor">
-<option value="6">명령에 따름(간단한 명령에 따라 운동기능 수행)</option>
-<option value="5">통증 자극 국소화 반응(명령은 따지 않지만, 자극을 가하면 피하거나 치우려고 함) </option>
-<option value="4">통증 자극 움츠림(통증 자극을 피하려고 함, 치우려고 하지는 않음)</option>
-<option value="3">통증 자극 이상굴곡(통증 자극에 앞으로 구부리거나 몸쪽으로 접음)</option>
-<option value="2">통증 자극 이상신전(통증 자극에 뒤로 젖히거나 모에서 멀리 뻗음)(</option>
-<option value="1">전혀 움직이지 않음(무반응, 자가호흡 없음)</option>
+        <option value="6">6점 - 명령에 따름</option>
+        <option value="5">5점 - 자극 위치를 찾아 반응</option>
+        <option value="4">4점 - 정상적인 회피 반응</option>
+        <option value="3">3점 - 이상 굴곡 반응</option>
+        <option value="2">2점 - 이상 신전 반응</option>
+        <option value="1">1점 - 운동 반응 없음</option>
       </select>
 
-      <div class="mt-2">
+      <div class="bg-blue-50 p-3 rounded-lg mt-2">
         <strong>GCS 결과:</strong>
-        <span id="gcsResult"></span>
+        <span id="gcsResult" aria-live="polite">15점</span>
       </div>
-      <div id="gcsWarning" style="display:none; color:#dc2626; font-weight:bold; margin-top:8px;">
-        ⚠️ 중증 환자! 즉시 기도와 호흡 확인!
-      </div>
-    </div>
 
-    <!-- 환자정보 -->
-    <div class="card">
+      <div id="gcsWarning" role="alert"
+           style="display:none; color:#dc2626; font-weight:bold; margin-top:10px;">
+        ⚠️ GCS 8점 이하: 중증 의식장애 가능성.
+        즉시 기도·호흡·순환을 평가하고 기관 지침에 따라 대응하세요.
+      </div>
+
+      <p class="text-xs text-gray-500 mt-2">
+        GCS는 임상 평가의 보조 자료이며, 점수만으로 환자의 상태를
+        확정하지 마세요. 실제 반응을 확인하여 입력하세요.
+      </p>
+    </section>
+
+    <!-- 환자 정보 -->
+    <section class="card">
       <h2>환자정보</h2>
-      <input type="text" name="환자이름" placeholder="이름" required>
-      <input type="date" name="생년월일" required>
-      <input type="text" name="거주지" placeholder="거주지" required>
-      <input type="tel" name="연락처" placeholder="연락처 (010-1234-5678)" required>
-    </div>
+
+      <input type="text" name="환자이름"
+             autocomplete="name" placeholder="이름" required>
+
+      <label for="birthDate" class="block text-sm mb-1">생년월일</label>
+      <input id="birthDate" type="date" name="생년월일" required>
+
+      <input type="text" name="거주지"
+             autocomplete="street-address" placeholder="거주지" required>
+
+      <input type="tel" name="연락처"
+             autocomplete="tel"
+             placeholder="연락처 (010-1234-5678)"
+             required>
+    </section>
 
     <!-- 응급처치 -->
-    <div class="card">
+    <section class="card">
       <h2>응급처치</h2>
-      <textarea name="응급처치" placeholder="응급처치 내용 AVPU/SAMPLE"></textarea>
-    </div>
+      <textarea name="응급처치"
+                placeholder="응급처치 내용, AVPU, SAMPLE, 활력징후 등"></textarea>
+    </section>
 
-    <!-- 출동대원 정보 -->
-    <div class="card">
+    <!-- 대원 정보 -->
+    <section class="card">
       <h2>출동대원 정보</h2>
-      <input type="text" name="출동대원" placeholder="출동대원 이름" required>
-    </div>
-    
-    <button type="submit" class="bg-blue-600 text-white mt-2">기록 저장 및 공유</button>
+      <input type="text" name="출동대원"
+             placeholder="출동대원 이름" required>
+    </section>
+
+    <button id="submitButton" type="submit"
+            class="bg-blue-600 text-white mt-2">
+      기록 저장 및 공유
+    </button>
+
+    <p id="saveStatus" class="status" role="status" aria-live="polite"></p>
 
   </form>
 
-  <!-- 작성 기록 -->
-  <div class="card">
+  <!-- 기록 보드 -->
+  <section class="card">
     <h2>작성기록</h2>
-    <div id="savedData"></div>
-  </div>
+    <div id="savedData">저장된 기록이 없습니다.</div>
+
+    <button id="copyButton" type="button"
+            class="bg-gray-700 text-white mt-3 no-print">
+      기록 내용 복사
+    </button>
+
+    <button id="printButton" type="button"
+            class="bg-gray-500 text-white mt-2 no-print">
+      기록 인쇄
+    </button>
+  </section>
 
 </div>
 
 <script>
+"use strict";
 
-let lat = null;
-let lng = null;
+/* =========================
+   설정
+========================= */
+
+// 기존 Google Apps Script 웹 앱 주소
+const GOOGLE_SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbxm_oLeGMIGh5PRokCURztVx6-1Ijug2KtuGbsFH-cZVOKE5LgaKDnLbTgFl2sWWDdkwA/exec";
+
+let latitude = null;
+let longitude = null;
+let kakaoMap = null;
+let mapMarker = null;
+let lastRecordText = "";
+
+/* =========================
+   공통 요소
+========================= */
+
+const $ = id => document.getElementById(id);
+
+function setStatus(id, message, isError = false) {
+  const el = $(id);
+  el.textContent = message;
+  el.style.color = isError ? "#dc2626" : "#374151";
+}
 
 /* =========================
    GCS 계산
 ========================= */
-function calculateGCS() {
 
-  const eye = parseInt(document.getElementById("eye").value);
-  const verbal = parseInt(document.getElementById("verbal").value);
-  const motor = parseInt(document.getElementById("motor").value);
+function calculateGCS() {
+  const eye = Number($("eye").value);
+  const verbal = Number($("verbal").value);
+  const motor = Number($("motor").value);
 
   const total = eye + verbal + motor;
 
-  let state = '';
+  let state;
 
-  if (total === 15) state = '정상';
-  else if (total >= 13) state = '경도';
-  else if (total >= 9) state = '중등도';
-  else if (total >= 4) state = '중증';
-  else state = '혼수';
-
-  document.getElementById("gcsResult").textContent = `${total}점 (${state})`;
-
-  const warn = document.getElementById("gcsWarning");
-
-  if (total <= 8) {
-    warn.style.display = "block";
-    document.body.classList.add("critical-mode");
+  if (total === 15) {
+    state = "15점";
+  } else if (total >= 13) {
+    state = "경도 범위";
+  } else if (total >= 9) {
+    state = "중등도 범위";
   } else {
-    warn.style.display = "none";
-    document.body.classList.remove("critical-mode");
+    state = "중증 범위";
   }
+
+  $("gcsResult").textContent = `${total}점 (${state})`;
+
+  const severe = total <= 8;
+  $("gcsWarning").style.display = severe ? "block" : "none";
+  document.body.classList.toggle("critical-mode", severe);
+
+  return {
+    total,
+    eye,
+    verbal,
+    motor,
+    result: `${total}점 (${state})`
+  };
 }
 
-["eye","verbal","motor"].forEach(id => {
-  document.getElementById(id).addEventListener("change", calculateGCS);
+["eye", "verbal", "motor"].forEach(id => {
+  $(id).addEventListener("change", calculateGCS);
 });
 
 calculateGCS();
 
 /* =========================
-   GPS + 지도 (핵심 수정)
+   카카오 지도 초기화
 ========================= */
-document.getElementById("getLocation").addEventListener("click", () => {
 
-  if (!navigator.geolocation) {
-    alert("GPS를 지원하지 않는 브라우저입니다.");
+function initializeMap(lat, lng) {
+  if (!window.kakao || !window.kakao.maps) {
+    setStatus(
+      "gpsStatus",
+      "GPS 좌표는 확인했지만 지도를 불러오지 못했습니다. 카카오 앱 키와 도메인 설정을 확인하세요.",
+      true
+    );
     return;
   }
 
+  const position = new kakao.maps.LatLng(lat, lng);
+
+  if (!kakaoMap) {
+    kakaoMap = new kakao.maps.Map($("map"), {
+      center: position,
+      level: 3
+    });
+
+    mapMarker = new kakao.maps.Marker({
+      position: position,
+      map: kakaoMap
+    });
+  } else {
+    kakaoMap.setCenter(position);
+    mapMarker.setPosition(position);
+  }
+
+  // 지도 컨테이너가 표시된 뒤 크기 재계산
+  kakao.maps.event.trigger(kakaoMap, "resize");
+}
+
+/* =========================
+   GPS 위치 확인
+========================= */
+
+$("getLocation").addEventListener("click", () => {
+  if (!navigator.geolocation) {
+    setStatus("gpsStatus", "이 브라우저는 GPS 위치 확인을 지원하지 않습니다.", true);
+    return;
+  }
+
+  const button = $("getLocation");
+  button.disabled = true;
+  setStatus("gpsStatus", "현재 위치를 확인하고 있습니다...");
+
   navigator.geolocation.getCurrentPosition(
-    (p) => {
+    position => {
+      latitude = position.coords.latitude;
+      longitude = position.coords.longitude;
 
-      lat = p.coords.latitude;
-      lng = p.coords.longitude;
+      $("latitude").value = latitude;
+      $("longitude").value = longitude;
 
-      const txt = `위도:${lat}, 경도:${lng}`;
+      $("locationDisplay").textContent =
+        `위도: ${latitude.toFixed(6)}, 경도: ${longitude.toFixed(6)}`;
 
-      document.getElementById("locationDisplay").textContent = txt;
-      document.getElementById("hiddenCoordinate").value = txt;
+      setStatus("gpsStatus", "GPS 위치 확인 완료");
 
-      if (window.kakao && kakao.maps) {
+      initializeMap(latitude, longitude);
+      button.disabled = false;
+    },
+    error => {
+      let message = "위치를 확인하지 못했습니다.";
 
-        const loc = new kakao.maps.LatLng(lat, lng);
-
-        const map = new kakao.maps.Map(
-          document.getElementById("map"),
-          {
-            center: loc,
-            level: 3
-          }
-        );
-
-        new kakao.maps.Marker({
-          position: loc,
-          map: map
-        });
+      switch (error.code) {
+        case error.PERMISSION_DENIED:
+          message = "위치 권한이 거부되었습니다. 브라우저 설정에서 허용해 주세요.";
+          break;
+        case error.POSITION_UNAVAILABLE:
+          message = "현재 위치 정보를 사용할 수 없습니다.";
+          break;
+        case error.TIMEOUT:
+          message = "위치 확인 시간이 초과되었습니다. 다시 시도해 주세요.";
+          break;
       }
 
+      setStatus("gpsStatus", message, true);
+      button.disabled = false;
     },
-    (err) => {
-      alert("GPS 실패: " + err.message);
+    {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 0
     }
   );
 });
 
 /* =========================
-   Android 공유 브릿지
+   기록 문자열 생성
 ========================= */
-function shareToApp(text) {
 
-  if (window.Android && Android.shareData) {
-    Android.shareData(text);
-    return;
-  }
+function buildRecord(data, gcs) {
+  const lines = Object.entries(data).map(([key, value]) => {
+    return `${key}: ${value === "" ? "(미입력)" : value}`;
+  });
 
-  const blob = new Blob([text], { type: "text/plain" });
-  const url = URL.createObjectURL(blob);
+  lines.push(`GCS: ${gcs.result}`);
+  lines.push(`GCS 눈뜨기(E): ${gcs.eye}`);
+  lines.push(`GCS 언어반응(V): ${gcs.verbal}`);
+  lines.push(`GCS 운동반응(M): ${gcs.motor}`);
+  lines.push(`기록 생성시간: ${new Date().toLocaleString("ko-KR")}`);
+  lines.push("유형: 위치공유시스템에서 전송");
 
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "record.txt";
-  a.click();
-
-  URL.revokeObjectURL(url);
+  return lines.join("\n");
 }
 
 /* =========================
-   기록 저장 + 공유
+   화면에 기록 출력
+   innerHTML 대신 textContent 사용
 ========================= */
-document.getElementById("recordForm").addEventListener("submit", (e) => {
 
-  e.preventDefault();
+function displayRecord(text) {
+  const item = document.createElement("div");
+  item.className = "board-item";
+  item.textContent = text;
 
-  let data = {};
-  let text = "";
+  $("savedData").replaceChildren(item);
+}
 
-  new FormData(e.target).forEach((v,k) => {
-    data[k] = v;
-    text += `${k}: ${v}\n`;
+/* =========================
+   Google Sheets 전송
+========================= */
+
+async function sendToGoogleSheets(data) {
+  if (!GOOGLE_SCRIPT_URL || !GOOGLE_SCRIPT_URL.includes("/exec")) {
+    throw new Error("Google Apps Script 웹 앱 주소를 확인하세요.");
+  }
+
+  const response = await fetch(GOOGLE_SCRIPT_URL, {
+    method: "POST",
+    // text/plain으로 전송하여 일반적인 JSON 요청의
+    // CORS preflight 문제를 피하도록 구성
+    headers: {
+      "Content-Type": "text/plain;charset=utf-8"
+    },
+    body: JSON.stringify(data),
+    redirect: "follow"
   });
 
-  const gcs = document.getElementById("gcsResult").textContent;
-  data["GCS"] = gcs;
-  text += `GCS: ${gcs}\n`;
-
-  // 문자전송(공유)으로 저장
-  data["type"] = "위치공유시스템에서 전송";
-  text += `유형: ${data["type"]}`;
-
-  document.getElementById("savedData").innerHTML =
-    `<div class="board-item">${text}</div>`;
-
-  /* Google Sheet 전송 */
-  fetch("https://script.google.com/macros/s/AKfycbxm_oLeGMIGh5PRokCURztVx6-1Ijug2KtuGbsFH-cZVOKE5LgaKDnLbTgFl2sWWDdkwA/exec", {
-    method: "POST",
-    body: JSON.stringify(data)
-  }).catch(() => {});
-
-  /* 공유 (핵심 수정) */
-  const isAndroid = /Android/i.test(navigator.userAgent);
-
-  if (window.Android && Android.shareData) {
-    Android.shareData(text);
+  if (!response.ok) {
+    throw new Error(`서버 응답 오류 (${response.status})`);
   }
 
-  else if (navigator.share && !isAndroid) {
-    navigator.share({
-      title: "무등산 구조 기록",
-      text: text
-    });
-  }
+  return response;
+}
 
-  else {
-    shareToApp(text);
-  }
-
-});
-
-</script>
-
-<script>
 /* =========================
-   우클릭 및 개발자도구 단축키 방지
-   ========================= */
+   기록 공유 및 다운로드
+========================= */
 
-document.addEventListener('contextmenu', function(e) {
-    e.preventDefault();
-    return false;
+async function shareRecord(text) {
+  // 기존 Android 앱 브리지 지원
+  if (window.Android &&
+      typeof window.Android.shareData === "function") {
+    window.Android.shareData(text);
+    return;
+  }
+
+  // Web Share API 지원 브라우저
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: "무등산 구조 기록",
+        text: text
+      });
+      return;
+    } catch (error) {
+      // 사용자가 공유 창을 닫은 경우 다운로드를 강제하지 않음
+      if (error.name === "AbortError") {
+        return;
+      }
+      console.warn("공유 기능 오류:", error);
+    }
+  }
+
+  // 공유 기능 미지원 시 텍스트 파일 다운로드
+  downloadRecord(text);
+}
+
+function downloadRecord(text) {
+  const blob = new Blob(["\uFEFF", text], {
+    type: "text/plain;charset=utf-8"
+  });
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+
+  a.href = url;
+  a.download = `무등산_구조기록_${Date.now()}.txt`;
+
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  // 다운로드 처리가 시작될 시간을 확보한 후 URL 정리
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/* =========================
+   폼 제출
+========================= */
+
+$("recordForm").addEventListener("submit", async event => {
+  event.preventDefault();
+
+  const form = event.currentTarget;
+
+  if (!form.reportValidity()) {
+    return;
+  }
+
+  const button = $("submitButton");
+  button.disabled = true;
+  setStatus("saveStatus", "기록을 처리하고 있습니다...");
+
+  try {
+    const data = {};
+
+    new FormData(form).forEach((value, key) => {
+      data[key] = String(value).trim();
+    });
+
+    // 좌표를 다시 명시적으로 기록
+    data["위도"] = latitude === null ? "" : String(latitude);
+    data["경도"] = longitude === null ? "" : String(longitude);
+    data["유형"] = "위치공유시스템에서 전송";
+
+    const gcs = calculateGCS();
+
+    data["GCS"] = gcs.result;
+    data["GCS_E"] = String(gcs.eye);
+    data["GCS_V"] = String(gcs.verbal);
+    data["GCS_M"] = String(gcs.motor);
+
+    lastRecordText = buildRecord(data, gcs);
+
+    // 화면에 먼저 표시하여 네트워크 오류 시에도 기록을 확인 가능
+    displayRecord(lastRecordText);
+
+    // 환자정보가 포함되므로 사용자가 명시적으로 제출한 경우에만 전송
+    let sheetSuccess = false;
+
+    try {
+      await sendToGoogleSheets(data);
+      sheetSuccess = true;
+    } catch (error) {
+      console.error("Google Sheets 전송 오류:", error);
+    }
+
+    setStatus(
+      "saveStatus",
+      sheetSuccess
+        ? "기록 처리 완료. 구글 시트 전송 요청이 완료되었습니다."
+        : "기록은 화면에 표시되었습니다. 구글 시트 전송에 실패했을 수 있습니다. 연결 및 웹 앱 설정을 확인하세요.",
+      !sheetSuccess
+    );
+
+    // 공유는 시트 전송 실패와 별도로 시도
+    try {
+      await shareRecord(lastRecordText);
+    } catch (error) {
+      console.error("공유 오류:", error);
+      setStatus(
+        "saveStatus",
+        "기록은 화면에 표시되었지만 공유에 실패했습니다. 기록 내용 복사 또는 다운로드를 이용하세요.",
+        true
+      );
+    }
+
+  } catch (error) {
+    console.error("기록 처리 오류:", error);
+    setStatus("saveStatus", "기록 처리 중 오류가 발생했습니다.", true);
+  } finally {
+    button.disabled = false;
+  }
 });
 
-document.addEventListener('keydown', function(e) {
+/* =========================
+   기록 복사
+========================= */
 
-    // F12
-    if (e.key === 'F12') {
-        e.preventDefault();
-        return false;
+$("copyButton").addEventListener("click", async () => {
+  if (!lastRecordText) {
+    setStatus("saveStatus", "먼저 기록을 작성하고 저장해 주세요.", true);
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(lastRecordText);
+    setStatus("saveStatus", "기록 내용을 클립보드에 복사했습니다.");
+  } catch (error) {
+    // 클립보드 API 미지원 환경의 대체 방법
+    const area = document.createElement("textarea");
+    area.value = lastRecordText;
+    area.style.position = "fixed";
+    area.style.opacity = "0";
+    document.body.appendChild(area);
+    area.select();
+
+    let copied = false;
+
+    try {
+      copied = document.execCommand("copy");
+    } catch (_) {
+      copied = false;
     }
 
-    // Ctrl + U (페이지 소스 보기)
-    if (e.ctrlKey && e.key.toLowerCase() === 'u') {
-        e.preventDefault();
-        return false;
-    }
+    area.remove();
 
-    // Ctrl + Shift + I (개발자 도구)
-    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'i') {
-        e.preventDefault();
-        return false;
-    }
+    setStatus(
+      "saveStatus",
+      copied
+        ? "기록 내용을 복사했습니다."
+        : "자동 복사에 실패했습니다. 공유 또는 다운로드 기능을 이용하세요.",
+      !copied
+    );
+  }
+});
 
-    // Ctrl + Shift + J (콘솔)
-    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'j') {
-        e.preventDefault();
-        return false;
-    }
+/* =========================
+   인쇄
+========================= */
 
-    // Ctrl + Shift + C (요소 선택)
-    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'c') {
-        e.preventDefault();
-        return false;
-    }
-
-    // Ctrl + S (페이지 저장)
-    if (e.ctrlKey && e.key.toLowerCase() === 's') {
-        e.preventDefault();
-        return false;
-    }
+$("printButton").addEventListener("click", () => {
+  window.print();
 });
 </script>
 
-
-  
 </body>
 </html>
