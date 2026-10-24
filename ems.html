@@ -357,27 +357,31 @@ button:disabled {
 "use strict";
 
 /* =========================
-   설정
+   설정 및 상태
 ========================= */
 
-// 기존 Google Apps Script 웹 앱 주소
 const GOOGLE_SCRIPT_URL =
   "https://script.google.com/macros/s/AKfycbxm_oLeGMIGh5PRokCURztVx6-1Ijug2KtuGbsFH-cZVOKE5LgaKDnLbTgFl2sWWDdkwA/exec";
 
 let latitude = null;
 let longitude = null;
+
 let kakaoMap = null;
 let mapMarker = null;
+let kakaoReady = false;
+let mapLoadFailed = false;
 let lastRecordText = "";
-
-/* =========================
-   공통 요소
-========================= */
 
 const $ = id => document.getElementById(id);
 
+/* =========================
+   상태 메시지
+========================= */
+
 function setStatus(id, message, isError = false) {
   const el = $(id);
+  if (!el) return;
+
   el.textContent = message;
   el.style.color = isError ? "#dc2626" : "#374151";
 }
@@ -396,7 +400,7 @@ function calculateGCS() {
   let state;
 
   if (total === 15) {
-    state = "15점";
+    state = "정상 점수 범위";
   } else if (total >= 13) {
     state = "경도 범위";
   } else if (total >= 9) {
@@ -405,19 +409,15 @@ function calculateGCS() {
     state = "중증 범위";
   }
 
-  $("gcsResult").textContent = `${total}점 (${state})`;
+  const result = `${total}점 (${state})`;
+
+  $("gcsResult").textContent = result;
 
   const severe = total <= 8;
   $("gcsWarning").style.display = severe ? "block" : "none";
   document.body.classList.toggle("critical-mode", severe);
 
-  return {
-    total,
-    eye,
-    verbal,
-    motor,
-    result: `${total}점 (${state})`
-  };
+  return { total, eye, verbal, motor, result };
 }
 
 ["eye", "verbal", "motor"].forEach(id => {
@@ -430,51 +430,88 @@ calculateGCS();
    카카오 지도 초기화
 ========================= */
 
-let kakaoMap = null;
-let mapMarker = null;
-let kakaoReady = false;
-
+// 지도 객체는 이곳에서 한 번만 선언합니다.
 function initializeMap(lat, lng) {
-  if (!kakaoReady || !window.kakao?.maps) return;
-
-  const position = new kakao.maps.LatLng(lat, lng);
-
-  if (!kakaoMap) {
-    kakaoMap = new kakao.maps.Map(
-      document.getElementById("map"),
-      {
-        center: position,
-        level: 5
-      }
-    );
-
-    mapMarker = new kakao.maps.Marker({
-      position: position
-    });
-
-    mapMarker.setMap(kakaoMap);
-  } else {
-    kakaoMap.setCenter(position);
-    mapMarker.setPosition(position);
+  if (!kakaoReady || !window.kakao?.maps) {
+    return false;
   }
 
-  kakao.maps.event.trigger(kakaoMap, "resize");
+  const container = $("map");
+  if (!container) return false;
+
+  try {
+    const position = new kakao.maps.LatLng(lat, lng);
+
+    if (!kakaoMap) {
+      kakaoMap = new kakao.maps.Map(container, {
+        center: position,
+        level: 5
+      });
+
+      mapMarker = new kakao.maps.Marker({
+        position: position
+      });
+
+      mapMarker.setMap(kakaoMap);
+    } else {
+      kakaoMap.setCenter(position);
+      mapMarker.setPosition(position);
+    }
+
+    // 지도 컨테이너가 표시된 후 크기를 다시 계산합니다.
+    kakao.maps.event.trigger(kakaoMap, "resize");
+
+    return true;
+  } catch (error) {
+    console.error("지도 초기화 오류:", error);
+    setStatus(
+      "gpsStatus",
+      "지도 표시 중 오류가 발생했습니다. 페이지를 새로고침해 주세요.",
+      true
+    );
+    return false;
+  }
 }
 
-// SDK가 준비된 뒤 무등산 인근을 기본 화면으로 표시
+// SDK 로딩 후에만 kakao.maps.load를 호출합니다.
 window.addEventListener("load", function () {
-  if (!window.kakao?.maps) {
-    document.getElementById("gpsStatus").textContent =
-      "카카오 지도 SDK 로딩 실패: 앱 키, 도메인 및 네트워크를 확인하세요.";
+  if (!window.kakao || !window.kakao.maps) {
+    mapLoadFailed = true;
+
+    setStatus(
+      "gpsStatus",
+      "카카오 지도 SDK 로딩 실패: 앱 키, 등록 도메인 및 네트워크를 확인하세요.",
+      true
+    );
     return;
   }
 
-  kakao.maps.load(function () {
-    kakaoReady = true;
+  try {
+    kakao.maps.load(function () {
+      kakaoReady = true;
 
-    // 기본 중심 좌표: 무등산 인근
-    initializeMap(35.13, 126.99);
-  });
+      // GPS를 먼저 확인했다면 해당 위치를, 아니면 무등산 인근을 표시합니다.
+      const lat = latitude !== null ? latitude : 35.13;
+      const lng = longitude !== null ? longitude : 126.99;
+
+      const success = initializeMap(lat, lng);
+
+      if (success && latitude === null) {
+        setStatus("gpsStatus", "지도 준비 완료. 현재 위치를 확인해 주세요.");
+      } else if (success && latitude !== null) {
+        setStatus("gpsStatus", "GPS 위치 및 지도 표시 완료");
+      }
+    });
+  } catch (error) {
+    mapLoadFailed = true;
+    console.error("카카오 지도 SDK 초기화 오류:", error);
+
+    setStatus(
+      "gpsStatus",
+      "지도 초기화에 실패했습니다. 카카오 앱 설정을 확인하세요.",
+      true
+    );
+  }
 });
 
 /* =========================
@@ -483,12 +520,17 @@ window.addEventListener("load", function () {
 
 $("getLocation").addEventListener("click", () => {
   if (!navigator.geolocation) {
-    setStatus("gpsStatus", "이 브라우저는 GPS 위치 확인을 지원하지 않습니다.", true);
+    setStatus(
+      "gpsStatus",
+      "이 브라우저는 위치 확인 기능을 지원하지 않습니다.",
+      true
+    );
     return;
   }
 
   const button = $("getLocation");
   button.disabled = true;
+
   setStatus("gpsStatus", "현재 위치를 확인하고 있습니다...");
 
   navigator.geolocation.getCurrentPosition(
@@ -496,15 +538,36 @@ $("getLocation").addEventListener("click", () => {
       latitude = position.coords.latitude;
       longitude = position.coords.longitude;
 
-      $("latitude").value = latitude;
-      $("longitude").value = longitude;
+      $("latitude").value = String(latitude);
+      $("longitude").value = String(longitude);
 
       $("locationDisplay").textContent =
         `위도: ${latitude.toFixed(6)}, 경도: ${longitude.toFixed(6)}`;
 
-      setStatus("gpsStatus", "GPS 위치 확인 완료");
+      if (kakaoReady) {
+        const success = initializeMap(latitude, longitude);
 
-      initializeMap(latitude, longitude);
+        setStatus(
+          "gpsStatus",
+          success
+            ? "GPS 위치 확인 및 지도 표시 완료"
+            : "GPS는 확인했지만 지도 표시에는 실패했습니다.",
+          !success
+        );
+      } else if (mapLoadFailed) {
+        setStatus(
+          "gpsStatus",
+          "GPS 위치는 확인했지만 지도 SDK를 불러오지 못했습니다.",
+          true
+        );
+      } else {
+        // SDK가 아직 로딩 중이어도 GPS 좌표는 저장합니다.
+        setStatus(
+          "gpsStatus",
+          "GPS 위치 확인 완료. 지도 로딩 후 위치를 표시합니다."
+        );
+      }
+
       button.disabled = false;
     },
     error => {
@@ -512,7 +575,8 @@ $("getLocation").addEventListener("click", () => {
 
       switch (error.code) {
         case error.PERMISSION_DENIED:
-          message = "위치 권한이 거부되었습니다. 브라우저 설정에서 허용해 주세요.";
+          message =
+            "위치 권한이 거부되었습니다. 브라우저 설정에서 위치 권한을 허용해 주세요.";
           break;
         case error.POSITION_UNAVAILABLE:
           message = "현재 위치 정보를 사용할 수 없습니다.";
@@ -553,12 +617,12 @@ function buildRecord(data, gcs) {
 }
 
 /* =========================
-   화면에 기록 출력
-   innerHTML 대신 textContent 사용
+   화면에 기록 표시
 ========================= */
 
 function displayRecord(text) {
   const item = document.createElement("div");
+
   item.className = "board-item";
   item.textContent = text;
 
@@ -570,14 +634,15 @@ function displayRecord(text) {
 ========================= */
 
 async function sendToGoogleSheets(data) {
-  if (!GOOGLE_SCRIPT_URL || !GOOGLE_SCRIPT_URL.includes("/exec")) {
+  if (
+    !GOOGLE_SCRIPT_URL ||
+    !GOOGLE_SCRIPT_URL.includes("/exec")
+  ) {
     throw new Error("Google Apps Script 웹 앱 주소를 확인하세요.");
   }
 
   const response = await fetch(GOOGLE_SCRIPT_URL, {
     method: "POST",
-    // text/plain으로 전송하여 일반적인 JSON 요청의
-    // CORS preflight 문제를 피하도록 구성
     headers: {
       "Content-Type": "text/plain;charset=utf-8"
     },
@@ -586,44 +651,17 @@ async function sendToGoogleSheets(data) {
   });
 
   if (!response.ok) {
-    throw new Error(`서버 응답 오류 (${response.status})`);
+    throw new Error(`서버 HTTP 오류 (${response.status})`);
   }
 
+  // HTTP 성공은 요청의 성공을 의미할 뿐,
+  // 실제 시트 기록 여부까지 보장하지는 않습니다.
   return response;
 }
 
 /* =========================
    기록 공유 및 다운로드
 ========================= */
-
-async function shareRecord(text) {
-  // 기존 Android 앱 브리지 지원
-  if (window.Android &&
-      typeof window.Android.shareData === "function") {
-    window.Android.shareData(text);
-    return;
-  }
-
-  // Web Share API 지원 브라우저
-  if (navigator.share) {
-    try {
-      await navigator.share({
-        title: "무등산 구조 기록",
-        text: text
-      });
-      return;
-    } catch (error) {
-      // 사용자가 공유 창을 닫은 경우 다운로드를 강제하지 않음
-      if (error.name === "AbortError") {
-        return;
-      }
-      console.warn("공유 기능 오류:", error);
-    }
-  }
-
-  // 공유 기능 미지원 시 텍스트 파일 다운로드
-  downloadRecord(text);
-}
 
 function downloadRecord(text) {
   const blob = new Blob(["\uFEFF", text], {
@@ -640,8 +678,39 @@ function downloadRecord(text) {
   a.click();
   a.remove();
 
-  // 다운로드 처리가 시작될 시간을 확보한 후 URL 정리
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+async function shareRecord(text) {
+  // 기존 Android 앱 브리지
+  if (
+    window.Android &&
+    typeof window.Android.shareData === "function"
+  ) {
+    window.Android.shareData(text);
+    return "shared";
+  }
+
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: "무등산 구조 기록",
+        text: text
+      });
+
+      return "shared";
+    } catch (error) {
+      if (error.name === "AbortError") {
+        return "cancelled";
+      }
+
+      console.warn("공유 기능 오류:", error);
+      // 공유 기능 오류가 발생하면 파일 다운로드로 대체합니다.
+    }
+  }
+
+  downloadRecord(text);
+  return "downloaded";
 }
 
 /* =========================
@@ -659,6 +728,7 @@ $("recordForm").addEventListener("submit", async event => {
 
   const button = $("submitButton");
   button.disabled = true;
+
   setStatus("saveStatus", "기록을 처리하고 있습니다...");
 
   try {
@@ -668,7 +738,7 @@ $("recordForm").addEventListener("submit", async event => {
       data[key] = String(value).trim();
     });
 
-    // 좌표를 다시 명시적으로 기록
+    // GPS 미확인 시 좌표를 빈 문자열로 저장합니다.
     data["위도"] = latitude === null ? "" : String(latitude);
     data["경도"] = longitude === null ? "" : String(longitude);
     data["유형"] = "위치공유시스템에서 전송";
@@ -682,10 +752,9 @@ $("recordForm").addEventListener("submit", async event => {
 
     lastRecordText = buildRecord(data, gcs);
 
-    // 화면에 먼저 표시하여 네트워크 오류 시에도 기록을 확인 가능
+    // 전송 실패 시에도 작성한 기록을 화면에서 확인할 수 있습니다.
     displayRecord(lastRecordText);
 
-    // 환자정보가 포함되므로 사용자가 명시적으로 제출한 경우에만 전송
     let sheetSuccess = false;
 
     try {
@@ -695,29 +764,57 @@ $("recordForm").addEventListener("submit", async event => {
       console.error("Google Sheets 전송 오류:", error);
     }
 
-    setStatus(
-      "saveStatus",
-      sheetSuccess
-        ? "기록 처리 완료. 구글 시트 전송 요청이 완료되었습니다."
-        : "기록은 화면에 표시되었습니다. 구글 시트 전송에 실패했을 수 있습니다. 연결 및 웹 앱 설정을 확인하세요.",
-      !sheetSuccess
-    );
-
-    // 공유는 시트 전송 실패와 별도로 시도
-    try {
-      await shareRecord(lastRecordText);
-    } catch (error) {
-      console.error("공유 오류:", error);
+    if (sheetSuccess) {
       setStatus(
         "saveStatus",
-        "기록은 화면에 표시되었지만 공유에 실패했습니다. 기록 내용 복사 또는 다운로드를 이용하세요.",
+        "서버에서 HTTP 응답을 받았습니다. 실제 시트 기록 여부는 시트에서 확인하세요."
+      );
+    } else {
+      setStatus(
+        "saveStatus",
+        "기록은 화면에 표시되었습니다. 시트 전송 여부를 확인할 수 없습니다. 연결 및 웹 앱 설정을 확인하세요.",
         true
       );
     }
 
+    // 시트 전송 실패와 공유는 별도로 처리합니다.
+    try {
+      const shareResult = await shareRecord(lastRecordText);
+
+      if (shareResult === "cancelled") {
+        setStatus(
+          "saveStatus",
+          sheetSuccess
+            ? "서버 응답을 받았습니다. 공유는 취소되었습니다."
+            : "기록은 화면에 표시되었습니다. 공유는 취소되었으며 시트 전송 여부도 확인이 필요합니다.",
+          !sheetSuccess
+        );
+      } else if (shareResult === "downloaded") {
+        setStatus(
+          "saveStatus",
+          sheetSuccess
+            ? "서버 응답을 받았습니다. 기록을 텍스트 파일로 저장했습니다."
+            : "기록을 텍스트 파일로 저장했습니다. 시트 전송 여부는 별도로 확인하세요.",
+          !sheetSuccess
+        );
+      }
+    } catch (error) {
+      console.error("기록 공유 오류:", error);
+
+      setStatus(
+        "saveStatus",
+        "기록은 화면에 표시되었지만 공유 또는 다운로드에 실패했습니다. 기록 복사 기능을 이용하세요.",
+        true
+      );
+    }
   } catch (error) {
     console.error("기록 처리 오류:", error);
-    setStatus("saveStatus", "기록 처리 중 오류가 발생했습니다.", true);
+
+    setStatus(
+      "saveStatus",
+      "기록 처리 중 오류가 발생했습니다. 입력 내용과 브라우저 콘솔을 확인하세요.",
+      true
+    );
   } finally {
     button.disabled = false;
   }
@@ -729,19 +826,30 @@ $("recordForm").addEventListener("submit", async event => {
 
 $("copyButton").addEventListener("click", async () => {
   if (!lastRecordText) {
-    setStatus("saveStatus", "먼저 기록을 작성하고 저장해 주세요.", true);
+    setStatus(
+      "saveStatus",
+      "먼저 기록을 작성하고 저장해 주세요.",
+      true
+    );
     return;
   }
 
   try {
+    if (!navigator.clipboard?.writeText) {
+      throw new Error("클립보드 API를 사용할 수 없습니다.");
+    }
+
     await navigator.clipboard.writeText(lastRecordText);
+
     setStatus("saveStatus", "기록 내용을 클립보드에 복사했습니다.");
   } catch (error) {
-    // 클립보드 API 미지원 환경의 대체 방법
+    // 클립보드 API를 사용할 수 없는 환경의 대체 방법
     const area = document.createElement("textarea");
+
     area.value = lastRecordText;
     area.style.position = "fixed";
-    area.style.opacity = "0";
+    area.style.left = "-9999px";
+
     document.body.appendChild(area);
     area.select();
 
@@ -759,7 +867,7 @@ $("copyButton").addEventListener("click", async () => {
       "saveStatus",
       copied
         ? "기록 내용을 복사했습니다."
-        : "자동 복사에 실패했습니다. 공유 또는 다운로드 기능을 이용하세요.",
+        : "자동 복사에 실패했습니다. 브라우저 권한을 확인하거나 공유·다운로드 기능을 이용하세요.",
       !copied
     );
   }
