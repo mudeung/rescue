@@ -54,10 +54,6 @@ body {
   text-align: center;
 }
 
-/* 암호 확인 전 본문 숨김 */
-body:not(.password-verified):not(.link-expired) > :not(#passwordPanel):not(#expiredPanel) {
-  visibility: hidden;
-}
 
 /* 만료된 경우 기존 콘텐츠 숨김 */
 body.link-expired > :not(#expiredPanel) {
@@ -105,85 +101,6 @@ h1, h2 {
   color: #aaa;
 }
 
-/* 암호 입력창 */
-.password-panel {
-  width: min(420px, calc(100% - 32px));
-  max-width: 420px;
-  padding: 26px;
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  background: var(--surface);
-  color: #20242a;
-  box-shadow: 0 18px 60px #00000025;
-}
-
-.password-panel::backdrop {
-  background: #111827cc;
-  backdrop-filter: blur(3px);
-}
-
-.password-panel h2 {
-  margin: 0 0 10px;
-  color: #20242a;
-  font-size: 22px;
-  text-align: left;
-}
-
-.password-panel > p {
-  color: var(--muted);
-  line-height: 1.6;
-  text-align: left;
-}
-
-/* 암호 입력과 확인 버튼 한 줄 배치 */
-.password-input-row {
-  display: flex;
-  align-items: stretch;
-  gap: 10px;
-  width: 100%;
-  margin-top: 20px;
-}
-
-.password-input-row input {
-  flex: 1;
-  width: 0;
-  min-width: 0;
-  height: 46px;
-  padding: 0 12px;
-  border: 1px solid #aeb5be;
-  border-radius: 10px;
-  background: #fff;
-  color: #20242a;
-  font: inherit;
-}
-
-.password-input-row .button {
-  flex: 0 0 82px;
-  width: 82px;
-  height: 46px;
-  padding: 0 12px;
-  border: 0;
-  border-radius: 10px;
-  background: var(--primary);
-  color: #fff;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-#passwordStatus {
-  min-height: 24px;
-  margin: 8px 0 0;
-  color: var(--primary);
-  font-size: 14px;
-  text-align: left;
-}
-
-.password-input-row input:focus-visible,
-.password-input-row button:focus-visible {
-  outline: 3px solid #1769aa;
-  outline-offset: 3px;
-}
 
 /* 링크 만료 안내 */
 .expired-panel {
@@ -240,45 +157,6 @@ h1, h2 {
     새로운 링크를 발급받아 접속해 주세요.
   </p>
 </div>
-
-<!-- =========================================
-     암호 입력창
-========================================= -->
-<dialog id="passwordPanel"
-        class="password-panel"
-        aria-labelledby="passwordHeading"
-        aria-describedby="passwordDescription">
-
-  <h2 id="passwordHeading">암호 입력</h2>
-
-  <p id="passwordDescription">
-    접속하려면 접속 암호를 입력하세요.
-  </p>
-
-  <form id="passwordForm">
-    <div class="password-input-row">
-
-      <input
-        id="accessPassword"
-        name="accessPassword"
-        type="password"
-        placeholder="접속 암호"
-        autocomplete="current-password"
-        maxlength="128"
-        required
-      >
-
-      <button type="submit" class="button">
-        확인
-      </button>
-
-    </div>
-
-    <p id="passwordStatus"
-       role="status"
-       aria-live="polite"></p>
-  </form>
-</dialog>
 
 <!-- =========================================
      페이지 본문
@@ -340,48 +218,6 @@ h1, h2 {
   if (expiredPanel) {
     expiredPanel.style.display = "block";
   }
-})();
-
-/* =========================================
-   암호 확인
-========================================= */
-(function () {
-  // 만료된 링크는 암호 확인 절차를 실행하지 않음
-  if (window.MUDEUNG_LINK_EXPIRED) {
-    return;
-  }
-
-  const PASSWORD = "knps";
-
-  const panel = document.getElementById("passwordPanel");
-  const form = document.getElementById("passwordForm");
-  const input = document.getElementById("accessPassword");
-  const status = document.getElementById("passwordStatus");
-
-  // 암호창 표시
-  panel.showModal();
-  input.focus();
-
-  form.addEventListener("submit", function (event) {
-    event.preventDefault();
-
-    if (input.value === PASSWORD) {
-      document.body.classList.add("password-verified");
-
-      panel.close();
-      input.value = "";
-      status.textContent = "";
-    } else {
-      status.textContent = "암호가 올바르지 않습니다.";
-      input.value = "";
-      input.focus();
-    }
-  });
-
-  // ESC로 암호창 닫기 방지
-  panel.addEventListener("cancel", function (event) {
-    event.preventDefault();
-  });
 })();
 
 /* =========================================
