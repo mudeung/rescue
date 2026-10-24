@@ -682,34 +682,36 @@ function downloadRecord(text) {
 }
 
 async function shareRecord(text) {
-  // 기존 Android 앱 브리지
+  const gcs = calculateGCS();
+  const shareText = `GCS 점수: ${gcs.total}점`;
+
+  // Android 앱 브리지
   if (
     window.Android &&
     typeof window.Android.shareData === "function"
   ) {
-    window.Android.shareData(text);
+    window.Android.shareData(shareText);
     return "shared";
   }
 
+  // 모바일·브라우저 공유
   if (navigator.share) {
     try {
       await navigator.share({
-        title: "무등산 구조 기록",
-        text: text
+        title: "GCS 점수",
+        text: shareText
       });
-
       return "shared";
     } catch (error) {
       if (error.name === "AbortError") {
         return "cancelled";
       }
-
-      console.warn("공유 기능 오류:", error);
-      // 공유 기능 오류가 발생하면 파일 다운로드로 대체합니다.
+      console.warn("공유 오류:", error);
     }
   }
 
-  downloadRecord(text);
+  // 공유 기능을 지원하지 않을 때 GCS 점수만 파일로 저장
+  downloadRecord(shareText);
   return "downloaded";
 }
 
