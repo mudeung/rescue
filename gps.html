@@ -307,27 +307,36 @@
 
 <body>
 
-<div id="expiredPanel"
-     style="display:none; padding:30px; text-align:center;
-            font-family:Arial,sans-serif;">
-    <h2>링크 사용 기간 만료</h2>
-    <p>이 위치공유 링크는 만료되었습니다.</p>
-    <p>새로운 링크를 발급받아 접속해 주세요.</p>
-</div>
 
 <script>
 if (window.MUDEUNG_LINK_EXPIRED === true) {
-    document.body.innerHTML = `
-        <div style="padding:30px;text-align:center;
-                    font-family:Arial,sans-serif;">
-            <h2>링크 사용 기간 만료</h2>
-            <p>이 위치공유 링크는 만료되었습니다.</p>
-            <p>새로운 링크를 발급받아 접속해 주세요.</p>
-        </div>
-    `;
-
-    // 이후 일반 페이지 초기화 스크립트가 실행되지 않도록 표시
-    document.documentElement.dataset.linkExpired = "true";
+    document.documentElement.innerHTML = `
+    <html lang="ko">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport"
+              content="width=device-width, initial-scale=1.0">
+        <title>링크 사용 기간 만료</title>
+        <style>
+            body {
+                margin: 0;
+                padding: 30px 20px;
+                font-family: Arial, sans-serif;
+                text-align: center;
+                background: #f5f5f5;
+                color: #333;
+            }
+            h2 {
+                color: #b71c1c;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>링크 사용 기간 만료</h2>
+        <p>이 위치공유 링크는 만료되었습니다.</p>
+        <p>새로운 링크를 발급받아 접속해 주세요.</p>
+    </body>
+    </html>`;
 }
 </script>
 
