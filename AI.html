@@ -712,6 +712,39 @@ header{
 <script>
 
 /* =====================================================
+   메인 화면 잠금
+===================================================== */
+const MAIN_PASSWORD = "knps";
+
+const loginScreen = document.getElementById("loginScreen");
+const mainApp = document.getElementById("mainApp");
+const loginForm = document.getElementById("loginForm");
+const loginPassword = document.getElementById("loginPassword");
+const loginError = document.getElementById("loginError");
+
+loginForm.addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    if (loginPassword.value === MAIN_PASSWORD) {
+        loginScreen.style.display = "none";
+        mainApp.classList.remove("locked");
+
+        loginPassword.value = "";
+        loginError.textContent = "";
+
+        setTimeout(function() {
+            map.invalidateSize();
+        }, 200);
+    } else {
+        loginError.textContent =
+            "비밀번호가 올바르지 않습니다.";
+
+        loginPassword.value = "";
+        loginPassword.focus();
+    }
+});
+      
+/* =====================================================
    API 설정
 ===================================================== */
 
