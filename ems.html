@@ -428,36 +428,52 @@ calculateGCS();
    카카오 지도 초기화
 ========================= */
 
+let kakaoMap = null;
+let mapMarker = null;
+let kakaoReady = false;
+
 function initializeMap(lat, lng) {
-  if (!window.kakao || !window.kakao.maps) {
-    setStatus(
-      "gpsStatus",
-      "GPS 좌표는 확인했지만 지도를 불러오지 못했습니다. 카카오 앱 키와 도메인 설정을 확인하세요.",
-      true
-    );
-    return;
-  }
+  if (!kakaoReady || !window.kakao?.maps) return;
 
   const position = new kakao.maps.LatLng(lat, lng);
 
   if (!kakaoMap) {
-    kakaoMap = new kakao.maps.Map($("map"), {
-      center: position,
-      level: 3
-    });
+    kakaoMap = new kakao.maps.Map(
+      document.getElementById("map"),
+      {
+        center: position,
+        level: 5
+      }
+    );
 
     mapMarker = new kakao.maps.Marker({
-      position: position,
-      map: kakaoMap
+      position: position
     });
+
+    mapMarker.setMap(kakaoMap);
   } else {
     kakaoMap.setCenter(position);
     mapMarker.setPosition(position);
   }
 
-  // 지도 컨테이너가 표시된 뒤 크기 재계산
   kakao.maps.event.trigger(kakaoMap, "resize");
 }
+
+// SDK가 준비된 뒤 무등산 인근을 기본 화면으로 표시
+window.addEventListener("load", function () {
+  if (!window.kakao?.maps) {
+    document.getElementById("gpsStatus").textContent =
+      "카카오 지도 SDK 로딩 실패: 앱 키, 도메인 및 네트워크를 확인하세요.";
+    return;
+  }
+
+  kakao.maps.load(function () {
+    kakaoReady = true;
+
+    // 기본 중심 좌표: 무등산 인근
+    initializeMap(35.13, 126.99);
+  });
+});
 
 /* =========================
    GPS 위치 확인
