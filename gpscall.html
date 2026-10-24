@@ -220,6 +220,7 @@ h1, h2 {
   }
 })();
 
+
 /* =========================================
    iPhone / Android 공통 문자 전송
    링크 유효시간: 1시간
@@ -227,11 +228,6 @@ h1, h2 {
 function sendSMS() {
   if (window.MUDEUNG_LINK_EXPIRED) {
     alert("링크 사용 기간이 만료되었습니다.");
-    return;
-  }
-
-  if (!document.body.classList.contains("password-verified")) {
-    alert("먼저 접속 암호를 확인해주세요.");
     return;
   }
 
@@ -252,11 +248,9 @@ function sendSMS() {
     return;
   }
 
-  // 현재 시각부터 1시간 후 만료
+  // 1시간 후 만료되는 링크 생성
   const expires = Date.now() + 60 * 60 * 1000;
-
-  const link =
-    "https://mudeung.github.io/gps?expires=" + expires;
+  const link = "https://mudeung.github.io/gps?expires=" + expires;
 
   const message =
     "[무등산 산악구조 요청]\n" +
@@ -265,29 +259,24 @@ function sendSMS() {
 
   const encodedMessage = encodeURIComponent(message);
 
-  // iPhone / iPad 판별
   const ua = navigator.userAgent;
   const isIOS =
     /iPhone|iPad|iPod/i.test(ua) ||
     (navigator.platform === "MacIntel" &&
      navigator.maxTouchPoints > 1);
 
-  // 운영체제별 SMS 주소 형식
   const smsURL = isIOS
     ? "sms:" + normalizedPhone + "&body=" + encodedMessage
     : "sms:" + normalizedPhone + "?body=" + encodedMessage;
 
-  // 버튼 클릭 이벤트 안에서 문자 앱 열기
   window.location.href = smsURL;
 }
 
 /* =========================================
    문자 전송 버튼 이벤트 연결
 ========================================= */
-document.getElementById("sendButton").addEventListener("click", function (event) {
-  event.preventDefault();
-  sendSMS();
-});
+
+document.getElementById("sendButton").addEventListener("click", sendSMS);
      
 /* =========================================
    우클릭 및 단축키 방지
