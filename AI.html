@@ -3267,12 +3267,16 @@ let speechRecognition = null;
 let isVoiceListening = false;
 
 function toggleVoiceRecognition() {
-
     const button = document.getElementById("voiceButton");
     const status = document.getElementById("voiceStatus");
     const input = document.getElementById("aiQuestion");
 
-    // 이미 음성인식 중이면 중지
+    if (!button || !status || !input) {
+        console.error("음성인식에 필요한 HTML 요소를 찾을 수 없습니다.");
+        return;
+    }
+
+    // 음성인식 중이면 중지
     if (isVoiceListening && speechRecognition) {
         speechRecognition.stop();
         return;
@@ -3283,21 +3287,19 @@ function toggleVoiceRecognition() {
         status.style.display = "block";
         status.classList.remove("listening");
         status.textContent =
-            "⚠ 이 브라우저는 음성인식을 지원하지 않습니다. 최신 Chrome 브라우저를 이용해주세요.";
+            "⚠ 음성인식을 지원하지 않는 브라우저입니다. Chrome을 이용해주세요.";
         return;
     }
 
-    // 음성인식 객체 생성
     speechRecognition = new SpeechRecognitionAPI();
-
     speechRecognition.lang = "ko-KR";
     speechRecognition.continuous = false;
     speechRecognition.interimResults = true;
     speechRecognition.maxAlternatives = 1;
 
     let finalTranscript = "";
-
     let voiceRecognitionFailed = false;
+
     status.style.display = "block";
     status.classList.add("listening");
     status.textContent = "🔴 듣고 있습니다. 질문을 말씀해주세요.";
@@ -3311,7 +3313,6 @@ function toggleVoiceRecognition() {
     };
 
     speechRecognition.onresult = function (event) {
-
         let interimTranscript = "";
 
         for (
@@ -3319,8 +3320,7 @@ function toggleVoiceRecognition() {
             i < event.results.length;
             i++
         ) {
-            const transcript =
-                event.results[i][0].transcript;
+            const transcript = event.results[i][0].transcript;
 
             if (event.results[i].isFinal) {
                 finalTranscript += transcript;
@@ -3335,23 +3335,22 @@ function toggleVoiceRecognition() {
         input.value = recognizedText;
 
         if (recognizedText) {
-            status.textContent =
-                "🎤 인식 중: " + recognizedText;
+            status.textContent = "🎤 인식 중: " + recognizedText;
         }
     };
 
-   speechRecognition.onerror = function (event) {
-    voiceRecognitionFailed = true;
+    speechRecognition.onerror = function (event) {
+        voiceRecognitionFailed = true;
 
         const messages = {
             "not-allowed":
                 "마이크 권한이 거부되었습니다. 브라우저 설정에서 마이크를 허용해주세요.",
             "service-not-allowed":
-                "브라우저에서 음성인식 서비스를 사용할 수 없습니다.",
+                "음성인식 서비스를 사용할 수 없습니다.",
             "no-speech":
-                "음성이 감지되지 않았습니다. 다시 말씀해주세요.",
+                "음성이 감지되지 않았습니다. 다시 시도해주세요.",
             "audio-capture":
-                "마이크를 찾을 수 없습니다. 마이크 연결을 확인해주세요.",
+                "마이크를 찾을 수 없습니다. 연결을 확인해주세요.",
             "network":
                 "음성인식 네트워크 오류가 발생했습니다."
         };
@@ -3362,154 +3361,60 @@ function toggleVoiceRecognition() {
              "음성인식 오류: " + event.error);
     };
 
-   speechRecognition.onend = function () {
+    speechRecognition.onend = function () {
+        isVoiceListening = false;
 
-    isVoiceListening = false;
+        button.classList.remove("listening");
+        button.textContent = "🎤";
+        button.setAttribute("aria-label", "음성인식 시작");
 
-    button.classList.remove("listening");
-    button.textContent = "🎤";
-    button.setAttribute("aria-label", "음성인식 시작");
+        status.classList.remove("listening");
 
-    status.classList.remove("listening");
+        if (voiceRecognitionFailed) {
+            return;
+        }
 
-    const question = input.value.trim();
+        const question = input.value.trim();
 
-    // 음성인식 실패 시 기존 질문을 자동 검색하지 않음
-    if (voiceRecognitionFailed) {
-        return;
-    }
+        if (question) {
+            status.textContent = "✅ 인식 완료: " + question;
+            askLocalAI();
+        } else {
+            status.textContent =
+                "음성이 입력되지 않았습니다. 마이크를 눌러 다시 시도하세요.";
+        };
+    };
 
-    // 인식된 질문이 있으면 자동 검색
-    if (question) {
+    try {
+        speechRecognition.start();
+    } catch (error) {
+        isVoiceListening = false;
+        button.classList.remove("listening");
+        button.textContent = "🎤";
+        button.setAttribute("aria-label", "음성인식 시작");
 
+        status.classList.remove("listening");
         status.textContent =
-            "✅ 인식 완료: " + question;
+            "⚠ 음성인식을 시작할 수 없습니다. 다시 시도해주세요.";
 
-        askLocalAI();
-
-    
-    } else if (
-        status.textContent.includes("듣고 있습니다")
-    ) {
-
-        status.textContent =
-            "음성이 입력되지 않았습니다. 마이크를 눌러 다시 시도하세요.";
-
+        console.error("음성인식 시작 오류:", error);
     }
-};
-
 }
 
 /* =====================================================
-   AI
+   AI 검색 패널
 ===================================================== */
 
-function openAISearch(){
-
-    const panel =
-        document.getElementById(
-            "aiSearchPanel"
-        );
+function openAISearch() {
+    const panel = document.getElementById("aiSearchPanel");
+    const input = document.getElementById("aiQuestion");
 
     panel.style.display = "block";
 
-    const input =
-        document.getElementById(
-            "aiQuestion"
-        );
-
-    setTimeout(
-        function(){
-            input.focus();
-        },
-        100
-    );
+    setTimeout(function () {
+        input.focus();
+    }, 100);
 }
-
-/* =====================================================
-   AI
-===================================================== */
-
-function openAISearch(){
-
-    const panel =
-        document.getElementById(
-            "aiSearchPanel"
-        );
-
-
-    panel.style.display =
-        "block";
-
-
-    const input =
-        document.getElementById(
-            "aiQuestion"
-        );
-
-
-    setTimeout(
-        function(){
-
-            input.focus();
-
-        },
-        100
-    );
-
-}
-
-
-function closeAISearch(){
-
-    const panel =
-        document.getElementById(
-            "aiSearchPanel"
-        );
-
-
-    panel.style.display =
-        "none";
-
-}
-
-
-function setAIQuestion(question){
-
-    const input =
-        document.getElementById(
-            "aiQuestion"
-        );
-
-
-    input.value =
-        question;
-
-
-    input.focus();
-
-}
-
-
-document.addEventListener(
-    "keydown",
-    function(e){
-
-        if(
-            e.key === "Enter" &&
-            document.activeElement &&
-            document.activeElement.id ===
-                "aiQuestion"
-        ){
-
-            e.preventDefault();
-
-            askLocalAI();
-
-        }
-
-    }
-);
 
 
 /* =====================================================
