@@ -3539,386 +3539,371 @@ function askLocalAI(){
 
 }
 
-
 /* =====================================================
-   AI 분석
+   AI 검색 개선 — 검색 조건 분석 보조 함수
 ===================================================== */
 
-function analyzeLocalQuestion(
-    question,
-    data
-){
-
-    let rows =
-        [...data];
-
-
-    let description = [];
-
-
-    if(
-        question.includes("몇 건") ||
-        question.includes("몇건") ||
-        question.includes("현황") ||
-        question.includes("현재 사고")
-    ){
-
-        return {
-
-            title:
-                "현재 사고 현황",
-
-            message:
-                createSituationSummary(data),
-
-            rows:[]
-
-        };
-
-    }
-
-
-   const wantsUnprocessed =
-    question.includes("미처리") ||
-    question.includes("미처리 사고");
-
-const wantsReceived =
-    question.includes("접수");
-
-if (wantsUnprocessed || wantsReceived) {
-    rows = rows.filter(function (item) {
-        const status = normalizeStatus(
-            getField(item, [
-                "status",
-                "state",
-                "상태",
-                "처리상태"
-            ])
-        );
-
-        return status === "RECEIVED";
-    });
-
-    description.push(
-        wantsUnprocessed ? "미처리" : "접수"
+// 사고 상태를 읽는 공통 함수
+function getAccidentStatus(item) {
+    return normalizeStatus(
+        getField(item, [
+            "status", "state", "상태", "처리상태"
+        ])
     );
 }
 
+// 날짜 문자열을 안전하게 시간으로 변환
+function getAccidentTimestamp(item) {
+    const value = getStartTime(item);
+    if (!value) return NaN;
 
-    if(
-        question.includes("현장도착") ||
-        question.includes("현장 도착") ||
-        question.includes("도착")
-    ){
+    const timestamp = new Date(value).getTime();
+    return Number.isFinite(timestamp) ? timestamp : NaN;
+}
 
-        rows =
-            rows.filter(
-                item =>
-                    normalizeStatus(
-                        getField(
-                            item,
-                            [
-                                "status",
-                                "state",
-                                "상태",
-                                "처리상태"
-                            ]
-                        )
-                    ) === "ARRIVED"
-            );
+// 좌표 및 주소와 관계없이 검색 가능한 전체 텍스트
+function getAccidentSearchText(item) {
+    const fields = [
+        getAccidentId(item, 0),
+        getTransmissionNumber(item),
+        getStartTime(item),
+        getField(item, [
+            "type", "accidentType", "신고유형", "유형"
+        ]),
+        getField(item, [
+            "symptom", "condition", "description",
+            "상황", "내용"
+        ]),
+        getField(item, [
+            "address", "주소", "location", "장소"
+        ]),
+        getField(item, [
+            "phone", "tel", "telephone", "연락처"
+        ]),
+        getField(item, [
+            "status", "state", "상태", "처리상태"
+        ])
+    ];
 
-        description.push("현장도착");
+    return fields
+        .map(value => normalizeQuestion(value))
+        .filter(Boolean)
+        .join(" ");
+}
 
-    }
+// 사고 검색 결과를 접수시간 기준으로 정렬
+function sortAccidentsByTime(rows, direction = "desc") {
+    return [...rows].sort((a, b) => {
+        const ta = getAccidentTimestamp(a);
+        const tb = getAccidentTimestamp(b);
 
+        if (!Number.isFinite(ta)) return 1;
+        if (!Number.isFinite(tb)) return -1;
 
-    if(
-        question.includes("완료")
-    ){
-
-        rows =
-            rows.filter(
-                item =>
-                    normalizeStatus(
-                        getField(
-                            item,
-                            [
-                                "status",
-                                "state",
-                                "상태",
-                                "처리상태"
-                            ]
-                        )
-                    ) === "DONE"
-            );
-
-        description.push("완료");
-
-    }
-
-
-   const minuteMatch = question.match(
-    /(\d+)\s*분/
-);
-
-if (minuteMatch) {
-    const minutes = Number(minuteMatch[1]);
-    const now = Date.now();
-
-    rows = rows.filter(function (item) {
-        const start = new Date(
-            getStartTime(item)
-        ).getTime();
-
-        if (!Number.isFinite(start)) {
-            return false;
-        }
-
-        const elapsedMinutes =
-            (now - start) / 60000;
-
-        if (elapsedMinutes < minutes) {
-            return false;
-        }
-
-        // '미처리' 조건은 접수 상태에만 적용
-        if (wantsUnprocessed) {
-            return normalizeStatus(
-                getField(item, [
-                    "status",
-                    "state",
-                    "상태",
-                    "처리상태"
-                ])
-            ) === "RECEIVED";
-        }
-
-        return true;
+        return direction === "asc" ? ta - tb : tb - ta;
     });
+}
 
-    description.push(minutes + "분 이상 경과");
+// 질문에서 검색 명령어를 제거하고 나머지 검색어 추출
+function extractAccidentKeywords(question) {
+    return question
+        .replace(
+            /(?:전송번호|전송 번호|transmission|transfer|send)\s*[:#]?\s*[a-z0-9가-힣_-]+/gi,
+            " "
+        )
+        .replace(
+            /\btx[-_ ]?\d+\b/gi,
+            " "
+        )
+        .replace(
+            /\d+\s*분\s*(?:이상|초과|이내|미만|이하|동안|전|내)/g,
+            " "
+        )
+        .replace(
+            /(?:최근|지난)\s*\d+\s*(?:분|시간|일)/g,
+            " "
+        )
+        .replace(
+            /\d+\s*(?:건|개)/g,
+            " "
+        )
+        .replace(
+            /현재|전체|모든|사고|신고|정보|현황|몇\s*건|몇건|몇\s*개|몇개|찾아\s*줘|찾아줘|검색해\s*줘|검색해줘|검색|보여\s*줘|보여줘|알려\s*줘|알려줘|조회해\s*줘|조회해줘|목록|있어\??|인가요\??|해줘/g,
+            " "
+        )
+        .replace(
+            /접수|미처리|미처리된|현장\s*도착|현장도착|도착|완료|처리완료|구조완료/g,
+            " "
+        )
+        .replace(
+            /가장\s*오래된|오래된\s*사고|오래된|최근\s*사고|최신\s*사고|최근|최신|오래|늦게/g,
+            " "
+        )
+        .replace(
+            /\d+/g,
+            " "
+        )
+        .replace(/[?!,.，。]/g, " ")
+        .split(/\s+/)
+        .map(word => word.trim())
+        .filter(word => word.length >= 2);
 }
 
 
-    if(
-        question.includes("최근") ||
-        question.includes("최신")
-    ){
 
-        rows.sort(
-            (a,b) =>
-                new Date(
-                    getStartTime(b)
-                ).getTime()
-                -
-                new Date(
-                    getStartTime(a)
-                ).getTime()
-        );
+/* =====================================================
+   AI 검색 Ver1.4 — 복합 조건 검색 엔진
+   기존 지도 및 렌더링 함수와 호환
+===================================================== */
 
+function analyzeLocalQuestion(question, data) {
+    const q = normalizeQuestion(question);
 
-        rows =
-            rows.slice(0,1);
+    let rows = Array.isArray(data) ? [...data] : [];
+    const conditions = [];
 
-
-        description.push(
-            "최근 사고"
-        );
-
+    if (!q) {
+        return {
+            title: "검색어 없음",
+            message: "검색할 질문을 입력해주세요.",
+            rows: []
+        };
     }
 
+    // 1. 상태 조건
+    const wantsReceived =
+        /접수|미처리/.test(q);
 
-    if(
-        question.includes("가장 오래된") ||
-        question.includes("오래된 사고")
-    ){
+    const wantsArrived =
+        /현장\s*도착|현장도착|도착/.test(q);
 
-        rows.sort(
-            (a,b) =>
-                new Date(
-                    getStartTime(a)
-                ).getTime()
-                -
-                new Date(
-                    getStartTime(b)
-                ).getTime()
-        );
+    const wantsDone =
+        /처리완료|구조완료|완료/.test(q);
 
+    const statusCount = [
+        wantsReceived,
+        wantsArrived,
+        wantsDone
+    ].filter(Boolean).length;
 
-        rows =
-            rows.slice(0,1);
-
-
-        description.push(
-            "가장 오래된 사고"
-        );
-
+    // 서로 다른 상태를 동시에 요청하면 상태 조건을
+    // 임의로 우선 적용하지 않고 명확하게 안내
+    if (statusCount > 1) {
+        return {
+            title: "검색 조건 확인",
+            message:
+                "서로 다른 사고 상태가 함께 입력되었습니다. " +
+                "'접수 사고', '현장도착 사고', '완료 사고'처럼 " +
+                "상태를 구분해서 검색해주세요.",
+            rows: []
+        };
     }
 
-
-    const keywords = [
-
-        "실족",
-        "탈진",
-        "조난",
-        "추락",
-        "부상",
-        "골절",
-        "출혈",
-        "의식",
-        "호흡",
-        "길잃음",
-        "저체온",
-        "열탈진",
-
-        "장불재",
-        "중머리재",
-        "입석대",
-        "서석대",
-        "증심사",
-        "새인봉",
-        "원효사",
-        "무등산",
-        "토끼등",
-        "바람재",
-        "규봉암",
-        "꼬막재"
-
-    ];
-
-
-    for(
-        const keyword of keywords
-    ){
-
-        if(
-            question.includes(keyword)
-        ){
-
-            rows =
-                rows.filter(
-                    item =>
-                        createSearchText(
-                            item
-                        ).includes(
-                            keyword
-                        )
-                );
-
-
-            description.push(
-                keyword
-            );
-
-
-            break;
-
-        }
-
+    if (wantsReceived) {
+        rows = rows.filter(
+            item => getAccidentStatus(item) === "RECEIVED"
+        );
+        conditions.push("접수·미처리");
+    } else if (wantsArrived) {
+        rows = rows.filter(
+            item => getAccidentStatus(item) === "ARRIVED"
+        );
+        conditions.push("현장도착");
+    } else if (wantsDone) {
+        rows = rows.filter(
+            item => getAccidentStatus(item) === "DONE"
+        );
+        conditions.push("처리완료");
     }
 
+    // 2. 경과시간 조건
+    // 예: 10분 이상, 20분 초과, 5분 이내
+    const elapsedMatch = q.match(
+        /(\d+)\s*분\s*(이상|초과|이내|미만|이하)/
+    );
 
-    const transmissionMatch =
-        question.match(
-            /(?:전송번호|전송 번호|transmission|transfer|send)\s*[:#\-]?\s*([a-z0-9가-힣\-_]+)/i
+    // 3. 최근 기간 조건
+    // 예: 최근 30분, 지난 2시간, 최근 3일
+    const recentMatch = q.match(
+        /(?:최근|지난)\s*(\d+)\s*(분|시간|일)/
+    );
+
+    const now = Date.now();
+
+    if (elapsedMatch) {
+        const amount = Number(elapsedMatch[1]);
+        const operator = elapsedMatch[2];
+
+        rows = rows.filter(item => {
+            const timestamp = getAccidentTimestamp(item);
+            if (!Number.isFinite(timestamp)) return false;
+
+            const elapsed = (now - timestamp) / 60000;
+
+            if (operator === "이상") return elapsed >= amount;
+            if (operator === "초과") return elapsed > amount;
+            if (operator === "이내") return elapsed >= 0 && elapsed <= amount;
+            if (operator === "미만") return elapsed >= 0 && elapsed < amount;
+            if (operator === "이하") return elapsed <= amount;
+
+            return true;
+        });
+
+        conditions.push(
+            "경과 " + amount + "분 " + operator
         );
+    }
 
+    if (recentMatch) {
+        const amount = Number(recentMatch[1]);
+        const unit = recentMatch[2];
 
-    if(transmissionMatch){
+        const multiplier =
+            unit === "시간" ? 60 * 60 * 1000 :
+            unit === "일" ? 24 * 60 * 60 * 1000 :
+            60 * 1000;
 
-        const search =
-            transmissionMatch[1]
+        const cutoff = now - amount * multiplier;
+
+        rows = rows.filter(item => {
+            const timestamp = getAccidentTimestamp(item);
+
+            return Number.isFinite(timestamp) &&
+                timestamp >= cutoff &&
+                timestamp <= now;
+        });
+
+        conditions.push(
+            "최근 " + amount + unit
+        );
+    }
+
+    // 미처리는 접수 상태만 의미하도록 유지
+    if (
+        /미처리/.test(q) &&
+        !wantsReceived
+    ) {
+        rows = rows.filter(
+            item => getAccidentStatus(item) === "RECEIVED"
+        );
+        conditions.push("미처리");
+    }
+
+    // 4. 전송번호 검색
+    // 예: TX-001, 전송번호 TX-001, 전송번호: TX-001
+    const transmissionMatch = q.match(
+        /(?:전송\s*번호|transmission|transfer|send)\s*[:#]?\s*([a-z0-9가-힣_-]+)/i
+    );
+
+    const standaloneTransmission = q.match(
+        /\btx[-_ ]?\d+\b/i
+    );
+
+    const transmissionQuery = transmissionMatch
+    
+
+const invalidTransmissionQueries = [
+    "찾아줘",
+    "찾아",
+    "보여줘",
+    "검색해줘",
+    "알려줘",
+    "조회해줘"
+];
+
+const safeTransmissionQuery =
+    invalidTransmissionQueries.includes(
+        transmissionQuery.toLowerCase()
+    )
+        ? ""
+        : transmissionQuery;
+
+if (safeTransmissionQuery) {
+    const target = safeTransmissionQuery
+        .replace(/[\s_-]/g, "")
+        .toLowerCase();
+
+    rows = rows.filter(item => {
+        const number = getTransmissionNumber(item)
+            .replace(/[\s_-]/g, "")
             .toLowerCase();
 
+        return number.includes(target);
+    });
 
-        rows =
-            rows.filter(
-                item =>
-                    getTransmissionNumber(
-                        item
-                    )
-                    .toLowerCase()
-                    .includes(search)
-            );
+    conditions.push("전송번호 " + safeTransmissionQuery);
+}
 
 
-        description.push(
-            "전송번호 " +
-            transmissionMatch[1]
-        );
 
+    // 5. 최근 사고 / 가장 오래된 사고
+    const wantsLatest =
+        /최근\s*사고|최신\s*사고|가장\s*최근|최신/.test(q);
+
+    const wantsOldest =
+        /가장\s*오래된|오래된\s*사고/.test(q);
+
+    if (wantsLatest && wantsOldest) {
+        return {
+            title: "검색 조건 확인",
+            message: "최근 사고와 가장 오래된 사고 중 하나를 선택해주세요.",
+            rows: []
+        };
     }
 
-
-    if(
-        description.length === 0
-    ){
-
-        const words =
-            question
-            .replace(
-                /찾아줘|찾아 줘|보여줘|보여 줘|검색해줘|검색해 줘|알려줘|알려 줘|해줘|줘/g,
-                ""
-            )
-            .trim()
-            .split(/\s+/)
-            .filter(
-                word =>
-                    word.length >= 2
-            );
-
-
-        if(words.length){
-
-            rows =
-                rows.filter(
-                    item => {
-
-                        const text =
-                            createSearchText(
-                                item
-                            );
-
-
-                        return words.some(
-                            word =>
-                                text.includes(
-                                    word
-                                )
-                        );
-
-                    }
-                );
-
-
-            description.push(
-                "자연어 검색"
-            );
-
-        }
-
+    if (wantsLatest) {
+        rows = sortAccidentsByTime(rows, "desc");
+        conditions.push("최신순");
+    } else if (wantsOldest) {
+        rows = sortAccidentsByTime(rows, "asc");
+        conditions.push("오래된 순");
     }
 
+    // 6. 남은 질문에서 장소·유형·상황 검색어 추출
+    const keywords = extractAccidentKeywords(q);
+
+    if (keywords.length) {
+        rows = rows.filter(item => {
+            const text = getAccidentSearchText(item);
+
+            // 검색어가 모두 포함된 사고만 반환
+            return keywords.every(word => text.includes(word));
+        });
+
+        conditions.push("키워드: " + keywords.join(", "));
+    }
+
+    // 7. 전체 현황 질문
+    // 검색 조건이 없는 단순 현황 질문만 전체 요약
+    const asksSummary =
+        /몇\s*건|몇건|현황|전체\s*사고|현재\s*사고/.test(q);
+
+    if (
+        asksSummary &&
+        conditions.length === 0
+    ) {
+        return {
+            title: "현재 사고 현황",
+            message: createSituationSummary(data),
+            rows: []
+        };
+    }
+
+    // 8. 결과 반환
+    const title = conditions.length
+        ? conditions.join(" + ")
+        : "사고정보 검색";
 
     return {
-
-        title:
-            description.length
-            ?
-            description.join(" + ")
-            :
-            "검색 결과",
-
+        title: title,
         message:
             "검색 조건에 맞는 사고가 " +
             rows.length +
             "건입니다.",
-
-        rows:rows
-
+        rows: rows
     };
-
 }
+
 
 
 /* =====================================================
