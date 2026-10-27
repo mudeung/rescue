@@ -937,7 +937,8 @@ textarea::placeholder {
     </div>
 </div>
 
-      
+<div id="mainApp" class="locked">
+
 <header>
 🎤 SEARCH & RESCUE AI Ver1.3
 </header>
@@ -1103,12 +1104,15 @@ textarea::placeholder {
         type="audio/ogg"
     >
 </audio>
+</div>
 
 <script>
 
+
 /* =====================================================
-   메인 화면 잠금
+   메인 화면 잠금 및 로그인 오류 수정
 ===================================================== */
+
 const MAIN_PASSWORD = "knps";
 
 const loginScreen = document.getElementById("loginScreen");
@@ -1117,8 +1121,14 @@ const loginForm = document.getElementById("loginForm");
 const loginPassword = document.getElementById("loginPassword");
 const loginError = document.getElementById("loginError");
 
-loginForm.addEventListener("submit", function(e) {
+loginForm.addEventListener("submit", function (e) {
     e.preventDefault();
+
+    if (!mainApp) {
+        loginError.textContent =
+            "메인 화면 초기화 오류: mainApp 요소를 확인하세요.";
+        return;
+    }
 
     if (loginPassword.value === MAIN_PASSWORD) {
         loginScreen.style.display = "none";
@@ -1127,9 +1137,15 @@ loginForm.addEventListener("submit", function(e) {
         loginPassword.value = "";
         loginError.textContent = "";
 
-        setTimeout(function() {
-            map.invalidateSize();
-        }, 200);
+        // 숨겨져 있던 지도 영역의 크기 재계산
+        requestAnimationFrame(function () {
+            map.invalidateSize({ pan: false });
+        });
+
+        // 로그인 후 최신 사고정보 조회
+        loadAccidents().catch(function (err) {
+            console.error("로그인 후 사고정보 조회 오류:", err);
+        });
     } else {
         loginError.textContent =
             "비밀번호가 올바르지 않습니다.";
@@ -1138,6 +1154,7 @@ loginForm.addEventListener("submit", function(e) {
         loginPassword.focus();
     }
 });
+
       
 /* =====================================================
    API 설정
@@ -1795,58 +1812,57 @@ function getTransmissionNumber(item){
 
 
 /* =====================================================
-   사고번호
+    사고번호 - 안정적인 대체 ID
    예: 2610111554-XX-014
 ===================================================== */
 
-function getAccidentId(item, index){
+function getAccidentId(item, index) {
+    const value = getField(item, [
+        "사고번호",
+        "사고 번호",
+        "accidentNumber",
+        "accidentNo",
+        "accidentId",
+        "caseNumber",
+        "caseNo",
+        "caseId",
+        "caseID",
+        "id",
+        "ID"
+    ]);
 
-    const value = getField(
-        item,
-        [
-            "사고번호",
-            "사고 번호",
-            "accidentNumber",
-            "accidentNo",
-            "accidentId",
-            "caseNumber",
-            "caseNo",
-            "caseId",
-            "caseID",
-            "id",
-            "ID"
-        ]
-    );
-
-    if(value !== ""){
+    if (value !== "") {
         return String(value).trim();
     }
 
-    // 사고번호가 없을 때만 기존 대체 ID 사용
-    return (
-        String(
-            getField(
-                item,
-                [
-                    "createdAt",
-                    "timestamp",
-                    "접수시간"
-                ]
-            )
-        ) +
-        "|" +
-        String(
-            getField(
-                item,
-                [
-                    "address",
-                    "주소"
-                ]
-            )
-        ) +
-        "|" +
-        String(index)
-    );
+    // 사고번호가 없는 경우 인덱스를 사용하지 않아
+    // 목록 정렬에 따른 ID 변경을 방지
+    const startTime = getStartTime(item);
+
+    const address = getField(item, [
+        "address", "주소", "location", "장소"
+    ]);
+
+    const transmissionNumber =
+        getTransmissionNumber(item);
+
+    const type = getField(item, [
+        "type", "accidentType", "신고유형", "유형"
+    ]);
+
+    const symptom = getField(item, [
+        "symptom", "condition", "description",
+        "상황", "내용"
+    ]);
+
+    return [
+        startTime,
+        address,
+        transmissionNumber,
+        type,
+        symptom
+    ].map(normalizeValue).join("|");
+}
 
 }
 
@@ -3283,6 +3299,7 @@ function toggleVoiceRecognition() {
 
     let finalTranscript = "";
 
+    let voiceRecognitionFailed = false;
     status.style.display = "block";
     status.classList.add("listening");
     status.textContent = "🔴 듣고 있습니다. 질문을 말씀해주세요.";
@@ -3325,7 +3342,8 @@ function toggleVoiceRecognition() {
         }
     };
 
-    speechRecognition.onerror = function (event) {
+   speechRecognition.onerror = function (event) {
+    voiceRecognitionFailed = true;
 
         const messages = {
             "not-allowed":
@@ -3356,14 +3374,19 @@ function toggleVoiceRecognition() {
 
         status.classList.remove("listening");
 
-        const question = input.value.trim();
+       const question = input.value.trim();
 
-        if (question) {
-            status.textContent =
-                "✅ 인식 완료: " + question;
+if (voiceRecognitionFailed) {
+    // 음성인식 실패 시 기존 질문을 자동 검색하지 않음
+    return;
+}
 
-            // 인식한 문장으로 기존 AI 검색 실행
-            askLocalAI();
+if (question) {
+    status.textContent =
+        "✅ 인식 완료: " + question;
+
+    askLocalAI();
+}
         } else if (
             status.textContent.includes("듣고 있습니다")
         ) {
