@@ -673,33 +673,127 @@ textarea::placeholder {
 ===================================================== */
 
 
+
 @media (max-width: 768px) {
 
+    /* AI 검색창: 화면 상단, 크기 축소 */
     #aiSearchPanel {
         position: absolute;
-        left: 10px;
-        right: 10px;
-
-        /* 화면 상단으로 이동 */
         top: 60px;
         bottom: auto;
+        left: 10px;
+        right: 10px;
 
         width: auto;
         max-width: none;
 
-        /* 모바일 화면 높이에 맞게 제한 */
-        max-height: calc(100dvh - 80px);
-
-        z-index: 1900;
+        /* 화면 높이의 최대 45% */
+        max-height: 45dvh;
 
         display: none;
+        overflow: hidden;
+
+        z-index: 1900;
+        border-radius: 8px;
     }
 
+    /* 제목 영역 축소 */
+    .ai-header {
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+
+    .ai-header-sub {
+        font-size: 9px;
+    }
+
+    /* 검색창 내부만 스크롤 */
     .ai-body {
+        padding: 9px;
         overflow-y: auto;
-        max-height: calc(100dvh - 150px);
+        overscroll-behavior: contain;
+
+        max-height: calc(45dvh - 40px);
     }
 
+    /* 안내 문구 간격 축소 */
+    .ai-description {
+        font-size: 11px;
+        margin-bottom: 7px;
+    }
+
+    /* 검색 입력창 높이 축소 */
+    .ai-input-row {
+        gap: 5px;
+    }
+
+    #aiQuestion {
+        padding: 8px;
+        font-size: 12px;
+    }
+
+    #voiceButton {
+        min-width: 38px;
+        padding: 0 8px;
+        font-size: 16px;
+    }
+
+    .ai-input-row button {
+        padding: 0 10px;
+        font-size: 12px;
+    }
+
+    /* 예시 버튼 간격 축소 */
+    .ai-examples {
+        gap: 4px;
+        margin-top: 7px;
+    }
+
+    .ai-examples button {
+        padding: 4px 6px;
+        font-size: 10px;
+    }
+
+    /* 검색 결과 영역 축소 */
+    .ai-result {
+        min-height: 55px;
+        max-height: 150px;
+        margin-top: 8px;
+        padding: 8px;
+        font-size: 12px;
+    }
+
+    .ai-result-item {
+        padding: 7px;
+        margin-top: 5px;
+        font-size: 11px;
+    }
+
+    /* 도움말 간격 축소 */
+    .ai-help {
+        margin-top: 7px;
+        padding: 6px;
+        font-size: 10px;
+    }
+
+    /* 사고 건수 표시 */
+    #accidentCount {
+        top: auto;
+        bottom: 20px;
+        font-size: 12px;
+        padding: 7px 9px;
+        max-width: calc(100vw - 20px);
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* AI 검색 버튼 */
+    #aiSearchButton {
+        right: 10px;
+        bottom: 15px;
+        padding: 8px 10px;
+        font-size: 12px;
+    }
 }
 
 
