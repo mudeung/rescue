@@ -1210,10 +1210,11 @@ loginForm.addEventListener("submit", function (e) {
             map.invalidateSize({ pan: false });
         });
 
-        // 로그인 후 최신 사고정보 조회
-        loadAccidents().catch(function (err) {
-            console.error("로그인 후 사고정보 조회 오류:", err);
-        });
+        // 로그인 후 지도 크기 재계산 및 사고정보 갱신 시작
+requestAnimationFrame(function () {
+    map.invalidateSize({ pan: false });
+    startAccidentAutoRefresh();
+});
     } else {
         loginError.textContent =
             "비밀번호가 올바르지 않습니다.";
@@ -1612,59 +1613,49 @@ async function postAccident(payload){
    GET
 ===================================================== */
 
-async function getAccidents(){
+async function getAccidents() {
+    const response = await fetch(
+        ACCIDENT_API_URL +
+        "?action=list&t=" +
+        Date.now(),
+        {
+            method: "GET",
+            cache: "no-store"
+        }
+    );
 
-    const response =
-        await fetch(
-            ACCIDENT_API_URL +
-            "?action=list&t=" +
-            Date.now(),
-            {
-                method:"GET",
-                cache:"no-store"
-            }
-        );
-
-    if(!response.ok){
-
+    if (!response.ok) {
         throw new Error(
-            "HTTP " +
+            "사고정보 API HTTP 오류: " +
             response.status
         );
-
     }
 
-    const data =
-        await response.json();
+    let data;
 
+    try {
+        data = await response.json();
+    } catch (error) {
+        throw new Error(
+            "사고정보 API 응답이 올바른 JSON 형식이 아닙니다."
+        );
+    }
 
-    if(Array.isArray(data)){
+    if (Array.isArray(data)) {
         return data;
     }
 
-    if(
-        data &&
-        Array.isArray(data.data)
-    ){
-        return data.data;
+    if (data && typeof data === "object") {
+        for (const key of ["data", "items", "rows"]) {
+            if (Array.isArray(data[key])) {
+                return data[key];
+            }
+        }
     }
 
-    if(
-        data &&
-        Array.isArray(data.items)
-    ){
-        return data.items;
-    }
-
-    if(
-        data &&
-        Array.isArray(data.rows)
-    ){
-        return data.rows;
-    }
-
-    return [];
-
+    throw new Error(
+        "사고정보 API 응답에서 목록 배열을 찾을 수 없습니다."
+    );
 }
 
 
@@ -3333,6 +3324,7 @@ const SpeechRecognitionAPI =
 
 let speechRecognition = null;
 let isVoiceListening = false;
+let voiceSearchPending = false;
 
 function toggleVoiceRecognition() {
     const button = document.getElementById("voiceButton");
@@ -3377,81 +3369,65 @@ function toggleVoiceRecognition() {
     button.setAttribute("aria-label", "음성인식 중지");
 
     speechRecognition.onstart = function () {
-        isVoiceListening = true;
+    isVoiceListening = true;
+    voiceSearchPending = true;
+};
+
+speechRecognition.onerror = function (event) {
+    voiceRecognitionFailed = true;
+    voiceSearchPending = false;
+
+    const messages = {
+        "not-allowed":
+            "마이크 권한이 거부되었습니다. 브라우저 설정에서 마이크를 허용해주세요.",
+        "service-not-allowed":
+            "음성인식 서비스를 사용할 수 없습니다.",
+        "no-speech":
+            "음성이 감지되지 않았습니다. 다시 시도해주세요.",
+        "audio-capture":
+            "마이크를 찾을 수 없습니다. 연결을 확인해주세요.",
+        "network":
+            "음성인식 네트워크 오류가 발생했습니다."
     };
 
-    speechRecognition.onresult = function (event) {
-        let interimTranscript = "";
-
-        for (
-            let i = event.resultIndex;
-            i < event.results.length;
-            i++
-        ) {
-            const transcript = event.results[i][0].transcript;
-
-            if (event.results[i].isFinal) {
-                finalTranscript += transcript;
-            } else {
-                interimTranscript += transcript;
-            }
-        }
-
-        const recognizedText =
-            (finalTranscript + interimTranscript).trim();
-
-        input.value = recognizedText;
-
-        if (recognizedText) {
-            status.textContent = "🎤 인식 중: " + recognizedText;
-        }
-    };
-
-    speechRecognition.onerror = function (event) {
-        voiceRecognitionFailed = true;
-
-        const messages = {
-            "not-allowed":
-                "마이크 권한이 거부되었습니다. 브라우저 설정에서 마이크를 허용해주세요.",
-            "service-not-allowed":
-                "음성인식 서비스를 사용할 수 없습니다.",
-            "no-speech":
-                "음성이 감지되지 않았습니다. 다시 시도해주세요.",
-            "audio-capture":
-                "마이크를 찾을 수 없습니다. 연결을 확인해주세요.",
-            "network":
-                "음성인식 네트워크 오류가 발생했습니다."
-        };
-
-        status.textContent =
-            "⚠ " +
-            (messages[event.error] ||
-             "음성인식 오류: " + event.error);
-    };
+    status.textContent =
+        "⚠ " +
+        (messages[event.error] ||
+         "음성인식 오류: " + event.error);
+};
 
     speechRecognition.onend = function () {
-        isVoiceListening = false;
+    isVoiceListening = false;
 
-        button.classList.remove("listening");
-        button.textContent = "🎤";
-        button.setAttribute("aria-label", "음성인식 시작");
+    button.classList.remove("listening");
+    button.textContent = "🎤";
+    button.setAttribute("aria-label", "음성인식 시작");
 
-        status.classList.remove("listening");
+    status.classList.remove("listening");
 
-        if (voiceRecognitionFailed) {
-            return;
-        }
+    if (voiceRecognitionFailed) {
+        voiceSearchPending = false;
+        return;
+    }
 
-        const question = input.value.trim();
+    const question = input.value.trim();
 
-        if (question) {
-            status.textContent = "✅ 인식 완료: " + question;
+    if (question) {
+        status.textContent = "✅ 인식 완료: " + question;
+
+        // 인식 종료 이벤트에서 검색은 한 번만 실행
+        if (voiceSearchPending) {
+            voiceSearchPending = false;
             askLocalAI();
-        } else {
-            status.textContent =
-                "음성이 입력되지 않았습니다. 마이크를 눌러 다시 시도하세요.";
-        };
-    };
+        }
+    } else {
+        voiceSearchPending = false;
+        status.textContent =
+            "음성이 입력되지 않았습니다. 마이크를 눌러 다시 시도하세요.";
+    }
+
+    speechRecognition = null;
+};
 
     try {
         speechRecognition.start();
@@ -3602,30 +3578,31 @@ function analyzeLocalQuestion(
     }
 
 
-    if(
-        question.includes("접수") ||
-        question.includes("미처리")
-    ){
+   const wantsUnprocessed =
+    question.includes("미처리") ||
+    question.includes("미처리 사고");
 
-        rows =
-            rows.filter(
-                item =>
-                    normalizeStatus(
-                        getField(
-                            item,
-                            [
-                                "status",
-                                "state",
-                                "상태",
-                                "처리상태"
-                            ]
-                        )
-                    ) === "RECEIVED"
-            );
+const wantsReceived =
+    question.includes("접수");
 
-        description.push("접수");
+if (wantsUnprocessed || wantsReceived) {
+    rows = rows.filter(function (item) {
+        const status = normalizeStatus(
+            getField(item, [
+                "status",
+                "state",
+                "상태",
+                "처리상태"
+            ])
+        );
 
-    }
+        return status === "RECEIVED";
+    });
+
+    description.push(
+        wantsUnprocessed ? "미처리" : "접수"
+    );
+}
 
 
     if(
@@ -3680,54 +3657,47 @@ function analyzeLocalQuestion(
     }
 
 
-    const minuteMatch =
-        question.match(
-            /(\d+)\s*분/
-        );
+   const minuteMatch = question.match(
+    /(\d+)\s*분/
+);
 
+if (minuteMatch) {
+    const minutes = Number(minuteMatch[1]);
+    const now = Date.now();
 
-    if(minuteMatch){
+    rows = rows.filter(function (item) {
+        const start = new Date(
+            getStartTime(item)
+        ).getTime();
 
-        const minutes =
-            Number(
-                minuteMatch[1]
-            );
+        if (!Number.isFinite(start)) {
+            return false;
+        }
 
+        const elapsedMinutes =
+            (now - start) / 60000;
 
-        rows =
-            rows.filter(
-                item => {
+        if (elapsedMinutes < minutes) {
+            return false;
+        }
 
-                    const start =
-                        new Date(
-                            getStartTime(item)
-                        ).getTime();
+        // '미처리' 조건은 접수 상태에만 적용
+        if (wantsUnprocessed) {
+            return normalizeStatus(
+                getField(item, [
+                    "status",
+                    "state",
+                    "상태",
+                    "처리상태"
+                ])
+            ) === "RECEIVED";
+        }
 
+        return true;
+    });
 
-                    if(!Number.isFinite(start)){
-                        return false;
-                    }
-
-
-                    const elapsed =
-                        (
-                            Date.now() -
-                            start
-                        ) / 60000;
-
-
-                    return elapsed >= minutes;
-
-                }
-            );
-
-
-        description.push(
-            minutes +
-            "분 이상 경과"
-        );
-
-    }
+    description.push(minutes + "분 이상 경과");
+}
 
 
     if(
@@ -4476,36 +4446,36 @@ function focusMultipleAccidents(ids){
             }
 
 
-            const lat =
-                Number(
-                    getField(
-                        item,
-                        [
-                            "lat",
-                            "latitude",
-                            "위도"
-                        ]
-                    )
-                );
+           const latRaw = getField(item, [
+    "lat",
+    "latitude",
+    "위도"
+]);
+
+const lngRaw = getField(item, [
+    "lng",
+    "longitude",
+    "경도"
+]);
+
+const lat = latRaw === ""
+    ? NaN
+    : Number(latRaw);
+
+const lng = lngRaw === ""
+    ? NaN
+    : Number(lngRaw);
+
+const hasValidCoordinates =
+    Number.isFinite(lat) &&
+    Number.isFinite(lng) &&
+    lat >= -90 &&
+    lat <= 90 &&
+    lng >= -180 &&
+    lng <= 180;
 
 
-            const lng =
-                Number(
-                    getField(
-                        item,
-                        [
-                            "lng",
-                            "longitude",
-                            "경도"
-                        ]
-                    )
-                );
-
-
-            if(
-                Number.isFinite(lat) &&
-                Number.isFinite(lng)
-            ){
+            if (hasValidCoordinates) {
 
                 points.push([
                     lat,
@@ -4550,27 +4520,14 @@ function focusMultipleAccidents(ids){
 
 
 /* =====================================================
-   초기화
+   초기화 — 로그인 전 사고정보 조회 방지
 ===================================================== */
 
-window.addEventListener(
-    "load",
-    function(){
-
-        startAccidentAutoRefresh();
-
-
-        setTimeout(
-            function(){
-
-                map.invalidateSize();
-
-            },
-            1000
-        );
-
-    }
-);
+window.addEventListener("load", function () {
+    setTimeout(function () {
+        map.invalidateSize({ pan: false });
+    }, 300);
+});
 
 
 /* =====================================================
