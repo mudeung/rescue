@@ -1855,15 +1855,13 @@ function getAccidentId(item, index) {
         "상황", "내용"
     ]);
 
-    return [
+        return [
         startTime,
         address,
         transmissionNumber,
         type,
         symptom
     ].map(normalizeValue).join("|");
-}
-
 }
 
 /* =====================================================
@@ -3364,49 +3362,40 @@ function toggleVoiceRecognition() {
              "음성인식 오류: " + event.error);
     };
 
-    speechRecognition.onend = function () {
+   speechRecognition.onend = function () {
 
-        isVoiceListening = false;
+    isVoiceListening = false;
 
-        button.classList.remove("listening");
-        button.textContent = "🎤";
-        button.setAttribute("aria-label", "음성인식 시작");
+    button.classList.remove("listening");
+    button.textContent = "🎤";
+    button.setAttribute("aria-label", "음성인식 시작");
 
-        status.classList.remove("listening");
+    status.classList.remove("listening");
 
-       const question = input.value.trim();
+    const question = input.value.trim();
 
-if (voiceRecognitionFailed) {
     // 음성인식 실패 시 기존 질문을 자동 검색하지 않음
-    return;
-}
-
-if (question) {
-    status.textContent =
-        "✅ 인식 완료: " + question;
-
-    askLocalAI();
-}
-        } else if (
-            status.textContent.includes("듣고 있습니다")
-        ) {
-            status.textContent =
-                "음성이 입력되지 않았습니다. 마이크를 눌러 다시 시도하세요.";
-        }
-    };
-
-    try {
-        speechRecognition.start();
-    } catch (error) {
-        isVoiceListening = false;
-        button.classList.remove("listening");
-        button.textContent = "🎤";
-        status.classList.remove("listening");
-        status.textContent =
-            "⚠ 음성인식을 시작할 수 없습니다. 잠시 후 다시 시도해주세요.";
+    if (voiceRecognitionFailed) {
+        return;
     }
-}
 
+    // 인식된 질문이 있으면 자동 검색
+    if (question) {
+
+        status.textContent =
+            "✅ 인식 완료: " + question;
+
+        askLocalAI();
+
+    } else if (
+        status.textContent.includes("듣고 있습니다")
+    ) {
+
+        status.textContent =
+            "음성이 입력되지 않았습니다. 마이크를 눌러 다시 시도하세요.";
+
+    }
+};
 
 /* =====================================================
    AI
