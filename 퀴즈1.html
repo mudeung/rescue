@@ -323,23 +323,80 @@ footer {
   .info { font-size:18px; }
 }
 
-/* 문제 글씨 크게 변경 */
-.question {
-  font-size:34px !important;
-  line-height:1.9;
-  min-height:260px;
-  padding:35px 25px;
-  font-weight:900;
-  color:#183f2c;
+
+/* 모니터 화면 크기 자동 맞춤 */
+.container {
+  width: min(96%, 1100px);
+  max-width: 1100px;
+  margin: 2vh auto;
+  padding: 1.5vh 1vw;
 }
 
-/* 모바일 화면 */
-@media(max-width:480px) {
+.card {
+  padding: clamp(15px, 2.5vw, 35px);
+}
+
+/* 문제 글씨 자동 크기 조절 */
+.question {
+  font-size: clamp(26px, 3vw, 40px) !important;
+  line-height: 1.7;
+  min-height: clamp(200px, 30vh, 340px);
+  padding: clamp(20px, 3vw, 40px);
+  font-weight: 900;
+  color: #183f2c;
+}
+
+/* OX 버튼 */
+.ox {
+  height: clamp(90px, 15vh, 145px);
+  font-size: clamp(45px, 5vw, 75px);
+}
+
+/* 제목 */
+h1 {
+  font-size: clamp(25px, 3vw, 40px);
+}
+
+h2 {
+  font-size: clamp(23px, 2.5vw, 32px);
+}
+
+/* 버튼 글씨 */
+.start, .next, .restart {
+  font-size: clamp(20px, 2.5vw, 30px);
+}
+
+/* 태블릿 */
+@media(max-width:768px) {
+  .container {
+    width: 98%;
+    padding: 5px;
+  }
+
   .question {
-    font-size:27px !important;
-    line-height:1.8;
-    min-height:230px;
-    padding:25px 15px;
+    font-size: clamp(24px, 4vw, 32px) !important;
+  }
+}
+
+/* 스마트폰 */
+@media(max-width:480px) {
+  .container {
+    width: 100%;
+    padding: 8px;
+  }
+
+  .card {
+    padding: 15px 10px;
+  }
+
+  .question {
+    font-size: 25px !important;
+    min-height: 210px;
+  }
+
+  .ox {
+    height: 90px;
+    font-size: 45px;
   }
 }
   
