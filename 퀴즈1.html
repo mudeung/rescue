@@ -436,7 +436,7 @@ h2 {
     📌 문제 수 : 10문제<br>
     🎯 난이도 : 쉬움<br>
     ⏱️ 제한시간 : 문제당 20초<br>
-    ⭐ 정답 : 10점 + 콤보 보너스<br>
+    ⭐ 정답 : 10점 (총점 100점)<br>
     🎮 진행 방법 : O 또는 X 선택
   </div>
 
@@ -594,6 +594,18 @@ const questions = [
 }
 ];
 
+// 문제 랜덤 섞기 함수
+function shuffle(array) {
+  const arr = [...array];
+
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+
+  return arr;
+}
+  
 let current = 0;
 let score = 0;
 let answers = [];
@@ -624,22 +636,6 @@ function startQuiz() {
   showQuestion();
 }
 
-// 퀴즈 시작
-function startQuiz() {
-  current=0;
-  score=0;
-  answers=[];
-  combo=0;
-
-  quizQuestions=shuffle(questions);
-
-  document.getElementById("intro").classList.add("hidden");
-  document.getElementById("result").classList.add("hidden");
-  document.getElementById("quiz").classList.remove("hidden");
-
-  playSound("click");
-  showQuestion();
-}
 
 // 문제 표시
 function showQuestion() {
@@ -784,87 +780,76 @@ function startTimer() {
 }
 
 // 정답 선택
-function answer(choice,timedOut=false) {
-  if(answered) return;
 
-  answered=true;
+function answer(choice, timedOut = false) {
+  if (answered) return;
+
+  answered = true;
   clearInterval(timerInterval);
 
-  const q=quizQuestions[current];
-  const correct=!timedOut && choice===q.a;
+  const q = quizQuestions[current];
+  const correct = !timedOut && choice === q.a;
 
   answers.push(timedOut ? null : choice);
 
- let bonus=0;
-
-if(correct) {
-  combo++;
-
-  // 총점 100점 초과 방지
-  score+=10;
-
-  playSound("correct");
-  showCelebration();
-
-} else {
-  combo=0;
-  playSound(timedOut ? "timeout" : "wrong");
-}
+  if (correct) {
+    combo++;
+    score += 10;
 
     playSound("correct");
     showCelebration();
-
   } else {
-    combo=0;
+    combo = 0;
     playSound(timedOut ? "timeout" : "wrong");
   }
 
-  document.getElementById("btnO").disabled=true;
-  document.getElementById("btnX").disabled=true;
+  document.getElementById("btnO").disabled = true;
+  document.getElementById("btnX").disabled = true;
 
-  document.getElementById("feedback").style.display="block";
+  document.getElementById("feedback").style.display = "block";
 
-  document.getElementById("feedbackTitle").textContent=
+  document.getElementById("feedbackTitle").textContent =
     timedOut ? "⏰ 시간 초과!" :
     correct ? "🎉 정답입니다!" :
     "😊 아쉬워요!";
 
-  let message=timedOut
+  let message = timedOut
     ? "시간이 다 되었어요!"
     : correct
-      ? "정말 잘했어요! +"+(10+bonus)+"점"
+      ? "정말 잘했어요! +10점"
       : "괜찮아요! 다음 문제에 도전해 봐요!";
 
-  document.getElementById("feedbackText").textContent=
-    message+
-    "\n정답 : "+(q.a ? "O (맞아요)" : "X (틀려요)")+
-    "\n\n해설 : "+q.e;
+  document.getElementById("feedbackText").textContent =
+    message +
+    "\n정답 : " + (q.a ? "O (맞아요)" : "X (틀려요)") +
+    "\n\n해설 : " + q.e;
 
-  document.getElementById("feedbackText").style.whiteSpace=
+  document.getElementById("feedbackText").style.whiteSpace =
     "pre-line";
 
-  document.getElementById("scoreNow").textContent=
-    "⭐ "+score+"점";
+  document.getElementById("scoreNow").textContent =
+    "⭐ " + score + "점";
 
-  document.getElementById("characterMessage").textContent=
+  document.getElementById("characterMessage").textContent =
     correct
       ? "🐻 달콩이 : 최고야! 산악안전 박사가 되고 있어!"
       : "🐻 달콩이 : 괜찮아! 해설을 잘 기억해 보자!";
 
-  document.getElementById("combo").textContent=
-    correct && combo>=2
-      ? "🔥 "+combo+"연속 정답! 콤보 보너스 +2점!"
+  document.getElementById("combo").textContent =
+    correct && combo >= 2
+      ? "🔥 " + combo + "연속 정답!"
       : "";
 
-  const next=document.getElementById("next");
+  const next = document.getElementById("next");
 
-  next.style.display="block";
+  next.style.display = "block";
 
-  next.textContent=
-    current===quizQuestions.length-1
+  next.textContent =
+    current === quizQuestions.length - 1
       ? "🏆 결과 확인하기"
       : "다음 문제 →";
 }
+
 
 // 축하 애니메이션
 function showCelebration() {
