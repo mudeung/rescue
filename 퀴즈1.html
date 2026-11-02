@@ -323,6 +323,26 @@ footer {
   .info { font-size:18px; }
 }
 
+/* 문제 글씨 크게 변경 */
+.question {
+  font-size:34px !important;
+  line-height:1.9;
+  min-height:260px;
+  padding:35px 25px;
+  font-weight:900;
+  color:#183f2c;
+}
+
+/* 모바일 화면 */
+@media(max-width:480px) {
+  .question {
+    font-size:27px !important;
+    line-height:1.8;
+    min-height:230px;
+    padding:25px 15px;
+  }
+}
+  
 </style>
 </head>
 
@@ -530,15 +550,21 @@ let answered = false;
 const QUESTION_TIME = 20;
 
 // 문제 섞기
-function shuffle(array) {
-  const arr = [...array];
+function startQuiz() {
+  current=0;
+  score=0;
+  answers=[];
+  combo=0;
 
-  for(let i=arr.length-1;i>0;i--) {
-    const j=Math.floor(Math.random()*(i+1));
-    [arr[i],arr[j]]=[arr[j],arr[i]];
-  }
+  // 매번 문제 순서를 랜덤으로 변경
+  quizQuestions=shuffle(questions);
 
-  return arr;
+  document.getElementById("intro").classList.add("hidden");
+  document.getElementById("result").classList.add("hidden");
+  document.getElementById("quiz").classList.remove("hidden");
+
+  playSound("click");
+  showQuestion();
 }
 
 // 퀴즈 시작
@@ -712,12 +738,21 @@ function answer(choice,timedOut=false) {
 
   answers.push(timedOut ? null : choice);
 
-  let bonus=0;
+ let bonus=0;
 
-  if(correct) {
-    combo++;
-    bonus=combo>=2 ? 2 : 0;
-    score+=10+bonus;
+if(correct) {
+  combo++;
+
+  // 총점 100점 초과 방지
+  score+=10;
+
+  playSound("correct");
+  showCelebration();
+
+} else {
+  combo=0;
+  playSound(timedOut ? "timeout" : "wrong");
+}
 
     playSound("correct");
     showCelebration();
