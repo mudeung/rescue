@@ -686,7 +686,7 @@ function nextQuestion() {
 // 다시 시작
 function restartQuiz() {
   clearInterval(timerInterval);
-
+  window.speechSynthesis.cancel();
   document.getElementById("result").classList.add("hidden");
   document.getElementById("intro").classList.remove("hidden");
   document.getElementById("celebration").style.display="none";
@@ -751,6 +751,34 @@ function toggleSound() {
   if(soundOn) playSound("click");
 }
 
+// 어린이 느낌의 한국어 음성 안내
+function speakChild(message) {
+  if (!soundOn) return;
+
+  if (!("speechSynthesis" in window)) return;
+
+  window.speechSynthesis.cancel();
+
+  const speech = new SpeechSynthesisUtterance(message);
+
+  speech.lang = "ko-KR";
+  speech.rate = 0.9;
+  speech.pitch = 1.5;
+  speech.volume = 1;
+
+  const voices = window.speechSynthesis.getVoices();
+
+  const koreanVoice = voices.find(
+    voice => voice.lang.toLowerCase().startsWith("ko")
+  );
+
+  if (koreanVoice) {
+    speech.voice = koreanVoice;
+  }
+
+  window.speechSynthesis.speak(speech);
+}
+  
 // 타이머 업데이트
 function updateTimer() {
   document.getElementById("timer").textContent=timeLeft;
@@ -791,15 +819,23 @@ function answer(choice, timedOut = false) {
 
   answers.push(timedOut ? null : choice);
 
-  if (correct) {
+if (correct) {
     combo++;
     score += 10;
 
     playSound("correct");
+    speakChild("정답입니다! 참 잘했어요!");
     showCelebration();
+
   } else {
     combo = 0;
     playSound(timedOut ? "timeout" : "wrong");
+
+    if (timedOut) {
+      speakChild("시간이 다 되었어요!");
+    } else {
+      speakChild("틀렸습니다! 다시 한번 도전해 보세요!");
+    }
   }
 
   document.getElementById("btnO").disabled = true;
