@@ -1,0 +1,402 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>국립공원 산악안전 OX 퀴즈</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Malgun Gothic", sans-serif;
+  background: linear-gradient(135deg,#e5f5e8,#d9ecf7);
+  color: #263b32;
+}
+.container {
+  max-width: 720px;
+  margin: 30px auto;
+  padding: 20px;
+}
+.card {
+  background: white;
+  border-radius: 24px;
+  padding: 30px 24px;
+  box-shadow: 0 8px 30px #254b3020;
+  text-align: center;
+}
+.banner {
+  background: linear-gradient(135deg,#176b43,#3c9c67);
+  color: white;
+  padding: 35px 15px;
+  border-radius: 20px;
+  margin-bottom: 25px;
+}
+.banner .emoji { font-size: 55px; }
+h1 { font-size: 27px; margin: 12px 0; }
+h2 { font-size: 23px; }
+.sub { line-height: 1.8; color: #e9fff0; }
+.info {
+  background: #f0f8f2;
+  border-radius: 14px;
+  padding: 16px;
+  line-height: 2;
+  margin: 20px 0;
+}
+button {
+  cursor: pointer;
+  border: none;
+  font-weight: bold;
+  border-radius: 15px;
+  transition: .2s;
+}
+button:hover { transform: translateY(-2px); }
+.start {
+  background: #197647;
+  color: white;
+  padding: 17px 45px;
+  font-size: 20px;
+  width: 100%;
+}
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+.progress {
+  height: 12px;
+  background: #e5eee7;
+  border-radius: 20px;
+  overflow: hidden;
+  margin-bottom: 25px;
+}
+.bar {
+  height: 100%;
+  width: 0;
+  background: #26a269;
+  transition: .3s;
+}
+.question {
+  background: #f5faf6;
+  padding: 30px 20px;
+  border-radius: 18px;
+  font-size: 22px;
+  line-height: 1.7;
+  min-height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+.ox-area {
+  display: flex;
+  gap: 18px;
+  margin: 25px 0;
+}
+.ox {
+  flex: 1;
+  height: 105px;
+  font-size: 48px;
+  color: white;
+}
+.o { background: #268bd2; }
+.x { background: #e65a54; }
+.ox:disabled { opacity: .45; cursor: default; }
+.feedback {
+  display: none;
+  padding: 20px;
+  border-radius: 15px;
+  background: #fff7df;
+  line-height: 1.8;
+  text-align: left;
+  margin-bottom: 20px;
+}
+.feedback strong {
+  display: block;
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+.next {
+  display: none;
+  background: #197647;
+  color: white;
+  padding: 16px;
+  width: 100%;
+  font-size: 18px;
+}
+.score {
+  font-size: 55px;
+  font-weight: bold;
+  color: #218653;
+  margin: 20px;
+}
+.result-item {
+  padding: 14px;
+  margin: 10px 0;
+  background: #f3f8f4;
+  border-radius: 12px;
+  text-align: left;
+  line-height: 1.7;
+}
+.restart {
+  background: #197647;
+  color: white;
+  padding: 16px;
+  width: 100%;
+  font-size: 18px;
+  margin-top: 20px;
+}
+.hidden { display: none; }
+footer {
+  text-align: center;
+  margin: 20px;
+  font-size: 13px;
+  color: #62776a;
+}
+@media(max-width:480px) {
+  .container { padding: 12px; margin: 10px auto; }
+  .card { padding: 20px 15px; }
+  h1 { font-size: 23px; }
+  .question { font-size: 19px; padding: 20px 12px; }
+  .ox { height: 85px; font-size: 40px; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<div class="card">
+
+<div class="banner">
+  <img
+        src="https://mudeung.github.io/rescue/logogomir1.png"
+        alt="달콩이 이미지"
+        style="
+            display:block;
+            margin:0 auto;
+            max-width:100%;
+        "
+    >
+  <h1>국립공원 산악안전 OX 퀴즈</h1>
+  <div class="sub">
+    산악사고 예방 및 119 신고 교육<br>
+    어린이 · 청소년 · 일반 시민
+  </div>
+</div>
+
+<!-- 시작 화면 -->
+<div id="intro">
+  <h2>산에서 사고가 발생하면?</h2>
+  <p>당황하지 않고 정확하게 신고하는 방법을 알아봐요!</p>
+  <div class="info">
+    📌 문제 수 : 10문제<br>
+    🎯 난이도 : 쉬움<br>
+    ✏️ 진행 방법 : O 또는 X 선택<br>
+    🏆 모든 문제를 풀고 점수를 확인하세요!
+  </div>
+  <button class="start" onclick="startQuiz()">퀴즈 시작하기 ▶</button>
+</div>
+
+<!-- 문제 화면 -->
+<div id="quiz" class="hidden">
+  <div class="progress-info">
+    <span id="number">1 / 10</span>
+    <span id="scoreNow">현재 점수 : 0점</span>
+  </div>
+  <div class="progress">
+    <div class="bar" id="bar"></div>
+  </div>
+
+  <div class="question" id="question"></div>
+
+  <div class="ox-area">
+    <button class="ox o" id="btnO" onclick="answer(true)">⭕</button>
+    <button class="ox x" id="btnX" onclick="answer(false)">❌</button>
+  </div>
+
+  <div class="feedback" id="feedback">
+    <strong id="feedbackTitle"></strong>
+    <span id="feedbackText"></span>
+  </div>
+
+  <button class="next" id="next" onclick="nextQuestion()">다음 문제 →</button>
+</div>
+
+<!-- 결과 화면 -->
+<div id="result" class="hidden">
+  <h2>🎉 퀴즈 완료!</h2>
+  <p>산악안전 퀴즈 결과입니다.</p>
+  <div class="score" id="finalScore">0점</div>
+  <div class="info" id="resultText"></div>
+  <h3>📖 정답 및 해설 확인</h3>
+  <div id="review"></div>
+  <button class="restart" onclick="restartQuiz()">다시 도전하기 ↻</button>
+</div>
+
+</div>
+<footer>
+  산에서는 안전하게! 사고가 나면 침착하게!<br>
+  위치는 정확하게! 신고는 119!
+</footer>
+</div>
+
+<script>
+const questions = [
+{
+ q:"1. 산에서 사람이 크게 다치거나 움직이지 못하는 응급상황이 발생하면 119에 신고하여 구조를 요청해야 한다.",
+ a:true,
+ e:"응급상황에서는 즉시 119에 신고하여 구조를 요청해야 합니다."
+},
+{
+ q:"2. 국가지점번호는 산이나 숲처럼 주소를 찾기 어려운 곳에서 사고 위치를 알려주는 데 사용할 수 있다.",
+ a:true,
+ e:"국가지점번호는 주소가 없는 산악지역에서도 위치를 파악하는 데 도움이 됩니다."
+},
+{
+ q:"3. 산에서 119에 신고할 때 국가지점번호를 모르면 주변 쉼터, 등산로 갈림길, 안내판, 다리, 큰 바위 등의 위치를 설명해도 도움이 된다.",
+ a:true,
+ e:"주변의 눈에 띄는 지형물과 시설물은 구조대가 위치를 찾는 데 도움이 됩니다."
+},
+{
+ q:"4. 119에 산악사고를 신고할 때는 환자가 몇 명인지, 어디를 다쳤는지, 의식과 호흡은 어떤지 알려주는 것이 좋다.",
+ a:true,
+ e:"환자 수, 부상 부위, 의식과 호흡 상태는 중요한 응급정보입니다."
+},
+{
+ q:"5. 산악사고 신고를 할 때 사고가 발생한 이유와 사고자의 나이, 신고자의 이름과 연락 가능한 전화번호도 알려주면 도움이 된다.",
+ a:true,
+ e:"알고 있는 사고 경위와 환자 정보, 신고자의 이름과 연락처를 전달하면 구조에 도움이 됩니다."
+},
+{
+ q:"6. 119에 신고한 뒤에는 구조대가 올 때까지 휴대전화의 배터리를 아끼기 위해 전원을 끄고 연락을 받지 않아도 된다.",
+ a:false,
+ e:"휴대전화 전원을 끄지 말고 배터리를 아끼면서 119와 연락을 유지해야 합니다."
+},
+{
+ q:"7. 119에 신고한 후에는 상담원이 통화를 마쳐도 된다고 안내할 때까지 전화를 끊지 않고 안내에 따라야 한다.",
+ a:true,
+ e:"119 상담원의 안내에 따라 통화를 종료하고 필요한 지시를 따라야 합니다."
+},
+{
+ q:"8. 구조대를 기다릴 때는 환자를 무리하게 움직이지 않도록 하고, 위험한 낙석이나 미끄러운 장소를 피해 안전을 확보해야 한다.",
+ a:true,
+ e:"환자를 함부로 이동시키지 말고 주변의 낙석, 추락 등 추가 위험을 예방해야 합니다."
+},
+{
+ q:"9. 사고 현장에서 구조를 기다리는 동안 다른 등산객이 위험한 곳으로 지나가더라도 사고자만 돌보면 되므로 주변 안전은 확인하지 않아도 된다.",
+ a:false,
+ e:"사고자뿐 아니라 주변 등산객의 안전도 중요합니다. 가능한 범위에서 추가 사고를 예방해야 합니다."
+},
+{
+ q:"10. 구조대가 쉽게 찾을 수 있도록 사고 위치를 정확히 설명하고, 휴대전화의 위치정보를 확인하며, 안전한 곳에서 구조대를 기다리는 것이 좋다.",
+ a:true,
+ e:"정확한 위치 전달과 안전한 대기는 신속하고 안전한 구조에 도움이 됩니다."
+}
+];
+
+let current = 0;
+let score = 0;
+let answers = [];
+
+function startQuiz() {
+  current = 0;
+  score = 0;
+  answers = [];
+  document.getElementById("intro").classList.add("hidden");
+  document.getElementById("result").classList.add("hidden");
+  document.getElementById("quiz").classList.remove("hidden");
+  showQuestion();
+}
+
+function showQuestion() {
+  const q = questions[current];
+  document.getElementById("number").textContent =
+    (current+1)+" / "+questions.length;
+  document.getElementById("scoreNow").textContent =
+    "현재 점수 : "+score+"점";
+  document.getElementById("bar").style.width =
+    (current/questions.length*100)+"%";
+  document.getElementById("question").textContent = q.q;
+
+  document.getElementById("feedback").style.display = "none";
+  document.getElementById("next").style.display = "none";
+  document.getElementById("btnO").disabled = false;
+  document.getElementById("btnX").disabled = false;
+}
+
+function answer(choice) {
+  const q = questions[current];
+  const correct = choice === q.a;
+  answers.push(choice);
+
+  if(correct) score += 10;
+
+  document.getElementById("btnO").disabled = true;
+  document.getElementById("btnX").disabled = true;
+
+  document.getElementById("feedback").style.display = "block";
+  document.getElementById("feedbackTitle").textContent =
+    correct ? "🎉 정답입니다!" : "😊 아쉬워요! 다시 기억해 봐요.";
+  document.getElementById("feedbackText").textContent =
+    "정답 : "+(q.a ? "O (맞아요)" : "X (틀려요)")+
+    "\n\n"+q.e;
+
+  document.getElementById("feedbackText").style.whiteSpace = "pre-line";
+  document.getElementById("scoreNow").textContent =
+    "현재 점수 : "+score+"점";
+  document.getElementById("next").style.display = "block";
+  document.getElementById("next").textContent =
+    current === questions.length-1 ? "결과 확인하기 🏆" : "다음 문제 →";
+}
+
+function nextQuestion() {
+  current++;
+  if(current < questions.length) {
+    showQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function showResult() {
+  document.getElementById("quiz").classList.add("hidden");
+  document.getElementById("result").classList.remove("hidden");
+  document.getElementById("bar").style.width = "100%";
+
+  const correctCount = answers.filter(
+    (a,i) => a === questions[i].a
+  ).length;
+
+  document.getElementById("finalScore").textContent =
+    score+"점";
+
+  document.getElementById("resultText").innerHTML =
+    "전체 문제 : 10문제<br>"+
+    "맞힌 문제 : "+correctCount+"문제<br>"+
+    "틀린 문제 : "+(10-correctCount)+"문제<br>"+
+    "<b>"+(score===100 ? "🏆 산악안전 지킴이! 완벽해요!" :
+    score>=70 ? "👏 잘했어요! 안전수칙을 잘 기억하고 있네요!" :
+    "💪 해설을 다시 읽고 한 번 더 도전해 보세요!")+"</b>";
+
+  let html = "";
+  questions.forEach((q,i) => {
+    const ok = answers[i] === q.a;
+    html += `
+      <div class="result-item">
+        <b>${i+1}번 ${ok ? "⭕ 정답" : "❌ 오답"}</b><br>
+        ${q.q}<br>
+        정답 : <b>${q.a ? "O" : "X"}</b><br>
+        해설 : ${q.e}
+      </div>`;
+  });
+  document.getElementById("review").innerHTML = html;
+}
+
+function restartQuiz() {
+  document.getElementById("result").classList.add("hidden");
+  document.getElementById("intro").classList.remove("hidden");
+}
+</script>
+</body>
+</html>
