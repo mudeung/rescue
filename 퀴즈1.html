@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>국립공원 산악안전 OX 퀴즈</title>
+
+<style>
+
+* { box-sizing:border-box; }
+
+body {
+  margin:0;
+  font-family:"Malgun Gothic",sans-serif;
+  background:linear-gradient(135deg,#e4f7e9,#e0f1ff,#fff4db);
+  color:#294638;
+  font-size:21px;
+}
+
+.container {
+  max-width:760px;
+  margin:25px auto;
+  padding:15px;
+}
+
+.card {
+  background:white;
+  border-radius:30px;
+  padding:25px;
+  box-shadow:0 12px 35px #244b3020;
+  text-align:center;
+  overflow:hidden;
+}
+
+.banner {
+  background:linear-gradient(135deg,#176b43,#40aa70);
+  color:white;
+  padding:25px 15px;
+  border-radius:24px;
+  margin-bottom:25px;
+}
+
+.banner img {
+  display:block;
+  margin:0 auto;
+  max-width:180px;
+  max-height:130px;
+  object-fit:contain;
+}
+
+h1 { font-size:32px; margin:15px 0; }
+h2 { font-size:29px; }
+
+.sub {
+  font-size:21px;
+  line-height:1.8;
+  color:#eaffef;
+}
+
+.mascot {
+  font-size:65px;
+  margin:10px;
+  animation:bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%,100% { transform:translateY(0); }
+  50% { transform:translateY(-10px); }
+}
+
+.info {
+  background:#f0f9f2;
+  border:2px solid #d9efdf;
+  border-radius:18px;
+  padding:18px;
+  line-height:2;
+  margin:20px 0;
+  font-size:21px;
+}
+
+button {
+  cursor:pointer;
+  border:none;
+  font-family:inherit;
+  font-weight:bold;
+  border-radius:17px;
+  transition:.2s;
+}
+
+button:hover {
+  transform:translateY(-3px);
+  filter:brightness(1.05);
+}
+
+button:disabled {
+  opacity:.45;
+  cursor:default;
+  transform:none;
+}
+
+.start,.next,.restart {
+  background:linear-gradient(135deg,#16804c,#36aa70);
+  color:white;
+  padding:20px;
+  width:100%;
+  font-size:25px;
+  box-shadow:0 5px 12px #16804c30;
+}
+
+.progress-info {
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  flex-wrap:wrap;
+  font-weight:bold;
+  margin-bottom:12px;
+  font-size:20px;
+}
+
+.progress {
+  height:15px;
+  background:#e7efe9;
+  border-radius:20px;
+  overflow:hidden;
+  margin-bottom:20px;
+}
+
+.bar {
+  height:100%;
+  width:0;
+  background:linear-gradient(90deg,#39b96e,#a0d94e);
+  transition:.4s;
+}
+
+.timer-box {
+  background:#fff3df;
+  padding:13px;
+  border-radius:15px;
+  margin-bottom:20px;
+  font-weight:bold;
+  color:#c77919;
+}
+
+.timer-track {
+  height:10px;
+  background:#f3dfbf;
+  border-radius:20px;
+  overflow:hidden;
+  margin-top:10px;
+}
+
+.timer-bar {
+  height:100%;
+  width:100%;
+  background:#f2a52e;
+  transition:width 1s linear;
+}
+
+.timer-warning {
+  color:#e34e43;
+  animation:shake .4s infinite;
+}
+
+@keyframes shake {
+  0%,100% { transform:translateX(0); }
+  25% { transform:translateX(-3px); }
+  75% { transform:translateX(3px); }
+}
+
+.question {
+  background:linear-gradient(135deg,#f0faf3,#edf6ff);
+  border:3px solid #dcefe2;
+  padding:30px 20px;
+  border-radius:22px;
+  font-size:27px;
+  line-height:1.8;
+  min-height:220px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:bold;
+}
+
+.character-message {
+  background:#fff7dc;
+  border-radius:15px;
+  padding:13px;
+  margin:15px 0;
+  font-size:20px;
+}
+
+.ox-area {
+  display:flex;
+  gap:18px;
+  margin:25px 0;
+}
+
+.ox {
+  flex:1;
+  height:120px;
+  font-size:65px;
+  color:white;
+  box-shadow:0 6px 12px #00000015;
+}
+
+.o { background:linear-gradient(135deg,#3199df,#2475c1); }
+.x { background:linear-gradient(135deg,#f2766c,#dc4848); }
+
+.feedback {
+  display:none;
+  padding:22px;
+  border-radius:18px;
+  background:#fff7df;
+  line-height:1.9;
+  text-align:left;
+  margin-bottom:20px;
+  font-size:21px;
+  animation:pop .4s;
+}
+
+.feedback strong {
+  display:block;
+  font-size:27px;
+  margin-bottom:8px;
+}
+
+@keyframes pop {
+  0% { transform:scale(.85); opacity:0; }
+  100% { transform:scale(1); opacity:1; }
+}
+
+.score {
+  font-size:65px;
+  font-weight:bold;
+  color:#218653;
+  margin:20px;
+}
+
+.score-pop {
+  animation:scorePop .7s;
+}
+
+@keyframes scorePop {
+  0% { transform:scale(.5); }
+  50% { transform:scale(1.4); color:#f5a623; }
+  100% { transform:scale(1); }
+}
+
+.combo {
+  color:#ef9426;
+  font-size:23px;
+  font-weight:bold;
+  min-height:32px;
+}
+
+.result-item {
+  padding:16px;
+  margin:12px 0;
+  background:#f2f8f3;
+  border-radius:15px;
+  text-align:left;
+  line-height:1.8;
+  font-size:19px;
+}
+
+.result-item b { color:#218653; }
+
+.result-character {
+  font-size:75px;
+  animation:bounce 1.5s infinite;
+}
+
+.restart { margin-top:20px; }
+
+.sound-btn {
+  background:#fff;
+  color:#28734a;
+  border:2px solid #cce6d3;
+  padding:10px 16px;
+  font-size:17px;
+  margin-top:12px;
+}
+
+.hidden { display:none !important; }
+
+footer {
+  text-align:center;
+  margin:22px;
+  font-size:17px;
+  line-height:1.8;
+  color:#62776a;
+}
+
+#celebration {
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:99;
+  display:none;
+  font-size:35px;
+  text-align:center;
+}
+
+.star {
+  position:absolute;
+  animation:fall 1.5s forwards;
+}
+
+@keyframes fall {
+  0% { transform:translateY(-30px) rotate(0); opacity:1; }
+  100% { transform:translateY(90vh) rotate(500deg); opacity:0; }
+}
+
+@media(max-width:480px) {
+  .container { padding:8px; margin:8px auto; }
+  .card { padding:17px 12px; }
+  h1 { font-size:25px; }
+  h2 { font-size:24px; }
+  .question { font-size:23px; min-height:190px; padding:20px 12px; }
+  .ox { height:95px; font-size:50px; }
+  .score { font-size:55px; }
+  .progress-info { font-size:17px; }
+  .info { font-size:18px; }
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="celebration"></div>
+
+<div class="container">
+<div class="card">
+
+<!-- 상단 배너 -->
+<div class="banner">
+  <img src="https://mudeung.github.io/rescue/logogomir1.png"
+       alt="달콩이 이미지">
+
+  <h1>🏔️ 국립공원 산악안전 OX 퀴즈</h1>
+
+  <div class="sub">
+    산악사고 예방 및 119 신고 교육<br>
+    어린이 · 청소년 · 일반 시민
+  </div>
+</div>
+
+<!-- 시작 화면 -->
+<div id="intro">
+
+  <div class="mascot">🐻</div>
+
+  <h2>안녕! 나는 달콩이야!</h2>
+
+  <p>나와 함께 산악안전 박사가 되어 볼까?</p>
+
+  <div class="info">
+    📌 문제 수 : 10문제<br>
+    🎯 난이도 : 쉬움<br>
+    ⏱️ 제한시간 : 문제당 20초<br>
+    ⭐ 정답 : 10점 + 콤보 보너스<br>
+    🎮 진행 방법 : O 또는 X 선택
+  </div>
+
+  <button class="start" onclick="startQuiz()">
+    🚀 퀴즈 시작하기!
+  </button>
+
+  <br>
+
+  <button class="sound-btn" id="soundToggle"
+          onclick="toggleSound()">
+    🔊 소리 켜짐
+  </button>
+
+</div>
+
+<!-- 문제 화면 -->
+<div id="quiz" class="hidden">
+
+  <div class="progress-info">
+    <span id="number">1 / 10</span>
+    <span id="scoreNow">⭐ 0점</span>
+  </div>
+
+  <div class="progress">
+    <div class="bar" id="bar"></div>
+  </div>
+
+  <div class="timer-box" id="timerBox">
+    ⏰ 남은 시간 : <span id="timer">20</span>초
+
+    <div class="timer-track">
+      <div class="timer-bar" id="timerBar"></div>
+    </div>
+  </div>
+
+  <div class="question" id="question"></div>
+
+  <div class="character-message" id="characterMessage">
+    🐻 달콩이 : 잘 읽고 정답을 골라 봐!
+  </div>
+
+  <div class="ox-area">
+
+    <button class="ox o" id="btnO"
+            onclick="answer(true)">⭕</button>
+
+    <button class="ox x" id="btnX"
+            onclick="answer(false)">❌</button>
+
+  </div>
+
+  <div class="combo" id="combo"></div>
+
+  <div class="feedback" id="feedback">
+
+    <strong id="feedbackTitle"></strong>
+
+    <span id="feedbackText"></span>
+
+  </div>
+
+  <button class="next" id="next"
+          onclick="nextQuestion()">
+    다음 문제 →
+  </button>
+
+</div>
+
+<!-- 결과 화면 -->
+<div id="result" class="hidden">
+
+  <div class="result-character">🐻</div>
+
+  <h2>🎉 퀴즈 완료!</h2>
+
+  <p>달콩이와 함께한 산악안전 퀴즈 결과야!</p>
+
+  <div class="score" id="finalScore">0점</div>
+
+  <div class="info" id="resultText"></div>
+
+  <h3>📖 정답 및 해설 확인</h3>
+
+  <div id="review"></div>
+
+  <button class="restart" onclick="restartQuiz()">
+    🔄 다시 도전하기
+  </button>
+
+</div>
+
+</div>
+
+<footer>
+  🏔️ 산에서는 안전하게!<br>
+  사고가 나면 침착하게!<br>
+  위치는 정확하게! 신고는 119!
+</footer>
+
+</div>
+
+<script>
+
+const questions = [
+{
+ q:"산에서 사람이 크게 다치거나 움직이지 못하는 응급상황이 발생하면 119에 신고하여 구조를 요청해야 한다.",
+ a:true,
+ e:"응급상황에서는 즉시 119에 신고하여 구조를 요청해야 합니다."
+},
+{
+ q:"국가지점번호는 산이나 숲처럼 주소를 찾기 어려운 곳에서 사고 위치를 알려주는 데 사용할 수 있다.",
+ a:true,
+ e:"국가지점번호는 주소가 없는 산악지역에서도 위치를 파악하는 데 도움이 됩니다."
+},
+{
+ q:"산에서 119에 신고할 때 국가지점번호를 모르면 주변 쉼터, 등산로 갈림길, 안내판, 다리, 큰 바위 등의 위치를 설명해도 도움이 된다.",
+ a:true,
+ e:"주변의 눈에 띄는 지형물과 시설물은 구조대가 위치를 찾는 데 도움이 됩니다."
+},
+{
+ q:"119에 산악사고를 신고할 때는 환자가 몇 명인지, 어디를 다쳤는지, 의식과 호흡은 어떤지 알려주는 것이 좋다.",
+ a:true,
+ e:"환자 수, 부상 부위, 의식과 호흡 상태는 중요한 응급정보입니다."
+},
+{
+ q:"산악사고 신고를 할 때 사고가 발생한 이유와 사고자의 나이, 신고자의 이름과 연락 가능한 전화번호도 알려주면 도움이 된다.",
+ a:true,
+ e:"알고 있는 사고 경위와 환자 정보, 신고자의 이름과 연락처를 전달하면 구조에 도움이 됩니다."
+},
+{
+ q:"119에 신고한 뒤에는 구조대가 올 때까지 휴대전화의 배터리를 아끼기 위해 전원을 끄고 연락을 받지 않아도 된다.",
+ a:false,
+ e:"휴대전화 전원을 끄지 말고 배터리를 아끼면서 119와 연락을 유지해야 합니다."
+},
+{
+ q:"119에 신고한 후에는 상담원이 통화를 마쳐도 된다고 안내할 때까지 전화를 끊지 않고 안내에 따라야 한다.",
+ a:true,
+ e:"119 상담원의 안내에 따라 통화를 종료하고 필요한 지시를 따라야 합니다."
+},
+{
+ q:"구조대를 기다릴 때는 환자를 무리하게 움직이지 않도록 하고, 위험한 낙석이나 미끄러운 장소를 피해 안전을 확보해야 한다.",
+ a:true,
+ e:"환자를 함부로 이동시키지 말고 주변의 낙석, 추락 등 추가 위험을 예방해야 합니다."
+},
+{
+ q:"사고 현장에서 구조를 기다리는 동안 다른 등산객이 위험한 곳으로 지나가더라도 사고자만 돌보면 되므로 주변 안전은 확인하지 않아도 된다.",
+ a:false,
+ e:"사고자뿐 아니라 주변 등산객의 안전도 중요합니다. 가능한 범위에서 추가 사고를 예방해야 합니다."
+},
+{
+ q:"구조대가 쉽게 찾을 수 있도록 사고 위치를 정확히 설명하고, 휴대전화의 위치정보를 확인하며, 안전한 곳에서 구조대를 기다리는 것이 좋다.",
+ a:true,
+ e:"정확한 위치 전달과 안전한 대기는 신속하고 안전한 구조에 도움이 됩니다."
+}
+];
+
+let current = 0;
+let score = 0;
+let answers = [];
+let quizQuestions = [];
+let combo = 0;
+let timeLeft = 20;
+let timerInterval = null;
+let soundOn = true;
+let answered = false;
+
+const QUESTION_TIME = 20;
+
+// 문제 섞기
+function shuffle(array) {
+  const arr = [...array];
+
+  for(let i=arr.length-1;i>0;i--) {
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+
+  return arr;
+}
+
+// 퀴즈 시작
+function startQuiz() {
+  current=0;
+  score=0;
+  answers=[];
+  combo=0;
+
+  quizQuestions=shuffle(questions);
+
+  document.getElementById("intro").classList.add("hidden");
+  document.getElementById("result").classList.add("hidden");
+  document.getElementById("quiz").classList.remove("hidden");
+
+  playSound("click");
+  showQuestion();
+}
+
+// 문제 표시
+function showQuestion() {
+  clearInterval(timerInterval);
+
+  answered=false;
+  timeLeft=QUESTION_TIME;
+
+  const q=quizQuestions[current];
+
+  document.getElementById("number").textContent=
+    (current+1)+" / "+quizQuestions.length;
+
+  document.getElementById("scoreNow").textContent=
+    "⭐ "+score+"점";
+
+  document.getElementById("bar").style.width=
+    (current/quizQuestions.length*100)+"%";
+
+  document.getElementById("question").textContent=
+    (current+1)+". "+q.q;
+
+  document.getElementById("feedback").style.display="none";
+  document.getElementById("next").style.display="none";
+
+  document.getElementById("btnO").disabled=false;
+  document.getElementById("btnX").disabled=false;
+
+  document.getElementById("combo").textContent="";
+
+  document.getElementById("characterMessage").textContent=
+    "🐻 달콩이 : 잘 읽고 정답을 골라 봐!";
+
+  updateTimer();
+  startTimer();
+}
+
+// 다음 문제
+function nextQuestion() {
+  current++;
+
+  if(current<quizQuestions.length) {
+    showQuestion();
+  } else {
+    showResult();
+  }
+}
+
+// 다시 시작
+function restartQuiz() {
+  clearInterval(timerInterval);
+
+  document.getElementById("result").classList.add("hidden");
+  document.getElementById("intro").classList.remove("hidden");
+  document.getElementById("celebration").style.display="none";
+}
+
+
+// 효과음 생성
+let audioContext;
+
+function playSound(type) {
+  if(!soundOn) return;
+
+  try {
+    audioContext=audioContext ||
+      new (window.AudioContext || window.webkitAudioContext)();
+
+    if(audioContext.state==="suspended") {
+      audioContext.resume();
+    }
+
+    const notes={
+      correct:[523,659,784],
+      wrong:[250,190],
+      timeout:[330,220],
+      finish:[523,659,784,1047],
+      click:[440]
+    };
+
+    const frequencies=notes[type] || notes.click;
+
+    frequencies.forEach((freq,i)=>{
+      const osc=audioContext.createOscillator();
+      const gain=audioContext.createGain();
+
+      osc.connect(gain);
+      gain.connect(audioContext.destination);
+
+      osc.frequency.value=freq;
+      osc.type="sine";
+
+      const start=audioContext.currentTime+i*0.13;
+
+      gain.gain.setValueAtTime(0.001,start);
+      gain.gain.linearRampToValueAtTime(0.15,start+0.03);
+      gain.gain.exponentialRampToValueAtTime(0.001,start+0.2);
+
+      osc.start(start);
+      osc.stop(start+0.22);
+    });
+  } catch(e) {
+    console.log("효과음을 재생할 수 없습니다.");
+  }
+}
+
+// 소리 켜기 / 끄기
+function toggleSound() {
+  soundOn=!soundOn;
+
+  document.getElementById("soundToggle").textContent=
+    soundOn ? "🔊 소리 켜짐" : "🔇 소리 꺼짐";
+
+  if(soundOn) playSound("click");
+}
+
+// 타이머 업데이트
+function updateTimer() {
+  document.getElementById("timer").textContent=timeLeft;
+
+  document.getElementById("timerBar").style.width=
+    (timeLeft/QUESTION_TIME*100)+"%";
+
+  const box=document.getElementById("timerBox");
+
+  box.classList.toggle("timer-warning",timeLeft<=5);
+}
+
+// 타이머 시작
+function startTimer() {
+  timerInterval=setInterval(()=>{
+    if(answered) return;
+
+    timeLeft--;
+    updateTimer();
+
+    if(timeLeft<=0) {
+      clearInterval(timerInterval);
+      answer(null,true);
+    }
+  },1000);
+}
+
+// 정답 선택
+function answer(choice,timedOut=false) {
+  if(answered) return;
+
+  answered=true;
+  clearInterval(timerInterval);
+
+  const q=quizQuestions[current];
+  const correct=!timedOut && choice===q.a;
+
+  answers.push(timedOut ? null : choice);
+
+  let bonus=0;
+
+  if(correct) {
+    combo++;
+    bonus=combo>=2 ? 2 : 0;
+    score+=10+bonus;
+
+    playSound("correct");
+    showCelebration();
+
+  } else {
+    combo=0;
+    playSound(timedOut ? "timeout" : "wrong");
+  }
+
+  document.getElementById("btnO").disabled=true;
+  document.getElementById("btnX").disabled=true;
+
+  document.getElementById("feedback").style.display="block";
+
+  document.getElementById("feedbackTitle").textContent=
+    timedOut ? "⏰ 시간 초과!" :
+    correct ? "🎉 정답입니다!" :
+    "😊 아쉬워요!";
+
+  let message=timedOut
+    ? "시간이 다 되었어요!"
+    : correct
+      ? "정말 잘했어요! +"+(10+bonus)+"점"
+      : "괜찮아요! 다음 문제에 도전해 봐요!";
+
+  document.getElementById("feedbackText").textContent=
+    message+
+    "\n정답 : "+(q.a ? "O (맞아요)" : "X (틀려요)")+
+    "\n\n해설 : "+q.e;
+
+  document.getElementById("feedbackText").style.whiteSpace=
+    "pre-line";
+
+  document.getElementById("scoreNow").textContent=
+    "⭐ "+score+"점";
+
+  document.getElementById("characterMessage").textContent=
+    correct
+      ? "🐻 달콩이 : 최고야! 산악안전 박사가 되고 있어!"
+      : "🐻 달콩이 : 괜찮아! 해설을 잘 기억해 보자!";
+
+  document.getElementById("combo").textContent=
+    correct && combo>=2
+      ? "🔥 "+combo+"연속 정답! 콤보 보너스 +2점!"
+      : "";
+
+  const next=document.getElementById("next");
+
+  next.style.display="block";
+
+  next.textContent=
+    current===quizQuestions.length-1
+      ? "🏆 결과 확인하기"
+      : "다음 문제 →";
+}
+
+// 축하 애니메이션
+function showCelebration() {
+  const area=document.getElementById("celebration");
+
+  area.innerHTML="";
+  area.style.display="block";
+
+  const icons=["⭐","✨","🌟","🎉","💚"];
+
+  for(let i=0;i<22;i++) {
+    const star=document.createElement("span");
+
+    star.className="star";
+
+    star.textContent=
+      icons[Math.floor(Math.random()*icons.length)];
+
+    star.style.left=Math.random()*100+"%";
+    star.style.top="-30px";
+    star.style.animationDelay=Math.random()*0.5+"s";
+
+    area.appendChild(star);
+  }
+
+  setTimeout(()=>{
+    area.style.display="none";
+  },1800);
+}
+
+// 최종 결과
+function showResult() {
+  clearInterval(timerInterval);
+
+  document.getElementById("quiz").classList.add("hidden");
+  document.getElementById("result").classList.remove("hidden");
+
+  document.getElementById("bar").style.width="100%";
+
+  const correctCount=answers.filter(
+    (a,i)=>a===quizQuestions[i].a
+  ).length;
+
+  const wrongCount=answers.length-correctCount;
+
+  const timeoutCount=answers.filter(
+    a=>a===null
+  ).length;
+
+  document.getElementById("finalScore").textContent=
+    score+"점";
+
+  document.getElementById("finalScore").classList.remove("score-pop");
+
+  void document.getElementById("finalScore").offsetWidth;
+
+  document.getElementById("finalScore").classList.add("score-pop");
+
+  let message=
+    score>=100
+      ? "🏆 산악안전 지킴이! 정말 완벽해요!"
+      : score>=70
+        ? "👏 훌륭해요! 안전수칙을 잘 기억하고 있네요!"
+        : "💪 조금만 더 공부하면 산악안전 박사가 될 수 있어요!";
+
+  document.getElementById("resultText").innerHTML=
+    "전체 문제 : "+quizQuestions.length+"문제<br>"+
+    "맞힌 문제 : "+correctCount+"문제<br>"+
+    "틀린 문제 : "+wrongCount+"문제<br>"+
+    "시간 초과 : "+timeoutCount+"문제<br>"+
+    "획득 점수 : "+score+"점<br><br>"+
+    "<b>"+message+"</b>";
+
+  let html="";
+
+  quizQuestions.forEach((q,i)=>{
+    const ok=answers[i]===q.a;
+    const timeout=answers[i]===null;
+
+    html+=`
+      <div class="result-item">
+        <b>${i+1}번 ${
+          ok ? "⭕ 정답" : timeout ? "⏰ 시간 초과" : "❌ 오답"
+        }</b><br>
+        ${q.q}<br>
+        정답 : <b>${q.a ? "O" : "X"}</b><br>
+        해설 : ${q.e}
+      </div>`;
+  });
+
+  document.getElementById("review").innerHTML=html;
+
+  playSound("finish");
+  showCelebration();
+}
+
+
+</script>
+
+</body>
+</html>
