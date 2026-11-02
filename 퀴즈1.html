@@ -934,33 +934,58 @@ function toggleSound() {
   if(soundOn) playSound("click");
 }
 
-// 어린이 느낌의 한국어 음성 안내
+// 안정적인 한국어 음성 안내
 function speakChild(message) {
+
   if (!soundOn) return;
 
-  if (!("speechSynthesis" in window)) return;
+  if (!("speechSynthesis" in window)) {
+    alert("이 브라우저는 음성 안내를 지원하지 않습니다.");
+    return;
+  }
 
-  window.speechSynthesis.cancel();
+  const synth = window.speechSynthesis;
+
+  synth.cancel();
 
   const speech = new SpeechSynthesisUtterance(message);
 
   speech.lang = "ko-KR";
-  speech.rate = 0.9;
-  speech.pitch = 1.5;
+  speech.rate = 0.85;
+  speech.pitch = 1.3;
   speech.volume = 1;
 
-  const voices = window.speechSynthesis.getVoices();
+  function speakNow() {
 
-  const koreanVoice = voices.find(
-    voice => voice.lang.toLowerCase().startsWith("ko")
-  );
+    const voices = synth.getVoices();
 
-  if (koreanVoice) {
-    speech.voice = koreanVoice;
+    const koreanVoice = voices.find(
+      voice => voice.lang.toLowerCase() === "ko-kr"
+    );
+
+    if (koreanVoice) {
+      speech.voice = koreanVoice;
+    }
+
+    synth.speak(speech);
   }
 
-  window.speechSynthesis.speak(speech);
+  if (synth.getVoices().length > 0) {
+    speakNow();
+  } else {
+    synth.onvoiceschanged = function() {
+      synth.onvoiceschanged = null;
+      speakNow();
+    };
+
+    setTimeout(() => {
+      if (!synth.speaking && !synth.pending) {
+        speakNow();
+      }
+    }, 500);
+  }
 }
+
   
 // 타이머 업데이트
 function updateTimer() {
@@ -1009,7 +1034,8 @@ if (correct) {
     playSound("correct");
     speakChild("정답입니다! 참 잘했어요!");
     showCelebration();
-
+}
+   
   } else {
     combo = 0;
     playSound(timedOut ? "timeout" : "wrong");
