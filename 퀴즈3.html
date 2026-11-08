@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>국립공원 산악안전 OX 퀴즈</title>
+
+<style>
+
+/* =====================================
+   국립공원 산악안전 OX 퀴즈
+   프리미엄 반응형 디자인
+===================================== */
+
+:root {
+  --green-dark: #145c3b;
+  --green: #218653;
+  --green-light: #eaf7ee;
+  --blue: #318bd2;
+  --red: #ed625c;
+  --gold: #f4ad36;
+  --text: #254535;
+  --shadow: 0 15px 45px rgba(25,75,48,.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Malgun Gothic", sans-serif;
+  color: var(--text);
+  font-size: clamp(16px, 1.3vw, 21px);
+  background:
+    radial-gradient(circle at 10% 10%, #d7f3df, transparent 35%),
+    radial-gradient(circle at 90% 80%, #d9ebff, transparent 35%),
+    linear-gradient(135deg, #eff9ef, #edf5ff, #fff8e9);
+}
+
+/* 전체 화면 */
+
+.container {
+  width: min(94%, 1100px);
+  margin: 2vh auto;
+  padding: clamp(8px, 1.5vw, 20px);
+}
+
+.card {
+  background: rgba(255,255,255,.97);
+  border: 1px solid rgba(255,255,255,.9);
+  border-radius: clamp(20px, 3vw, 34px);
+  padding: clamp(18px, 3vw, 38px);
+  box-shadow: var(--shadow);
+  text-align: center;
+  overflow: hidden;
+}
+
+/* 상단 배너 */
+
+.banner {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg,#125b39,#26965b,#55b979);
+  color: white;
+  padding: clamp(22px, 4vw, 42px) 15px;
+  border-radius: 25px;
+  margin-bottom: 28px;
+  box-shadow: 0 10px 25px rgba(24,112,65,.2);
+}
+
+.banner::before {
+  content: "🌿";
+  position: absolute;
+  right: 5%;
+  top: 10%;
+  font-size: clamp(55px, 9vw, 110px);
+  opacity: .13;
+}
+
+.banner img {
+  display: block;
+  margin: 0 auto;
+  width: min(450px, 85%);
+  max-height: 350px;
+  object-fit: contain;
+}
+
+h1 {
+  font-size: clamp(25px, 3.5vw, 42px);
+  line-height: 1.35;
+  margin: 18px 0 12px;
+  font-weight: 900;
+}
+
+h2 {
+  font-size: clamp(23px, 2.8vw, 34px);
+  margin: 18px 0;
+}
+
+.sub {
+  font-size: clamp(15px, 1.7vw, 22px);
+  line-height: 1.8;
+  color: #eaffef;
+}
+
+/* 캐릭터 */
+
+.mascot,
+.result-character {
+  font-size: clamp(55px, 7vw, 85px);
+  margin: 12px;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-9px); }
+}
+
+/* 안내 정보 */
+
+.info {
+  background: linear-gradient(135deg,#effaf2,#f3f8ff);
+  border: 1px solid #d8eddf;
+  border-radius: 20px;
+  padding: clamp(15px, 2.5vw, 25px);
+  line-height: 2;
+  margin: 22px 0;
+  font-size: clamp(16px, 1.5vw, 21px);
+}
+
+/* 공통 버튼 */
+
+button {
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  font-weight: 900;
+  border-radius: 17px;
+  transition: transform .2s, box-shadow .2s, filter .2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-3px);
+  filter: brightness(1.06);
+}
+
+button:active:not(:disabled) {
+  transform: scale(.97);
+}
+
+button:focus-visible {
+  outline: 4px solid #f4ad36;
+  outline-offset: 4px;
+}
+
+button:disabled {
+  opacity: .45;
+  cursor: default;
+}
+
+/* 시작 / 다음 / 다시하기 */
+
+.start,
+.next,
+.restart {
+  width: 100%;
+  padding: clamp(16px, 2vw, 23px);
+  font-size: clamp(19px, 2.5vw, 29px);
+  color: white;
+  background: linear-gradient(135deg,#16804c,#3bb778);
+  box-shadow: 0 7px 17px rgba(22,128,76,.22);
+}
+
+.restart {
+  margin-top: 20px;
+}
+
+/* 진행 상황 */
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: clamp(16px, 1.7vw, 21px);
+  font-weight: 900;
+  margin-bottom: 13px;
+}
+
+.progress {
+  height: 15px;
+  background: #e7efe9;
+  border-radius: 30px;
+  overflow: hidden;
+  margin-bottom: 22px;
+}
+
+.bar {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg,#31ae69,#a1d94c);
+  border-radius: 30px;
+  transition: width .4s;
+}
+
+/* 타이머 */
+
+.timer-box {
+  background: #fff5e5;
+  padding: 15px;
+  border-radius: 17px;
+  margin-bottom: 22px;
+  font-weight: 900;
+  color: #c77919;
+}
+
+.timer-track {
+  height: 11px;
+  background: #f1dfc3;
+  border-radius: 30px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.timer-bar {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg,#f7c34e,#ee8b24);
+  transition: width 1s linear;
+}
+
+.timer-warning {
+  color: #e34e43;
+  animation: shake .4s infinite;
+}
+
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+
+/* 문제 */
+
+.question {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: clamp(210px, 30vh, 350px);
+  padding: clamp(20px, 3.5vw, 42px);
+  border: 2px solid #d8ecdf;
+  border-radius: 25px;
+  background: linear-gradient(135deg,#effaf2,#edf5ff);
+  color: #183f2c;
+  font-size: clamp(23px, 3vw, 39px) !important;
+  line-height: 1.7;
+  font-weight: 900;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* 달콩이 안내 */
+
+.character-message {
+  background: #fff8df;
+  border: 1px solid #f5e8bd;
+  border-radius: 16px;
+  padding: 15px;
+  margin: 18px 0;
+  font-size: clamp(16px, 1.7vw, 21px);
+  line-height: 1.6;
+}
+
+/* OX 버튼 */
+
+.ox-area {
+  display: flex;
+  gap: clamp(10px, 2vw, 22px);
+  margin: 25px 0;
+}
+
+.ox {
+  flex: 1;
+  height: clamp(90px, 15vh, 150px);
+  font-size: clamp(45px, 5.5vw, 78px);
+  color: white;
+  border-radius: 23px;
+  box-shadow: 0 8px 17px rgba(0,0,0,.12);
+}
+
+.o {
+  background: linear-gradient(145deg,#46b5ed,#2475c1);
+}
+
+.x {
+  background: linear-gradient(145deg,#ff9384,#dc4848);
+}
+
+.ox:hover:not(:disabled) {
+  box-shadow: 0 12px 22px rgba(0,0,0,.18);
+}
+
+/* 정답 해설 */
+
+.feedback {
+  display: none;
+  padding: clamp(17px, 2.5vw, 26px);
+  border-radius: 20px;
+  background: linear-gradient(135deg,#fff7df,#fffaf0);
+  border: 1px solid #f3e7c4;
+  line-height: 1.9;
+  text-align: left;
+  margin-bottom: 20px;
+  font-size: clamp(16px, 1.6vw, 21px);
+  animation: pop .4s;
+}
+
+.feedback strong {
+  display: block;
+  font-size: clamp(22px, 2.5vw, 29px);
+  margin-bottom: 10px;
+}
+
+@keyframes pop {
+  from { transform: scale(.92); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* 연속 정답 */
+
+.combo {
+  color: #ed9426;
+  font-size: clamp(18px, 2vw, 24px);
+  font-weight: 900;
+  min-height: 32px;
+}
+
+/* 결과 */
+
+.score {
+  font-size: clamp(48px, 7vw, 75px);
+  font-weight: 900;
+  color: #218653;
+  margin: 20px;
+}
+
+.score-pop {
+  animation: scorePop .7s;
+}
+
+@keyframes scorePop {
+  0% { transform: scale(.5); }
+  50% { transform: scale(1.3); color: #f5a623; }
+  100% { transform: scale(1); }
+}
+
+.result-item {
+  padding: clamp(14px, 2vw, 20px);
+  margin: 13px 0;
+  background: #f2f8f3;
+  border: 1px solid #e0eee3;
+  border-radius: 17px;
+  text-align: left;
+  line-height: 1.8;
+  font-size: clamp(15px, 1.5vw, 19px);
+  overflow-wrap: break-word;
+}
+
+.result-item b {
+  color: #218653;
+}
+
+/* 소리 버튼 */
+
+.sound-btn {
+  background: white;
+  color: #28734a;
+  border: 2px solid #cce6d3;
+  padding: 12px 18px;
+  font-size: 17px;
+  margin-top: 12px;
+}
+
+/* 화면 전환 */
+
+.hidden {
+  display: none !important;
+}
+
+/* 하단 */
+
+footer {
+  text-align: center;
+  margin: 25px 10px;
+  font-size: clamp(14px, 1.4vw, 17px);
+  line-height: 1.8;
+  color: #62776a;
+}
+
+/* 축하 효과 */
+
+#celebration {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 99;
+  display: none;
+  font-size: 35px;
+  text-align: center;
+}
+
+.star {
+  position: absolute;
+  animation: fall 1.5s forwards;
+}
+
+@keyframes fall {
+  0% {
+    transform: translateY(-30px) rotate(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(90vh) rotate(500deg);
+    opacity: 0;
+  }
+}
+
+/* =====================================
+   대형 모니터
+===================================== */
+
+@media (min-width: 1400px) {
+  .container {
+    max-width: 1200px;
+  }
+
+  .question {
+    min-height: 340px;
+  }
+
+  .ox {
+    height: 150px;
+  }
+}
+
+/* =====================================
+   태블릿
+===================================== */
+
+@media (max-width: 900px) {
+  .container {
+    width: 98%;
+    margin: 12px auto;
+  }
+
+  .card {
+    padding: 22px;
+  }
+
+  .question {
+    min-height: 240px;
+  }
+}
+
+/* =====================================
+   스마트폰
+===================================== */
+
+@media (max-width: 600px) {
+  body {
+    font-size: 16px;
+  }
+
+  .container {
+    width: 100%;
+    margin: 0 auto;
+    padding: 8px;
+  }
+
+  .card {
+    padding: 14px 11px;
+    border-radius: 21px;
+  }
+
+  .banner {
+    padding: 22px 10px;
+    border-radius: 19px;
+    margin-bottom: 18px;
+  }
+
+  .banner img {
+    max-height: 100px;
+  }
+
+  h1 {
+    font-size: 25px;
+  }
+
+  h2 {
+    font-size: 23px;
+  }
+
+  .info {
+    font-size: 16px;
+    padding: 13px;
+  }
+
+  .question {
+    min-height: 220px;
+    padding: 20px 13px;
+    font-size: 25px !important;
+    line-height: 1.65;
+    border-radius: 19px;
+  }
+
+  .ox-area {
+    gap: 10px;
+    margin: 18px 0;
+  }
+
+  .ox {
+    height: 95px;
+    font-size: 47px;
+    border-radius: 17px;
+  }
+
+  .character-message {
+    font-size: 16px;
+  }
+
+  .feedback {
+    font-size: 16px;
+    padding: 16px;
+  }
+
+  .start,
+  .next,
+  .restart {
+    padding: 17px 10px;
+    font-size: 21px;
+  }
+
+  footer {
+    margin: 15px 5px;
+  }
+}
+
+/* 작은 스마트폰 */
+
+@media (max-width: 360px) {
+  .question {
+    font-size: 22px !important;
+    min-height: 200px;
+  }
+
+  .ox {
+    height: 80px;
+    font-size: 40px;
+  }
+
+  .progress-info {
+    font-size: 15px;
+  }
+}
+
+/* 모션 최소화 설정 존중 */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+.mascot img {
+  width: 150px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="celebration"></div>
+
+<div class="container">
+<div class="card">
+
+<!-- 상단 배너 -->
+<div class="banner">
+  <img src="https://mudeung.github.io/rescue/logodalkong.png"
+       alt="달콩이 이미지">
+
+  <h1>국립공원 산악안전 OX 퀴즈</h1>
+
+  <div class="sub">
+    산악사고 예방 및 119 신고 교육<br>
+    어린이 · 청소년 · 일반 시민
+  </div>
+</div>
+
+<!-- 시작 화면 -->
+<div id="intro">
+
+  <div class="mascot">
+     <img src="https://mudeung.github.io/rescue/logodalkong1.png"
+       alt="달콩이 이미지">
+  </div>
+
+  <h2>안녕! 나는 달콩이야!</h2>
+
+  <p>나와 함께 산악안전 박사가 되어 볼까?</p>
+
+  <div class="info">
+    📌 문제 수 : 10문제<br>
+    🎯 난이도 : 쉬움<br>
+    ⏱️ 제한시간 : 문제당 20초<br>
+    ⭐ 정답 : 10점 (총점 100점)<br>
+    🎮 진행 방법 : O 또는 X 선택
+  </div>
+
+  <button class="start" onclick="startQuiz()">
+    🚀 퀴즈 시작하기!
+  </button>
+
+  <br>
+
+  <button class="sound-btn" id="soundToggle"
+          onclick="toggleSound()">
+    🔊 소리 켜짐
+  </button>
+
+</div>
+
+<!-- 문제 화면 -->
+<div id="quiz" class="hidden">
+
+  <div class="progress-info">
+    <span id="number">1 / 10</span>
+    <span id="scoreNow">⭐ 0점</span>
+  </div>
+
+  <div class="progress">
+    <div class="bar" id="bar"></div>
+  </div>
+
+  <div class="timer-box" id="timerBox">
+    ⏰ 남은 시간 : <span id="timer">20</span>초
+
+    <div class="timer-track">
+      <div class="timer-bar" id="timerBar"></div>
+    </div>
+  </div>
+
+  <div class="question" id="question"></div>
+
+  <div class="character-message" id="characterMessage">
+    🦦 반달이 : 잘 읽고 정답을 골라 봐!
+  </div>
+
+  <div class="ox-area">
+
+    <button class="ox o" id="btnO"
+            onclick="answer(true)">⭕</button>
+
+    <button class="ox x" id="btnX"
+            onclick="answer(false)">❌</button>
+
+  </div>
+
+  <div class="combo" id="combo"></div>
+
+  <div class="feedback" id="feedback">
+
+    <strong id="feedbackTitle"></strong>
+
+    <span id="feedbackText"></span>
+
+  </div>
+
+  <button class="next" id="next"
+          onclick="nextQuestion()">
+    다음 문제 →
+  </button>
+
+</div>
+
+<!-- 결과 화면 -->
+<div id="result" class="hidden">
+
+  <div class="result-character">🦦</div>
+
+  <h2>🎉 퀴즈 완료!</h2>
+
+  <p>달콩이와 함께한 산악안전 퀴즈 결과야!</p>
+
+  <div class="score" id="finalScore">0점</div>
+
+  <div class="info" id="resultText"></div>
+
+  <h3>📖 정답 및 해설 확인</h3>
+
+  <div id="review"></div>
+
+  <button class="restart" onclick="restartQuiz()">
+    🔄 다시 도전하기
+  </button>
+
+</div>
+
+</div>
+
+<footer>
+  🏔️ 산에서는 안전하게 !  사고가 나면 침착하게!<br>
+  위치는 정확하게! 신고는 119 !
+</footer>
+
+</div>
+
+<script>
+
+const questions = [
+  {
+    q:"산행을 시작하기 전에는 기상예보를 확인하고 비나 강풍 등 악천후가 예상되면 산행을 자제하는 것이 좋다.",
+    a:true,
+    e:"산악지역은 날씨 변화가 심하므로 산행 전 기상예보를 확인하고 위험한 기상조건에서는 산행을 피해야 합니다."
+  },
+  {
+    q:"산행 중 지정된 등산로가 아닌 지름길이나 샛길을 이용하면 시간을 단축할 수 있으므로 안전에도 도움이 된다.",
+    a:false,
+    e:"지정되지 않은 등산로는 길을 잃거나 낙상, 추락 등의 사고가 발생할 위험이 있으므로 정해진 등산로를 이용해야 합니다."
+  },
+  {
+    q:"산행 중 체력 소모를 줄이기 위해서는 자신의 체력에 맞춰 적절한 속도로 걷고 중간중간 휴식을 취하는 것이 좋다.",
+    a:true,
+    e:"무리한 산행은 탈진과 부상으로 이어질 수 있으므로 자신의 체력에 맞춰 속도를 조절하고 충분히 휴식해야 합니다."
+  },
+  {
+    q:"등산화의 끈이 풀려 있어도 산행에 큰 지장이 없으므로 계속 걸어도 괜찮다.",
+    a:false,
+    e:"등산화 끈이 풀리면 발이 신발 안에서 움직여 넘어지거나 발목을 다칠 위험이 있으므로 즉시 정리해야 합니다."
+  },
+  {
+    q:"산행 중 야생동물을 발견하면 사진을 가까이에서 찍기 위해 접근하거나 먹이를 주어도 괜찮다.",
+    a:false,
+    e:"야생동물에게 접근하거나 먹이를 주면 공격을 받거나 야생동물의 생태를 해칠 수 있으므로 안전거리를 유지해야 합니다."
+  },
+  {
+    q:"산불을 발견하면 즉시 안전한 장소로 대피하고 119에 신고하여 산불 발생 위치와 상황을 알려야 한다.",
+    a:true,
+    e:"산불은 빠르게 확산될 수 있으므로 불길과 연기를 피해 안전한 곳으로 대피한 뒤 신속하게 신고해야 합니다."
+  },
+  {
+    q:"산행 중 안개가 짙어져 시야가 확보되지 않으면 무리하게 이동하지 말고 안전한 장소에서 상황을 확인해야 한다.",
+    a:true,
+    e:"짙은 안개는 방향 감각을 잃게 하고 추락사고를 유발할 수 있으므로 무리한 이동을 피해야 합니다."
+  },
+  {
+    q:"산행 중 물을 마시면 땀이 더 많이 나기 때문에 갈증이 심해질 때까지 물을 마시지 않는 것이 좋다.",
+    a:false,
+    e:"산행 중에는 땀으로 수분이 손실되므로 갈증이 심해지기 전에 물을 조금씩 자주 마시는 것이 좋습니다."
+  },
+  {
+    q:"겨울철 산행에서는 눈이나 얼음으로 미끄러질 위험이 있으므로 아이젠 등 필요한 안전장비를 준비하는 것이 좋다.",
+    a:true,
+    e:"눈과 얼음이 있는 산길에서는 미끄러짐과 낙상사고를 예방하기 위해 아이젠과 등산스틱 등 적절한 장비를 사용해야 합니다."
+  },
+  {
+    q:"산행 중 해가 지기 시작하면 목적지까지 얼마 남지 않았더라도 무리하게 산행을 계속하는 것이 좋다.",
+    a:false,
+    e:"어두워지면 시야 확보가 어려워져 사고 위험이 커지므로 일몰 시간을 고려해 산행을 계획하고 무리한 이동을 피해야 합니다."
+  }
+];
+
+// 문제 랜덤 섞기 함수
+function shuffle(array) {
+  const arr = [...array];
+
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+
+  return arr;
+}
+  
+let current = 0;
+let score = 0;
+let answers = [];
+let quizQuestions = [];
+let combo = 0;
+let timeLeft = 20;
+let timerInterval = null;
+let soundOn = true;
+let answered = false;
+
+const QUESTION_TIME = 20;
+
+// 문제 섞기
+function startQuiz() {
+
+  // 한국어 음성 엔진 미리 준비
+  window.speechSynthesis.getVoices();
+   
+  current=0;
+  score=0;
+  answers=[];
+  combo=0;
+
+  // 매번 문제 순서를 랜덤으로 변경
+  quizQuestions=shuffle(questions);
+
+  document.getElementById("intro").classList.add("hidden");
+  document.getElementById("result").classList.add("hidden");
+  document.getElementById("quiz").classList.remove("hidden");
+
+  playSound("click");
+  showQuestion();
+}
+
+
+// 문제 표시
+function showQuestion() {
+  clearInterval(timerInterval);
+
+  answered=false;
+  timeLeft=QUESTION_TIME;
+
+  const q=quizQuestions[current];
+
+  document.getElementById("number").textContent=
+    (current+1)+" / "+quizQuestions.length;
+
+  document.getElementById("scoreNow").textContent=
+    "⭐ "+score+"점";
+
+  document.getElementById("bar").style.width=
+    (current/quizQuestions.length*100)+"%";
+
+  document.getElementById("question").textContent=
+    (current+1)+". "+q.q;
+
+  document.getElementById("feedback").style.display="none";
+  document.getElementById("next").style.display="none";
+
+  document.getElementById("btnO").disabled=false;
+  document.getElementById("btnX").disabled=false;
+
+  document.getElementById("combo").textContent="";
+
+  document.getElementById("characterMessage").textContent=
+    "🦦 달콩이 : 잘 읽고 정답을 골라 봐!";
+
+  updateTimer();
+  startTimer();
+}
+
+// 다음 문제
+function nextQuestion() {
+  current++;
+
+  if(current<quizQuestions.length) {
+    showQuestion();
+  } else {
+    showResult();
+  }
+}
+
+// 다시 시작
+function restartQuiz() {
+  clearInterval(timerInterval);
+  window.speechSynthesis.cancel();
+  document.getElementById("result").classList.add("hidden");
+  document.getElementById("intro").classList.remove("hidden");
+  document.getElementById("celebration").style.display="none";
+}
+
+
+// 크롬 한국어 음성 엔진 준비
+let koreanVoice = null;
+
+function loadKoreanVoice() {
+  const voices = window.speechSynthesis.getVoices();
+
+  koreanVoice = voices.find(
+    v => v.lang.toLowerCase() === "ko-kr"
+  ) || voices.find(
+    v => v.lang.toLowerCase().startsWith("ko")
+  );
+
+  return koreanVoice;
+}
+
+// 브라우저 음성 목록 준비
+if ("speechSynthesis" in window) {
+  loadKoreanVoice();
+
+  window.speechSynthesis.addEventListener(
+    "voiceschanged",
+    loadKoreanVoice
+  );
+}
+
+   
+// 효과음 생성
+let audioContext;
+
+function playSound(type) {
+  if(!soundOn) return;
+
+  try {
+    audioContext=audioContext ||
+      new (window.AudioContext || window.webkitAudioContext)();
+
+    if(audioContext.state==="suspended") {
+      audioContext.resume();
+    }
+
+    const notes={
+      correct:[523,659,784],
+      wrong:[250,190],
+      timeout:[330,220],
+      finish:[523,659,784,1047],
+      click:[440]
+    };
+
+    const frequencies=notes[type] || notes.click;
+
+    frequencies.forEach((freq,i)=>{
+      const osc=audioContext.createOscillator();
+      const gain=audioContext.createGain();
+
+      osc.connect(gain);
+      gain.connect(audioContext.destination);
+
+      osc.frequency.value=freq;
+      osc.type="sine";
+
+      const start=audioContext.currentTime+i*0.13;
+
+      gain.gain.setValueAtTime(0.001,start);
+      gain.gain.linearRampToValueAtTime(0.15,start+0.03);
+      gain.gain.exponentialRampToValueAtTime(0.001,start+0.2);
+
+      osc.start(start);
+      osc.stop(start+0.22);
+    });
+  } catch(e) {
+    console.log("효과음을 재생할 수 없습니다.");
+  }
+}
+
+// 소리 켜기 / 끄기
+function toggleSound() {
+  soundOn=!soundOn;
+
+  document.getElementById("soundToggle").textContent=
+    soundOn ? "🔊 소리 켜짐" : "🔇 소리 꺼짐";
+
+  if(soundOn) playSound("click");
+}
+
+// 안정적인 한국어 음성 안내
+function speakChild(message) {
+
+  if (!soundOn) return;
+
+  if (!("speechSynthesis" in window)) {
+    alert("현재 브라우저에서 음성 안내를 지원하지 않습니다.");
+    return;
+  }
+
+  const synth = window.speechSynthesis;
+
+  // 이전 음성 정리
+  synth.cancel();
+
+  const speech = new SpeechSynthesisUtterance(message);
+
+  speech.lang = "ko-KR";
+  speech.rate = 0.85;
+  speech.pitch = 1.35;
+  speech.volume = 1;
+
+  // 한국어 음성 지정
+  loadKoreanVoice();
+
+  if (koreanVoice) {
+    speech.voice = koreanVoice;
+  }
+
+  speech.onstart = function() {
+    console.log("달콩이 음성 재생 시작");
+  };
+
+  speech.onend = function() {
+    console.log("달콩이 음성 재생 완료");
+  };
+
+  speech.onerror = function(event) {
+    console.error("음성 재생 오류:", event.error);
+  };
+
+  // 크롬의 음성 취소 후 재생 안정화
+  setTimeout(function() {
+
+    if (synth.paused) {
+      synth.resume();
+    }
+
+    synth.speak(speech);
+
+  }, 150);
+}
+
+// 타이머 업데이트
+function updateTimer() {
+  document.getElementById("timer").textContent=timeLeft;
+
+  document.getElementById("timerBar").style.width=
+    (timeLeft/QUESTION_TIME*100)+"%";
+
+  const box=document.getElementById("timerBox");
+
+  box.classList.toggle("timer-warning",timeLeft<=5);
+}
+
+// 타이머 시작
+function startTimer() {
+  timerInterval=setInterval(()=>{
+    if(answered) return;
+
+    timeLeft--;
+    updateTimer();
+
+    if(timeLeft<=0) {
+      clearInterval(timerInterval);
+      answer(null,true);
+    }
+  },1000);
+}
+
+// 정답 선택
+
+function answer(choice, timedOut = false) {
+  if (answered) return;
+
+  answered = true;
+  clearInterval(timerInterval);
+
+  const q = quizQuestions[current];
+  const correct = !timedOut && choice === q.a;
+
+  answers.push(timedOut ? null : choice);
+
+if (correct) {
+
+  combo++;
+  score += 10;
+
+  // 달콩이 음성 안내
+  speakChild("정답입니다! 참 잘했어요!");
+
+  // 효과음은 음성 뒤에 재생
+  setTimeout(() => {
+    playSound("correct");
+  }, 500);
+
+  showCelebration();
+
+} else {
+
+  combo = 0;
+
+  if (timedOut) {
+    speakChild("시간이 다 되었어요!");
+    playSound("timeout");
+  } else {
+    speakChild("틀렸습니다! 다시 한번 도전해 보세요!");
+    playSound("wrong");
+  }
+}
+
+  document.getElementById("btnO").disabled = true;
+  document.getElementById("btnX").disabled = true;
+
+  document.getElementById("feedback").style.display = "block";
+
+  document.getElementById("feedbackTitle").textContent =
+    timedOut ? "⏰ 시간 초과!" :
+    correct ? "🎉 정답입니다!" :
+    "😊 아쉬워요!";
+
+  let message = timedOut
+    ? "시간이 다 되었어요!"
+    : correct
+      ? "정말 잘했어요! +10점"
+      : "괜찮아요! 다음 문제에 도전해 봐요!";
+
+  document.getElementById("feedbackText").textContent =
+    message +
+    "\n정답 : " + (q.a ? "O (맞아요)" : "X (틀려요)") +
+    "\n\n해설 : " + q.e;
+
+  document.getElementById("feedbackText").style.whiteSpace =
+    "pre-line";
+
+  document.getElementById("scoreNow").textContent =
+    "⭐ " + score + "점";
+
+  document.getElementById("characterMessage").textContent =
+    correct
+      ? "🦦 달콩이 : 최고야! 산악안전 박사가 되고 있어!"
+      : "🦦 달콩이 : 괜찮아! 해설을 잘 기억해 보자!";
+
+  document.getElementById("combo").textContent =
+    correct && combo >= 2
+      ? "🔥 " + combo + "연속 정답!"
+      : "";
+
+  const next = document.getElementById("next");
+
+  next.style.display = "block";
+
+  next.textContent =
+    current === quizQuestions.length - 1
+      ? "🏆 결과 확인하기"
+      : "다음 문제 →";
+}
+
+
+// 축하 애니메이션
+function showCelebration() {
+  const area=document.getElementById("celebration");
+
+  area.innerHTML="";
+  area.style.display="block";
+
+  const icons=["⭐","✨","🌟","🎉","💚"];
+
+  for(let i=0;i<22;i++) {
+    const star=document.createElement("span");
+
+    star.className="star";
+
+    star.textContent=
+      icons[Math.floor(Math.random()*icons.length)];
+
+    star.style.left=Math.random()*100+"%";
+    star.style.top="-30px";
+    star.style.animationDelay=Math.random()*0.5+"s";
+
+    area.appendChild(star);
+  }
+
+  setTimeout(()=>{
+    area.style.display="none";
+  },1800);
+}
+
+// 최종 결과
+function showResult() {
+  clearInterval(timerInterval);
+
+  document.getElementById("quiz").classList.add("hidden");
+  document.getElementById("result").classList.remove("hidden");
+
+  document.getElementById("bar").style.width="100%";
+
+  const correctCount=answers.filter(
+    (a,i)=>a===quizQuestions[i].a
+  ).length;
+
+  const wrongCount=answers.length-correctCount;
+
+  const timeoutCount=answers.filter(
+    a=>a===null
+  ).length;
+
+  document.getElementById("finalScore").textContent=
+    score+"점";
+
+  document.getElementById("finalScore").classList.remove("score-pop");
+
+  void document.getElementById("finalScore").offsetWidth;
+
+  document.getElementById("finalScore").classList.add("score-pop");
+
+  let message=
+    score>=100
+      ? "🏆 산악안전 지킴이! 정말 완벽해요!"
+      : score>=70
+        ? "👏 훌륭해요! 안전수칙을 잘 기억하고 있네요!"
+        : "💪 조금만 더 공부하면 산악안전 박사가 될 수 있어요!";
+
+  document.getElementById("resultText").innerHTML=
+    "전체 문제 : "+quizQuestions.length+"문제<br>"+
+    "맞힌 문제 : "+correctCount+"문제<br>"+
+    "틀린 문제 : "+wrongCount+"문제<br>"+
+    "시간 초과 : "+timeoutCount+"문제<br>"+
+    "획득 점수 : "+score+"점<br><br>"+
+    "<b>"+message+"</b>";
+
+  let html="";
+
+  quizQuestions.forEach((q,i)=>{
+    const ok=answers[i]===q.a;
+    const timeout=answers[i]===null;
+
+    html+=`
+      <div class="result-item">
+        <b>${i+1}번 ${
+          ok ? "⭕ 정답" : timeout ? "⏰ 시간 초과" : "❌ 오답"
+        }</b><br>
+        ${q.q}<br>
+        정답 : <b>${q.a ? "O" : "X"}</b><br>
+        해설 : ${q.e}
+      </div>`;
+  });
+
+  document.getElementById("review").innerHTML=html;
+
+  playSound("finish");
+  showCelebration();
+}
+
+
+</script>
+
+</body>
+</html>
