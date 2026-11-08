@@ -1,0 +1,2236 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>무등산 산불 통합관제센터</title>
+
+<!-- Leaflet CSS -->
+<link
+ rel="stylesheet"
+ href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+>
+
+<!-- Leaflet JavaScript -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+:root {
+  --bg:#07111f;
+  --panel:#101f31;
+  --line:#263c53;
+  --text:#e5edf7;
+  --muted:#91a6bd;
+  --cyan:#22d3ee;
+  --green:#4ade80;
+  --red:#fb5365;
+  --yellow:#fbbf24;
+}
+
+* {
+  box-sizing:border-box;
+}
+
+body {
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:"Pretendard","Malgun Gothic",sans-serif;
+}
+
+header {
+  background:#0b1929;
+  border-bottom:1px solid var(--line);
+  padding:18px 25px;
+}
+
+.header-inner {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+  flex-wrap:wrap;
+}
+
+h1 {
+  font-size:25px;
+  margin:0;
+  font-weight:800;
+}
+
+.subtitle {
+  font-size:12px;
+  color:var(--muted);
+  margin-top:6px;
+}
+
+.system-status {
+  color:var(--green);
+  border:1px solid #226348;
+  background:#103527;
+  padding:8px 13px;
+  border-radius:6px;
+  font-size:12px;
+  font-weight:bold;
+}
+
+main {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 340px;
+  gap:14px;
+  padding:15px;
+  min-height:calc(100vh - 85px);
+}
+
+.left-area {
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.stats {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+}
+
+.stat-card {
+  background:var(--panel);
+  border:1px solid var(--line);
+  padding:15px;
+  border-radius:9px;
+}
+
+.stat-label {
+  font-size:12px;
+  color:var(--muted);
+}
+
+.stat-value {
+  font-size:25px;
+  font-weight:800;
+  margin-top:8px;
+}
+
+.cyan {color:var(--cyan);}
+.green {color:var(--green);}
+.red {color:var(--red);}
+.yellow {color:var(--yellow);}
+
+.section {
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:9px;
+  overflow:hidden;
+  min-width:0;
+}
+
+.section-title {
+  padding:13px 15px;
+  border-bottom:1px solid var(--line);
+  font-size:14px;
+  font-weight:700;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+}
+
+#map-container {
+  position:relative;
+  width:100%;
+  height:65vh;
+  min-height:420px;
+}
+
+#map {
+  width:100%;
+  height:100%;
+  min-height:420px;
+  background:#17283a;
+}
+
+.map-legend {
+  position:absolute;
+  z-index:500;
+  bottom:15px;
+  left:12px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  padding:10px 13px;
+  background:rgba(7,17,31,.92);
+  border:1px solid #263c53;
+  border-radius:6px;
+  color:white;
+  font-size:11px;
+  pointer-events:none;
+}
+
+.dot {
+  display:inline-block;
+  width:9px;
+  height:9px;
+  border-radius:50%;
+  margin-right:5px;
+}
+
+.dot.red {background:var(--red);}
+.dot.blue {background:#38bdf8;}
+.dot.green {background:var(--green);}
+
+.right-area {
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  min-width:0;
+}
+
+.panel-body {
+  padding:14px;
+}
+
+h3 {
+  font-size:13px;
+  margin:0 0 12px;
+}
+
+input {
+  width:100%;
+  background:#091727;
+  color:white;
+  border:1px solid #30465d;
+  border-radius:6px;
+  padding:11px;
+  margin-bottom:7px;
+  outline:none;
+  font-size:14px;
+}
+
+input:focus {
+  border-color:var(--cyan);
+}
+
+button {
+  width:100%;
+  padding:11px;
+  border:1px solid transparent;
+  border-radius:6px;
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+  margin-bottom:7px;
+}
+
+button:hover {
+  filter:brightness(1.2);
+}
+
+button:disabled {
+  opacity:.5;
+  cursor:not-allowed;
+}
+
+.btn-blue {background:#075985;color:white;}
+.btn-green {background:#166534;color:white;}
+.btn-purple {background:#43318a;color:white;}
+.btn-red {background:#991b1b;color:white;}
+
+.btn-gray {
+  background:#24364a;
+  color:#dbeafe;
+  border-color:#3a5068;
+}
+
+.resource-item {
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  padding:10px 0;
+  border-bottom:1px solid var(--line);
+  font-size:12px;
+}
+
+.resource-item:last-child {
+  border:0;
+}
+
+.resource-item span:first-child {
+  color:var(--muted);
+}
+
+.resource-item strong {
+  color:#dceaf7;
+  text-align:right;
+}
+
+.info-panel {
+  max-height:240px;
+  overflow:auto;
+  white-space:pre-line;
+  background:#091727;
+  border:1px solid var(--line);
+  border-radius:6px;
+  padding:12px;
+  font-size:12px;
+  line-height:1.8;
+  color:#cbd5e1;
+}
+
+.info-panel h3 {
+  color:var(--cyan);
+}
+
+.quick-links {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6px;
+}
+
+.quick-links button {
+  font-size:11px;
+  margin:0;
+  padding:10px 5px;
+}
+
+.footer {
+  color:#71869d;
+  text-align:center;
+  font-size:10px;
+  padding:12px;
+  border-top:1px solid var(--line);
+}
+
+.vehicle-marker {
+  background:transparent;
+  border:0;
+}
+
+.leaflet-popup-content-wrapper {
+  background:#101f31;
+  color:#e5edf7;
+  border:1px solid #22d3ee;
+}
+
+.leaflet-popup-tip {
+  background:#101f31;
+}
+
+.leaflet-popup-close-button {
+  color:white !important;
+}
+
+@media(max-width:1050px) {
+  main {
+    grid-template-columns:1fr;
+  }
+
+  #map-container {
+    height:60vh;
+  }
+
+  .right-area {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+  }
+}
+
+@media(max-width:650px) {
+  h1 {font-size:20px;}
+
+  main {padding:8px;}
+
+  .stats {
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .right-area {
+    display:flex;
+  }
+
+  #map-container {
+    height:55vh;
+    min-height:380px;
+  }
+
+  #map {
+    min-height:380px;
+  }
+}
+</style>
+</head>
+<body>
+
+
+<header>
+  <div class="header-inner">
+    <div>
+      <h1>🛡 무등산 산불 통합관제센터</h1>
+      <div class="subtitle">
+        MUDEUNGSAN NATIONAL PARK · FOREST FIRE CONTROL SYSTEM
+      </div>
+    </div>
+    <div class="system-status">● SYSTEM ONLINE</div>
+  </div>
+</header>
+
+<main>
+
+<div class="left-area">
+
+  <div class="stats">
+
+    <div class="stat-card">
+      <div class="stat-label">산불 발생 이력</div>
+      <div class="stat-value red">04 <small>건</small></div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-label">관리 지점</div>
+      <div class="stat-value cyan">11 <small>개소</small></div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-label">진화 차량</div>
+      <div class="stat-value green">04 <small>대</small></div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-label">통제 탐방로</div>
+      <div class="stat-value yellow">01 <small>구간</small></div>
+    </div>
+
+  </div>
+
+  <div class="section">
+
+    <div class="section-title">
+      <span>📡 무등산 산불 감시 GIS 지도</span>
+
+      <button id="toggleMapTypeBtn"
+        class="btn-gray"
+        style="width:auto;margin:0;padding:8px 13px">
+        위성영상 전환
+      </button>
+    </div>
+
+    <div id="map-container">
+
+      <div id="map"></div>
+
+      <div class="map-legend">
+        <span><i class="dot red"></i>산불 발생 이력</span>
+        <span><i class="dot blue"></i>위험·관리 지점</span>
+        <span><i class="dot green"></i>진화 차량</span>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="stats">
+
+    <div class="stat-card">
+      <div class="stat-label">총 탐방로</div>
+      <div class="stat-value cyan">96.76<small> km</small></div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-label">개방 탐방로</div>
+      <div class="stat-value green">95.96<small> km</small></div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-label">감시 카메라</div>
+      <div class="stat-value cyan">03<small> 대</small></div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-label">통제소</div>
+      <div class="stat-value yellow">02<small> 개소</small></div>
+    </div>
+
+  </div>
+
+</div>
+
+<aside class="right-area">
+
+  <!-- 산불 관리 현황 -->
+  <div class="section">
+
+    <div class="section-title">
+      🚨 산불관리 현황
+      <span style="color:#4ade80;font-size:11px">관리정보</span>
+    </div>
+
+    <div class="panel-body">
+
+      <div class="resource-item">
+        <span>진화차량</span>
+        <strong>벤츠 유니목 U5023</strong>
+      </div>
+
+      <div class="resource-item">
+        <span>차량 중량</span>
+        <strong>8.5 ton</strong>
+      </div>
+
+      <div class="resource-item">
+        <span>물탱크 용량</span>
+        <strong>4,000 L</strong>
+      </div>
+
+      <div class="resource-item">
+        <span>방수량</span>
+        <strong>2,800 L/min</strong>
+      </div>
+
+      <div class="resource-item">
+        <span>감시 카메라</span>
+        <strong>3 대</strong>
+      </div>
+
+      <div class="resource-item">
+        <span>진화 차량</span>
+        <strong>4 대</strong>
+      </div>
+
+      <div class="resource-item">
+        <span>통제소</span>
+        <strong>2 개소</strong>
+      </div>
+
+      <div class="resource-item">
+        <span>인화물질 보관함</span>
+        <strong>4 개소</strong>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 위험지역 등록 -->
+  <div class="section">
+
+    <div class="section-title">
+      📍 위험지역 위치 등록
+    </div>
+
+    <div class="panel-body">
+
+      <h3>좌표 검색</h3>
+
+      <input id="latInput"
+        type="number" step="any"
+        placeholder="위도 (예: 35.1286)">
+
+      <input id="lngInput"
+        type="number" step="any"
+        placeholder="경도 (예: 126.9699)">
+
+      <button id="addByCoordBtn" class="btn-green">
+        ＋ 좌표로 위험지역 등록
+      </button>
+
+      <hr style="border-color:#263c53;margin:12px 0">
+
+      <h3>주소 검색</h3>
+
+      <input id="addressInput"
+        placeholder="주소 입력">
+
+      <button id="addByAddressBtn" class="btn-green">
+        ⌖ 주소로 위치 표시
+      </button>
+
+      <button id="addPointBtn" class="btn-blue">
+        ＋ 지도에서 클릭하여 표시
+      </button>
+
+    </div>
+  </div>
+
+  <!-- 진화 차량 관리 -->
+  <div class="section">
+
+    <div class="section-title">
+      🚒 진화 차량 위치 관리
+    </div>
+
+    <div class="panel-body">
+
+      <h3>차량 좌표 등록</h3>
+
+      <input id="vehicleName"
+        placeholder="차량명 (예: 진화 차량 01)">
+
+      <input id="vehicleLat"
+        type="number" step="any"
+        placeholder="위도">
+
+      <input id="vehicleLng"
+        type="number" step="any"
+        placeholder="경도">
+
+      <button id="addVehicleBtn" class="btn-green">
+        ＋ 진화 차량 등록
+      </button>
+
+      <button id="vehicleLocationBtn" class="btn-blue">
+        GPS 현재 위치 등록
+      </button>
+
+      <div id="vehicleInfo" class="info-panel">
+        등록된 진화 차량이 없습니다.
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- 산불 대응 시스템 -->
+  <div class="section">
+
+    <div class="section-title">
+      🔗 산불 대응 시스템
+    </div>
+
+    <div class="panel-body quick-links">
+
+      <button class="btn-purple"
+        onclick="window.open('https://mudeungsan1.iptime.org:8080','_blank','noopener')">
+        장불재 산불카메라
+      </button>
+
+      <button class="btn-purple"
+        onclick="window.open('https://fd.forest.go.kr','_blank','noopener')">
+        실시간 산불정보
+      </button>
+
+      <button class="btn-purple"
+        onclick="window.open('https://sanbul.forest.go.kr','_blank','noopener')">
+        산불상황관제
+      </button>
+
+      <button class="btn-purple"
+        onclick="window.open('http://forestfire.nifos.go.kr','_blank','noopener')">
+        산불위험예보
+      </button>
+
+      <button class="btn-purple"
+        onclick="window.open('https://mudeung.github.io/rescue/searchems.html','_blank','noopener')">
+        비상대응 상황판
+      </button>
+
+      <button class="btn-purple"
+        onclick="window.open('https://www.knps.or.kr/front/portal/safe/acsCtrList.do?menuNo=8000340','_blank','noopener')">
+        탐방로 통제정보
+      </button>
+
+    </div>
+  </div>
+
+  <!-- 상세정보 -->
+  <div class="section">
+
+    <div class="section-title">
+      📋 상세 상황 정보
+    </div>
+
+    <div class="panel-body">
+
+      <div id="infoPanel" class="info-panel">
+        마커를 선택하면 산불 발생 이력 및 위치 상세정보가 표시됩니다.
+      </div>
+
+    </div>
+  </div>
+
+</aside>
+</main>
+
+<div class="footer">
+  MUDEUNGSAN FOREST FIRE CONTROL CENTER · 산불 예방 및 안전관리
+</div>
+
+<script>
+
+// ==========================================
+// ① 공통 변수 및 설정
+// ==========================================
+
+const $ = id => document.getElementById(id);
+
+let map = null;
+
+let currentMapType = "normal";
+
+let clickMode = false;
+
+let markers = [];
+
+let vehicles = [];
+
+let currentPopup = null;
+
+
+
+ // ==========================================
+ // GitHub Pages ↔ Google Apps Script 연결
+ // ==========================================
+
+const GAS_URL =
+"https://script.google.com/macros/s/AKfycbx-dPxhS-tyk6BBBLKHFBSiAGWqX0xqrzcfDd9ux4aibM6A-Be4J94oLWyg8JTyCxer/exec";
+
+
+
+let gasSuccessHandler = null;
+let gasFailureHandler = null;
+
+window.google = window.google || {};
+window.google.script = window.google.script || {};
+
+const gasRunner = new Proxy({}, {
+
+  get(target, method) {
+
+    if (method === "withSuccessHandler") {
+
+      return function(fn) {
+        gasSuccessHandler = fn;
+        return gasRunner;
+      };
+
+    }
+
+    if (method === "withFailureHandler") {
+
+      return function(fn) {
+        gasFailureHandler = fn;
+        return gasRunner;
+      };
+
+    }
+
+    return function(data) {
+
+      const action = String(method);
+      const payload = data || {};
+
+      // 요청별 콜백을 즉시 분리
+      const success = gasSuccessHandler;
+      const failure = gasFailureHandler;
+
+      gasSuccessHandler = null;
+      gasFailureHandler = null;
+
+      const callbackName =
+        "__gasCallback_" +
+        Date.now() +
+        "_" +
+        Math.random().toString(36).slice(2);
+
+      const script = document.createElement("script");
+
+      const params = new URLSearchParams({
+        action: action,
+        data: JSON.stringify(payload),
+        callback: callbackName
+      });
+
+      let finished = false;
+
+      let timeout;
+
+      function cleanup() {
+
+        if (finished) return;
+
+        finished = true;
+
+        clearTimeout(timeout);
+
+        delete window[callbackName];
+
+        script.remove();
+
+      }
+
+      function fail(error) {
+
+        if (finished) return;
+
+        cleanup();
+
+        if (failure) {
+          failure(error);
+        } else {
+          console.error("GAS 오류:", error);
+        }
+
+      }
+
+      timeout = setTimeout(function() {
+
+        fail(new Error("서버 응답 시간 초과"));
+
+      }, 20000);
+
+      window[callbackName] = function(response) {
+
+        if (finished) return;
+
+        cleanup();
+
+        if (response && response.success) {
+
+          if (success) {
+            success(response.data);
+          }
+
+        } else {
+
+          const error = new Error(
+            response?.error || "서버 오류"
+          );
+
+          if (failure) {
+            failure(error);
+          } else {
+            console.error(error);
+          }
+
+        }
+
+      };
+
+      script.onerror = function() {
+
+        fail(new Error("Google 서버 연결 실패"));
+
+      };
+
+      script.src =
+        GAS_URL + "?" + params.toString();
+
+      document.head.appendChild(script);
+
+    };
+
+  }
+
+});
+
+window.google.script.run = gasRunner;
+
+
+
+// ==========================================
+// Google Apps Script 연동 함수
+// ==========================================
+
+function isGasAvailable() {
+  return !!(
+    window.google &&
+    window.google.script &&
+    window.google.script.run
+  );
+}
+
+function gasError(error) {
+
+  console.error("Google Apps Script 오류:", error);
+
+  alert(
+    "서버 연동 오류: " +
+    (error.message || error)
+  );
+
+}
+
+
+// 날짜
+function getToday() {
+
+  const now = new Date();
+
+  return [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0")
+  ].join("-");
+
+}
+
+
+
+
+// 좌표 검사
+function validateCoordinates(lat, lng) {
+
+  return (
+    Number.isFinite(lat) &&
+    Number.isFinite(lng) &&
+    lat >= -90 &&
+    lat <= 90 &&
+    lng >= -180 &&
+    lng <= 180
+  );
+
+}
+
+
+// HTML 안전 처리
+function escapeHTML(value) {
+
+  return String(value).replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  })[char]);
+
+}
+
+
+// ==========================================
+// ② 지도 레이어 3종
+// ==========================================
+
+// 일반지도
+const osmLayer = L.tileLayer(
+  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+  {
+    maxZoom: 19,
+    attribution: "&copy; OpenStreetMap contributors"
+  }
+);
+
+
+// 위성영상
+const satelliteLayer = L.tileLayer(
+  "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+  {
+    maxZoom: 19,
+    attribution: "Tiles &copy; Esri"
+  }
+);
+
+
+// 지형도
+const terrainLayer = L.tileLayer(
+  "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+  {
+    maxZoom: 17,
+    attribution: "&copy; OpenTopoMap"
+  }
+);
+
+
+// 지도 목록
+const mapTypes = {
+
+  normal: osmLayer,
+
+  satellite: satelliteLayer,
+
+  terrain: terrainLayer
+
+};
+
+
+// ==========================================
+// ③ 무등산 산불 및 관리 지점 11개
+// ==========================================
+
+const landslideData = [
+
+  {
+    lat:35.1286067,
+    lng:126.9699645,
+    type:"fire",
+    date:"2024-09-29",
+    description:"광주광역시 동구 운림동 56 증심사 공양간 화재"
+  },
+
+  {
+    lat:35.1615699,
+    lng:126.9861449,
+    type:"fire",
+    date:"2025-03-22",
+    description:"광주광역시 북구 금곡동 산166-2 담배불씨"
+  },
+
+  {
+    lat:35.152931,
+    lng:126.964767,
+    type:"fire",
+    date:"2025-03-22",
+    description:"광주광역시 북구 화암동 335-4 쓰레기소각"
+  },
+
+  {
+    lat:35.117806,
+    lng:126.944922,
+    type:"fire",
+    date:"2025-02-21",
+    description:"광주광역시 동구 소태동 산184 쓰레기소각"
+  },
+
+  {
+    lat:35.128633,
+    lng:126.969805,
+    type:"normal",
+    date:"2025-02-14",
+    description:"증심사 수관보관함 입구"
+  },
+
+  {
+    lat:35.128917,
+    lng:126.969963,
+    type:"normal",
+    date:"2025-02-14",
+    description:"증심사 수관보관함 대웅전 좌측"
+  },
+
+  {
+    lat:35.128760,
+    lng:126.970289,
+    type:"normal",
+    date:"2025-02-14",
+    description:"증심사 수관보관함 대웅전 우측"
+  },
+
+  {
+    lat:35.122244,
+    lng:126.972229,
+    type:"normal",
+    date:"2025-02-14",
+    description:"약사사 수관보관함 입구"
+  },
+
+  {
+    lat:35.133144,
+    lng:126.961055,
+    type:"normal",
+    date:"2025-02-14",
+    description:"문빈정사 수관보관함 입구"
+  },
+
+  {
+    lat:35.14833232,
+    lng:126.98574731,
+    type:"normal",
+    date:"2025-02-14",
+    description:"원효사 수관보관함 입구"
+  },
+
+  {
+    lat:35.14853961,
+    lng:126.98554150,
+    type:"normal",
+    date:"2025-02-14",
+    description:"원효사 수관보관함 대웅전 앞"
+  }
+
+];
+
+
+// ==========================================
+// ④ 지도 초기화
+// ==========================================
+
+function initMap() {
+
+  if (map) return;
+
+  if (typeof L === "undefined") {
+
+    console.error("Leaflet 라이브러리 로딩 실패");
+
+    $("map").textContent =
+      "지도 라이브러리 로딩에 실패했습니다.";
+
+    return;
+
+  }
+
+  map = L.map("map", {
+
+    center: [35.134167, 126.988889],
+
+    zoom: 14,
+
+    minZoom: 8,
+
+    maxZoom: 19,
+
+    layers: [osmLayer],
+
+    zoomControl: true
+
+  });
+
+
+  // 축척 표시
+  L.control.scale({
+
+    position: "bottomright",
+
+    metric: true,
+
+    imperial: false
+
+  }).addTo(map);
+
+
+  // 기존 산불 및 관리 지점 표시
+landslideData.forEach(item => {
+
+  addFireMarker(
+
+    item.lat,
+
+    item.lng,
+
+    item.type,
+
+    item.type === "fire"
+      ? "산불 발생 이력"
+      : "산불 관리 지점",
+
+    item.description,
+
+    item.date,
+
+    false
+
+  );
+
+});
+
+
+  // 지도 클릭 등록
+  map.on("click", function(e) {
+
+    if (!clickMode) return;
+
+    const item = addFireMarker(
+
+      e.latlng.lat,
+
+      e.latlng.lng,
+
+      "risk",
+
+      "현장 위험지역",
+
+      "지도 클릭으로 등록한 위험·관리 지점",
+
+      getToday()
+
+    );
+
+    if (item) {
+
+      showMarkerInfo(item);
+
+    }
+
+    clickMode = false;
+
+    $("addPointBtn").textContent =
+      "＋ 지도에서 클릭하여 표시";
+
+    $("addPointBtn").style.background = "";
+
+    map.getContainer().style.cursor = "";
+
+  });
+
+
+  // 지도 크기 조절
+  setTimeout(() => {
+
+    map.invalidateSize();
+
+  }, 300);
+
+
+  window.addEventListener("resize", () => {
+
+    if (map) map.invalidateSize();
+
+  });
+
+
+  if (window.ResizeObserver) {
+
+    const observer = new ResizeObserver(() => {
+
+      if (map) map.invalidateSize();
+
+    });
+
+    observer.observe($("map-container"));
+
+  }
+
+
+  console.log("무등산 GIS 지도 초기화 완료");
+
+}
+
+// ==========================================
+// ⑤ 산불 및 위험지역 마커 등록
+// ==========================================
+
+
+function addFireMarker(
+  lat,
+  lng,
+  type,
+  title,
+  description,
+  date = "",
+  saveToServer = true,
+  existingId = null
+) {
+
+  if (!map || !validateCoordinates(lat, lng)) {
+    return null;
+  }
+
+  const color = type === "fire"
+    ? "#fb5365"
+    : "#38bdf8";
+
+  const circle = L.circle(
+    [lat, lng],
+    {
+      radius: 35,
+      color: "#ffffff",
+      weight: 2,
+      fillColor: color,
+      fillOpacity: 0.9
+    }
+  ).addTo(map);
+
+  const item = {
+    id: existingId,
+    overlay: circle,
+    lat,
+    lng,
+    type,
+    title,
+    description,
+    date
+  };
+
+  markers.push(item);
+
+  circle.on("click", function() {
+    showMarkerInfo(item);
+  });
+
+  if (saveToServer && isGasAvailable()) {
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        item.id = result.id;
+        console.log("위험지역 저장 완료");
+      })
+      .withFailureHandler(gasError)
+      .saveRisk({
+        id: item.id,
+        lat,
+        lng,
+        type,
+        title,
+        description,
+        date
+      });
+
+  }
+
+  return item;
+}
+
+
+// ==========================================
+// ⑥ 상세정보 표시
+// ==========================================
+
+function showMarkerInfo(item) {
+
+  if (!item || !markers.includes(item)) return;
+
+  if (currentPopup) {
+
+    map.closePopup();
+
+  }
+
+  const typeName = item.type === "fire"
+    ? "산불 발생 이력"
+    : "위험·관리 지점";
+
+  const color = item.type === "fire"
+    ? "#fb5365"
+    : "#38bdf8";
+
+
+  const content = `
+
+    <div style="
+      width:240px;
+      padding:12px;
+      background:#101f31;
+      color:#e5edf7;
+      border:1px solid #22d3ee;
+      border-radius:8px;
+      line-height:1.8;
+    ">
+
+      <div style="
+        color:${color};
+        font-weight:bold;
+        border-bottom:1px solid #263c53;
+        padding-bottom:7px;
+      ">
+
+        ● ${escapeHTML(item.title)}
+
+      </div>
+
+      <div style="font-size:12px;">
+
+        구분 : ${escapeHTML(typeName)}<br>
+
+        등록일 : ${escapeHTML(item.date || "-")}<br>
+
+        위도 : ${item.lat.toFixed(6)}<br>
+
+        경도 : ${item.lng.toFixed(6)}
+
+      </div>
+
+      <div style="
+        margin-top:8px;
+        padding:8px;
+        background:#091727;
+        font-size:12px;
+      ">
+
+        ${escapeHTML(item.description)}
+
+      </div>
+
+    </div>
+
+  `;
+
+
+  currentPopup = L.popup({
+
+    maxWidth:280
+
+  })
+  .setLatLng([item.lat, item.lng])
+  .setContent(content)
+  .openOn(map);
+
+
+  // 우측 상세정보 패널
+  const panel = $("infoPanel");
+
+  panel.replaceChildren();
+
+  const heading = document.createElement("h3");
+
+  heading.textContent = item.title;
+
+  panel.appendChild(heading);
+
+  const details = document.createElement("div");
+
+  details.style.whiteSpace = "pre-line";
+
+  details.textContent = [
+
+    "위도: " + item.lat.toFixed(6),
+
+    "경도: " + item.lng.toFixed(6),
+
+    "구분: " + typeName,
+
+    "등록일: " + (item.date || "-"),
+
+    "상세정보: " + item.description
+
+  ].join("\n");
+
+  panel.appendChild(details);
+
+
+  // 삭제 버튼
+  const removeButton = document.createElement("button");
+
+  removeButton.textContent = "이 지점 삭제";
+
+  removeButton.className = "btn-red";
+
+  removeButton.style.marginTop = "12px";
+
+ removeButton.onclick = function() {
+
+  function removeFromMap() {
+
+    map.removeLayer(item.overlay);
+
+    markers = markers.filter(
+      marker => marker !== item
+    );
+
+    map.closePopup();
+
+    currentPopup = null;
+
+    panel.textContent =
+      "선택한 지점을 삭제했습니다.";
+
+  }
+
+  if (item.id && isGasAvailable()) {
+
+    google.script.run
+      .withSuccessHandler(function() {
+        removeFromMap();
+      })
+      .withFailureHandler(gasError)
+      .deleteRisk({
+  id: item.id
+});
+
+  } else {
+
+    removeFromMap();
+
+  }
+
+};
+
+  panel.appendChild(removeButton);
+
+}
+
+
+// ==========================================
+// ⑦ 좌표로 위험지역 등록
+// ==========================================
+
+$("addByCoordBtn").addEventListener(
+  "click",
+  function() {
+
+    const lat = Number($("latInput").value.trim());
+
+    const lng = Number($("lngInput").value.trim());
+
+    if (!validateCoordinates(lat, lng)) {
+
+      alert("올바른 위도와 경도를 입력하세요.");
+
+      return;
+
+    }
+
+    const item = addFireMarker(
+
+      lat,
+      lng,
+      "risk",
+      "좌표 등록 위험지역",
+      "사용자가 좌표로 등록한 위험·관리 지점",
+      getToday()
+
+    );
+
+    if (!item) return;
+
+    map.setView([lat, lng], 16);
+
+    showMarkerInfo(item);
+
+    $("latInput").value = "";
+
+    $("lngInput").value = "";
+
+  }
+);
+
+
+// ==========================================
+// ⑧ 지도 클릭으로 위험지역 등록
+// ==========================================
+
+$("addPointBtn").addEventListener(
+  "click",
+  function() {
+
+    if (!map) {
+
+      alert("지도가 아직 준비되지 않았습니다.");
+
+      return;
+
+    }
+
+    clickMode = !clickMode;
+
+    if (clickMode) {
+
+      this.textContent =
+        "지도에서 위치를 선택하세요";
+
+      this.style.background = "#b45309";
+
+      map.getContainer().style.cursor =
+        "crosshair";
+
+    } else {
+
+      this.textContent =
+        "＋ 지도에서 클릭하여 표시";
+
+      this.style.background = "";
+
+      map.getContainer().style.cursor = "";
+
+    }
+
+  }
+);
+
+
+// ==========================================
+// ⑨ 주소 검색 - Nominatim
+// ==========================================
+
+$("addByAddressBtn").addEventListener(
+  "click",
+  async function() {
+
+    const address =
+      $("addressInput").value.trim();
+
+    if (!address) {
+
+      alert("주소를 입력하세요.");
+
+      return;
+
+    }
+
+    const btn = this;
+
+    btn.disabled = true;
+
+    btn.textContent = "주소 검색 중...";
+
+    try {
+
+      const params = new URLSearchParams({
+
+        q: address,
+
+        format: "jsonv2",
+
+        limit: "1",
+
+        countrycodes: "kr"
+
+      });
+
+      const response = await fetch(
+        "https://nominatim.openstreetmap.org/search?" +
+        params.toString(),
+        {
+          headers: {
+            "Accept": "application/json"
+          }
+        }
+      );
+
+      if (!response.ok) {
+
+        throw new Error("주소 검색 서버 오류");
+
+      }
+
+      const results = await response.json();
+
+      if (!results.length) {
+
+        alert("검색된 주소가 없습니다.");
+
+        return;
+
+      }
+
+      const lat = Number(results[0].lat);
+
+      const lng = Number(results[0].lon);
+
+      if (!validateCoordinates(lat, lng)) {
+
+        alert("주소 좌표가 올바르지 않습니다.");
+
+        return;
+
+      }
+
+      const item = addFireMarker(
+
+        lat,
+        lng,
+        "risk",
+        "주소 검색 위치",
+        address,
+        getToday()
+
+      );
+
+      if (!item) return;
+
+      map.setView([lat, lng], 17);
+
+      showMarkerInfo(item);
+
+      $("addressInput").value = "";
+
+    } catch(error) {
+
+      console.error("주소 검색 오류:", error);
+
+      alert(
+        "주소 검색에 실패했습니다. 잠시 후 다시 시도하세요."
+      );
+
+    } finally {
+
+      btn.disabled = false;
+
+      btn.textContent = "⌖ 주소로 위치 표시";
+
+    }
+
+  }
+);
+
+
+// ==========================================
+// ⑩ 일반지도 / 위성영상 / 지형도 전환
+// ==========================================
+
+const mapTypeList = [
+
+  {
+    id: "normal",
+    layer: osmLayer,
+    nextText: "위성영상 전환"
+  },
+
+  {
+    id: "satellite",
+    layer: satelliteLayer,
+    nextText: "지형도 전환"
+  },
+
+  {
+    id: "terrain",
+    layer: terrainLayer,
+    nextText: "일반지도 전환"
+  }
+
+];
+
+
+$("toggleMapTypeBtn").addEventListener(
+  "click",
+  function() {
+
+    if (!map) return;
+
+    const currentIndex =
+      mapTypeList.findIndex(
+        item => item.id === currentMapType
+      );
+
+    const nextIndex =
+      (currentIndex + 1) % mapTypeList.length;
+
+    const current = mapTypeList[currentIndex];
+
+    const next = mapTypeList[nextIndex];
+
+    map.removeLayer(current.layer);
+
+    next.layer.addTo(map);
+
+    currentMapType = next.id;
+
+    this.textContent = next.nextText;
+
+    map.invalidateSize();
+
+  }
+);
+
+
+// ==========================================
+// ⑪ 진화 차량 위치 등록
+// ==========================================
+
+
+function addVehicle(
+  name,
+  lat,
+  lng,
+  saveToServer = true,
+  existingId = null
+) {
+
+  if (!map) return null;
+
+  if (!name || !validateCoordinates(lat, lng)) {
+
+    alert("차량명 또는 좌표가 올바르지 않습니다.");
+
+    return null;
+
+  }
+
+  const existing = vehicles.find(
+    item => item.name === name
+  );
+
+  if (existing) {
+
+    alert("이미 등록된 차량명입니다.");
+
+    return null;
+
+  }
+
+  const vehicleIcon = L.divIcon({
+
+    html: `
+      <div style="
+        font-size:27px;
+        text-align:center;
+      ">🚒</div>
+    `,
+
+    className: "vehicle-marker",
+
+    iconSize: [35, 35],
+
+    iconAnchor: [17, 17]
+
+  });
+
+  const marker = L.marker(
+    [lat, lng],
+    { icon: vehicleIcon }
+  ).addTo(map);
+
+  const vehicle = {
+
+    id: existingId,
+
+    name,
+
+    lat,
+
+    lng,
+
+    marker
+
+  };
+
+  vehicles.push(vehicle);
+
+  marker.bindPopup(`
+
+    <b>🚒 ${escapeHTML(name)}</b><br>
+
+    위도: ${lat.toFixed(6)}<br>
+
+    경도: ${lng.toFixed(6)}
+
+  `);
+
+  updateVehicleInfo();
+
+  if (saveToServer && isGasAvailable()) {
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+
+        vehicle.id = result.id;
+
+        console.log("차량 저장 완료");
+
+      })
+      .withFailureHandler(gasError)
+      .saveVehicle({
+
+        id: vehicle.id,
+
+        name,
+
+        lat,
+
+        lng
+
+      });
+
+  }
+
+  return vehicle;
+
+}
+
+
+
+// ==========================================
+// ⑫ 차량 위치 갱신
+// ==========================================
+
+function updateVehicle(name, lat, lng) {
+
+  const vehicle = vehicles.find(
+    item => item.name === name
+  );
+
+  if (!vehicle) {
+
+    alert("등록된 차량이 없습니다.");
+
+    return;
+
+  }
+
+  if (!validateCoordinates(lat, lng)) {
+
+    alert("차량 좌표가 올바르지 않습니다.");
+
+    return;
+
+  }
+
+  vehicle.lat = lat;
+
+  vehicle.lng = lng;
+
+  vehicle.marker.setLatLng([lat, lng]);
+
+  vehicle.marker.setPopupContent(`
+
+    <b>🚒 ${escapeHTML(name)}</b><br>
+
+    위도: ${lat.toFixed(6)}<br>
+
+    경도: ${lng.toFixed(6)}
+
+  `);
+
+ if (isGasAvailable()) {
+
+  google.script.run
+
+    .withSuccessHandler(function(result) {
+
+      vehicle.id = result.id;
+
+      console.log("차량 위치 갱신 완료");
+
+    })
+
+    .withFailureHandler(gasError)
+
+    .saveVehicle({
+
+      id: vehicle.id,
+
+      name: vehicle.name,
+
+      lat: vehicle.lat,
+
+      lng: vehicle.lng
+
+    });
+
+}
+ 
+  updateVehicleInfo();
+
+}
+
+
+// ==========================================
+// ⑬ 차량 정보 표시
+// ==========================================
+
+function updateVehicleInfo() {
+
+  const panel = $("vehicleInfo");
+
+  if (!panel) {
+
+    console.warn("vehicleInfo HTML 요소가 없습니다.");
+
+    return;
+
+  }
+
+  panel.replaceChildren();
+
+  if (vehicles.length === 0) {
+
+    panel.textContent =
+      "등록된 진화 차량이 없습니다.";
+
+    return;
+
+  }
+
+  vehicles.forEach(vehicle => {
+
+    const div = document.createElement("div");
+
+    div.className = "resource-item";
+
+    const name = document.createElement("strong");
+
+    name.textContent = "🚒 " + vehicle.name;
+
+    const position = document.createElement("span");
+
+    position.textContent =
+      vehicle.lat.toFixed(6) +
+      ", " +
+      vehicle.lng.toFixed(6);
+
+    div.append(name, position);
+
+    panel.appendChild(div);
+
+  });
+
+}
+
+
+// ==========================================
+// ⑭ 차량 등록 버튼
+// ==========================================
+
+const addVehicleBtn = $("addVehicleBtn");
+
+if (addVehicleBtn) {
+
+  addVehicleBtn.addEventListener(
+    "click",
+    function() {
+
+      const name =
+        $("vehicleName")?.value.trim();
+
+      const lat =
+        Number($("vehicleLat")?.value);
+
+      const lng =
+        Number($("vehicleLng")?.value);
+
+      if (!name) {
+
+        alert("차량명을 입력하세요.");
+
+        return;
+
+      }
+
+      if (!validateCoordinates(lat, lng)) {
+
+        alert("올바른 차량 좌표를 입력하세요.");
+
+        return;
+
+      }
+
+      const vehicle = addVehicle(
+        name,
+        lat,
+        lng
+      );
+
+      if (!vehicle) return;
+
+      map.setView([lat, lng], 16);
+
+      $("vehicleName").value = "";
+
+      $("vehicleLat").value = "";
+
+      $("vehicleLng").value = "";
+
+    }
+  );
+
+} else {
+
+  console.warn(
+    "addVehicleBtn HTML 요소를 찾을 수 없습니다."
+  );
+
+}
+
+
+// ==========================================
+// ⑮ GPS 현재 위치 등록
+// ==========================================
+
+const vehicleLocationBtn = $("vehicleLocationBtn");
+
+if (vehicleLocationBtn) {
+
+  vehicleLocationBtn.addEventListener(
+    "click",
+    function() {
+
+      if (!navigator.geolocation) {
+
+        alert("GPS 기능을 지원하지 않습니다.");
+
+        return;
+
+      }
+
+      const btn = this;
+
+      btn.disabled = true;
+
+      btn.textContent = "GPS 위치 확인 중...";
+
+      navigator.geolocation.getCurrentPosition(
+
+        function(position) {
+
+          const lat =
+            position.coords.latitude;
+
+          const lng =
+            position.coords.longitude;
+
+          const name =
+            $("vehicleName")?.value.trim() ||
+            "진화 차량 GPS";
+
+          const vehicle = addVehicle(
+            name,
+            lat,
+            lng
+          );
+
+          if (vehicle) {
+
+            map.setView([lat, lng], 16);
+
+          }
+
+          btn.disabled = false;
+
+          btn.textContent = "GPS 현재 위치 등록";
+
+        },
+
+        function(error) {
+
+          console.error("GPS 오류:", error);
+
+          alert(
+            "GPS 위치를 가져오지 못했습니다. HTTPS 연결과 위치 권한을 확인하세요."
+          );
+
+          btn.disabled = false;
+
+          btn.textContent = "GPS 현재 위치 등록";
+
+        },
+
+        {
+
+          enableHighAccuracy: true,
+
+          timeout: 10000,
+
+          maximumAge: 0
+
+        }
+
+      );
+
+    }
+  );
+
+} else {
+
+  console.warn(
+    "vehicleLocationBtn HTML 요소를 찾을 수 없습니다."
+  );
+
+}
+
+
+
+function loadGasData() {
+
+  if (!isGasAvailable()) {
+
+    console.warn(
+      "Google Apps Script 환경이 아닙니다."
+    );
+
+    return;
+
+  }
+
+  google.script.run
+
+    .withSuccessHandler(function(data) {
+
+      // 위험지역 불러오기
+(data.risks || []).forEach(item => {
+
+  const lat = Number(item.lat);
+  const lng = Number(item.lng);
+
+  // 기존 정적 마커와 동일한 데이터 중복 방지
+  const duplicate = markers.some(marker =>
+
+    marker.type === item.type &&
+
+    Math.abs(marker.lat - lat) < 0.000001 &&
+
+    Math.abs(marker.lng - lng) < 0.000001 &&
+
+    marker.description === item.description
+
+  );
+
+  if (duplicate) return;
+
+  addFireMarker(
+
+    lat,
+    lng,
+
+    item.type,
+
+    item.name,
+
+    item.description,
+
+    item.date,
+
+    false,
+
+    item.id
+
+  );
+
+});
+
+      // 진화 차량 불러오기
+      (data.vehicles || []).forEach(item => {
+
+        addVehicle(
+
+          item.name,
+
+          item.lat,
+
+          item.lng,
+
+          false,
+
+          item.id
+
+        );
+
+      });
+
+      console.log(
+        "Google Sheets 데이터 복원 완료"
+      );
+
+    })
+
+    .withFailureHandler(gasError)
+
+    .getDashboardData();
+
+}
+ 
+
+// ==========================================
+// ⑯ 지도 실행
+// ==========================================
+
+function startMap() {
+
+  if (typeof L === "undefined") {
+
+    console.error("Leaflet 라이브러리 로딩 실패");
+
+    $("map").textContent =
+      "Leaflet 라이브러리를 불러오지 못했습니다.";
+
+    return;
+
+  }
+
+  if (map) return;
+
+  initMap();
+
+  // Google Sheets 데이터 자동 불러오기
+  loadGasData();
+
+}
+
+
+// HTML 로딩 후 지도 실행
+if (document.readyState === "loading") {
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    startMap,
+    { once: true }
+  );
+
+} else {
+
+  startMap();
+
+}
+
+</script>
+
+</body>
+</html>
