@@ -824,6 +824,50 @@ const $ = id => document.getElementById(id);
 
 let map = null;
 
+
+// ==========================================
+// 실시간 시스템 시계
+// ==========================================
+
+function updateSystemClock() {
+
+  const clock = document.getElementById("systemClock");
+
+  if (!clock) return;
+
+  const now = new Date();
+
+  const options = {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23"
+  };
+
+  const parts = new Intl.DateTimeFormat(
+    "en-CA",
+    options
+  ).formatToParts(now);
+
+  const get = type =>
+    parts.find(p => p.type === type)?.value || "00";
+
+  clock.textContent =
+    `${get("year")}-${get("month")}-${get("day")} ` +
+    `${get("hour")}:${get("minute")}:${get("second")}`;
+}
+
+// 최초 실행
+updateSystemClock();
+
+// 1초마다 자동 갱신
+setInterval(updateSystemClock, 1000);
+
+ 
 let currentMapType = "normal";
 
 // 지도 클릭 모드
@@ -847,9 +891,6 @@ let locationRequestId = 0;
 // ==========================================
 // 도로 측정 공통 변수
 // ==========================================
-
-let roadSelectMode = false;
-let roadWidthMode = false;
 
 let roadLayers = [];
 let roadMeasureLayers = [];
