@@ -416,6 +416,74 @@ main {
   #map { min-height:380px; }
   .stat-value { font-size:23px; }
 }
+
+
+/* =====================================
+   모바일 화면 시계 최적화
+===================================== */
+
+.header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+
+.clock {
+  display: block;
+  white-space: nowrap;
+  font-size: 15px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 모바일 최적화 */
+@media (max-width: 650px) {
+
+  .header-inner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .clock {
+    display: block;
+    width: 100%;
+    text-align: center;
+    font-size: 16px;
+    padding: 12px 5px;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  .system-status {
+    width: 100%;
+    text-align: center;
+  }
+
+  h1 {
+    font-size: 19px;
+  }
+
+}
+ 
+ 
 </style>
 </head>
 
@@ -842,10 +910,10 @@ let vehicles = [];
 let currentPopup = null;
 
 
-
 // ==========================================
 // 실시간 디지털 시계 (한국 표준시)
 // ==========================================
+
 
 function updateSystemClock() {
 
@@ -880,11 +948,13 @@ function updateSystemClock() {
 
 }
 
-// 즉시 실행
 updateSystemClock();
 
-// 1초마다 갱신
-setInterval(updateSystemClock, 1000);
+if (window.clockTimer) {
+  clearInterval(window.clockTimer);
+}
+
+window.clockTimer = setInterval(updateSystemClock, 1000);
 
  
 // ==========================================
