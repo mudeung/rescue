@@ -816,10 +816,6 @@ main {
 
 <script>
 
-document.addEventListener("DOMContentLoaded", function () {
-
-"use strict";
-
 // ==========================================
 // ① 공통 변수 및 설정
 // ==========================================
@@ -827,26 +823,33 @@ document.addEventListener("DOMContentLoaded", function () {
 const $ = id => document.getElementById(id);
 
 let map = null;
+
 let currentMapType = "normal";
 
 let clickMode = false;
-let roadSelectMode = false;
-let roadWidthMode = false;
 
 let markers = [];
+
 let vehicles = [];
 
 let currentPopup = null;
-let locationMarker = null;
-let locationRequestId = 0;
+
+
+// ==========================================
+// 도로 측정 공통 변수
+// ==========================================
+
+let roadSelectMode = false;
+let roadWidthMode = false;
 
 let roadLayers = [];
 let roadMeasureLayers = [];
+
 let roadWidthPoints = [];
+
 let selectedRoad = null;
 
-let roadSearchRequestId = 0;
-
+// 소방차 진입 참고 기준 폭
 const FIRE_TRUCK_MIN_WIDTH = 3.0;
 
 const OVERPASS_URL =
@@ -854,104 +857,7 @@ const OVERPASS_URL =
 
 
 // ==========================================
-// ② 필수 HTML 요소 확인
-// ==========================================
-
-function requireElement(id) {
-  const element = $(id);
-
-  if (!element) {
-    console.warn("HTML 요소를 찾을 수 없습니다:", id);
-  }
-
-  return element;
-}
-
-
-// ==========================================
-// ③ 한국 표준시 실시간 시계
-// ==========================================
-
-function updateSystemClock() {
-
-  const clock = $("systemClock");
-
-  if (!clock) return;
-
-  const now = new Date();
-
-  const date = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Seoul",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit"
-  }).format(now);
-
-  const time = new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Asia/Seoul",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hourCycle: "h23"
-  }).format(now);
-
-  clock.textContent = date + " " + time;
-}
-
-updateSystemClock();
-
-setInterval(updateSystemClock, 1000);
-
-
-// ==========================================
-// ④ 날짜 및 좌표 검사
-// ==========================================
-
-function getToday() {
-
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Seoul",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit"
-  }).format(new Date());
-
-}
-
-
-function validateCoordinates(lat, lng) {
-
-  return (
-    Number.isFinite(lat) &&
-    Number.isFinite(lng) &&
-    lat >= -90 &&
-    lat <= 90 &&
-    lng >= -180 &&
-    lng <= 180
-  );
-
-}
-
-
-// ==========================================
-// ⑤ HTML 안전 처리
-// ==========================================
-
-function escapeHTML(value) {
-
-  return String(value).replace(/[&<>"']/g, char => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#039;"
-  })[char]);
-
-}
-
-
-// ==========================================
-// ⑥ 거리 계산
+// 거리 계산 (미터)
 // ==========================================
 
 function roadDistance(a, b) {
@@ -979,7 +885,7 @@ function roadDistance(a, b) {
 
 
 // ==========================================
-// ⑦ 도로 길이 계산
+// 도로 길이 계산
 // ==========================================
 
 function calculateRoadLength(points) {
@@ -1001,7 +907,7 @@ function calculateRoadLength(points) {
 
 
 // ==========================================
-// ⑧ 도로 폭 정보 읽기
+// 도로 폭 데이터 읽기
 // ==========================================
 
 function getRoadWidth(tags) {
@@ -1029,10 +935,14 @@ function getRoadWidth(tags) {
 
 
 // ==========================================
-// ⑨ 도로 중심선과 클릭 위치 거리
+// 도로 중심선과 클릭 위치의 거리
 // ==========================================
 
-function pointToSegmentDistance(point, a, b) {
+function pointToSegmentDistance(
+  point,
+  a,
+  b
+) {
 
   const latScale = 111320;
 
@@ -1065,74 +975,21 @@ function pointToSegmentDistance(point, a, b) {
 
 
 // ==========================================
-// ⑩ 도로 검색 결과 및 측정 초기화
-// ==========================================
-
-function clearRoadLayers() {
-
-  if (!map) return;
-
-  roadLayers.forEach(layer => {
-    if (map.hasLayer(layer)) {
-      map.removeLayer(layer);
-    }
-  });
-
-  roadMeasureLayers.forEach(layer => {
-    if (map.hasLayer(layer)) {
-      map.removeLayer(layer);
-    }
-  });
-
-  roadLayers = [];
-  roadMeasureLayers = [];
-  roadWidthPoints = [];
-
-  selectedRoad = null;
-
-}
-
-
-function stopRoadModes() {
-
-  roadSelectMode = false;
-  roadWidthMode = false;
-
-  roadWidthPoints = [];
-
-  if ($("roadSelectBtn")) {
-    $("roadSelectBtn").textContent =
-      "🛣 지도에서 도로 선택";
-  }
-
-  if ($("roadWidthBtn")) {
-    $("roadWidthBtn").textContent =
-      "↔ 도로 양쪽 경계 측정 시작";
-  }
-
-  if (map) {
-    map.getContainer().style.cursor = "";
-  }
-
-}
-
-
-// ==========================================
-// ⑪ 도로 자동 검색
+// 도로 자동 검색
 // OpenStreetMap Overpass API
 // ==========================================
 
 async function searchRoad(lat, lng) {
 
-  if (!map) return;
-
   const panel = $("roadInfo");
 
-  if (!panel) return;
+  // 이전 도로 검색 결과 제거
+  roadLayers.forEach(layer => {
+    map.removeLayer(layer);
+  });
 
-  const requestId = ++roadSearchRequestId;
-
-  clearRoadLayers();
+  roadLayers = [];
+  selectedRoad = null;
 
   panel.textContent =
     "주변 도로 데이터를 검색하고 있습니다...";
@@ -1165,19 +1022,17 @@ async function searchRoad(lat, lng) {
 
     const data = await response.json();
 
-    // 이전 요청 결과가 늦게 도착한 경우 무시
-    if (requestId !== roadSearchRequestId) return;
-
     if (!data.elements || !data.elements.length) {
 
       panel.textContent =
         "주변에서 등록된 도로를 찾지 못했습니다.\n" +
-        "위성영상 또는 직접 폭 측정을 이용하세요.";
+        "위성영상 확인 또는 직접 폭 측정을 이용하세요.";
 
       return;
 
     }
 
+    // 클릭 위치에서 가장 가까운 도로 선택
     let nearest = null;
     let minDistance = Infinity;
 
@@ -1228,8 +1083,6 @@ async function searchRoad(lat, lng) {
 
   } catch (error) {
 
-    if (requestId !== roadSearchRequestId) return;
-
     console.error("도로 검색 오류:", error);
 
     panel.textContent =
@@ -1242,14 +1095,14 @@ async function searchRoad(lat, lng) {
 
 
 // ==========================================
-// ⑫ 도로 검색 결과 표시
+// 도로 검색 결과 표시
 // ==========================================
 
 function showRoadResult(way, points, distance) {
 
-  if (!map || !points.length) return;
+  roadLayers.forEach(layer => map.removeLayer(layer));
 
-  clearRoadLayers();
+  roadLayers = [];
 
   selectedRoad = {
     id: way.id,
@@ -1260,8 +1113,10 @@ function showRoadResult(way, points, distance) {
   const tags = way.tags || {};
 
   const length = calculateRoadLength(points);
+
   const width = getRoadWidth(tags);
 
+  // 도로 중심선 표시
   const line = L.polyline(
     points.map(p => [p.lat, p.lng]),
     {
@@ -1273,15 +1128,18 @@ function showRoadResult(way, points, distance) {
 
   roadLayers.push(line);
 
+  // 클릭 위치에서 도로까지 연결선
+  const info = $("roadInfo");
+
+  const area = width !== null
+    ? length * width
+    : null;
+
   const roadName =
     tags.name ||
     tags.ref ||
     tags.highway ||
     "이름 없는 도로";
-
-  const area = width !== null
-    ? length * width
-    : null;
 
   const widthText = width !== null
     ? width.toFixed(2) + " m"
@@ -1290,8 +1148,6 @@ function showRoadResult(way, points, distance) {
   const areaText = area !== null
     ? area.toFixed(2) + " ㎡ (추정)"
     : "폭 정보 필요";
-
-  const info = $("roadInfo");
 
   info.textContent = [
     "도로명: " + roadName,
@@ -1312,7 +1168,7 @@ function showRoadResult(way, points, distance) {
     "<b>" + escapeHTML(roadName) + "</b><br>" +
     "길이: " + length.toFixed(2) + "m<br>" +
     "폭: " + widthText
-  );
+  ).openPopup();
 
   map.fitBounds(line.getBounds(), {
     padding: [30, 30]
@@ -1322,12 +1178,10 @@ function showRoadResult(way, points, distance) {
 
 
 // ==========================================
-// ⑬ 도로 폭 직접 측정
+// 도로 폭 직접 측정
 // ==========================================
 
 function measureRoadWidth(point) {
-
-  if (!map) return;
 
   roadWidthPoints.push(point);
 
@@ -1338,40 +1192,56 @@ function measureRoadWidth(point) {
       color: "#ffffff",
       weight: 2,
       fillColor: "#22d3ee",
-      fillOpacity: 1,
-      bubblingMouseEvents: false
+      fillOpacity: 1
     }
   ).addTo(map);
 
   roadMeasureLayers.push(marker);
 
+  // 첫 번째 경계 선택
   if (roadWidthPoints.length === 1) {
 
     $("roadInfo").textContent =
       "첫 번째 도로 경계를 선택했습니다.\n" +
-      "이제 반대편 경계를 클릭하세요.";
+      "이제 도로 반대편 경계를 클릭하세요.";
 
     return;
-
   }
 
   const first = roadWidthPoints[0];
   const second = roadWidthPoints[1];
 
+  // 도로 폭 계산
   const width = roadDistance(first, second);
 
-  const fireTruckStatus =
-    width >= FIRE_TRUCK_MIN_WIDTH
-      ? "폭 기준 충족"
-      : "폭 기준 미충족";
+  // ==========================================
+  // 소방차 진입 가능 여부 판정
+  // ==========================================
 
-  const fireTruckColor =
-    width >= FIRE_TRUCK_MIN_WIDTH
-      ? "🟢"
-      : "🔴";
+  let fireTruckStatus = "";
+  let fireTruckColor = "";
 
-  let roadLength = null;
+  if (width >= FIRE_TRUCK_MIN_WIDTH) {
+
+    fireTruckStatus = "폭 기준 충족";
+    fireTruckColor = "🟢";
+
+  } else {
+
+    fireTruckStatus = "폭 기준 미충족";
+    fireTruckColor = "🔴";
+
+  }
+ 
+  // ==========================================
+  // 도로 길이 및 면적 계산
+  // ==========================================
+
+  const areaNote =
+    "※ 면적은 도로 길이 × 측정 폭으로 계산한 추정값입니다.";
+
   let measuredArea = null;
+  let roadLength = null;
 
   if (selectedRoad) {
 
@@ -1382,6 +1252,10 @@ function measureRoadWidth(point) {
     measuredArea = roadLength * width;
 
   }
+
+  // ==========================================
+  // 측정선 표시
+  // ==========================================
 
   const line = L.polyline(
     [
@@ -1397,6 +1271,10 @@ function measureRoadWidth(point) {
 
   roadMeasureLayers.push(line);
 
+  // ==========================================
+  // 측정 폭 지도 팝업
+  // ==========================================
+
   const middle = [
     (first.lat + second.lat) / 2,
     (first.lng + second.lng) / 2
@@ -1410,16 +1288,20 @@ function measureRoadWidth(point) {
       "🚒 소방차 진입 폭 기준: " +
       fireTruckColor + " " +
       fireTruckStatus
-    );
+    )
+    .openPopup();
 
   roadMeasureLayers.push(widthLabel);
 
-  widthLabel.openPopup();
+  // ==========================================
+  // 측정 결과 표시
+  // ==========================================
 
   $("roadInfo").textContent = [
 
     "도로 폭 직접 측정 완료",
     "",
+
     "📏 측정 도로 폭: " +
       width.toFixed(2) + " m",
 
@@ -1434,18 +1316,27 @@ function measureRoadWidth(point) {
       : "도로 면적: 길이 정보 필요",
 
     "",
-    "🚒 소방차 진입 폭 참고 판정: " +
-      fireTruckColor + " " + fireTruckStatus,
+
+    "🚒 소방차 진입 여부: " +
+      fireTruckColor + " " +
+      fireTruckStatus,
 
     "판정 기준: 도로 폭 3.0m 이상",
+
     "",
-    "※ 폭에 따른 1차 참고 판정입니다.",
+
+    "※ 폭 기준에 따른 1차 참고 판정입니다.",
     "※ 실제 진입 여부는 경사도, 회전 반경,",
     "노면 상태 및 장애물 확인이 필요합니다.",
+
     "",
-    "※ 면적은 길이 × 측정 폭으로 계산한 추정값입니다."
+    areaNote
 
   ].join("\n");
+
+  // ==========================================
+  // 측정 모드 종료
+  // ==========================================
 
   roadWidthMode = false;
 
@@ -1456,9 +1347,8 @@ function measureRoadWidth(point) {
 
 }
 
-
 // ==========================================
-// ⑭ 통합 지도 클릭 처리
+// 지도 클릭 처리
 // ==========================================
 
 function handleRoadMapClick(e) {
@@ -1498,133 +1388,156 @@ function handleRoadMapClick(e) {
 
 
 // ==========================================
-// ⑮ 도로 선택 버튼
+// 도로 측정 버튼 이벤트
 // ==========================================
 
-$("roadSelectBtn")?.addEventListener("click", function() {
+$("roadSelectBtn").addEventListener(
+  "click",
+  function() {
 
-  if (!map) return;
+    roadSelectMode = !roadSelectMode;
 
-  const activating = !roadSelectMode;
-
-  clickMode = false;
-
-  stopRoadModes();
-
-  if (activating) {
-
-    roadSelectMode = true;
-
-    $("roadSelectBtn").textContent =
-      "지도에서 도로를 클릭하세요";
-
-    map.getContainer().style.cursor = "crosshair";
-
-    $("roadInfo").textContent =
-      "지도에서 분석할 도로를 클릭하세요.";
-
-    $("addPointBtn").textContent =
-      "＋ 지도에서 클릭하여 표시";
-
-    $("addPointBtn").style.background = "";
-
-  } else {
-
-    $("roadInfo").textContent =
-      "도로 검색 모드가 종료되었습니다.";
-
-  }
-
-});
-
-
-// ==========================================
-// ⑯ 도로 폭 측정 버튼
-// ==========================================
-
-$("roadWidthBtn")?.addEventListener("click", function() {
-
-  if (!map) return;
-
-  const activating = !roadWidthMode;
-
-  clickMode = false;
-
-  stopRoadModes();
-
-  if (activating) {
-
-    roadWidthMode = true;
+    roadWidthMode = false;
 
     roadWidthPoints = [];
 
+    this.textContent = roadSelectMode
+      ? "지도에서 도로를 클릭하세요"
+      : "🛣 지도에서 도로 선택";
+
+    map.getContainer().style.cursor =
+      roadSelectMode ? "crosshair" : "";
+
     $("roadWidthBtn").textContent =
-      "도로 반대편 경계를 클릭하세요";
-
-    map.getContainer().style.cursor = "crosshair";
-
-    $("roadInfo").textContent =
-      "① 도로 한쪽 경계를 클릭하세요.\n" +
-      "② 도로 반대편 경계를 클릭하세요.";
-
-    $("addPointBtn").textContent =
-      "＋ 지도에서 클릭하여 표시";
-
-    $("addPointBtn").style.background = "";
-
-  } else {
-
-    $("roadInfo").textContent =
-      "도로 폭 측정 모드가 종료되었습니다.";
+      "↔ 도로 양쪽 경계 측정 시작";
 
   }
-
-});
-
-
-// ==========================================
-// ⑰ 측정 결과 삭제
-// ==========================================
-
-$("roadClearBtn")?.addEventListener("click", function() {
-
-  if (!map) return;
-
-  // 진행 중인 검색 요청도 무효화
-  roadSearchRequestId++;
-
-  clearRoadLayers();
-
-  stopRoadModes();
-
-  $("roadInfo").textContent =
-    "측정 결과를 삭제했습니다.";
-
-});
+);
 
 
-// ==========================================
-// ⑱ 기존 지도 클릭 모드 초기화
-// ==========================================
+$("roadWidthBtn").addEventListener(
+  "click",
+  function() {
 
+    roadSelectMode = false;
+
+    roadWidthMode = !roadWidthMode;
+
+    roadWidthPoints = [];
+
+    this.textContent = roadWidthMode
+      ? "도로 반대편 경계를 클릭하세요"
+      : "↔ 도로 양쪽 경계 측정 시작";
+
+    $("roadSelectBtn").textContent =
+      "🛣 지도에서 도로 선택";
+
+    map.getContainer().style.cursor =
+      roadWidthMode ? "crosshair" : "";
+
+    $("roadInfo").textContent =
+      roadWidthMode
+        ? "도로 한쪽 경계를 먼저 클릭하세요."
+        : "직접 측정이 취소되었습니다.";
+
+  }
+);
+
+// 기존 지도 클릭 등록 모드 종료
 clickMode = false;
 
-if ($("addPointBtn")) {
+$("addPointBtn").textContent =
+  "＋ 지도에서 클릭하여 표시";
 
-  $("addPointBtn").textContent =
-    "＋ 지도에서 클릭하여 표시";
-
-  $("addPointBtn").style.background = "";
-
-}
-
-
+$("addPointBtn").style.background = "";
+ 
 // ==========================================
-// ⑥ Google Apps Script 연결
+// 위성영상 확인
 // ==========================================
+
+$("roadSatelliteBtn").addEventListener(
+  "click",
+  function() {
+
+    if (!map) return;
+
+    if (currentMapType !== "satellite") {
+
+      const current = mapTypes[currentMapType];
+
+      map.removeLayer(current);
+
+      satelliteLayer.addTo(map);
+
+      currentMapType = "satellite";
+
+      $("toggleMapTypeBtn").textContent =
+        "지형도 전환";
+
+    }
+
+    map.invalidateSize();
+
+  }
+);
+
+ 
+// ==========================================
+// 측정 결과 삭제
+// ==========================================
+
+$("roadClearBtn").addEventListener(
+  "click",
+  function() {
+
+    roadLayers.forEach(
+      layer => map.removeLayer(layer)
+    );
+
+    roadMeasureLayers.forEach(
+      layer => map.removeLayer(layer)
+    );
+
+    roadLayers = [];
+    roadMeasureLayers = [];
+
+    roadWidthPoints = [];
+
+    selectedRoad = null;
+
+    roadSelectMode = false;
+    roadWidthMode = false;
+
+    map.getContainer().style.cursor = "";
+
+    $("roadSelectBtn").textContent =
+      "🛣 지도에서 도로 선택";
+
+    $("roadWidthBtn").textContent =
+      "↔ 도로 양쪽 경계 측정 시작";
+
+    $("roadInfo").textContent =
+      "측정 결과를 삭제했습니다.";
+
+  }
+);
+
+ // 기존 지도 클릭 등록 모드 종료
+clickMode = false;
+
+$("addPointBtn").textContent =
+  "＋ 지도에서 클릭하여 표시";
+
+$("addPointBtn").style.background = "";
+
+ // ==========================================
+ // GitHub Pages ↔ Google Apps Script 연결
+ // ==========================================
 
 const GAS_URL =
 "https://script.google.com/macros/s/AKfycbx-dPxhS-tyk6BBBLKHFBSiAGWqX0xqrzcfDd9ux4aibM6A-Be4J94oLWyg8JTyCxer/exec";
+
+
 
 let gasSuccessHandler = null;
 let gasFailureHandler = null;
@@ -1632,29 +1545,34 @@ let gasFailureHandler = null;
 window.google = window.google || {};
 window.google.script = window.google.script || {};
 
-// 기존 GAS 실행 객체 중복 생성 방지
 const gasRunner = new Proxy({}, {
 
   get(target, method) {
 
     if (method === "withSuccessHandler") {
+
       return function(fn) {
         gasSuccessHandler = fn;
         return gasRunner;
       };
+
     }
 
     if (method === "withFailureHandler") {
+
       return function(fn) {
         gasFailureHandler = fn;
         return gasRunner;
       };
+
     }
 
-    return function(data = {}) {
+    return function(data) {
 
       const action = String(method);
+      const payload = data || {};
 
+      // 요청별 콜백을 즉시 분리
       const success = gasSuccessHandler;
       const failure = gasFailureHandler;
 
@@ -1663,18 +1581,20 @@ const gasRunner = new Proxy({}, {
 
       const callbackName =
         "__gasCallback_" +
-        Date.now() + "_" +
+        Date.now() +
+        "_" +
         Math.random().toString(36).slice(2);
 
       const script = document.createElement("script");
 
       const params = new URLSearchParams({
-        action,
-        data: JSON.stringify(data),
+        action: action,
+        data: JSON.stringify(payload),
         callback: callbackName
       });
 
       let finished = false;
+
       let timeout;
 
       function cleanup() {
@@ -1688,6 +1608,7 @@ const gasRunner = new Proxy({}, {
         delete window[callbackName];
 
         script.remove();
+
       }
 
       function fail(error) {
@@ -1701,10 +1622,13 @@ const gasRunner = new Proxy({}, {
         } else {
           console.error("GAS 오류:", error);
         }
+
       }
 
-      timeout = setTimeout(() => {
+      timeout = setTimeout(function() {
+
         fail(new Error("서버 응답 시간 초과"));
+
       }, 20000);
 
       window[callbackName] = function(response) {
@@ -1713,7 +1637,7 @@ const gasRunner = new Proxy({}, {
 
         cleanup();
 
-        if (response?.success) {
+        if (response && response.success) {
 
           if (success) {
             success(response.data);
@@ -1721,35 +1645,46 @@ const gasRunner = new Proxy({}, {
 
         } else {
 
-          fail(
-            new Error(response?.error || "서버 오류")
+          const error = new Error(
+            response?.error || "서버 오류"
           );
 
+          if (failure) {
+            failure(error);
+          } else {
+            console.error(error);
+          }
+
         }
+
       };
 
-      script.onerror = () => {
+      script.onerror = function() {
+
         fail(new Error("Google 서버 연결 실패"));
+
       };
 
       script.src =
         GAS_URL + "?" + params.toString();
 
       document.head.appendChild(script);
+
     };
+
   }
+
 });
 
-// Google Apps Script 실행 객체 등록
 window.google.script.run = gasRunner;
 
 
+
 // ==========================================
-// ⑦ GAS 공통 함수
+// Google Apps Script 연동 함수
 // ==========================================
 
 function isGasAvailable() {
-
   return !!(
     window.google &&
     window.google.script &&
@@ -1763,38 +1698,29 @@ function gasError(error) {
 
   alert(
     "서버 연동 오류: " +
-    (error?.message || error)
+    (error.message || error)
   );
+
 }
 
 
-// ==========================================
-// ⑧ 날짜 처리
-// ==========================================
-
+// 날짜
 function getToday() {
 
-  const parts = new Intl.DateTimeFormat(
-    "en-CA",
-    {
-      timeZone: "Asia/Seoul",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit"
-    }
-  ).formatToParts(new Date());
+  const now = new Date();
 
-  const get = type =>
-    parts.find(p => p.type === type)?.value || "00";
+  return [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0")
+  ].join("-");
 
-  return `${get("year")}-${get("month")}-${get("day")}`;
 }
 
 
-// ==========================================
-// ⑨ 좌표 유효성 검사
-// ==========================================
 
+
+// 좌표 검사
 function validateCoordinates(lat, lng) {
 
   return (
@@ -1805,176 +1731,318 @@ function validateCoordinates(lat, lng) {
     lng >= -180 &&
     lng <= 180
   );
+
 }
 
 
-// ==========================================
-// ⑩ HTML 보안 처리
-// ==========================================
-
+// HTML 안전 처리
 function escapeHTML(value) {
 
-  return String(value ?? "").replace(
-    /[&<>"']/g,
-    char => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#039;"
-    })[char]
-  );
+  return String(value).replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  })[char]);
+
 }
 
 
 // ==========================================
-// ⑪ 지도 클릭 위치 주소 조회
+// ② 지도 레이어 3종
 // ==========================================
 
-async function showLocationInfo(lat, lng) {
-
-  if (!map || !validateCoordinates(lat, lng)) {
-    return;
+// 일반지도
+const osmLayer = L.tileLayer(
+  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+  {
+    maxZoom: 19,
+    attribution: "&copy; OpenStreetMap contributors"
   }
+);
 
-  const requestId = ++locationRequestId;
 
-  const panel = $("infoPanel");
-
-  const latText = lat.toFixed(6);
-  const lngText = lng.toFixed(6);
-
-  if (locationMarker) {
-    map.removeLayer(locationMarker);
+// 위성영상
+const satelliteLayer = L.tileLayer(
+  "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+  {
+    maxZoom: 19,
+    attribution: "Tiles &copy; Esri"
   }
+);
 
-  locationMarker = L.circleMarker(
-    [lat, lng],
-    {
-      radius: 8,
-      color: "#ffffff",
-      weight: 2,
-      fillColor: "#22d3ee",
-      fillOpacity: 1,
-      bubblingMouseEvents: false
-    }
-  ).addTo(map);
 
-  const popup = L.popup({
-    maxWidth: 300
-  })
-  .setLatLng([lat, lng])
-  .setContent(
-    `<b>지도 선택 위치</b><br>
-     위도: ${latText}<br>
-     경도: ${lngText}<br>
-     주소: 검색 중...`
-  )
-  .openOn(map);
-
-  if (panel) {
-    panel.textContent =
-      "지도 선택 위치 정보\n\n" +
-      `위도: ${latText}\n` +
-      `경도: ${lngText}\n` +
-      "주소: 검색 중...";
+// 지형도
+const terrainLayer = L.tileLayer(
+  "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+  {
+    maxZoom: 17,
+    attribution: "&copy; OpenTopoMap"
   }
+);
 
-  try {
 
-    const params = new URLSearchParams({
-      lat: String(lat),
-      lon: String(lng),
-      format: "jsonv2"
-    });
+// 지도 목록
+const mapTypes = {
 
-    const response = await fetch(
-      "https://nominatim.openstreetmap.org/reverse?" +
-      params.toString(),
-      {
-        headers: {
-          "Accept": "application/json"
-        }
-      }
-    );
+  normal: osmLayer,
 
-    if (!response.ok) {
-      throw new Error("주소 검색 실패");
-    }
+  satellite: satelliteLayer,
 
-    const data = await response.json();
+  terrain: terrainLayer
 
-    if (requestId !== locationRequestId) {
-      return;
-    }
-
-    const address =
-      data.display_name || "주소 정보 없음";
-
-    popup.setContent(`
-      <b>지도 선택 위치</b><br>
-      주소: ${escapeHTML(address)}<br>
-      위도: ${latText}<br>
-      경도: ${lngText}
-    `);
-
-    if (panel) {
-      panel.textContent =
-        "지도 선택 위치 정보\n\n" +
-        `주소: ${address}\n\n` +
-        `위도: ${latText}\n` +
-        `경도: ${lngText}`;
-    }
-
-  } catch (error) {
-
-    if (requestId !== locationRequestId) {
-      return;
-    }
-
-    console.error("위치 조회 오류:", error);
-
-    if (panel) {
-      panel.textContent =
-        "주소를 확인할 수 없습니다.\n" +
-        `위도: ${latText}\n` +
-        `경도: ${lngText}`;
-    }
-  }
-}
+};
 
 
 // ==========================================
-// ⑫ 위험지역 및 수관 보관함 통계
+// ③ 무등산 산불 및 수관 보관함 7개
+// ==========================================
+
+const landslideData = [
+
+  {
+    lat:35.128633,
+    lng:126.969805,
+    type:"fire",
+    date:"2025-02-14",
+    description:"증심사 수관보관함 입구"
+  },
+
+  {
+    lat:35.128917,
+    lng:126.969963,
+    type:"fire",
+    date:"2025-02-14",
+    description:"증심사 수관보관함 대웅전 좌측"
+  },
+
+  {
+    lat:35.128760,
+    lng:126.970289,
+    type:"fire",
+    date:"2025-02-14",
+    description:"증심사 수관보관함 대웅전 우측"
+  },
+
+  {
+    lat:35.122244,
+    lng:126.972229,
+    type:"fire",
+    date:"2025-02-14",
+    description:"약사사 수관보관함 입구"
+  },
+
+  {
+    lat:35.133144,
+    lng:126.961055,
+    type:"fire",
+    date:"2025-02-14",
+    description:"문빈정사 수관보관함 입구"
+  },
+
+  {
+    lat:35.14833232,
+    lng:126.98574731,
+    type:"fire",
+    date:"2025-02-14",
+    description:"원효사 수관보관함 입구"
+  },
+
+  {
+    lat:35.14853961,
+    lng:126.98554150,
+    type:"fire",
+    date:"2025-02-14",
+    description:"원효사 수관보관함 대웅전 앞"
+  }
+
+];
+
+
+// ==========================================
+// 수관 보관함 개수 자동 표시
 // ==========================================
 
 function updateFireCount() {
 
-  const element = $("fireCount");
+  const countElement = $("fireCount");
 
-  if (!element) return;
+  if (countElement) {
 
-  element.textContent = String(
-    markers.filter(item => item.type === "fire").length
-  ).padStart(2, "0");
+    countElement.textContent =
+      String(landslideData.length).padStart(2, "0");
+
+  }
+
 }
 
+// ==========================================
+// 산불 위험지역 개수 자동 표시
+// ==========================================
 
 function updateRiskCount() {
 
-  const element = $("riskCount");
+  const countElement = $("riskCount");
 
-  if (!element) return;
+  if (countElement) {
 
-  element.textContent = String(
-    markers.filter(item => item.type !== "fire").length
-  ).padStart(2, "0");
+    const count = markers.filter(
+      item => item.type !== "fire"
+    ).length;
+
+    countElement.textContent =
+      String(count).padStart(2, "0");
+
+  }
+
+}
+ 
+
+// ==========================================
+// ④ 지도 초기화
+// ==========================================
+
+function initMap() {
+
+  if (map) return;
+
+  if (typeof L === "undefined") {
+
+    console.error("Leaflet 라이브러리 로딩 실패");
+
+    $("map").textContent =
+      "지도 라이브러리 로딩에 실패했습니다.";
+
+    return;
+
+  }
+
+  map = L.map("map", {
+
+    center: [35.134167, 126.988889],
+
+    zoom: 14,
+
+    minZoom: 8,
+
+    maxZoom: 19,
+
+    layers: [osmLayer],
+
+    zoomControl: true
+
+  });
+
+
+  // 축척 표시
+  L.control.scale({
+
+    position: "bottomright",
+
+    metric: true,
+
+    imperial: false
+
+  }).addTo(map);
+ 
+  // 기존 산불 및 수관 보관함 표시
+ updateFireCount();
+landslideData.forEach(item => {
+
+  addFireMarker(
+    item.lat,
+    item.lng,
+    item.type,
+    "수관 보관함",
+    item.description,
+    item.date,
+    false
+  );
+
+});
+ 
+  // 지도 클릭 등록
+ map.on("click", function(e) {
+
+    // 도로 측정 기능 우선 처리
+    if (handleRoadMapClick(e)) {
+        return;
+    }
+
+    // 기존 산불 위험지역 등록 기능
+    if (!clickMode) return;
+
+    const item = addFireMarker(
+
+      e.latlng.lat,
+
+      e.latlng.lng,
+
+      "risk",
+
+      "현장산불 위험지역",
+
+      "지도 클릭으로 등록한 산불·위험 지점",
+
+      getToday()
+
+    );
+
+    if (item) {
+
+      showMarkerInfo(item);
+
+    }
+
+    clickMode = false;
+
+    $("addPointBtn").textContent =
+      "＋ 지도에서 클릭하여 표시";
+
+    $("addPointBtn").style.background = "";
+
+    map.getContainer().style.cursor = "";
+
+  });
+
+
+  // 지도 크기 조절
+  setTimeout(() => {
+
+    map.invalidateSize();
+
+  }, 300);
+
+
+  window.addEventListener("resize", () => {
+
+    if (map) map.invalidateSize();
+
+  });
+
+
+  if (window.ResizeObserver) {
+
+    const observer = new ResizeObserver(() => {
+
+      if (map) map.invalidateSize();
+
+    });
+
+    observer.observe($("map-container"));
+
+  }
+
+
+  console.log("무등산 GIS 지도 초기화 완료");
+
 }
 
+// ==========================================
+// ⑤ 산불 및 수관 보관 지역 마커 등록
+// ==========================================
 
-// ==========================================
-// ⑬ 위험지역 마커 등록
-// ==========================================
 
 function addFireMarker(
   lat,
@@ -1991,9 +2059,9 @@ function addFireMarker(
     return null;
   }
 
-  const color = type === "fire"
-    ? "#38bdf8"
-    : "#fb5365";
+const color = type === "fire"
+  ? "#38bdf8"  // 수관 보관함: 파란색
+  : "#fb5365"; // 산불 위험지역: 빨간색
 
   const circle = L.circle(
     [lat, lng],
@@ -2002,8 +2070,7 @@ function addFireMarker(
       color: "#ffffff",
       weight: 2,
       fillColor: color,
-      fillOpacity: 0.9,
-      bubblingMouseEvents: false
+      fillOpacity: 0.9
     }
   ).addTo(map);
 
@@ -2020,8 +2087,7 @@ function addFireMarker(
 
   markers.push(item);
 
-  updateFireCount();
-  updateRiskCount();
+ updateRiskCount();
 
   circle.on("click", function() {
     showMarkerInfo(item);
@@ -2031,13 +2097,8 @@ function addFireMarker(
 
     google.script.run
       .withSuccessHandler(function(result) {
-
-        if (result?.id) {
-          item.id = result.id;
-        }
-
+        item.id = result.id;
         console.log("위험지역 저장 완료");
-
       })
       .withFailureHandler(gasError)
       .saveRisk({
@@ -2049,6 +2110,7 @@ function addFireMarker(
         description,
         date
       });
+
   }
 
   return item;
@@ -2056,28 +2118,31 @@ function addFireMarker(
 
 
 // ==========================================
-// ⑭ 위험지역 상세정보
+// ⑥ 상세정보 표시
 // ==========================================
 
 function showMarkerInfo(item) {
 
-  if (!item || !markers.includes(item)) {
-    return;
-  }
+  if (!item || !markers.includes(item)) return;
 
   if (currentPopup) {
+
     map.closePopup();
+
   }
 
-  const typeName = item.type === "fire"
-    ? "수관 보관함"
-    : "산불 위험지역";
+// 마커 유형별 명칭과 색상
+const typeName = item.type === "fire"
+  ? "수관 보관함"
+  : "산불 위험지역";
 
-  const color = item.type === "fire"
-    ? "#38bdf8"
-    : "#fb5365";
+const color = item.type === "fire"
+  ? "#38bdf8"
+  : "#fb5365";
+
 
   const content = `
+
     <div style="
       width:240px;
       padding:12px;
@@ -2091,34 +2156,54 @@ function showMarkerInfo(item) {
       <div style="
         color:${color};
         font-weight:bold;
+        border-bottom:1px solid #263c53;
+        padding-bottom:7px;
       ">
+
         ● ${escapeHTML(item.title)}
+
       </div>
 
-      <hr>
+      <div style="font-size:12px;">
 
-      구분: ${escapeHTML(typeName)}<br>
-      등록일: ${escapeHTML(item.date || "-")}<br>
-      위도: ${item.lat.toFixed(6)}<br>
-      경도: ${item.lng.toFixed(6)}
+        구분 : ${escapeHTML(typeName)}<br>
 
-      <div style="margin-top:8px;">
+        등록일 : ${escapeHTML(item.date || "-")}<br>
+
+        위도 : ${item.lat.toFixed(6)}<br>
+
+        경도 : ${item.lng.toFixed(6)}
+
+      </div>
+
+      <div style="
+        margin-top:8px;
+        padding:8px;
+        background:#091727;
+        font-size:12px;
+      ">
+
         ${escapeHTML(item.description)}
+
       </div>
 
     </div>
+
   `;
 
+
   currentPopup = L.popup({
-    maxWidth: 280
+
+    maxWidth:280
+
   })
   .setLatLng([item.lat, item.lng])
   .setContent(content)
   .openOn(map);
 
-  const panel = $("infoPanel");
 
-  if (!panel) return;
+  // 우측 상세정보 패널
+  const panel = $("infoPanel");
 
   panel.replaceChildren();
 
@@ -2133,97 +2218,110 @@ function showMarkerInfo(item) {
   details.style.whiteSpace = "pre-line";
 
   details.textContent = [
-    `위도: ${item.lat.toFixed(6)}`,
-    `경도: ${item.lng.toFixed(6)}`,
-    `구분: ${typeName}`,
-    `등록일: ${item.date || "-"}`,
-    `상세정보: ${item.description}`
+
+    "위도: " + item.lat.toFixed(6),
+
+    "경도: " + item.lng.toFixed(6),
+
+    "구분: " + typeName,
+
+    "등록일: " + (item.date || "-"),
+
+    "상세정보: " + item.description
+
   ].join("\n");
 
   panel.appendChild(details);
 
+
+  // 삭제 버튼
   const removeButton = document.createElement("button");
 
   removeButton.textContent = "이 지점 삭제";
+
   removeButton.className = "btn-red";
+
   removeButton.style.marginTop = "12px";
 
-  removeButton.onclick = function() {
+ removeButton.onclick = function() {
 
-    function removeFromMap() {
+  function removeFromMap() {
 
-      if (item.overlay) {
-        map.removeLayer(item.overlay);
-      }
+    map.removeLayer(item.overlay);
 
-      markers = markers.filter(
-        marker => marker !== item
-      );
+    markers = markers.filter(
+      marker => marker !== item
+    );
 
-      updateFireCount();
-      updateRiskCount();
+     // 위험지역 통계 자동 갱신
+   updateRiskCount();
+   
+    map.closePopup();
 
-      map.closePopup();
+    currentPopup = null;
 
-      currentPopup = null;
+    panel.textContent =
+      "선택한 지점을 삭제했습니다.";
 
-      panel.textContent =
-        "선택한 지점을 삭제했습니다.";
-    }
+  }
 
-    if (item.id && isGasAvailable()) {
+  if (item.id && isGasAvailable()) {
 
-      google.script.run
-        .withSuccessHandler(removeFromMap)
-        .withFailureHandler(gasError)
-        .deleteRisk({
-          id: item.id
-        });
+    google.script.run
+      .withSuccessHandler(function() {
+        removeFromMap();
+      })
+      .withFailureHandler(gasError)
+      .deleteRisk({
+  id: item.id
+});
 
-    } else {
+  } else {
 
-      removeFromMap();
+    removeFromMap();
 
-    }
-  };
+  }
+
+};
 
   panel.appendChild(removeButton);
+
 }
 
 
 // ==========================================
-// ⑮ 좌표로 위험지역 등록
+// ⑦ 좌표로 위험지역 등록
 // ==========================================
 
-const addByCoordBtn = $("addByCoordBtn");
+$("addByCoordBtn").addEventListener(
+  "click",
+  function() {
 
-if (addByCoordBtn) {
+const latText = $("latInput").value.trim();
+const lngText = $("lngInput").value.trim();
 
-  addByCoordBtn.addEventListener("click", function() {
+if (!latText || !lngText) {
+  alert("위도와 경도를 모두 입력하세요.");
+  return;
+}
 
-    const latText = $("latInput")?.value.trim();
-    const lngText = $("lngInput")?.value.trim();
+const lat = Number(latText);
+const lng = Number(lngText);
 
-    if (!latText || !lngText) {
-      alert("위도와 경도를 모두 입력하세요.");
-      return;
-    }
-
-    const lat = Number(latText);
-    const lng = Number(lngText);
-
-    if (!validateCoordinates(lat, lng)) {
-      alert("올바른 위도와 경도를 입력하세요.");
-      return;
-    }
+if (!validateCoordinates(lat, lng)) {
+  alert("올바른 위도와 경도를 입력하세요.");
+  return;
+}
 
     const item = addFireMarker(
+
       lat,
       lng,
       "risk",
       "좌표 등록 위험지역",
       "사용자가 좌표로 등록한 산불·위험 지점",
       getToday()
+
     );
 
     if (!item) return;
@@ -2233,217 +2331,247 @@ if (addByCoordBtn) {
     showMarkerInfo(item);
 
     $("latInput").value = "";
+
     $("lngInput").value = "";
 
-  });
-
-}
+  }
+);
 
 
 // ==========================================
-// ⑯ 지도 클릭으로 위험지역 등록
+// ⑧ 지도 클릭으로 위험지역 등록
 // ==========================================
 
-const addPointBtn = $("addPointBtn");
-
-if (addPointBtn) {
-
-  addPointBtn.addEventListener("click", function() {
+$("addPointBtn").addEventListener(
+  "click",
+  function() {
 
     if (!map) {
+
       alert("지도가 아직 준비되지 않았습니다.");
+
       return;
+
     }
 
     clickMode = !clickMode;
 
-    // 다른 지도 모드 종료
-    roadSelectMode = false;
-    roadWidthMode = false;
+// 도로 측정 모드 종료
+roadSelectMode = false;
+roadWidthMode = false;
 
-    roadWidthPoints = [];
+roadWidthPoints = [];
 
-    if ($("roadSelectBtn")) {
-      $("roadSelectBtn").textContent =
-        "🛣 지도에서 도로 선택";
+$("roadSelectBtn").textContent =
+  "🛣 지도에서 도로 선택";
+
+$("roadWidthBtn").textContent =
+  "↔ 도로 양쪽 경계 측정 시작";
+   
+    if (clickMode) {
+
+      this.textContent =
+        "지도에서 위치를 선택하세요";
+
+      this.style.background = "#b45309";
+
+      map.getContainer().style.cursor =
+        "crosshair";
+
+    } else {
+
+      this.textContent =
+        "＋ 지도에서 클릭하여 표시";
+
+      this.style.background = "";
+
+      map.getContainer().style.cursor = "";
+
     }
 
-    if ($("roadWidthBtn")) {
-      $("roadWidthBtn").textContent =
-        "↔ 도로 양쪽 경계 측정 시작";
-    }
-
-    this.textContent = clickMode
-      ? "지도에서 위치를 선택하세요"
-      : "＋ 지도에서 클릭하여 표시";
-
-    this.style.background = clickMode
-      ? "#b45309"
-      : "";
-
-    map.getContainer().style.cursor =
-      clickMode ? "crosshair" : "";
-
-    $("roadInfo") && (
-      $("roadInfo").textContent = ""
-    );
-
-  });
-
-}
+  }
+);
 
 
 // ==========================================
-// ⑰ 주소 검색으로 위험지역 등록
+// ⑨ 주소 검색 - Nominatim
 // ==========================================
 
-const addByAddressBtn = $("addByAddressBtn");
+$("addByAddressBtn").addEventListener(
+  "click",
+  async function() {
 
-if (addByAddressBtn) {
+    const address =
+      $("addressInput").value.trim();
 
-  addByAddressBtn.addEventListener(
-    "click",
-    async function() {
+    if (!address) {
 
-      const address =
-        $("addressInput")?.value.trim();
+      alert("주소를 입력하세요.");
 
-      if (!address) {
-        alert("주소를 입력하세요.");
-        return;
-      }
+      return;
 
-      const btn = this;
+    }
 
-      btn.disabled = true;
-      btn.textContent = "주소 검색 중...";
+    const btn = this;
 
-      try {
+    btn.disabled = true;
 
-        const params = new URLSearchParams({
-          q: address,
-          format: "jsonv2",
-          limit: "1",
-          countrycodes: "kr"
-        });
+    btn.textContent = "주소 검색 중...";
 
-        const response = await fetch(
-          "https://nominatim.openstreetmap.org/search?" +
-          params.toString(),
-          {
-            headers: {
-              "Accept": "application/json"
-            }
+    try {
+
+      const params = new URLSearchParams({
+
+        q: address,
+
+        format: "jsonv2",
+
+        limit: "1",
+
+        countrycodes: "kr"
+
+      });
+
+      const response = await fetch(
+        "https://nominatim.openstreetmap.org/search?" +
+        params.toString(),
+        {
+          headers: {
+            "Accept": "application/json"
           }
-        );
-
-        if (!response.ok) {
-          throw new Error("주소 검색 서버 오류");
         }
+      );
 
-        const results = await response.json();
+      if (!response.ok) {
 
-        if (!results.length) {
-          alert("검색된 주소가 없습니다.");
-          return;
-        }
-
-        const lat = Number(results[0].lat);
-        const lng = Number(results[0].lon);
-
-        if (!validateCoordinates(lat, lng)) {
-          alert("주소 좌표가 올바르지 않습니다.");
-          return;
-        }
-
-        const item = addFireMarker(
-          lat,
-          lng,
-          "risk",
-          "주소 검색 위치",
-          address,
-          getToday()
-        );
-
-        if (!item) return;
-
-        map.setView([lat, lng], 17);
-
-        showMarkerInfo(item);
-
-        $("addressInput").value = "";
-
-      } catch (error) {
-
-        console.error("주소 검색 오류:", error);
-
-        alert(
-          "주소 검색에 실패했습니다. 잠시 후 다시 시도하세요."
-        );
-
-      } finally {
-
-        btn.disabled = false;
-        btn.textContent = "⌖ 주소로 위치 표시";
+        throw new Error("주소 검색 서버 오류");
 
       }
 
+      const results = await response.json();
+
+      if (!results.length) {
+
+        alert("검색된 주소가 없습니다.");
+
+        return;
+
+      }
+
+      const lat = Number(results[0].lat);
+
+      const lng = Number(results[0].lon);
+
+      if (!validateCoordinates(lat, lng)) {
+
+        alert("주소 좌표가 올바르지 않습니다.");
+
+        return;
+
+      }
+
+      const item = addFireMarker(
+
+        lat,
+        lng,
+        "risk",
+        "주소 검색 위치",
+        address,
+        getToday()
+
+      );
+
+      if (!item) return;
+
+      map.setView([lat, lng], 17);
+
+      showMarkerInfo(item);
+
+      $("addressInput").value = "";
+
+    } catch(error) {
+
+      console.error("주소 검색 오류:", error);
+
+      alert(
+        "주소 검색에 실패했습니다. 잠시 후 다시 시도하세요."
+      );
+
+    } finally {
+
+      btn.disabled = false;
+
+      btn.textContent = "⌖ 주소로 위치 표시";
+
     }
-  );
 
-}
+  }
+);
 
 
 // ==========================================
-// ⑱ 진화 차량 정보 표시
+// ⑩ 일반지도 / 위성영상 / 지형도 전환
 // ==========================================
 
-function updateVehicleInfo() {
+const mapTypeList = [
 
-  const panel = $("vehicleInfo");
+  {
+    id: "normal",
+    layer: osmLayer,
+    nextText: "위성영상 전환"
+  },
 
-  if (!panel) {
-    console.warn("vehicleInfo 요소가 없습니다.");
-    return;
+  {
+    id: "satellite",
+    layer: satelliteLayer,
+    nextText: "지형도 전환"
+  },
+
+  {
+    id: "terrain",
+    layer: terrainLayer,
+    nextText: "일반지도 전환"
   }
 
-  panel.replaceChildren();
+];
 
-  if (vehicles.length === 0) {
 
-    panel.textContent =
-      "등록된 진화 차량이 없습니다.";
+$("toggleMapTypeBtn").addEventListener(
+  "click",
+  function() {
 
-    return;
+    if (!map) return;
+
+    const currentIndex =
+      mapTypeList.findIndex(
+        item => item.id === currentMapType
+      );
+
+    const nextIndex =
+      (currentIndex + 1) % mapTypeList.length;
+
+    const current = mapTypeList[currentIndex];
+
+    const next = mapTypeList[nextIndex];
+
+    map.removeLayer(current.layer);
+
+    next.layer.addTo(map);
+
+    currentMapType = next.id;
+
+    this.textContent = next.nextText;
+
+    map.invalidateSize();
+
   }
-
-  vehicles.forEach(vehicle => {
-
-    const div = document.createElement("div");
-
-    div.className = "resource-item";
-
-    const name = document.createElement("strong");
-
-    name.textContent = "🚒 " + vehicle.name;
-
-    const position = document.createElement("span");
-
-    position.textContent =
-      `${vehicle.lat.toFixed(6)}, ${vehicle.lng.toFixed(6)}`;
-
-    div.append(name, position);
-
-    panel.appendChild(div);
-
-  });
-
-}
+);
 
 
 // ==========================================
-// ⑲ 진화 차량 등록
+// ⑪ 진화 차량 위치 등록
 // ==========================================
+
 
 function addVehicle(
   name,
@@ -2455,16 +2583,12 @@ function addVehicle(
 
   if (!map) return null;
 
-  name = String(name || "").trim();
-
-  lat = Number(lat);
-  lng = Number(lng);
-
   if (!name || !validateCoordinates(lat, lng)) {
 
     alert("차량명 또는 좌표가 올바르지 않습니다.");
 
     return null;
+
   }
 
   const existing = vehicles.find(
@@ -2476,6 +2600,7 @@ function addVehicle(
     alert("이미 등록된 차량명입니다.");
 
     return null;
+
   }
 
   const vehicleIcon = L.divIcon({
@@ -2497,10 +2622,7 @@ function addVehicle(
 
   const marker = L.marker(
     [lat, lng],
-    {
-      icon: vehicleIcon,
-      bubblingMouseEvents: false
-    }
+    { icon: vehicleIcon }
   ).addTo(map);
 
   const vehicle = {
@@ -2520,9 +2642,13 @@ function addVehicle(
   vehicles.push(vehicle);
 
   marker.bindPopup(`
+
     <b>🚒 ${escapeHTML(name)}</b><br>
+
     위도: ${lat.toFixed(6)}<br>
+
     경도: ${lng.toFixed(6)}
+
   `);
 
   updateVehicleInfo();
@@ -2532,9 +2658,7 @@ function addVehicle(
     google.script.run
       .withSuccessHandler(function(result) {
 
-        if (result?.id) {
-          vehicle.id = result.id;
-        }
+        vehicle.id = result.id;
 
         console.log("차량 저장 완료");
 
@@ -2559,8 +2683,9 @@ function addVehicle(
 }
 
 
+
 // ==========================================
-// ⑳ 기존 차량 위치 갱신
+// ⑫ 차량 위치 갱신
 // ==========================================
 
 function updateVehicle(name, lat, lng) {
@@ -2573,69 +2698,122 @@ function updateVehicle(name, lat, lng) {
 
     alert("등록된 차량이 없습니다.");
 
-    return null;
-  }
+    return;
 
-  lat = Number(lat);
-  lng = Number(lng);
+  }
 
   if (!validateCoordinates(lat, lng)) {
 
     alert("차량 좌표가 올바르지 않습니다.");
 
-    return null;
+    return;
+
   }
 
   vehicle.lat = lat;
+
   vehicle.lng = lng;
 
   vehicle.marker.setLatLng([lat, lng]);
 
   vehicle.marker.setPopupContent(`
-    <b>🚒 ${escapeHTML(vehicle.name)}</b><br>
+
+    <b>🚒 ${escapeHTML(name)}</b><br>
+
     위도: ${lat.toFixed(6)}<br>
+
     경도: ${lng.toFixed(6)}
+
   `);
 
-  if (isGasAvailable()) {
+ if (isGasAvailable()) {
 
-    google.script.run
+  google.script.run
 
-      .withSuccessHandler(function(result) {
+    .withSuccessHandler(function(result) {
 
-        if (result?.id) {
-          vehicle.id = result.id;
-        }
+      vehicle.id = result.id;
 
-        console.log("차량 위치 갱신 완료");
+      console.log("차량 위치 갱신 완료");
 
-      })
+    })
 
-      .withFailureHandler(gasError)
+    .withFailureHandler(gasError)
 
-      .saveVehicle({
+    .saveVehicle({
 
-        id: vehicle.id,
+      id: vehicle.id,
 
-        name: vehicle.name,
+      name: vehicle.name,
 
-        lat: vehicle.lat,
+      lat: vehicle.lat,
 
-        lng: vehicle.lng
+      lng: vehicle.lng
 
-      });
+    });
 
-  }
-
+}
+ 
   updateVehicleInfo();
-
-  return vehicle;
 
 }
 
 
 // ==========================================
-// ㉑ 차량 등록 버튼
+// ⑬ 차량 정보 표시
+// ==========================================
+
+function updateVehicleInfo() {
+
+  const panel = $("vehicleInfo");
+
+  if (!panel) {
+
+    console.warn("vehicleInfo HTML 요소가 없습니다.");
+
+    return;
+
+  }
+
+  panel.replaceChildren();
+
+  if (vehicles.length === 0) {
+
+    panel.textContent =
+      "등록된 진화 차량이 없습니다.";
+
+    return;
+
+  }
+
+  vehicles.forEach(vehicle => {
+
+    const div = document.createElement("div");
+
+    div.className = "resource-item";
+
+    const name = document.createElement("strong");
+
+    name.textContent = "🚒 " + vehicle.name;
+
+    const position = document.createElement("span");
+
+    position.textContent =
+      vehicle.lat.toFixed(6) +
+      ", " +
+      vehicle.lng.toFixed(6);
+
+    div.append(name, position);
+
+    panel.appendChild(div);
+
+  });
+
+}
+
+
+// ==========================================
+// ⑭ 차량 등록 버튼
 // ==========================================
 
 const addVehicleBtn = $("addVehicleBtn");
@@ -2647,19 +2825,21 @@ if (addVehicleBtn) {
     function() {
 
       const name =
-        $("vehicleName")?.value.trim();
+        $("vehicleName").value.trim();
 
       const latText =
-        $("vehicleLat")?.value.trim();
+        $("vehicleLat").value.trim();
 
       const lngText =
-        $("vehicleLng")?.value.trim();
+        $("vehicleLng").value.trim();
 
+      // 차량명 검사
       if (!name) {
         alert("차량명을 입력하세요.");
         return;
       }
 
+      // 좌표 입력 검사
       if (!latText || !lngText) {
         alert("차량 위도와 경도를 모두 입력하세요.");
         return;
@@ -2668,11 +2848,13 @@ if (addVehicleBtn) {
       const lat = Number(latText);
       const lng = Number(lngText);
 
+      // 좌표 유효성 검사
       if (!validateCoordinates(lat, lng)) {
         alert("올바른 차량 좌표를 입력하세요.");
         return;
       }
 
+      // 기존 차량 검색
       const existing = vehicles.find(
         item => item.name === name
       );
@@ -2681,18 +2863,28 @@ if (addVehicleBtn) {
 
       if (existing) {
 
-        vehicle = updateVehicle(name, lat, lng);
+        // 기존 차량 위치 갱신
+        updateVehicle(name, lat, lng);
+
+        vehicle = existing;
 
       } else {
 
-        vehicle = addVehicle(name, lat, lng);
+        // 신규 차량 등록
+        vehicle = addVehicle(
+          name,
+          lat,
+          lng
+        );
 
       }
 
       if (!vehicle) return;
 
+      // 지도 중심 이동
       map.setView([lat, lng], 16);
 
+      // 입력창 초기화
       $("vehicleName").value = "";
       $("vehicleLat").value = "";
       $("vehicleLng").value = "";
@@ -2700,11 +2892,16 @@ if (addVehicleBtn) {
     }
   );
 
+} else {
+
+  console.warn(
+    "addVehicleBtn HTML 요소를 찾을 수 없습니다."
+  );
+
 }
 
-
 // ==========================================
-// ㉒ GPS 현재 위치 등록
+// ⑮ GPS 현재 위치 등록
 // ==========================================
 
 const vehicleLocationBtn = $("vehicleLocationBtn");
@@ -2720,6 +2917,7 @@ if (vehicleLocationBtn) {
         alert("GPS 기능을 지원하지 않습니다.");
 
         return;
+
       }
 
       const btn = this;
@@ -2732,37 +2930,37 @@ if (vehicleLocationBtn) {
 
         function(position) {
 
-          const lat = position.coords.latitude;
+          const lat =
+            position.coords.latitude;
 
-          const lng = position.coords.longitude;
+          const lng =
+            position.coords.longitude;
 
           const name =
             $("vehicleName")?.value.trim() ||
             "진화 차량 GPS";
 
-          const existing = vehicles.find(
-            item => item.name === name
-          );
+// 동일 차량이 이미 등록되어 있으면 위치 갱신
+const existing = vehicles.find(
+  item => item.name === name
+);
 
-          let vehicle;
+let vehicle;
 
-          if (existing) {
+if (existing) {
+  updateVehicle(name, lat, lng);
+  vehicle = existing;
+} else {
+  vehicle = addVehicle(name, lat, lng);
+}
 
-            vehicle = updateVehicle(name, lat, lng);
-
-          } else {
-
-            vehicle = addVehicle(name, lat, lng);
-
-          }
+if (vehicle) {
+  map.setView([lat, lng], 16);
+}
 
           if (vehicle) {
 
             map.setView([lat, lng], 16);
-
-            if ($("vehicleName")) {
-              $("vehicleName").value = name;
-            }
 
           }
 
@@ -2777,8 +2975,7 @@ if (vehicleLocationBtn) {
           console.error("GPS 오류:", error);
 
           alert(
-            "GPS 위치를 가져오지 못했습니다. " +
-            "HTTPS 연결과 위치 권한을 확인하세요."
+            "GPS 위치를 가져오지 못했습니다. HTTPS 연결과 위치 권한을 확인하세요."
           );
 
           btn.disabled = false;
@@ -2802,8 +2999,262 @@ if (vehicleLocationBtn) {
     }
   );
 
+} else {
+
+  console.warn(
+    "vehicleLocationBtn HTML 요소를 찾을 수 없습니다."
+  );
+
 }
-      </script>       
+
+function loadGasData() {
+
+  if (!isGasAvailable()) {
+    console.warn("Google Apps Script 연결을 확인하세요.");
+    return;
+  }
+
+  google.script.run
+
+    .withSuccessHandler(function(data) {
+
+      // ① 위험지역 불러오기
+      (data.risks || []).forEach(item => {
+
+        const lat = Number(item.lat);
+        const lng = Number(item.lng);
+
+        if (!validateCoordinates(lat, lng)) return;
+
+        // 기존 마커 중복 방지
+        const duplicate = markers.some(marker =>
+          marker.type === item.type &&
+          Math.abs(marker.lat - lat) < 0.000001 &&
+          Math.abs(marker.lng - lng) < 0.000001 &&
+          marker.description === item.description
+        );
+
+        if (duplicate) return;
+
+        addFireMarker(
+          lat,
+          lng,
+          item.type,
+          item.title || item.name || "위험지역",
+          item.description || "",
+          item.date || "",
+          false,
+          item.id
+        );
+
+      });
+
+      // ② 진화 차량 불러오기
+      (data.vehicles || []).forEach(item => {
+
+        const lat = Number(item.lat);
+        const lng = Number(item.lng);
+
+        if (!validateCoordinates(lat, lng)) return;
+
+        const duplicate = vehicles.some(
+          vehicle => vehicle.name === item.name
+        );
+
+        if (duplicate) return;
+
+        addVehicle(
+          item.name,
+          lat,
+          lng,
+          false,
+          item.id
+        );
+
+      });
+
+      // ③ 통계 갱신
+      updateFireCount();
+      updateRiskCount();
+      updateVehicleInfo();
+
+      console.log("Google Sheets 데이터 복원 완료");
+
+    })
+
+    .withFailureHandler(gasError)
+
+    .getDashboardData();
+
+}
+
+// ==========================================
+// ⑯ 지도 실행
+// ==========================================
+
+function startMap() {
+
+  if (typeof L === "undefined") {
+
+    console.error("Leaflet 라이브러리 로딩 실패");
+
+    $("map").textContent =
+      "Leaflet 라이브러리를 불러오지 못했습니다.";
+
+    return;
+
+  }
+
+  if (map) return;
+
+  initMap();
+
+  // Google Sheets 데이터 자동 불러오기
+  loadGasData();
+
+}
+
+
+// HTML 로딩 후 지도 실행
+if (document.readyState === "loading") {
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    startMap,
+    { once: true }
+  );
+
+} else {
+
+  startMap();
+
+}
  
+// =========================================================
+// PREVENT CONTEXT MENU
+// =========================================================
+
+document.addEventListener(
+
+    "contextmenu",
+
+    function(e){
+
+        e.preventDefault();
+
+        return false;
+
+    }
+
+);
+
+
+// =========================================================
+// KEYBOARD PROTECTION
+// =========================================================
+
+document.addEventListener(
+
+    "keydown",
+
+    function(e){
+
+        if(e.key === "F12"){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+
+        if(
+            e.ctrlKey &&
+            e.key.toLowerCase() === "u"
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+
+        if(
+            e.ctrlKey &&
+            e.shiftKey &&
+            e.key.toLowerCase() === "i"
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+
+        if(
+            e.ctrlKey &&
+            e.shiftKey &&
+            e.key.toLowerCase() === "j"
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+
+        if(
+            e.ctrlKey &&
+            e.shiftKey &&
+            e.key.toLowerCase() === "c"
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+
+        if(
+            e.ctrlKey &&
+            e.key.toLowerCase() === "s"
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+    }
+
+);
+
+// ==========================================
+// 산불 대응 시스템 외부 링크 연결
+// ==========================================
+
+document.querySelectorAll(
+  '.quick-links button[data-url]'
+).forEach(button => {
+
+  button.addEventListener('click', function() {
+
+    const url = this.dataset.url;
+
+    if (!url) return;
+
+    window.open(url, '_blank', 'noopener');
+
+  });
+
+}); 
+ 
+</script>
+
 </body>
 </html>
