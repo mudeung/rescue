@@ -3208,6 +3208,42 @@ function loadGasData() {
 }
 
 // ==========================================
+// 시스템 실시간 시계 (한국 표준시)
+// ==========================================
+
+function updateSystemClock() {
+
+  const clock = $("systemClock");
+
+  if (!clock) return;
+
+  const now = new Date();
+
+  const date = new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).format(now).replace(/\. /g, "-").replace(".", "");
+
+  const time = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Seoul",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false
+  }).format(now);
+
+  clock.textContent = date + " " + time;
+}
+
+// 최초 실행
+updateSystemClock();
+
+// 1초마다 갱신
+setInterval(updateSystemClock, 1000);
+ 
+// ==========================================
 // ⑯ 지도 실행
 // ==========================================
 
