@@ -1137,39 +1137,6 @@ function measureRoadWidth(point) {
 
   roadMeasureLayers.push(marker);
 
-  if (roadWidthPoints.length === 1) {
-
-    $("roadInfo").textContent =
-      "첫 번째 도로 경계를 선택했습니다.\n" +
-      "이제 도로 반대편 경계를 클릭하세요.";
-
-    return;
-
-  }
-
-  const first = roadWidthPoints[0];
-  const second = roadWidthPoints[1];
-
-const width = roadDistance(first, second);
-
-
-function measureRoadWidth(point) {
-
-  roadWidthPoints.push(point);
-
-  const marker = L.circleMarker(
-    [point.lat, point.lng],
-    {
-      radius: 7,
-      color: "#ffffff",
-      weight: 2,
-      fillColor: "#22d3ee",
-      fillOpacity: 1
-    }
-  ).addTo(map);
-
-  roadMeasureLayers.push(marker);
-
   // 첫 번째 경계 선택
   if (roadWidthPoints.length === 1) {
 
