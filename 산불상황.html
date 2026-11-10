@@ -3129,17 +3129,6 @@ if (document.readyState === "loading") {
   startMap();
 
 }
-
-<!-- 버튼 클릭 기능 -->
-  <script>
-    document.querySelectorAll('.quick-links button[data-url]')
-      .forEach(button => {
-        button.addEventListener('click', function () {
-          const url = this.getAttribute('data-url');
-          window.open(url, '_blank');
-        });
-      });
-  </script>
  
 // =========================================================
 // PREVENT CONTEXT MENU
@@ -3245,6 +3234,25 @@ document.addEventListener(
 
 );
 
+// ==========================================
+// 산불 대응 시스템 외부 링크 연결
+// ==========================================
+
+document.querySelectorAll(
+  '.quick-links button[data-url]'
+).forEach(button => {
+
+  button.addEventListener('click', function() {
+
+    const url = this.dataset.url;
+
+    if (!url) return;
+
+    window.open(url, '_blank', 'noopener');
+
+  });
+
+}); 
  
 </script>
 
