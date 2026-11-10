@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -12,7 +11,6 @@
  rel="stylesheet"
  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
 >
-
 <!-- Leaflet JavaScript -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -383,11 +381,13 @@ button:disabled {
 
   <div class="stats">
 
-    <div class="stat-card">
-      <div class="stat-label">수관 보관함</div>
-      <div class="stat-value red">
-  <span id="fireCount">0</span> <small>건</small>
-    </div>
+<div class="stat-card">
+  <div class="stat-label">수관 보관함</div>
+  <div class="stat-value red">
+    <span id="fireCount">00</span>
+    <small>건</small>
+  </div>
+</div>
 
 <div class="stat-card">
   <div class="stat-label">위험 지역 관리</div>
@@ -1458,14 +1458,6 @@ if (!validateCoordinates(lat, lng)) {
   return;
 }
 
-    if (!validateCoordinates(lat, lng)) {
-
-      alert("올바른 위도와 경도를 입력하세요.");
-
-      return;
-
-    }
-
     const item = addFireMarker(
 
       lat,
@@ -2136,78 +2128,78 @@ if (vehicleLocationBtn) {
 
 }
 
-
-
 function loadGasData() {
 
   if (!isGasAvailable()) {
-
-    console.warn(
-      "Google Apps Script 환경이 아닙니다."
-    );
-
+    console.warn("Google Apps Script 연결을 확인하세요.");
     return;
-
   }
 
   google.script.run
 
     .withSuccessHandler(function(data) {
 
-      // 위험지역 불러오기
-(data.risks || []).forEach(item => {
+      // ① 위험지역 불러오기
+      (data.risks || []).forEach(item => {
 
-  const lat = Number(item.lat);
-  const lng = Number(item.lng);
+        const lat = Number(item.lat);
+        const lng = Number(item.lng);
 
-  // 기존 정적 마커와 동일한 데이터 중복 방지
-  const duplicate = markers.some(marker =>
+        if (!validateCoordinates(lat, lng)) return;
 
-    marker.type === item.type &&
+        // 기존 마커 중복 방지
+        const duplicate = markers.some(marker =>
+          marker.type === item.type &&
+          Math.abs(marker.lat - lat) < 0.000001 &&
+          Math.abs(marker.lng - lng) < 0.000001 &&
+          marker.description === item.description
+        );
 
-    Math.abs(marker.lat - lat) < 0.000001 &&
+        if (duplicate) return;
 
-    Math.abs(marker.lng - lng) < 0.000001 &&
-
-    marker.description === item.description
-
-  );
-
-  if (duplicate) return;
-
-  addFireMarker(
-  lat,
-  lng,
-  item.type,
-  item.title || item.name || "위험지역",
-  item.description || "",
-  item.date || "",
-  false,
-  item.id
-);
-
-      // 진화 차량 불러오기
-      (data.vehicles || []).forEach(item => {
-
-        addVehicle(
-
-          item.name,
-
-          item.lat,
-
-          item.lng,
-
+        addFireMarker(
+          lat,
+          lng,
+          item.type,
+          item.title || item.name || "위험지역",
+          item.description || "",
+          item.date || "",
           false,
-
           item.id
-
         );
 
       });
 
-      console.log(
-        "Google Sheets 데이터 복원 완료"
-      );
+      // ② 진화 차량 불러오기
+      (data.vehicles || []).forEach(item => {
+
+        const lat = Number(item.lat);
+        const lng = Number(item.lng);
+
+        if (!validateCoordinates(lat, lng)) return;
+
+        const duplicate = vehicles.some(
+          vehicle => vehicle.name === item.name
+        );
+
+        if (duplicate) return;
+
+        addVehicle(
+          item.name,
+          lat,
+          lng,
+          false,
+          item.id
+        );
+
+      });
+
+      // ③ 통계 갱신
+      updateFireCount();
+      updateRiskCount();
+      updateVehicleInfo();
+
+      console.log("Google Sheets 데이터 복원 완료");
 
     })
 
@@ -2216,7 +2208,6 @@ function loadGasData() {
     .getDashboardData();
 
 }
- 
 
 // ==========================================
 // ⑯ 지도 실행
