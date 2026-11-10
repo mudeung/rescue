@@ -1405,9 +1405,21 @@ $("addByCoordBtn").addEventListener(
   "click",
   function() {
 
-    const lat = Number($("latInput").value.trim());
+const latText = $("latInput").value.trim();
+const lngText = $("lngInput").value.trim();
 
-    const lng = Number($("lngInput").value.trim());
+if (!latText || !lngText) {
+  alert("위도와 경도를 모두 입력하세요.");
+  return;
+}
+
+const lat = Number(latText);
+const lng = Number(lngText);
+
+if (!validateCoordinates(lat, lng)) {
+  alert("올바른 위도와 경도를 입력하세요.");
+  return;
+}
 
     if (!validateCoordinates(lat, lng)) {
 
@@ -1917,44 +1929,68 @@ if (addVehicleBtn) {
     function() {
 
       const name =
-        $("vehicleName")?.value.trim();
+        $("vehicleName").value.trim();
 
-      const lat =
-        Number($("vehicleLat")?.value);
+      const latText =
+        $("vehicleLat").value.trim();
 
-      const lng =
-        Number($("vehicleLng")?.value);
+      const lngText =
+        $("vehicleLng").value.trim();
 
+      // 차량명 검사
       if (!name) {
-
         alert("차량명을 입력하세요.");
-
         return;
-
       }
 
+      // 좌표 입력 검사
+      if (!latText || !lngText) {
+        alert("차량 위도와 경도를 모두 입력하세요.");
+        return;
+      }
+
+      const lat = Number(latText);
+      const lng = Number(lngText);
+
+      // 좌표 유효성 검사
       if (!validateCoordinates(lat, lng)) {
-
         alert("올바른 차량 좌표를 입력하세요.");
-
         return;
-
       }
 
-      const vehicle = addVehicle(
-        name,
-        lat,
-        lng
+      // 기존 차량 검색
+      const existing = vehicles.find(
+        item => item.name === name
       );
+
+      let vehicle;
+
+      if (existing) {
+
+        // 기존 차량 위치 갱신
+        updateVehicle(name, lat, lng);
+
+        vehicle = existing;
+
+      } else {
+
+        // 신규 차량 등록
+        vehicle = addVehicle(
+          name,
+          lat,
+          lng
+        );
+
+      }
 
       if (!vehicle) return;
 
+      // 지도 중심 이동
       map.setView([lat, lng], 16);
 
+      // 입력창 초기화
       $("vehicleName").value = "";
-
       $("vehicleLat").value = "";
-
       $("vehicleLng").value = "";
 
     }
@@ -1967,7 +2003,6 @@ if (addVehicleBtn) {
   );
 
 }
-
 
 // ==========================================
 // ⑮ GPS 현재 위치 등록
@@ -2104,25 +2139,15 @@ function loadGasData() {
   if (duplicate) return;
 
   addFireMarker(
-
-    lat,
-    lng,
-
-    item.type,
-
-    item.name,
-
-    item.description,
-
-    item.date,
-
-    false,
-
-    item.id
-
-  );
-
-});
+  lat,
+  lng,
+  item.type,
+  item.title || item.name || "위험지역",
+  item.description || "",
+  item.date || "",
+  false,
+  item.id
+);
 
       // 진화 차량 불러오기
       (data.vehicles || []).forEach(item => {
