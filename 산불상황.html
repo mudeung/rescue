@@ -1088,20 +1088,20 @@ function measureRoadWidth(point) {
   const first = roadWidthPoints[0];
   const second = roadWidthPoints[1];
 
-  const width = roadDistance(first, second);
+const width = roadDistance(first, second);
 
 const areaNote =
-  "※ 도로 면적은 측정 폭이 전체 구간에 동일하다고 가정한 추정값입니다.";
- 
- let measuredArea = null;
+  "※ 면적은 도로 길이 × 측정 폭으로 계산한 추정값입니다.";
 
-const areaNote =
-  "※ 도로 면적은 측정 폭이 전체 구간에 동일하다고 가정한 추정값입니다.";
- 
+let measuredArea = null;
+
+let roadLength = null;
+
 if (selectedRoad) {
 
-  const roadLength =
-    calculateRoadLength(selectedRoad.points);
+  roadLength = calculateRoadLength(
+    selectedRoad.points
+  );
 
   measuredArea = roadLength * width;
 
@@ -1135,17 +1135,15 @@ const widthLabel = L.marker(middle)
   .openPopup();
 
 roadMeasureLayers.push(widthLabel);
- $("roadInfo").textContent = [
+$("roadInfo").textContent = [
   "도로 폭 직접 측정 완료",
   "",
   "측정 도로 폭: " +
     width.toFixed(2) + " m",
 
-  measuredArea !== null
+  roadLength !== null
     ? "도로 길이: " +
-      calculateRoadLength(
-        selectedRoad.points
-      ).toFixed(2) + " m"
+      roadLength.toFixed(2) + " m"
     : "도로 길이: 미확인",
 
   measuredArea !== null
@@ -1153,7 +1151,7 @@ roadMeasureLayers.push(widthLabel);
       measuredArea.toFixed(2) + " ㎡"
     : "도로 면적: 길이 정보 필요",
 
-    "",
+  "",
   areaNote
 ].join("\n");
 
