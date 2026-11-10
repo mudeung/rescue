@@ -126,10 +126,17 @@ h1 {
 }
 
 .clock {
-  color:var(--cyan);
-  font-size:13px;
-  font-weight:700;
-  font-variant-numeric:tabular-nums;
+  color: #22d3ee;
+  font-size: 15px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 1px;
+  padding: 10px 14px;
+  background: #081625;
+  border: 1px solid #24516a;
+  border-radius: 6px;
+  box-shadow: 0 0 12px #22d3ee18;
+  white-space: nowrap;
 }
 
 main {
@@ -835,6 +842,51 @@ let vehicles = [];
 let currentPopup = null;
 
 
+
+// ==========================================
+// 실시간 디지털 시계 (한국 표준시)
+// ==========================================
+
+function updateSystemClock() {
+
+  const clock = document.getElementById("systemClock");
+
+  if (!clock) return;
+
+  const now = new Date();
+
+  const formatter = new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23"
+  });
+
+  const parts = {};
+
+  formatter.formatToParts(now).forEach(part => {
+    parts[part.type] = part.value;
+  });
+
+  clock.textContent =
+    `${parts.year}-${parts.month}-${parts.day} ` +
+    `${parts.weekday} ` +
+    `${parts.hour}:${parts.minute}:${parts.second}`;
+
+}
+
+// 즉시 실행
+updateSystemClock();
+
+// 1초마다 갱신
+setInterval(updateSystemClock, 1000);
+
+ 
 // ==========================================
 // 도로 측정 공통 변수
 // ==========================================
