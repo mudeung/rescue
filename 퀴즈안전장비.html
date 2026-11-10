@@ -21,46 +21,72 @@
 * { box-sizing:border-box; }
 
 body {
-  margin:0;
-  min-height:100vh;
-  font-family:"Malgun Gothic",sans-serif;
-  color:var(--text);
-  font-size:clamp(16px,1.3vw,21px);
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Malgun Gothic", sans-serif;
+  color: var(--text);
+  font-size: clamp(16px, 1.3vw, 21px);
   background:
-    radial-gradient(circle at 10% 10%,#d7f3df,transparent 35%),
-    radial-gradient(circle at 90% 80%,#d9ebff,transparent 35%),
-    linear-gradient(135deg,#eff9ef,#edf5ff,#fff8e9);
+    radial-gradient(circle at 10% 10%, #d7f3df, transparent 35%),
+    radial-gradient(circle at 90% 80%, #d9ebff, transparent 35%),
+    linear-gradient(135deg, #eff9ef, #edf5ff, #fff8e9);
 }
 
+
+/* 전체 화면 */
+
 .container {
-  width:min(94%,1100px);
-  margin:2vh auto;
-  padding:clamp(8px,1.5vw,20px);
+  width: min(94%, 1100px);
+  margin: 2vh auto;
+  padding: clamp(8px, 1.5vw, 20px);
 }
 
 .card {
-  background:rgba(255,255,255,.97);
-  border-radius:30px;
-  padding:clamp(18px,3vw,38px);
-  box-shadow:var(--shadow);
-  text-align:center;
-  overflow:hidden;
+  background: rgba(255,255,255,.97);
+  border: 1px solid rgba(255,255,255,.9);
+  border-radius: clamp(20px, 3vw, 34px);
+  padding: clamp(18px, 3vw, 38px);
+  box-shadow: var(--shadow);
+  text-align: center;
+  overflow: hidden;
 }
 
+/* 상단 배너 */
+
 .banner {
-  background:linear-gradient(135deg,#125b39,#26965b,#55b979);
-  color:white;
-  padding:35px 15px;
-  border-radius:25px;
-  margin-bottom:25px;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg,#125b39,#26965b,#55b979);
+  color: white;
+  padding: clamp(22px, 4vw, 42px) 15px;
+  border-radius: 25px;
+  margin-bottom: 28px;
+  box-shadow: 0 10px 25px rgba(24,112,65,.2);
+}
+
+.banner::before {
+  content: "🌿";
+  position: absolute;
+  right: 5%;
+  top: 10%;
+  font-size: clamp(55px, 9vw, 110px);
+  opacity: .13;
 }
 
 .banner img {
-  display:block;
-  margin:auto;
-  width:min(300px,75%);
-  max-height:180px;
-  object-fit:contain;
+  display: block;
+  width: min(40%, 160px);
+  height: auto;
+  max-height: 130px;
+  object-fit: contain;
+  margin: 0 auto 10px;
+}
+
+@media (max-width:600px) {
+  .banner img {
+    width: 100px;
+    max-height: 85px;
+  }
 }
 
 h1 {
@@ -77,10 +103,18 @@ h2 {
   line-height:1.8;
 }
 
-.mascot,.result-character {
-  font-size:75px;
-  margin:15px;
-  animation:bounce 2s infinite;
+/* 캐릭터 */
+
+.mascot,
+.result-character {
+  font-size: clamp(55px, 7vw, 85px);
+  margin: 12px;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-9px); }
 }
 
 @keyframes bounce {
@@ -88,6 +122,7 @@ h2 {
   50% {transform:translateY(-9px)}
 }
 
+/* 안내 정보 */
 .info {
   background:linear-gradient(135deg,#effaf2,#f3f8ff);
   border:1px solid #d8eddf;
@@ -97,6 +132,7 @@ h2 {
   margin:22px 0;
 }
 
+/* 공통 버튼 */
 button {
   cursor:pointer;
   border:none;
@@ -316,24 +352,53 @@ footer {
   100% {transform:translateY(90vh) rotate(500deg);opacity:0}
 }
 
-@media(max-width:600px) {
-  .container {
-    width:100%;
-    margin:0;
-    padding:8px;
-  }
+/* 전체 화면 */
 
-  .card {
-    padding:14px 11px;
-    border-radius:21px;
-  }
+.container {
+  width: min(94%, 1100px);
+  margin: 2vh auto;
+  padding: clamp(8px, 1.5vw, 20px);
+}
 
-  .banner {
-    padding:22px 10px;
-    border-radius:19px;
-  }
+.card {
+  background: rgba(255,255,255,.97);
+  border: 1px solid rgba(255,255,255,.9);
+  border-radius: clamp(20px, 3vw, 34px);
+  padding: clamp(18px, 3vw, 38px);
+  box-shadow: var(--shadow);
+  text-align: center;
+  overflow: hidden;
+}
 
-  .banner img { max-height:100px; }
+ /* 상단 배너 */
+
+.banner {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg,#125b39,#26965b,#55b979);
+  color: white;
+  padding: clamp(22px, 4vw, 42px) 15px;
+  border-radius: 25px;
+  margin-bottom: 28px;
+  box-shadow: 0 10px 25px rgba(24,112,65,.2);
+}
+
+.banner::before {
+  content: "🌿";
+  position: absolute;
+  right: 5%;
+  top: 10%;
+  font-size: clamp(55px, 9vw, 110px);
+  opacity: .13;
+}
+
+.banner img {
+  display: block;
+  margin: 0 auto;
+  width: min(450px, 85%);
+  max-height: 350px;
+  object-fit: contain;
+}
 
   .question {
     min-height:210px;
@@ -359,6 +424,28 @@ footer {
     animation-duration:.01ms !important;
     transition-duration:.01ms !important;
   }
+}
+
+@media(max-width:600px) {
+  .banner img {
+    width: min(55%, 150px);
+    max-height: 120px;
+    height: auto;
+  }
+}
+
+.mascot img {
+  display: block;
+  width: 100px;
+  height: auto;
+  max-height: 100px;
+  object-fit: contain;
+  margin: 0 auto;
+}
+
+.mascot {
+  font-size: 0;
+  margin: 8px;
 }
 </style>
 </head>
