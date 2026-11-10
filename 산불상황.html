@@ -426,10 +426,10 @@ button:disabled {
       <div id="map"></div>
 
       <div class="map-legend">
-        <span><i class="dot red"></i>수관 보관함</span>
-        <span><i class="dot blue"></i>위험·관리 지점</span>
-        <span><i class="dot green"></i>진화 차량</span>
-      </div>
+  <span><i class="dot blue"></i>수관 보관함</span>
+  <span><i class="dot red"></i>위험·관리 지점</span>
+  <span><i class="dot green"></i>진화 차량</span>
+</div>
 
     </div>
 
@@ -1205,9 +1205,9 @@ function addFireMarker(
     return null;
   }
 
-  const color = type === "fire"
-    ? "#fb5365"
-    : "#38bdf8";
+const color = type === "fire"
+  ? "#38bdf8"  // 수관 보관함: 파란색
+  : "#fb5365"; // 위험관리지역: 빨간색
 
   const circle = L.circle(
     [lat, lng],
@@ -1281,9 +1281,9 @@ function showMarkerInfo(item) {
     ? "수관 보관함"
     : "위험·관리 지점";
 
-  const color = item.type === "fire"
-    ? "#fb5365"
-    : "#38bdf8";
+const color = item.type === "fire"
+  ? "#38bdf8"
+  : "#fb5365";
 
 
   const content = `
