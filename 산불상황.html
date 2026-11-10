@@ -385,7 +385,8 @@ button:disabled {
 
     <div class="stat-card">
       <div class="stat-label">수관 보관함</div>
-      <div class="stat-value red">04 <small>건</small></div>
+      <div class="stat-value red">
+  <span id="fireCount">0</span> <small>건</small>
     </div>
 
     <div class="stat-card">
@@ -949,6 +950,19 @@ const mapTypes = {
 
 const landslideData = [
 
+ // 수관 보관함 개수 자동 표시
+function updateFireCount() {
+
+  const countElement = $("fireCount");
+
+  if (countElement) {
+    countElement.textContent = landslideData.length
+      .toString()
+      .padStart(2, "0");
+  }
+
+}
+
   {
     lat:35.128633,
     lng:126.969805,
@@ -1055,7 +1069,8 @@ function initMap() {
 
   }).addTo(map);
 
-
+updateFireCount();
+ 
   // 기존 산불 및 수관 보관함 표시
 landslideData.forEach(item => {
 
@@ -1063,17 +1078,14 @@ landslideData.forEach(item => {
     item.lat,
     item.lng,
     item.type,
-    item.type === "fire"
-      ? "산불 발생 이력"
-      : "산불 수관 보관함",
+    "수관 보관함",
     item.description,
     item.date,
     false
   );
 
 });
-
-
+ 
   // 지도 클릭 등록
   map.on("click", function(e) {
 
