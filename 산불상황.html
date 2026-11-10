@@ -950,19 +950,6 @@ const mapTypes = {
 
 const landslideData = [
 
- // 수관 보관함 개수 자동 표시
-function updateFireCount() {
-
-  const countElement = $("fireCount");
-
-  if (countElement) {
-    countElement.textContent = landslideData.length
-      .toString()
-      .padStart(2, "0");
-  }
-
-}
-
   {
     lat:35.128633,
     lng:126.969805,
@@ -1023,6 +1010,24 @@ function updateFireCount() {
 
 
 // ==========================================
+// 수관 보관함 개수 자동 표시
+// ==========================================
+
+function updateFireCount() {
+
+  const countElement = $("fireCount");
+
+  if (countElement) {
+
+    countElement.textContent =
+      String(landslideData.length).padStart(2, "0");
+
+  }
+
+}
+
+
+// ==========================================
 // ④ 지도 초기화
 // ==========================================
 
@@ -1068,10 +1073,9 @@ function initMap() {
     imperial: false
 
   }).addTo(map);
-
-updateFireCount();
  
   // 기존 산불 및 수관 보관함 표시
+ updateFireCount();
 landslideData.forEach(item => {
 
   addFireMarker(
