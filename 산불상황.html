@@ -382,7 +382,7 @@ button:disabled {
   <div class="stats">
 
 <div class="stat-card">
-  <div class="stat-label">위험 지역 관리</div>
+  <div class="stat-label">산불위험 지역</div>
   <div class="stat-value red">
     <span id="riskCount">01</span>
     <small>개소</small>
@@ -426,7 +426,7 @@ button:disabled {
       <div id="map"></div>
 
       <div class="map-legend">
-  <span><i class="dot red"></i>위험·관리 지점</span>
+  <span><i class="dot red"></i>산불·위험 지점</span>
   <span><i class="dot blue"></i>수관 보관함</span>     
   <span><i class="dot green"></i>진화 차량</span>
 </div>
@@ -463,11 +463,11 @@ button:disabled {
 
 <aside class="right-area">
 
-  <!-- 산불 관리 현황 -->
+  <!-- 산불 자원 현황 -->
   <div class="section">
 
     <div class="section-title">
-      🚨 산불관리 현황
+      🚨 산불자원 현황
       <span style="color:#4ade80;font-size:11px">관리정보</span>
     </div>
 
@@ -557,7 +557,7 @@ button:disabled {
     </div>
   </div>
 
-  <!-- 진화 차량 관리 -->
+  <!-- 진화 차량 배치 -->
   <div class="section">
 
     <div class="section-title">
@@ -1129,7 +1129,7 @@ landslideData.forEach(item => {
 
       "현장 위험지역",
 
-      "지도 클릭으로 등록한 위험·관리 지점",
+      "지도 클릭으로 등록한 산불·위험 지점",
 
       getToday()
 
@@ -1207,7 +1207,7 @@ function addFireMarker(
 
 const color = type === "fire"
   ? "#38bdf8"  // 수관 보관함: 파란색
-  : "#fb5365"; // 위험관리지역: 빨간색
+  : "#fb5365"; // 산불 위험지역: 빨간색
 
   const circle = L.circle(
     [lat, lng],
@@ -1278,7 +1278,7 @@ function showMarkerInfo(item) {
   }
 
   const typeName = item.type === "fire"
-    ? "위험·관리 지점"
+    ? "산불·위험 지점"
     : "수관 보관함";
 
 const color = item.type === "fire"
@@ -1464,7 +1464,7 @@ if (!validateCoordinates(lat, lng)) {
       lng,
       "risk",
       "좌표 등록 위험지역",
-      "사용자가 좌표로 등록한 위험·관리 지점",
+      "사용자가 좌표로 등록한 산불·위험 지점",
       getToday()
 
     );
