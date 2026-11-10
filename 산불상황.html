@@ -1090,8 +1090,14 @@ function measureRoadWidth(point) {
 
   const width = roadDistance(first, second);
 
+const areaNote =
+  "※ 도로 면적은 측정 폭이 전체 구간에 동일하다고 가정한 추정값입니다.";
+ 
  let measuredArea = null;
 
+const areaNote =
+  "※ 도로 면적은 측정 폭이 전체 구간에 동일하다고 가정한 추정값입니다.";
+ 
 if (selectedRoad) {
 
   const roadLength =
@@ -1147,9 +1153,19 @@ roadMeasureLayers.push(widthLabel);
       measuredArea.toFixed(2) + " ㎡"
     : "도로 면적: 길이 정보 필요",
 
-  "",
-  "※ 면적은 도로 길이 × 측정 폭으로 계산한 추정값입니다."
+    "",
+  areaNote
 ].join("\n");
+
+   // 도로 폭 측정 완료 후 측정 모드 종료
+  roadWidthMode = false;
+
+  $("roadWidthBtn").textContent =
+    "↔ 도로 양쪽 경계 측정 시작";
+
+  map.getContainer().style.cursor = "";
+
+}
 
 // ==========================================
 // 지도 클릭 처리
