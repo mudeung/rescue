@@ -536,7 +536,7 @@ main {
     <div class="stat-card">
       <div class="stat-label">진화 차량</div>
       <div class="stat-value green">
-        <span id="vehicleCount">04</span>
+        <span id="vehicleCount">00</span>
         <small>대</small>
       </div>
     </div>
@@ -2747,19 +2747,23 @@ function addVehicle(
     { icon: vehicleIcon }
   ).addTo(map);
 
-  const vehicle = {
+const vehicle = {
 
-    id: existingId,
+  id: existingId,
 
-    name,
+  name,
 
-    lat,
+  lat,
 
-    lng,
+  lng,
 
-    marker
+  marker,
 
-  };
+  registeredAt: new Date().toISOString(),
+
+  updatedAt: new Date().toISOString()
+
+};
 
   vehicles.push(vehicle);
 
@@ -2832,11 +2836,13 @@ function updateVehicle(name, lat, lng) {
 
   }
 
-  vehicle.lat = lat;
+vehicle.lat = lat;
 
-  vehicle.lng = lng;
+vehicle.lng = lng;
 
-  vehicle.marker.setLatLng([lat, lng]);
+vehicle.updatedAt = new Date().toISOString();
+
+vehicle.marker.setLatLng([lat, lng]);
 
   vehicle.marker.setPopupContent(`
 
@@ -2880,6 +2886,29 @@ function updateVehicle(name, lat, lng) {
 
 }
 
+// ==========================================
+// 차량 시각 변환 함수 (한국 표준시)
+// ==========================================
+
+function formatVehicleTime(value) {
+
+  if (!value) return "-";
+
+  return new Intl.DateTimeFormat("ko-KR", {
+
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23"
+
+  }).format(new Date(value));
+
+}
+ 
 
 // ==========================================
 // ⑬ 차량 정보 표시
@@ -2889,13 +2918,7 @@ function updateVehicleInfo() {
 
   const panel = $("vehicleInfo");
 
-  if (!panel) {
-
-    console.warn("vehicleInfo HTML 요소가 없습니다.");
-
-    return;
-
-  }
+  if (!panel) return;
 
   panel.replaceChildren();
 
@@ -2914,25 +2937,47 @@ function updateVehicleInfo() {
 
     div.className = "resource-item";
 
+    const info = document.createElement("div");
+
     const name = document.createElement("strong");
 
     name.textContent = "🚒 " + vehicle.name;
 
-    const position = document.createElement("span");
+    const position = document.createElement("div");
 
     position.textContent =
+      "좌표: " +
       vehicle.lat.toFixed(6) +
       ", " +
       vehicle.lng.toFixed(6);
 
-    div.append(name, position);
+    const updated = document.createElement("div");
 
-    panel.appendChild(div);
+    updated.style.color = "#22d3ee";
+
+    updated.textContent =
+      "마지막 갱신: " +
+      formatVehicleTime(vehicle.updatedAt);
+
+    info.append(name, position, updated);
+
+    div.appendChild(info);
+
+        panel.appendChild(div);
 
   });
 
-}
+  // ==========================================
+  // 진화 차량 등록 대수 자동 갱신
+  // ==========================================
 
+  $("vehicleCount").textContent =
+    String(vehicles.length).padStart(2, "0");
+
+  $("resourceVehicleCount").textContent =
+    vehicles.length + " 대";
+
+}
 
 // ==========================================
 // ⑭ 차량 등록 버튼
