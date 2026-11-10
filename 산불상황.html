@@ -799,6 +799,9 @@ let roadWidthPoints = [];
 
 let selectedRoad = null;
 
+// 소방차 진입 참고 기준 폭
+const FIRE_TRUCK_MIN_WIDTH = 3.0;
+
 const OVERPASS_URL =
   "https://overpass-api.de/api/interpreter";
 
@@ -929,6 +932,14 @@ function pointToSegmentDistance(
 async function searchRoad(lat, lng) {
 
   const panel = $("roadInfo");
+
+  // 이전 도로 검색 결과 제거
+  roadLayers.forEach(layer => {
+    map.removeLayer(layer);
+  });
+
+  roadLayers = [];
+  selectedRoad = null;
 
   panel.textContent =
     "주변 도로 데이터를 검색하고 있습니다...";
@@ -1171,8 +1182,6 @@ function measureRoadWidth(point) {
     fireTruckColor = "🔴";
 
   }
-
-const FIRE_TRUCK_MIN_WIDTH = 3.0;
  
   // ==========================================
   // 도로 길이 및 면적 계산
@@ -1384,7 +1393,14 @@ $("roadWidthBtn").addEventListener(
   }
 );
 
+// 기존 지도 클릭 등록 모드 종료
+clickMode = false;
 
+$("addPointBtn").textContent =
+  "＋ 지도에서 클릭하여 표시";
+
+$("addPointBtn").style.background = "";
+ 
 // ==========================================
 // 위성영상 확인
 // ==========================================
@@ -1456,6 +1472,13 @@ $("roadClearBtn").addEventListener(
   }
 );
 
+ // 기존 지도 클릭 등록 모드 종료
+clickMode = false;
+
+$("addPointBtn").textContent =
+  "＋ 지도에서 클릭하여 표시";
+
+$("addPointBtn").style.background = "";
 
  // ==========================================
  // GitHub Pages ↔ Google Apps Script 연결
@@ -2058,9 +2081,10 @@ function showMarkerInfo(item) {
 
   }
 
-  const typeName = item.type === "fire"
-    ? "산불·위험 지점"
-    : "수관 보관함";
+// 마커 유형별 명칭과 색상
+const typeName = item.type === "fire"
+  ? "수관 보관함"
+  : "산불 위험지역";
 
 const color = item.type === "fire"
   ? "#38bdf8"
@@ -2282,6 +2306,18 @@ $("addPointBtn").addEventListener(
 
     clickMode = !clickMode;
 
+// 도로 측정 모드 종료
+roadSelectMode = false;
+roadWidthMode = false;
+
+roadWidthPoints = [];
+
+$("roadSelectBtn").textContent =
+  "🛣 지도에서 도로 선택";
+
+$("roadWidthBtn").textContent =
+  "↔ 도로 양쪽 경계 측정 시작";
+   
     if (clickMode) {
 
       this.textContent =
@@ -2854,11 +2890,23 @@ if (vehicleLocationBtn) {
             $("vehicleName")?.value.trim() ||
             "진화 차량 GPS";
 
-          const vehicle = addVehicle(
-            name,
-            lat,
-            lng
-          );
+// 동일 차량이 이미 등록되어 있으면 위치 갱신
+const existing = vehicles.find(
+  item => item.name === name
+);
+
+let vehicle;
+
+if (existing) {
+  updateVehicle(name, lat, lng);
+  vehicle = existing;
+} else {
+  vehicle = addVehicle(name, lat, lng);
+}
+
+if (vehicle) {
+  map.setView([lat, lng], 16);
+}
 
           if (vehicle) {
 
