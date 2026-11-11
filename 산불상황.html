@@ -643,7 +643,7 @@ main {
   <div class="stats">
 
     <div class="stat-card">
-      <div class="stat-label">산불 위험지역</div>
+      <div class="stat-label">산불 발생지역</div>
       <div class="stat-value red">
         <span id="riskCount">00</span>
         <small>개소</small>
@@ -724,7 +724,7 @@ main {
       <div id="map"></div>
 
       <div class="map-legend">
-        <span><i class="dot red"></i>산불 위험지역</span>
+        <span><i class="dot red"></i>산불 발생지역</span>
         <span><i class="dot blue"></i>수관 보관함</span>
         <span><i class="dot green"></i>진화 차량</span>
         <span><i class="dot yellow"></i>도로 분석</span>
@@ -856,11 +856,11 @@ main {
     </div>
   </div>
 
-  <!-- 위험지역 등록 -->
+  <!-- 산불 발생지역 등록 -->
   <div class="section">
 
     <div class="section-title">
-      📍 산불 위험지역 등록
+      📍 산불 발생지역 등록
     </div>
 
     <div class="panel-body">
@@ -874,7 +874,7 @@ main {
         placeholder="경도 (예: 126.9699)">
 
       <button id="addByCoordBtn" class="btn-green">
-        ＋ 좌표로 위험지역 등록
+        ＋ 좌표로 산불 발생지역 등록
       </button>
 
       <hr style="border-color:#263c53;margin:12px 0">
@@ -2167,7 +2167,7 @@ function updateFireCount() {
 }
 
 // ==========================================
-// 산불 위험지역 개수 자동 표시
+// 산불 발생지역 개수 자동 표시
 // ==========================================
 
 function updateRiskCount() {
@@ -2259,7 +2259,7 @@ landslideData.forEach(item => {
         return;
     }
 
-    // 기존 산불 위험지역 등록 기능
+    // 기존 산불 발생지역 등록 기능
     if (!clickMode) return;
 
     const item = addFireMarker(
@@ -2270,7 +2270,7 @@ landslideData.forEach(item => {
 
       "risk",
 
-      "현장산불 위험지역",
+      "현장산불 발생지역",
 
       "지도 클릭으로 등록한 산불·위험 지점",
 
@@ -2350,7 +2350,7 @@ function addFireMarker(
 
 const color = type === "fire"
   ? "#38bdf8"  // 수관 보관함: 파란색
-  : "#fb5365"; // 산불 위험지역: 빨간색
+  : "#fb5365"; // 산불 발생지역: 빨간색
 
   const circle = L.circle(
     [lat, lng],
@@ -2387,7 +2387,7 @@ const color = type === "fire"
     google.script.run
       .withSuccessHandler(function(result) {
         item.id = result.id;
-        console.log("위험지역 저장 완료");
+        console.log("산불 발생지역 저장 완료");
       })
       .withFailureHandler(gasError)
       .saveRisk({
@@ -2423,7 +2423,7 @@ function showMarkerInfo(item) {
 // 마커 유형별 명칭과 색상
 const typeName = item.type === "fire"
   ? "수관 보관함"
-  : "산불 위험지역";
+  : "산불 발생지역";
 
 const color = item.type === "fire"
   ? "#38bdf8"
@@ -2542,7 +2542,7 @@ const color = item.type === "fire"
       marker => marker !== item
     );
 
-     // 위험지역 통계 자동 갱신
+     // 산불 발생지역 통계 자동 갱신
    updateRiskCount();
    
     map.closePopup();
@@ -2579,7 +2579,7 @@ const color = item.type === "fire"
 
 
 // ==========================================
-// ⑦ 좌표로 위험지역 등록
+// ⑦ 좌표로 산불 발생지역 등록
 // ==========================================
 
 $("addByCoordBtn").addEventListener(
@@ -2607,7 +2607,7 @@ if (!validateCoordinates(lat, lng)) {
       lat,
       lng,
       "risk",
-      "좌표 등록 위험지역",
+      "좌표 등록 산불 발생지역",
       "사용자가 좌표로 등록한 산불·위험 지점",
       getToday()
 
@@ -2628,7 +2628,7 @@ if (!validateCoordinates(lat, lng)) {
 
 
 // ==========================================
-// ⑧ 지도 클릭으로 위험지역 등록
+// ⑧ 지도 클릭으로 산불 발생지역 등록
 // ==========================================
 
 $("addPointBtn").addEventListener(
@@ -3352,7 +3352,7 @@ function loadGasData() {
 
     .withSuccessHandler(function(data) {
 
-      // ① 위험지역 불러오기
+      // ① 산불 발생지역 불러오기
       (data.risks || []).forEach(item => {
 
         const lat = Number(item.lat);
@@ -3374,7 +3374,7 @@ function loadGasData() {
           lat,
           lng,
           item.type,
-          item.title || item.name || "위험지역",
+          item.title || item.name || "산불 발생지역",
           item.description || "",
           item.date || "",
           false,
