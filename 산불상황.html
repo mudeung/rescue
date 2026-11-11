@@ -4319,6 +4319,59 @@ document.addEventListener(
 );
 
 // ==========================================
+// Google Apps Script 서버 연결 상태 확인
+// ==========================================
+
+function checkGasConnection() {
+
+  const status = $("gasConnectionStatus");
+
+  if (!status) return;
+
+  status.textContent = "● 서버 확인 중";
+  status.style.color = "#fbbf24";
+
+  google.script.run
+
+    .withSuccessHandler(function(result) {
+
+      if (result && result.connected === true) {
+
+        status.textContent = "● 정상 연결";
+        status.style.color = "#4ade80";
+
+      } else {
+
+        status.textContent = "● 응답 오류";
+        status.style.color = "#fb5365";
+
+      }
+
+    })
+
+    .withFailureHandler(function(error) {
+
+      status.textContent = "● 연결 실패";
+      status.style.color = "#fb5365";
+
+      console.error("서버 연결 오류:", error);
+
+    })
+
+    .checkServerStatus();
+
+}
+
+// ==========================================
+// 서버 연결 상태 자동 확인
+// ==========================================
+
+checkGasConnection();
+
+// 30초마다 서버 연결 확인
+setInterval(checkGasConnection, 30000);
+ 
+// ==========================================
 // 산불 대응 시스템 외부 링크 연결
 // ==========================================
 
