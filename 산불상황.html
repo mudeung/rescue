@@ -3028,45 +3028,45 @@ function formatVehicleTime(value) {
 // ⑬ 차량 정보 표시
 // ==========================================
 
+
 function updateVehicleInfo() {
 
   const panel = $("vehicleInfo");
+  const countElement = $("vehicleCount");
+
+  // 차량 대수 항상 갱신
+  if (countElement) {
+    countElement.textContent =
+      String(vehicles.length).padStart(2, "0");
+  }
 
   if (!panel) return;
 
   panel.replaceChildren();
 
   if (vehicles.length === 0) {
-
     panel.textContent =
       "등록된 진화 차량이 없습니다.";
-
     return;
-
   }
 
   vehicles.forEach(vehicle => {
 
     const div = document.createElement("div");
-
     div.className = "resource-item";
 
     const info = document.createElement("div");
 
     const name = document.createElement("strong");
-
     name.textContent = "🚒 " + vehicle.name;
 
     const position = document.createElement("div");
-
     position.textContent =
       "좌표: " +
-      vehicle.lat.toFixed(6) +
-      ", " +
+      vehicle.lat.toFixed(6) + ", " +
       vehicle.lng.toFixed(6);
 
     const updated = document.createElement("div");
-
     updated.style.color = "#22d3ee";
 
     updated.textContent =
@@ -3077,9 +3077,11 @@ function updateVehicleInfo() {
 
     div.appendChild(info);
 
-        panel.appendChild(div);
+    panel.appendChild(div);
 
   });
+
+}
 
   // ==========================================
   // 진화 차량 등록 대수 자동 갱신
@@ -3288,6 +3290,7 @@ if (vehicle) {
 
 }
 
+
 function loadGasData() {
 
   if (!isGasAvailable()) {
@@ -3299,67 +3302,116 @@ function loadGasData() {
 
     .withSuccessHandler(function(data) {
 
-      // ① 산불 발생지역 불러오기
-      (data.risks || []).forEach(item => {
+      if (!data || typeof data !== "object") {
+        console.error("서버 데이터 형식 오류:", data);
+        return;
+      }
+
+      // ① 산불 발생지역 복원
+      (Array.isArray(data.risks) ? data.risks : [])
+        .forEach(item => {
+
+          const lat = Number(item.lat);
+          const lng = Number(item.lng);
+
+          if (!validateCoordinates(lat, lng)) return;
+
+          const duplicate = markers.some(marker =>
+            marker.id === item.id ||
+            (
+              marker.type === item.type &&
+              Math.abs(marker.lat - lat) < 0.000001 &&
+              Math.abs(marker.lng - lng) < 0.000001
+            )
+          );
+
+          if (duplicate) return;
+
+          addFireMarker(
+            lat,
+            lng,
+            item.type || "risk",
+            item.title || item.name || "산불 발생지역",
+            item.description || "",
+            item.date || "",
+            false,
+            item.id || null
+          );
+
+        });
+
+      // ② 진화 차량 복원
+      const vehicleData = Array.isArray(data.vehicles)
+        ? data.vehicles
+        : [];
+
+      vehicleData.forEach(item => {
+
+        const name = String(item.name || "").trim();
 
         const lat = Number(item.lat);
         const lng = Number(item.lng);
 
-        if (!validateCoordinates(lat, lng)) return;
+        if (!name || !validateCoordinates(lat, lng)) {
+          console.warn("잘못된 차량 데이터:", item);
+          return;
+        }
 
-        // 기존 마커 중복 방지
-        const duplicate = markers.some(marker =>
-          marker.type === item.type &&
-          Math.abs(marker.lat - lat) < 0.000001 &&
-          Math.abs(marker.lng - lng) < 0.000001 &&
-          marker.description === item.description
-        );
+        // ID 우선 검색, ID가 없으면 차량명 검색
+        let existing = item.id
+          ? vehicles.find(v => String(v.id) === String(item.id))
+          : null;
 
-        if (duplicate) return;
+        if (!existing) {
+          existing = vehicles.find(
+            v => v.name === name
+          );
+        }
 
-        addFireMarker(
-          lat,
-          lng,
-          item.type,
-          item.title || item.name || "산불 발생지역",
-          item.description || "",
-          item.date || "",
-          false,
-          item.id
-        );
+        if (existing) {
+
+          existing.id = item.id || existing.id;
+          existing.name = name;
+          existing.lat = lat;
+          existing.lng = lng;
+
+          existing.marker.setLatLng([lat, lng]);
+
+          existing.updatedAt =
+            item.updatedAt ||
+            item.updated_at ||
+            existing.updatedAt;
+
+          existing.marker.setPopupContent(`
+            <b>🚒 ${escapeHTML(name)}</b><br>
+            위도: ${lat.toFixed(6)}<br>
+            경도: ${lng.toFixed(6)}
+          `);
+
+        } else {
+
+          addVehicle(
+            name,
+            lat,
+            lng,
+            false,
+            item.id || null
+          );
+
+        }
 
       });
 
-      // ② 진화 차량 불러오기
-      (data.vehicles || []).forEach(item => {
-
-        const lat = Number(item.lat);
-        const lng = Number(item.lng);
-
-        if (!validateCoordinates(lat, lng)) return;
-
-        const duplicate = vehicles.some(
-          vehicle => vehicle.name === item.name
-        );
-
-        if (duplicate) return;
-
-        addVehicle(
-          item.name,
-          lat,
-          lng,
-          false,
-          item.id
-        );
-
-      });
-
-      // ③ 통계 갱신
+      // ③ 통계 및 화면 갱신
       updateFireCount();
       updateRiskCount();
       updateVehicleInfo();
 
-      console.log("Google Sheets 데이터 복원 완료");
+      console.log(
+        "서버 차량 데이터 복원 완료:",
+        vehicleData.length,
+        "대"
+      );
 
     })
 
@@ -3368,6 +3420,7 @@ function loadGasData() {
     .getDashboardData();
 
 }
+
 
 // ==========================================
 // ⑯ 지도 실행
