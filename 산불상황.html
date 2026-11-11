@@ -4309,6 +4309,58 @@ document.querySelectorAll(
   });
 
 });  
+
+// ==========================================
+// 시스템 연결 상태 실시간 확인
+// ==========================================
+
+function updateConnectionStatus() {
+
+  // ① GIS 지도
+  const mapStatus = $("mapConnectionStatus");
+
+  if (mapStatus) {
+    mapStatus.textContent = map
+      ? "● 정상 연결"
+      : "● 연결 실패";
+
+    mapStatus.style.color = map
+      ? "#4ade80"
+      : "#fb5365";
+  }
+
+  // ② Google Apps Script 서버
+  const gasStatus = $("gasConnectionStatus");
+
+  if (gasStatus) {
+    gasStatus.textContent =
+      "● 서버 확인 필요";
+
+    gasStatus.style.color = "#fbbf24";
+  }
+
+  // ③ GPS 지원 여부
+  const gpsStatus = $("gpsConnectionStatus");
+
+  if (gpsStatus) {
+    gpsStatus.textContent =
+      navigator.geolocation
+        ? "● 지원 가능"
+        : "● 지원 안 함";
+
+    gpsStatus.style.color =
+      navigator.geolocation
+        ? "#4ade80"
+        : "#fb5365";
+  }
+
+}
+
+// 최초 실행
+updateConnectionStatus();
+
+// 5초마다 갱신
+setInterval(updateConnectionStatus, 5000);
  
 </script>
 
