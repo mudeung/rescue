@@ -1765,18 +1765,24 @@ function measureRoadWidth(point) {
 
   ].join("\n");
 
-  // ==========================================
-  // 측정 완료 후 모드 종료
-  // ==========================================
+// ==========================================
+// 측정 완료 후 모드 종료
+// ==========================================
 
-  roadWidthMode = false;
+roadWidthMode = false;
 
-  roadWidthPoints = [];
+roadWidthPoints = [];
 
-  $("roadWidthBtn").textContent =
-    "↔ 도로 양쪽 경계 측정 시작";
+currentWorkMode = null;
 
+// 지도 커서 초기화
+if (map) {
   map.getContainer().style.cursor = "";
+}
+
+// 측정 버튼 초기화
+$("roadWidthBtn").textContent =
+  "↔ 도로 양쪽 경계 측정 시작";
 
 }
 
@@ -2649,65 +2655,6 @@ function initMap() {
 }
 
 
-  // ==========================================
-  // 지도 클릭 이벤트 통합
-  // ==========================================
-
-  map.on("click", function(e) {
-
-    // 도로 기능 우선 처리
-    if (handleRoadMapClick(e)) {
-      return;
-    }
-
-    // 산불 발생지역 등록
-    if (!clickMode) return;
-
-    const item = addFireMarker(
-
-      e.latlng.lat,
-      e.latlng.lng,
-      "risk",
-      "현장산불 발생지역",
-      "지도 클릭으로 등록한 산불·위험 지점",
-      getToday()
-
-    );
-
-    resetMapModes();
-
-    if (item) {
-      showMarkerInfo(item);
-    }
-
-  });
-
-
-  // 지도 크기 조절
-  setTimeout(() => {
-
-    map.invalidateSize();
-
-  }, 300);
-
-
-  window.addEventListener("resize", () => {
-
-    if (map) map.invalidateSize();
-
-  });
-
-
-  if (window.ResizeObserver) {
-
-
-  }
-
-
-  console.log("무등산 GIS 지도 초기화 완료");
-
-}
-
 
 // ==========================================
 // 산불 및 수관 보관 지역 마커 등록 (수정본)
@@ -3041,6 +2988,7 @@ removeButton.onclick = function() {
 
 panel.appendChild(removeButton);
 
+}
 
 // ==========================================
 // ⑦ 좌표로 산불 발생지역 등록
