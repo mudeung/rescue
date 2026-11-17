@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#071321">
+
+<title>무등산 산불 통합관제</title>
+
+<link rel="stylesheet"
+ href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+:root {
+  --bg:#07111f;
+  --panel:#0e1c2d;
+  --panel2:#12243a;
+  --line:#263e56;
+  --text:#e5edf7;
+  --muted:#91a6bd;
+  --cyan:#22d3ee;
+  --green:#4ade80;
+  --red:#fb5365;
+  --yellow:#fbbf24;
+}
+
+* { box-sizing:border-box; }
+
+body {
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:"Pretendard","Malgun Gothic",sans-serif;
+}
+
+/* 암호 확인 전 본문 숨김 */
+body:not(.password-verified):not(.link-expired) > :not(#passwordPanel):not(#expiredPanel) {
+  visibility: hidden;
+}
+
+button,input {
+  font-family:inherit;
+}
+
+button {
+  cursor:pointer;
+  border:0;
+  border-radius:5px;
+  padding:11px;
+  font-size:12px;
+  font-weight:700;
+  color:white;
+  transition:.2s;
+  margin-bottom:6px;
+}
+
+button:hover { filter:brightness(1.2); }
+button:disabled { opacity:.5;cursor:not-allowed; }
+
+.btn-blue { background:#075985; }
+.btn-green { background:#166534; }
+.btn-purple { background:#43318a; }
+.btn-red { background:#991b1b; }
+.btn-gray {
+  background:#24364a;
+  border:1px solid #3a5068;
+}
+
+input {
+  width:100%;
+  background:#081625;
+  color:white;
+  border:1px solid #30465d;
+  border-radius:5px;
+  padding:11px;
+  margin-bottom:8px;
+  font-size:13px;
+  outline:none;
+}
+
+input:focus {
+  border-color:var(--cyan);
+  box-shadow:0 0 0 2px #22d3ee20;
+}
+
+header {
+  background:linear-gradient(110deg,#0b1929,#102b46);
+  border-bottom:1px solid #294660;
+  padding:17px 22px;
+  box-shadow:0 4px 20px #0005;
+}
+
+.header-inner {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+  flex-wrap:wrap;
+}
+
+h1 {
+  font-size:23px;
+  margin:0;
+  font-weight:800;
+}
+
+.subtitle {
+  color:#8da9c3;
+  font-size:11px;
+  margin-top:6px;
+  letter-spacing:1px;
+}
+
+.header-right {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+.system-status {
+  color:var(--green);
+  background:#103527;
+  border:1px solid #226348;
+  padding:8px 12px;
+  border-radius:5px;
+  font-size:11px;
+  font-weight:bold;
+}
+
+.clock {
+  color: #22d3ee;
+  font-size: 15px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 1px;
+  padding: 10px 14px;
+  background: #081625;
+  border: 1px solid #24516a;
+  border-radius: 6px;
+  box-shadow: 0 0 12px #22d3ee18;
+  white-space: nowrap;
+}
+
+/* 암호 입력과 확인 버튼 한 줄 배치 */
+.password-input-row {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.password-input-row input {
+  flex: 1;
+  width: 0;
+  min-width: 0;
+  height: 46px;
+  padding: 0 12px;
+  border: 1px solid #aeb5be;
+  border-radius: 10px;
+  background: #fff;
+  color: #20242a;
+  font: inherit;
+}
+
+.password-input-row .button {
+  flex: 0 0 82px;
+  width: 82px;
+  height: 46px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--primary);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#passwordStatus {
+  min-height: 24px;
+  margin: 8px 0 0;
+  color: var(--primary);
+  font-size: 14px;
+  text-align: left;
+}
+
+.password-input-row input:focus-visible,
+.password-input-row button:focus-visible {
+  outline: 3px solid #1769aa;
+  outline-offset: 3px;
+}
+
+/* 좌표·주소·차량 입력 제목 크기 조정 */
+.panel-body h3 {
+  font-size: 12px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+/* 입력창 높이 축소 */
+.panel-body input {
+  padding: 8px;
+  font-size: 11px;
+  margin-bottom: 6px;
+}
+
+/* 버튼 크기 축소 */
+.panel-body button {
+  padding: 8px;
+  font-size: 11px;
+  margin-bottom: 5px;
+}
+
+/* 진화 차량 목록 - 6대 표시 */
+#vehicleInfo {
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+/* 차량별 간격 */
+#vehicleInfo .resource-item {
+  padding: 8px 4px;
+  font-size: 10px;
+  min-height: 52px;
+}
+
+/* 스크롤바 */
+#vehicleInfo::-webkit-scrollbar {
+  width: 5px;
+}
+
+#vehicleInfo::-webkit-scrollbar-thumb {
+  background: #22d3ee;
+  border-radius: 5px;
+}
+
+#vehicleInfo::-webkit-scrollbar-track {
+  background: #081625;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- =========================================
+     암호 입력창
+========================================= -->
+<dialog id="passwordPanel"
+        class="password-panel"
+        aria-labelledby="passwordHeading"
+        aria-describedby="passwordDescription">
+
+  <h2 id="passwordHeading">암호 입력</h2>
+
+  <p id="passwordDescription">
+    접속하려면 접속 암호를 입력하세요.
+  </p>
+
+  <form id="passwordForm">
+    <div class="password-input-row">
+
+      <input
+        id="accessPassword"
+        name="accessPassword"
+        type="password"
+        placeholder="knps"
+        autocomplete="current-password"
+        maxlength="128"
+        required
+      >
+
+      <button type="submit" class="button">
+        확인
+      </button>
+
+    </div>
+
+    <p id="passwordStatus"
+       role="status"
+       aria-live="polite"></p>
+  </form>
+</dialog>
+
+<header>
+  <div class="header-inner">
+    <div>
+      <h1>🛡 무등산 산불 통합관제</h1>
+      <div class="subtitle">
+        MUDEUNGSAN NATIONAL PARK · FOREST FIRE CONTROL SYSTEM
+      </div>
+    </div>
+
+    <div class="header-right">
+      <div class="clock" id="systemClock">0000-00-00 00:00:00</div>
+      <div class="system-status" id="systemStatus">
+        ● SYSTEM STARTING
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- =================================
+     좌측 메인 관제 영역
+================================= -->
+
+<div class="left-area">
+
+  <!-- 산불 통계 -->
+  <div class="stats">
+
+    <div class="stat-card">
+      <div class="stat-label">산불 발생지역</div>
+      <div class="stat-value red">
+        <span id="riskCount">00</span>
+        <small>개소</small>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-label">수관 보관함</div>
+      <div class="stat-value cyan">
+        <span id="fireCount">07</span>
+        <small>개소</small>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-label">진화 차량</div>
+      <div class="stat-value green">
+        <span id="vehicleCount">00</span>
+        <small>대</small>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-label">통제 탐방로</div>
+      <div class="stat-value yellow">
+        <span id="trailCount">01</span>
+        <small>구간</small>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 탐방로 및 시설 통계 -->
+  <div class="stats">
+
+    <div class="stat-card">
+      <div class="stat-label">총 탐방로</div>
+      <div class="stat-value cyan">
+        96.76<small> km</small>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-label">개방 탐방로</div>
+      <div class="stat-value green">
+        95.96<small> km</small>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-label">감시 카메라</div>
+      <div class="stat-value cyan">
+        03<small> 대</small>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-label">통제소</div>
+      <div class="stat-value yellow">
+        02<small> 개소</small>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- GIS 지도 -->
+  <div class="section">
+
+    <div class="section-title">
+      📡 무등산 산불 감시 GIS 지도
+    </div>
+
+    <div id="map-container">
+      <div id="map"></div>
+    </div>
+
+  </div>
+  
+    <!-- GIS 지도 -->
+  <div class="section-title">
+    <span>📡 무등산 산불 감시 GIS 지도</span>
+
+    <div>
+      <button id="toggleMapTypeBtn" class="btn-gray">
+        위성영상 전환
+      </button>
+
+      <button id="forestMapBtn" class="btn-green">
+        🌳 산림분포 표시
+      </button>
+
+      <button id="windyMapBtn" class="btn-blue">
+        🌬 Windy 지도
+      </button>
+
+      <button id="leafletMapBtn" class="btn-gray">
+        GIS 지도
+      </button>
+    </div>
+  </div>
+
+  <div id="map-container">
+    <div id="map"></div>
+
+    <!-- Windy 기상지도 -->
+    <iframe
+      id="windyFrame"
+      style="
+        display:none;
+        width:100%;
+        height:100%;
+        border:0;
+      "
+      src="https://embed.windy.com/embed2.html?lat=35.1342&lon=126.9889&detailLat=35.1342&detailLon=126.9889&width=650&height=450&zoom=12&level=surface&overlay=wind&product=ecmwf&menu=&message=true&marker=true"
+      allowfullscreen>
+    </iframe>
+
+    <div class="map-legend">
+      <span><i class="dot red"></i>산불 발생지역</span>
+      <span><i class="dot blue"></i>수관 보관함</span>
+      <span><i class="dot green"></i>진화 차량</span>
+      <span><i class="dot yellow"></i>도로 분석</span>
+    </div>
+  </div>
+
+  <!-- 도로 측정 -->
+  <div class="section">
+
+    <div class="section-title">
+      <span>🛣 도로 폭·면적 GIS 분석</span>
+      <span style="color:#22d3ee;font-size:10px">
+        ROAD ANALYSIS
+      </span>
+    </div>
+
+    <div class="panel-body">
+
+      <div class="road-tools">
+
+        <div class="road-tool-column">
+          <h3>🛣 도로 자동 검색</h3>
+
+          <button id="roadSelectBtn" class="btn-blue">
+            지도에서 도로 선택
+          </button>
+
+          <button id="roadSatelliteBtn" class="btn-gray">
+            위성영상으로 도로 확인
+          </button>
+        </div>
+
+        <div class="road-tool-column">
+          <h3>↔ 도로 폭 직접 측정</h3>
+
+          <button id="roadWidthBtn" class="btn-green">
+            도로 양쪽 경계 측정 시작
+          </button>
+
+          <button id="roadClearBtn" class="btn-red">
+            측정 결과 지우기
+          </button>
+        </div>
+
+      </div>
+
+      <div id="roadInfo" class="info-panel" style="margin-top:12px">
+도로 선택 또는 직접 측정을 시작하세요.
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 상세정보 -->
+  <div class="section">
+
+    <div class="section-title">
+      📋 상세 상황 정보
+    </div>
+
+    <div class="panel-body">
+      <div id="infoPanel" class="info-panel">
+마커를 선택하면 위치 및 등록 상세정보가 표시됩니다.
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- =================================
+     우측 상황관제 사이드바
+================================= -->
+
+<aside class="right-area">
+
+  <!-- 시스템 통신 상태 -->
+  <div class="section">
+
+    <div class="section-title">
+      📡 시스템 연결 상태
+    </div>
+
+    <div class="panel-body">
+
+      <div class="status-line">
+        <span>GIS 지도</span>
+        <strong id="mapConnectionStatus">
+          확인 중
+        </strong>
+      </div>
+
+      <div class="status-line">
+        <span>서버 상태</span>
+        <strong id="gasConnectionStatus">
+          확인 중
+        </strong>
+      </div>
+
+      <div class="status-line">
+        <span>GPS 지원</span>
+        <strong id="gpsConnectionStatus">
+          확인 중
+        </strong>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 외부 대응 시스템 -->
+  <div class="section">
+
+    <div class="section-title">
+      🔗 산불 대응 시스템
+    </div>
+
+    <div class="panel-body quick-links">
+
+      <button class="btn-purple"
+        data-url="https://www.weather.go.kr/w/weather/land/aws-obs.do">
+        지역별상관측(신규)
+      </button>
+
+      <button class="btn-purple"
+        data-url="https://fd.forest.go.kr">
+        실시간 산불정보
+      </button>
+
+      <button class="btn-purple"
+        data-url="https://map.forest.go.kr/forest/">
+        산림공간정보서비스
+      </button>
+
+      <button class="btn-purple"
+        data-url="http://forestfire.nifos.go.kr">
+        산불위험예보
+      </button>
+
+      <button class="btn-purple"
+        data-url="https://mudeung.github.io/rescue/searchems.html">
+        비상대응 상황판
+      </button>
+
+      <button class="btn-purple"
+        data-url="https://www.knps.or.kr/front/portal/safe/acsCtrList.do?menuNo=8000340">
+        탐방로 통제정보
+      </button>
+
+    </div>
+  </div>
+
+  <!-- 산불 발생지역 등록 -->
+  <div class="section">
+
+    <div class="section-title">
+      🚨 산불 발생지역 등록
+    </div>
+
+    <div class="panel-body">
+
+      <h3>📍 좌표 검색</h3>
+
+      <input id="latInput" type="number" step="any"
+        placeholder="위도 (예: 35.1286)">
+
+      <input id="lngInput" type="number" step="any"
+        placeholder="경도 (예: 126.9699)">
+
+      <button id="addByCoordBtn" class="btn-green">
+        ＋ 좌표로 산불 발생지역 등록
+      </button>
+
+      <hr style="border-color:#263c53;margin:12px 0">
+
+      <h3>📍 주소 검색</h3>
+
+      <input id="addressInput" placeholder="주소 입력">
+
+      <button id="addByAddressBtn" class="btn-green">
+        ⌖ 주소로 위치 표시
+      </button>
+
+      <button id="addPointBtn" class="btn-blue">
+        ＋ 지도에서 클릭하여 표시
+      </button>
+
+    </div>
+  </div>
+
+  <!-- 차량 위치 관리 -->
+  <div class="section">
+
+    <div class="section-title">
+      🚒 진화 차량 위치 관리
+    </div>
+
+    <div class="panel-body">
+
+      <h3>📍 차량 좌표 등록</h3>
+
+      <input id="vehicleName"
+        placeholder="차량명 (예: 진화 차량 01)">
+
+      <input id="vehicleLat" type="number" step="any"
+        placeholder="위도">
+
+      <input id="vehicleLng" type="number" step="any"
+        placeholder="경도">
+
+      <button id="addVehicleBtn" class="btn-green">
+        ＋ 진화 차량 등록
+      </button>
+
+      <button id="vehicleLocationBtn" class="btn-blue">
+        GPS 현재 위치 등록
+      </button>
+
+      <div id="vehicleInfo" class="info-panel">
+등록된 진화 차량이 없습니다.
+      </div>
+
+    </div>
+  </div>
+
+</aside>
+
+</main>
+
+<div class="footer">
+  MUDEUNGSAN FOREST FIRE CONTROL CENTER
+  · 산불 예방 및 안전관리
+  · GIS INTEGRATED MONITORING SYSTEM
+</div>
+
+  <!-- GIS 지도 -->
+  <div class="section-title">
+    <span>📡 무등산 산불 감시 GIS 지도</span>
+
+    <div>
+      <button id="toggleMapTypeBtn" class="btn-gray">
+        위성영상 전환
+      </button>
+
+      <button id="forestMapBtn" class="btn-green">
+        🌳 산림분포 표시
+      </button>
+
+      <button id="windyMapBtn" class="btn-blue">
+        🌬 Windy 지도
+      </button>
+
+      <button id="leafletMapBtn" class="btn-gray">
+        GIS 지도
+      </button>
+    </div>
+  </div>
+
+  <div id="map-container">
+    <div id="map"></div>
+
+    <!-- Windy 기상지도 -->
+    <iframe
+      id="windyFrame"
+      style="
+        display:none;
+        width:100%;
+        height:100%;
+        border:0;
+      "
+      src="https://embed.windy.com/embed2.html?lat=35.1342&lon=126.9889&detailLat=35.1342&detailLon=126.9889&width=650&height=450&zoom=12&level=surface&overlay=wind&product=ecmwf&menu=&message=true&marker=true"
+      allowfullscreen>
+    </iframe>
+
+    <div class="map-legend">
+      <span><i class="dot red"></i>산불 발생지역</span>
+      <span><i class="dot blue"></i>수관 보관함</span>
+      <span><i class="dot green"></i>진화 차량</span>
+      <span><i class="dot yellow"></i>도로 분석</span>
+    </div>
+  </div>
+
+  <!-- 도로 측정 -->
+  <div class="section">
+
+    <div class="section-title">
+      <span>🛣 도로 폭·면적 GIS 분석</span>
+      <span style="color:#22d3ee;font-size:10px">
+        ROAD ANALYSIS
+      </span>
+    </div>
+
+    <div class="panel-body">
+
+      <div class="road-tools">
+
+        <div class="road-tool-column">
+          <h3>🛣 도로 자동 검색</h3>
+
+          <button id="roadSelectBtn" class="btn-blue">
+            지도에서 도로 선택
+          </button>
+
+          <button id="roadSatelliteBtn" class="btn-gray">
+            위성영상으로 도로 확인
+          </button>
+        </div>
+
+        <div class="road-tool-column">
+          <h3>↔ 도로 폭 직접 측정</h3>
+
+          <button id="roadWidthBtn" class="btn-green">
+            도로 양쪽 경계 측정 시작
+          </button>
+
+          <button id="roadClearBtn" class="btn-red">
+            측정 결과 지우기
+          </button>
+        </div>
+
+      </div>
+
+      <div id="roadInfo" class="info-panel" style="margin-top:12px">
+도로 선택 또는 직접 측정을 시작하세요.
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 상세정보 -->
+  <div class="section">
+
+    <div class="section-title">
+      📋 상세 상황 정보
+    </div>
+
+    <div class="panel-body">
+      <div id="infoPanel" class="info-panel">
+마커를 선택하면 위치 및 등록 상세정보가 표시됩니다.
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- =================================
+     우측 상황관제 사이드바
+================================= -->
+
+<aside class="right-area">
+
+  <!-- 시스템 통신 상태 -->
+  <div class="section">
+
+    <div class="section-title">
+      📡 시스템 연결 상태
+    </div>
+
+    <div class="panel-body">
+
+      <div class="status-line">
+        <span>GIS 지도</span>
+        <strong id="mapConnectionStatus">
+          확인 중
+        </strong>
+      </div>
+
+      <div class="status-line">
+        <span>서버 상태</span>
+        <strong id="gasConnectionStatus">
+          확인 중
+        </strong>
+      </div>
+
+      <div class="status-line">
+        <span>GPS 지원</span>
+        <strong id="gpsConnectionStatus">
+          확인 중
+        </strong>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 외부 대응 시스템 -->
+  <div class="section">
+
+    <div class="section-title">
+      🔗 산불 대응 시스템
+    </div>
+
+    <div class="panel-body quick-links">
+
+      <button class="btn-purple"
+        data-url="https://www.weather.go.kr/w/weather/land/aws-obs.do">
+        지역별상관측(신규)
+      </button>
+
+      <button class="btn-purple"
+        data-url="https://fd.forest.go.kr">
+        실시간 산불정보
+      </button>
+
+      <button class="btn-purple"
+        data-url="https://map.forest.go.kr/forest/">
+        산림공간정보서비스
+      </button>
+
+      <button class="btn-purple"
+        data-url="http://forestfire.nifos.go.kr">
+        산불위험예보
+      </button>
+
+      <button class="btn-purple"
+        data-url="https://mudeung.github.io/rescue/searchems.html">
+        비상대응 상황판
+      </button>
+
+      <button class="btn-purple"
+        data-url="https://www.knps.or.kr/front/portal/safe/acsCtrList.do?menuNo=8000340">
+        탐방로 통제정보
+      </button>
+
+    </div>
+  </div>
+
+  <!-- 산불 발생지역 등록 -->
+  <div class="section">
+
+    <div class="section-title">
+      🚨 산불 발생지역 등록
+    </div>
+
+    <div class="panel-body">
+
+      <h3>📍 좌표 검색</h3>
+
+      <input id="latInput" type="number" step="any"
+        placeholder="위도 (예: 35.1286)">
+
+      <input id="lngInput" type="number" step="any"
+        placeholder="경도 (예: 126.9699)">
+
+      <button id="addByCoordBtn" class="btn-green">
+        ＋ 좌표로 산불 발생지역 등록
+      </button>
+
+      <hr style="border-color:#263c53;margin:12px 0">
+
+      <h3>📍 주소 검색</h3>
+
+      <input id="addressInput" placeholder="주소 입력">
+
+      <button id="addByAddressBtn" class="btn-green">
+        ⌖ 주소로 위치 표시
+      </button>
+
+      <button id="addPointBtn" class="btn-blue">
+        ＋ 지도에서 클릭하여 표시
+      </button>
+
+    </div>
+  </div>
+
+  <!-- 차량 위치 관리 -->
+  <div class="section">
+
+    <div class="section-title">
+      🚒 진화 차량 위치 관리
+    </div>
+
+    <div class="panel-body">
+
+      <h3>📍 차량 좌표 등록</h3>
+
+      <input id="vehicleName"
+        placeholder="차량명 (예: 진화 차량 01)">
+
+      <input id="vehicleLat" type="number" step="any"
+        placeholder="위도">
+
+      <input id="vehicleLng" type="number" step="any"
+        placeholder="경도">
+
+      <button id="addVehicleBtn" class="btn-green">
+        ＋ 진화 차량 등록
+      </button>
+
+      <button id="vehicleLocationBtn" class="btn-blue">
+        GPS 현재 위치 등록
+      </button>
+
+      <div id="vehicleInfo" class="info-panel">
+등록된 진화 차량이 없습니다.
+      </div>
+
+    </div>
+  </div>
+
+</aside>
+
+</main>
+
+<div class="footer">
+  MUDEUNGSAN FOREST FIRE CONTROL CENTER
+  · 산불 예방 및 안전관리
+  · GIS INTEGRATED MONITORING SYSTEM
+</div>
+
+```html
+    if (!data || typeof data !== "object") {
+
+      console.error(
+        "서버 데이터 형식 오류:",
+        data
+      );
+
+      return;
+
+    }
+
+    // ==========================================
+    // ① 산불 발생지역 복원
+    // ==========================================
+
+    const riskData = Array.isArray(data.risks)
+      ? data.risks
+      : [];
+
+    riskData.forEach(item => {
+
+      const lat = Number(item.lat);
+      const lng = Number(item.lng);
+
+      if (!validateCoordinates(lat, lng)) {
+        return;
+      }
+
+      const duplicate = markers.some(marker =>
+
+        (
+          item.id &&
+          String(marker.id) === String(item.id)
+        ) ||
+
+        (
+          marker.type === (item.type || "risk") &&
+          Math.abs(marker.lat - lat) < 0.000001 &&
+          Math.abs(marker.lng - lng) < 0.000001
+        )
+
+      );
+
+      if (duplicate) return;
+
+      addFireMarker(
+        lat,
+        lng,
+        item.type || "risk",
+        item.title || item.name || "산불 발생지역",
+        item.description || "",
+        item.date || "",
+        false,
+        item.id || null
+      );
+
+    });
+
+
+    // ==========================================
+    // ② 진화 차량 데이터 복원
+    // ==========================================
+
+    const vehicleData = Array.isArray(data.vehicles)
+      ? data.vehicles
+      : [];
+
+    vehicleData.forEach(item => {
+
+      const name = String(
+        item.name || ""
+      ).trim();
+
+      const lat = Number(item.lat);
+      const lng = Number(item.lng);
+
+      if (
+        !name ||
+        !validateCoordinates(lat, lng)
+      ) {
+
+        console.warn(
+          "잘못된 차량 데이터:",
+          item
+        );
+
+        return;
+
+      }
+
+      // 기존 차량 검색
+      let existing = item.id
+
+        ? vehicles.find(
+            v => String(v.id) === String(item.id)
+          )
+
+        : null;
+
+      if (!existing) {
+
+        existing = vehicles.find(
+          v => v.name === name
+        );
+
+      }
+
+      if (existing) {
+
+        existing.id = item.id || existing.id;
+        existing.name = name;
+        existing.lat = lat;
+        existing.lng = lng;
+
+        existing.marker.setLatLng([
+          lat,
+          lng
+        ]);
+
+        existing.updatedAt =
+          item.updatedAt ||
+          item.updated_at ||
+          existing.updatedAt;
+
+        existing.marker.setPopupContent(`
+
+          <b>🚒 ${escapeHTML(name)}</b><br>
+
+          위도: ${lat.toFixed(6)}<br>
+
+          경도: ${lng.toFixed(6)}
+
+        `);
+
+      } else {
+
+        addVehicle(
+          name,
+          lat,
+          lng,
+          false,
+          item.id || null
+        );
+
+        const added = vehicles.find(
+          v => v.name === name
+        );
+
+        if (added) {
+
+          added.updatedAt =
+            item.updatedAt ||
+            item.updated_at ||
+            added.updatedAt;
+
+        }
+
+      }
+
+    });
+
+
+    // ==========================================
+    // ③ 통계 갱신
+    // ==========================================
+
+    updateFireCount();
+    updateRiskCount();
+    updateVehicleInfo();
+
+    console.log(
+      "Google Sheets 데이터 복원 완료"
+    );
+
+    console.log(
+      "산불 지점:",
+      riskData.length
+    );
+
+    console.log(
+      "진화 차량:",
+      vehicleData.length
+    );
+
+  })
+
+  .withFailureHandler(gasError)
+
+  .getDashboardData();
+
+}
+
+
+// ==========================================
+// ⑯ 지도 실행 (수정본)
+// ==========================================
+
+function startMap() {
+
+  // Leaflet 확인
+  if (typeof L === "undefined") {
+
+    console.error(
+      "Leaflet 라이브러리 로딩 실패"
+    );
+
+    $("map").textContent =
+      "Leaflet 라이브러리를 불러오지 못했습니다.";
+
+    return;
+
+  }
+
+  // 중복 실행 방지
+  if (map) return;
+
+  // 지도 초기화
+  initMap();
+
+  // 지도 초기화 성공 여부 확인
+  if (!map) {
+
+    console.error(
+      "지도 초기화에 실패했습니다."
+    );
+
+    return;
+
+  }
+
+  // Google Sheets 데이터 불러오기
+  loadGasData();
+
+}
+
+
+// ==========================================
+// HTML 로딩 완료 후 지도 실행
+// ==========================================
+
+if (document.readyState === "loading") {
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    startMap,
+    { once: true }
+  );
+
+} else {
+
+  startMap();
+
+}
+
+
+// ==========================================
+// Google Apps Script 서버 연결 상태 확인
+// ==========================================
+
+function checkGasConnection() {
+
+  const status = $("gasConnectionStatus");
+
+  if (!status) return;
+
+  status.textContent = "● 서버 확인 중";
+  status.style.color = "#fbbf24";
+
+  google.script.run
+
+    .withSuccessHandler(function(result) {
+
+      if (result && result.connected === true) {
+
+        status.textContent = "● 정상 연결";
+        status.style.color = "#4ade80";
+
+      } else {
+
+        status.textContent = "● 응답 오류";
+        status.style.color = "#fb5365";
+
+      }
+
+    })
+
+    .withFailureHandler(function(error) {
+
+      status.textContent = "● 연결 실패";
+      status.style.color = "#fb5365";
+
+      console.error("서버 연결 오류:", error);
+
+    })
+
+    .checkServerStatus();
+
+}
+
+
+// ==========================================
+// 서버 연결 상태 자동 확인
+// ==========================================
+
+checkGasConnection();
+
+// 30초마다 서버 연결 확인
+setInterval(checkGasConnection, 30000);
+
+
+// ==========================================
+// 산불 대응 시스템 외부 링크 연결
+// ==========================================
+
+document.querySelectorAll(
+  '.quick-links button[data-url]'
+).forEach(button => {
+
+  button.addEventListener('click', function() {
+
+    const url = this.dataset.url;
+
+    if (!url) return;
+
+    window.open(url, '_blank', 'noopener');
+
+  });
+
+});
+
+
+// ==========================================
+// GIS 지도 ↔ Windy 지도 전환
+// ==========================================
+
+function switchToGISMap() {
+
+  const gis = document.getElementById("map");
+  const windy = document.getElementById("windyFrame");
+
+  if (!gis || !windy) return;
+
+  windy.style.display = "none";
+  gis.style.display = "block";
+
+  document.getElementById("toggleMapTypeBtn").disabled = false;
+
+  if (map) {
+    setTimeout(function() {
+      map.invalidateSize(true);
+    }, 300);
+  }
+
+}
+
+function switchToWindyMap() {
+
+  const gis = document.getElementById("map");
+  const windy = document.getElementById("windyFrame");
+
+  if (!gis || !windy) return;
+
+  gis.style.display = "none";
+  windy.style.display = "block";
+
+  document.getElementById("toggleMapTypeBtn").disabled = true;
+
+}
+
+// GIS 버튼
+document.getElementById("leafletMapBtn")
+  .addEventListener("click", switchToGISMap);
+
+// Windy 버튼
+document.getElementById("windyMapBtn")
+  .addEventListener("click", switchToWindyMap);
+
+
+// ==========================================
+// 시스템 연결 상태 실시간 확인
+// ==========================================
+
+function updateConnectionStatus() {
+
+  // ① GIS 지도
+  const mapStatus = $("mapConnectionStatus");
+
+  if (mapStatus) {
+    mapStatus.textContent = map
+      ? "● 정상 연결"
+      : "● 연결 실패";
+
+    mapStatus.style.color = map
+      ? "#4ade80"
+      : "#fb5365";
+  }
+
+  // ② Google Apps Script 서버
+  // checkGasConnection()에서 확인한 상태를 유지
+
+  // ③ GPS 지원 여부
+  const gpsStatus = $("gpsConnectionStatus");
+
+  if (gpsStatus) {
+    gpsStatus.textContent =
+      navigator.geolocation
+        ? "● 지원 가능"
+        : "● 지원 안 함";
+
+    gpsStatus.style.color =
+      navigator.geolocation
+        ? "#4ade80"
+        : "#fb5365";
+  }
+
+}
+
+// 최초 실행
+updateConnectionStatus();
+
+// 5초마다 갱신
+setInterval(updateConnectionStatus, 5000);
+
+
+// =========================================================
+// PREVENT CONTEXT MENU
+// =========================================================
+
+document.addEventListener(
+
+    "contextmenu",
+
+    function(e){
+
+        e.preventDefault();
+
+        return false;
+
+    }
+
+);
+
+
+// =========================================================
+// KEYBOARD PROTECTION
+// =========================================================
+
+document.addEventListener(
+
+    "keydown",
+
+    function(e){
+
+        if(e.key === "F12"){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+
+        if(
+            e.ctrlKey &&
+            e.key.toLowerCase() === "u"
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+
+        if(
+            e.ctrlKey &&
+            e.shiftKey &&
+            e.key.toLowerCase() === "i"
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+
+        if(
+            e.ctrlKey &&
+            e.shiftKey &&
+            e.key.toLowerCase() === "j"
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+
+        if(
+            e.ctrlKey &&
+            e.shiftKey &&
+            e.key.toLowerCase() === "c"
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+
+        if(
+            e.ctrlKey &&
+            e.key.toLowerCase() === "s"
+        ){
+
+            e.preventDefault();
+
+            return false;
+
+        }
+
+    }
+
+);
+
+</script>
+
+</body>
+
+</html>
