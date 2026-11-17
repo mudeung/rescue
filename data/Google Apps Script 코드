@@ -1,0 +1,21 @@
+
+const FOREST_GEOJSON_FILE_ID = "구글드라이브_파일_ID";
+
+function getForestGeoJSON() {
+  const file = DriveApp.getFileById(
+    FOREST_GEOJSON_FILE_ID
+  );
+
+  const json = file.getBlob().getDataAsString("UTF-8");
+
+  const data = JSON.parse(json);
+
+  if (
+    data.type !== "FeatureCollection" ||
+    !Array.isArray(data.features)
+  ) {
+    throw new Error("올바른 GeoJSON 파일이 아닙니다.");
+  }
+
+  return data;
+}
