@@ -4305,33 +4305,47 @@ document.querySelectorAll(
 // GIS 지도 ↔ Windy 지도 전환
 // ==========================================
 
-$("windyMapBtn").addEventListener("click", function() {
+function switchToGISMap() {
 
-  $("map").style.display = "none";
-  $("windyFrame").style.display = "block";
+  const gis = document.getElementById("map");
+  const windy = document.getElementById("windyFrame");
 
-  $("toggleMapTypeBtn").disabled = true;
+  if (!gis || !windy) return;
 
-  if (map) {
-    map.invalidateSize();
-  }
+  windy.style.display = "none";
+  gis.style.display = "block";
 
-});
-
-$("leafletMapBtn").addEventListener("click", function() {
-
-  $("windyFrame").style.display = "none";
-  $("map").style.display = "block";
-
-  $("toggleMapTypeBtn").disabled = false;
+  document.getElementById("toggleMapTypeBtn").disabled = false;
 
   if (map) {
     setTimeout(function() {
-      map.invalidateSize();
-    }, 200);
+      map.invalidateSize(true);
+    }, 300);
   }
 
-});
+}
+
+function switchToWindyMap() {
+
+  const gis = document.getElementById("map");
+  const windy = document.getElementById("windyFrame");
+
+  if (!gis || !windy) return;
+
+  gis.style.display = "none";
+  windy.style.display = "block";
+
+  document.getElementById("toggleMapTypeBtn").disabled = true;
+
+}
+
+// GIS 버튼
+document.getElementById("leafletMapBtn")
+  .addEventListener("click", switchToGISMap);
+
+// Windy 버튼
+document.getElementById("windyMapBtn")
+  .addEventListener("click", switchToWindyMap);
 
 // ==========================================
 // 시스템 연결 상태 실시간 확인
