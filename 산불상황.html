@@ -759,18 +759,39 @@ main {
   </div>
 
   <!-- GIS 지도 -->
-  <div class="section">
+<div class="section-title">
+  <span>📡 무등산 산불 감시 GIS 지도</span>
 
-    <div class="section-title">
-      <span>📡 무등산 산불 감시 GIS 지도</span>
+  <div>
+    <button id="toggleMapTypeBtn" class="btn-gray">
+      위성영상 전환
+    </button>
 
-      <button id="toggleMapTypeBtn" class="btn-gray">
-        위성영상 전환
-      </button>
-    </div>
+    <button id="windyMapBtn" class="btn-blue">
+      🌬 Windy 지도
+    </button>
+
+    <button id="leafletMapBtn" class="btn-gray">
+      GIS 지도
+    </button>
+  </div>
+</div>
 
     <div id="map-container">
       <div id="map"></div>
+      
+       <!-- Windy 기상지도 -->
+  <iframe
+    id="windyFrame"
+    style="
+      display:none;
+      width:100%;
+      height:100%;
+      border:0;
+    "
+    src="https://embed.windy.com/embed2.html?lat=35.1342&lon=126.9889&detailLat=35.1342&detailLon=126.9889&width=650&height=450&zoom=12&level=surface&overlay=wind&product=ecmwf&menu=&message=true&marker=true"
+    allowfullscreen>
+  </iframe>
 
       <div class="map-legend">
         <span><i class="dot red"></i>산불 발생지역</span>
@@ -4281,6 +4302,38 @@ document.querySelectorAll(
   });
 
 });  
+
+// ==========================================
+// GIS 지도 ↔ Windy 지도 전환
+// ==========================================
+
+$("windyMapBtn").addEventListener("click", function() {
+
+  $("map").style.display = "none";
+  $("windyFrame").style.display = "block";
+
+  $("toggleMapTypeBtn").disabled = true;
+
+  if (map) {
+    map.invalidateSize();
+  }
+
+});
+
+$("leafletMapBtn").addEventListener("click", function() {
+
+  $("windyFrame").style.display = "none";
+  $("map").style.display = "block";
+
+  $("toggleMapTypeBtn").disabled = false;
+
+  if (map) {
+    setTimeout(function() {
+      map.invalidateSize();
+    }, 200);
+  }
+
+});
 
 // ==========================================
 // 시스템 연결 상태 실시간 확인
