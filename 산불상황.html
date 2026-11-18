@@ -244,6 +244,7 @@ main {
   width:100%;
   height:65vh;
   min-height:430px;
+  overflow: hidden;
 }
 
 #map {
@@ -782,26 +783,23 @@ main {
       
        <!-- Windy 기상지도 -->
 
+<iframe
+  id="windyFrame"
+  title="무등산 Windy 기상지도"
+  style="
+    display:none;
+    width:100%;
+    height:100%;
+    min-height:380px;
+    border:0;
+    position:absolute;
+    inset:0;
+    z-index:10;
+  "
+  src="https://embed.windy.com/embed2.html?lat=35.1342&lon=126.9889&zoom=12&level=surface&overlay=wind&product=ecmwf&menu=true&message=true&marker=true"
+  allowfullscreen>
+</iframe>
 
-// ==========================================
-// WINDY 마우스 휠 확대 및 축소 지원
-// ==========================================
-
-const windyFrame = document.getElementById("windyFrame");
-
-windyFrame.addEventListener("load", function() {
-  console.log("Windy 기상지도 로딩 완료");
-});
-
-// GIS ↔ Windy 전환 시 지도 크기 유지
-function refreshWindyMap() {
-  if (windyFrame.style.display === "block") {
-    windyFrame.style.width = "100%";
-    windyFrame.style.height = "100%";
-  }
-}
-
-window.addEventListener("resize", refreshWindyMap);
 
 
       <div class="map-legend">
@@ -4316,24 +4314,20 @@ document.querySelectorAll(
 // GIS 지도 ↔ Windy 지도 전환
 // ==========================================
 
+
 function switchToGISMap() {
 
   const gis = document.getElementById("map");
   const windy = document.getElementById("windyFrame");
 
-  if (!gis || !windy) return;
-
-  windy.style.display = "none";
   gis.style.display = "block";
+  windy.style.display = "none";
 
   document.getElementById("toggleMapTypeBtn").disabled = false;
 
   if (map) {
-    setTimeout(function() {
-      map.invalidateSize(true);
-    }, 300);
+    setTimeout(() => map.invalidateSize(true), 300);
   }
-
 }
 
 function switchToWindyMap() {
@@ -4341,22 +4335,18 @@ function switchToWindyMap() {
   const gis = document.getElementById("map");
   const windy = document.getElementById("windyFrame");
 
-  if (!gis || !windy) return;
-
   gis.style.display = "none";
   windy.style.display = "block";
 
   document.getElementById("toggleMapTypeBtn").disabled = true;
-
 }
 
-// GIS 버튼
 document.getElementById("leafletMapBtn")
   .addEventListener("click", switchToGISMap);
 
-// Windy 버튼
 document.getElementById("windyMapBtn")
   .addEventListener("click", switchToWindyMap);
+
 
 // ==========================================
 // 시스템 연결 상태 실시간 확인
