@@ -785,18 +785,13 @@ main {
 
 <iframe
   id="windyFrame"
-  title="무등산 Windy 기상지도"
   style="
     display:none;
     width:100%;
     height:100%;
-    min-height:380px;
     border:0;
-    position:absolute;
-    inset:0;
-    z-index:10;
   "
-  src="https://embed.windy.com/embed2.html?lat=35.1342&lon=126.9889&zoom=12&level=surface&overlay=wind&product=ecmwf&menu=true&message=true&marker=true"
+  src="https://embed.windy.com/embed2.html?lat=35.1342&lon=126.9889&detailLat=35.1342&detailLon=126.9889&width=650&height=450&zoom=12&level=surface&overlay=wind&product=ecmwf&menu=true&message=true&marker=true"
   allowfullscreen>
 </iframe>
 
@@ -874,6 +869,28 @@ main {
 
 </div>
 
+
+// ==========================================
+// WINDY 마우스 휠 확대 및 축소 지원
+// ==========================================
+
+const windyFrame = document.getElementById("windyFrame");
+
+windyFrame.addEventListener("load", function() {
+  console.log("Windy 기상지도 로딩 완료");
+});
+
+// GIS ↔ Windy 전환 시 지도 크기 유지
+function refreshWindyMap() {
+  if (windyFrame.style.display === "block") {
+    windyFrame.style.width = "100%";
+    windyFrame.style.height = "100%";
+  }
+}
+
+window.addEventListener("resize", refreshWindyMap);
+
+ 
 <!-- =================================
      우측 상황관제 사이드바
 ================================= -->
