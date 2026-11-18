@@ -868,28 +868,6 @@ main {
   </div>
 
 </div>
-
-
-// ==========================================
-// WINDY 마우스 휠 확대 및 축소 지원
-// ==========================================
-
-const windyFrame = document.getElementById("windyFrame");
-
-windyFrame.addEventListener("load", function() {
-  console.log("Windy 기상지도 로딩 완료");
-});
-
-// GIS ↔ Windy 전환 시 지도 크기 유지
-function refreshWindyMap() {
-  if (windyFrame.style.display === "block") {
-    windyFrame.style.width = "100%";
-    windyFrame.style.height = "100%";
-  }
-}
-
-window.addEventListener("resize", refreshWindyMap);
-
  
 <!-- =================================
      우측 상황관제 사이드바
@@ -4410,6 +4388,28 @@ updateConnectionStatus();
 // 5초마다 갱신
 setInterval(updateConnectionStatus, 5000);
 
+
+// ==========================================
+// WINDY 마우스 휠 확대 및 축소 지원
+// ==========================================
+
+const windyFrame = document.getElementById("windyFrame");
+
+windyFrame.addEventListener("load", function() {
+  console.log("Windy 기상지도 로딩 완료");
+});
+
+// GIS ↔ Windy 전환 시 지도 크기 유지
+function refreshWindyMap() {
+  if (windyFrame.style.display === "block") {
+    windyFrame.style.width = "100%";
+    windyFrame.style.height = "100%";
+  }
+}
+
+window.addEventListener("resize", refreshWindyMap);
+
+ 
 // =========================================================
 // PREVENT CONTEXT MENU
 // =========================================================
