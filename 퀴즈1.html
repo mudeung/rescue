@@ -633,26 +633,6 @@ footer {
     🎮 진행 방법 : O 또는 X 선택
   </div>
 
- <!-- 누적 퀴즈 실행 횟수 -->
-<div class="info" style="background:linear-gradient(135deg,#fff8df,#fff1d5);
-     border:1px solid #f2d99b;">
-
-  <div style="font-size:18px;font-weight:900;color:#94651b;">
-    🏔️ 국립공원 산악안전 퀴즈 참여 현황
-  </div>
-
-  <div id="totalPlayCount"
-       style="font-size:42px;font-weight:900;color:#218653;
-       margin:10px 0;">
-    0회
-  </div>
-
-  <div style="font-size:15px;color:#806b43;">
-    지금까지 누적 퀴즈 실행 횟수
-  </div>
-
-</div>
-
 <button class="start" onclick="startQuiz()">
   🚀 퀴즈 시작하기!
 </button>
@@ -1256,33 +1236,6 @@ function showResult() {
   showCelebration();
 }
 
-// 누적 퀴즈 실행 횟수
-let totalPlayCount = Number(
-  localStorage.getItem("mountainQuizPlayCount") || 0
-);
-
-// 메인 화면 카운터 표시
-function updatePlayCount() {
-  document.getElementById("totalPlayCount").textContent =
-    totalPlayCount.toLocaleString("ko-KR") + "회";
-}
-
-// 퀴즈 실행 횟수 증가
-function increasePlayCount() {
-  totalPlayCount++;
-
-  localStorage.setItem(
-    "mountainQuizPlayCount",
-    totalPlayCount
-  );
-
-  updatePlayCount();
-}
-
-// 페이지 최초 실행 시 표시
-document.addEventListener("DOMContentLoaded", updatePlayCount);
-
-   
 </script>
 
 </body>
