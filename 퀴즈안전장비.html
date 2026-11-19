@@ -476,15 +476,7 @@ footer {
     🎯 진행 방법 : 필요한 장비 모두 선택
   </div>
 
-  <button class="start" onclick="startQuiz()">
-    🚀 퀴즈 시작하기!
-  </button>
-  <br>
-  <button class="sound-btn" id="soundToggle"
-          onclick="toggleSound()">🔊 소리 켜짐</button>
-</div>
-
-<!-- 누적 퀴즈 실행 횟수 -->
+  <!-- 누적 퀴즈 실행 횟수 -->
 <div class="info" style="background:linear-gradient(135deg,#fff8df,#fff1d5);
      border:1px solid #f2d99b;">
 
@@ -503,7 +495,19 @@ footer {
   </div>
 
 </div>
-  
+
+<button class="start" onclick="startQuiz()">
+  🚀 퀴즈 시작하기!
+</button>
+
+<br>
+
+<button class="sound-btn" id="soundToggle"
+        onclick="toggleSound()">
+  🔊 소리 켜짐
+</button>
+
+<!-- 문제 화면 -->  
 <div id="quiz" class="hidden">
   <div class="progress-info">
     <span id="number">1 / 10</span>
@@ -1164,6 +1168,32 @@ function showResult() {
   );
 }
 
+// 누적 퀴즈 실행 횟수
+let totalPlayCount = Number(
+  localStorage.getItem("mountainQuizPlayCount") || 0
+);
+
+// 메인 화면 카운터 표시
+function updatePlayCount() {
+  document.getElementById("totalPlayCount").textContent =
+    totalPlayCount.toLocaleString("ko-KR") + "회";
+}
+
+// 퀴즈 실행 횟수 증가
+function increasePlayCount() {
+  totalPlayCount++;
+
+  localStorage.setItem(
+    "mountainQuizPlayCount",
+    totalPlayCount
+  );
+
+  updatePlayCount();
+}
+
+// 페이지 최초 실행 시 표시
+document.addEventListener("DOMContentLoaded", updatePlayCount);
+  
 </script>
 
 </body>
