@@ -1490,6 +1490,20 @@ input:focus-visible {
   }
 }
 
+/* 모든 상황 카드 왼쪽 그림 제거 */
+.card-thumb {
+  display: none;
+}
+
+.card-copy {
+  width: 100%;
+  flex: 1;
+}
+
+/* 첫 화면 오른쪽 그림 제거 */
+.lead-art {
+  display: none;
+}
 
 </style>
 
@@ -2722,11 +2736,7 @@ function renderHome() {
 
   $('cards').innerHTML = SC.map((sc, i) => `
     <article class="card">
-      <div class="card-thumb">
-        <img src="${escapeHTML(sc.img)}"
-             alt="${escapeHTML(sc.title)}">
-      </div>
-
+      
       <div class="card-copy">
         <div class="card-meta">
           <span class="num">SCENARIO 0${i + 1}</span>
