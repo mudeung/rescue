@@ -1,0 +1,3425 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>119 신고 시뮬레이션</title>
+<meta name="theme-color" content="#CE2029">
+<link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="icon" href="favicon.svg" type="image/svg+xml" sizes="any">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="stylesheet" href="style.css">
+</head>
+
+
+<style>
+
+/* =========================================
+   119 신고 시뮬레이션
+   STYLE CSS - PART 1/2
+   기본 설정 / 메인 / 상황 카드 / 장면
+========================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+  --red: #ce2029;
+  --red-dark: #a91620;
+  --red-light: #fff0f0;
+  --navy: #18263b;
+  --text: #263445;
+  --muted: #718096;
+  --line: #e5eaf0;
+  --bg: #f5f7fa;
+  --white: #ffffff;
+  --green: #15976b;
+  --blue: #2867c7;
+  --shadow: 0 8px 28px rgba(26, 42, 65, .07);
+  --radius: 18px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 24px;
+}
+
+body {
+  margin: 0;
+  font-family: 'Noto Sans KR', sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 3px solid rgba(206, 32, 41, .3);
+  outline-offset: 3px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* 기본 레이아웃 */
+
+.wrap {
+  width: min(1160px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 36px 0 70px;
+}
+
+/* 메인 인트로 */
+
+.intro {
+  animation: fadeUp .5s ease both;
+}
+
+.lead {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 290px;
+  padding: 48px 58px;
+  overflow: hidden;
+  border-radius: 26px;
+  background: linear-gradient(120deg, #fff 0%, #fff5f5 100%);
+  box-shadow: var(--shadow);
+}
+
+.lead-copy {
+  position: relative;
+  z-index: 2;
+  max-width: 570px;
+}
+
+.lead h1 {
+  margin: 0;
+  color: var(--navy);
+  font-size: clamp(34px, 5vw, 52px);
+  line-height: 1.3;
+  font-weight: 900;
+  letter-spacing: -2px;
+}
+
+.lead h1 span {
+  color: var(--red);
+}
+
+.note {
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.lead-art {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38%;
+  max-width: 400px;
+}
+
+.lead-art img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+/* 상황 선택 */
+
+.scenario-section {
+  margin-top: 48px;
+}
+
+.scenario-section h2 {
+  margin: 0 0 22px;
+  color: var(--navy);
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: -.7px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.card {
+  display: flex;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--white);
+  box-shadow: 0 3px 14px rgba(26, 42, 65, .035);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow);
+}
+
+.card-thumb {
+  flex: 0 0 39%;
+  min-width: 0;
+  overflow: hidden;
+  background: #edf1f5;
+}
+
+.card-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 190px;
+  object-fit: cover;
+  transition: transform .3s ease;
+}
+
+.card:hover .card-thumb img {
+  transform: scale(1.04);
+}
+
+.card-copy {
+  flex: 1;
+  min-width: 0;
+  padding: 22px 20px;
+}
+
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 10px;
+}
+
+.card-meta .num {
+  color: var(--red);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.card-meta .level {
+  padding: 3px 9px;
+  border-radius: 30px;
+  background: #f0f3f7;
+  color: #66758a;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.card h3 {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.card-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--navy);
+  text-align: left;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -.4px;
+}
+
+.card-link:hover {
+  color: var(--red);
+}
+
+.card-clue {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 13px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.card-clue svg {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  margin-top: 3px;
+  color: var(--red);
+}
+
+/* 운영자 설정 */
+
+.ops {
+  margin-top: 30px;
+  padding: 20px 24px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--white);
+}
+
+.ops summary {
+  color: var(--navy);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ops-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.ops-grid label {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ops-grid input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 13px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #fafbfd;
+  color: var(--text);
+}
+
+.ops .note {
+  margin-top: 12px;
+  font-size: 12px;
+}
+
+/* 시뮬레이션 화면 */
+
+.sim {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  align-items: start;
+  gap: 32px;
+  animation: fadeUp .35s ease both;
+}
+
+.back {
+  grid-column: 1 / -1;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  justify-self: start;
+  padding: 9px 15px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: white;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.back:hover {
+  background: var(--red-light);
+  color: var(--red);
+}
+
+.back svg {
+  width: 17px;
+  height: 17px;
+}
+
+.scene-col {
+  min-width: 0;
+}
+
+.mission {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 17px 20px;
+  border: 1px solid #f4d4d6;
+  border-radius: 13px;
+  background: #fff7f7;
+}
+
+.mission .tag {
+  flex: 0 0 auto;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--red);
+  color: white;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.mission .text {
+  color: #63363a;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.scene {
+  position: relative;
+  overflow: hidden;
+  min-height: 300px;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  background: #e9edf2;
+  box-shadow: var(--shadow);
+}
+
+.scene > img {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 300px;
+  object-fit: contain;
+}
+
+/* 그림 속 위치 선택 버튼 */
+
+#hots {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hot {
+  position: absolute;
+  z-index: 3;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  pointer-events: auto;
+  transition: .2s;
+}
+
+.hot:hover,
+.hot:focus-visible,
+.hot.pulse {
+  border-color: var(--red);
+  background: rgba(206, 32, 41, .12);
+}
+
+.hot.found {
+  border-color: var(--green);
+  background: rgba(21, 151, 107, .12);
+}
+
+.pulse {
+  animation: pulse 1.2s infinite;
+}
+
+/* 확대 화면 */
+
+.zoom {
+  position: absolute;
+  z-index: 5;
+  top: 12px;
+  right: 12px;
+  max-width: 75%;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: white;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, .2);
+}
+
+.crop {
+  position: relative;
+  overflow: hidden;
+  max-width: 100%;
+  border-radius: 7px;
+  background-repeat: no-repeat;
+}
+
+.crop .mark {
+  position: absolute;
+  border: 3px solid #ffcf33;
+  border-radius: 4px;
+  background: rgba(255, 207, 51, .2);
+}
+
+.zbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 8px;
+  color: var(--navy);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.zbar button {
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: #f0f2f5;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* 안내 영역 */
+
+.guide {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 17px;
+  padding: 16px 19px;
+  border: 1px solid #dce7f4;
+  border-radius: 12px;
+  background: #f1f6fc;
+  color: #344d6c;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.guide .k {
+  flex: 0 0 auto;
+  color: var(--blue);
+  font-weight: 900;
+}
+
+.guide.hint {
+  border-color: #f4dfaa;
+  background: #fff9e9;
+  color: #72551c;
+}
+
+.guide.hint .k {
+  color: #a87300;
+}
+
+.scene-jump {
+  display: inline-block;
+  margin-left: 5px;
+  color: var(--red);
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: underline;
+}
+
+/* 진행 단계 */
+
+.progress {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.progress .p {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 45px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: white;
+  color: #9aa5b3;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.progress .p b {
+  display: grid;
+  place-items: center;
+  width: 23px;
+  height: 23px;
+  border-radius: 50%;
+  background: #edf0f4;
+  color: #8490a0;
+  font-size: 11px;
+}
+
+.progress .p.on {
+  border-color: var(--red);
+  background: var(--red-light);
+  color: var(--red);
+}
+
+.progress .p.on b {
+  background: var(--red);
+  color: white;
+}
+
+.progress .p.past {
+  border-color: #cce9dd;
+  color: var(--green);
+}
+
+.progress .p.past b {
+  background: #dff4ea;
+  color: var(--green);
+}
+
+/* 애니메이션 */
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(206, 32, 41, .35);
+  }
+  50% {
+    box-shadow: 0 0 0 9px rgba(206, 32, 41, 0);
+  }
+}
+
+/* =========================================
+   119 신고 시뮬레이션
+   STYLE CSS - PART 2/2
+   휴대전화 / 통화 / 답변 / 결과 / 반응형
+========================================= */
+
+/* 휴대전화 전체 */
+
+.phone {
+  position: sticky;
+  top: 20px;
+  width: 100%;
+  padding: 9px;
+  border: 1px solid #d7dce3;
+  border-radius: 35px;
+  background: #20242c;
+  box-shadow: 0 18px 45px rgba(20, 30, 45, .2);
+}
+
+.screen {
+  position: relative;
+  min-height: 650px;
+  overflow: hidden;
+  border-radius: 27px;
+  background: #f8fafc;
+}
+
+/* 상태 표시줄 */
+
+.status {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 13px 19px;
+  color: white;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+/* 잠금 화면 */
+
+.lock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 650px;
+  padding: 90px 20px 25px;
+  background:
+    linear-gradient(160deg, rgba(25, 42, 67, .45), rgba(12, 24, 43, .9)),
+    linear-gradient(135deg, #59728d, #182c48);
+  color: white;
+}
+
+.clock {
+  margin-top: 35px;
+  font-size: 66px;
+  font-weight: 300;
+  letter-spacing: -3px;
+  line-height: 1.2;
+}
+
+.date {
+  margin-top: 9px;
+  color: rgba(255, 255, 255, .85);
+  font-size: 14px;
+}
+
+.lock .spacer {
+  flex: 1;
+  min-height: 170px;
+}
+
+.lk-msg {
+  width: 100%;
+  margin-bottom: 18px;
+  padding: 14px;
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 12px;
+  background: rgba(255,255,255,.15);
+  color: white;
+  font-size: 12px;
+}
+
+.lock .row {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 13px;
+}
+
+.sos,
+.unlock {
+  width: 100%;
+  min-height: 51px;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.sos {
+  border: 0;
+  background: var(--red);
+  color: white;
+  box-shadow: 0 5px 18px rgba(206,32,41,.35);
+}
+
+.sos:hover {
+  background: var(--red-dark);
+}
+
+.unlock {
+  border: 1px solid rgba(255,255,255,.35);
+  background: rgba(255,255,255,.12);
+  color: white;
+}
+
+.unlock:hover {
+  background: rgba(255,255,255,.22);
+}
+
+/* 다이얼 화면 */
+
+.dial {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 650px;
+  padding: 65px 24px 25px;
+  background: #f8fafc;
+}
+
+.dial .t {
+  margin: 20px 0 25px;
+  color: var(--navy);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.dial .num {
+  width: 100%;
+  min-height: 48px;
+  border-bottom: 1px solid var(--line);
+  color: var(--navy);
+  font-size: 35px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 7px;
+}
+
+.dial .msg {
+  min-height: 48px;
+  padding-top: 12px;
+  color: var(--red);
+  font-size: 11px;
+  text-align: center;
+}
+
+.keys {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  width: 100%;
+  gap: 13px;
+  margin-top: 8px;
+}
+
+.keys button {
+  aspect-ratio: 1;
+  max-height: 62px;
+  border: 1px solid #e5e9ef;
+  border-radius: 50%;
+  background: white;
+  color: var(--navy);
+  font-size: 23px;
+  font-weight: 600;
+  box-shadow: 0 3px 7px rgba(0,0,0,.04);
+  transition: .15s;
+}
+
+.keys button:hover {
+  background: #edf2f8;
+  transform: scale(.96);
+}
+
+.keys button.pulse {
+  border: 2px solid var(--red);
+  color: var(--red);
+}
+
+.call-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: center;
+  width: 100%;
+  margin-top: auto;
+  padding-top: 22px;
+}
+
+.callbtn {
+  display: grid;
+  place-items: center;
+  justify-self: center;
+  width: 60px;
+  height: 60px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 6px 16px rgba(21,151,107,.3);
+}
+
+.callbtn:hover {
+  background: #087b55;
+  transform: scale(1.05);
+}
+
+.callbtn svg {
+  width: 27px;
+  height: 27px;
+}
+
+.bksp {
+  justify-self: end;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: #e9edf2;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* 통화 화면 */
+
+.call {
+  display: flex;
+  flex-direction: column;
+  min-height: 650px;
+  background: #f5f7fa;
+}
+
+.call-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 55px 15px 19px;
+  background: white;
+  border-bottom: 1px solid var(--line);
+}
+
+.call-head .who {
+  color: var(--navy);
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.call-head .time {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.log {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 150px;
+  max-height: 285px;
+  overflow-y: auto;
+  gap: 12px;
+  padding: 17px 13px;
+  scroll-behavior: smooth;
+}
+
+/* 대화 말풍선 */
+
+.b {
+  max-width: 88%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-size: 12px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+  animation: fadeUp .2s ease both;
+}
+
+.b .lbl {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.b.op {
+  align-self: flex-start;
+  border: 1px solid #e5eaf0;
+  border-top-left-radius: 4px;
+  background: white;
+  color: var(--text);
+}
+
+.b.op .lbl {
+  color: var(--blue);
+}
+
+.b.me {
+  align-self: flex-end;
+  border-top-right-radius: 4px;
+  background: #dff3e9;
+  color: #145c42;
+}
+
+.b.sys {
+  align-self: center;
+  max-width: 95%;
+  padding: 7px 12px;
+  border-radius: 20px;
+  background: #e9edf2;
+  color: #66758a;
+  font-size: 10px;
+  text-align: center;
+}
+
+/* 답변 선택 */
+
+.answers {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 13px;
+  border-top: 1px solid var(--line);
+  background: white;
+}
+
+.ask {
+  padding: 11px 12px;
+  border-radius: 9px;
+  background: #f1f5fa;
+  color: #44566d;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.choice-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--navy);
+}
+
+.ans {
+  width: 100%;
+  min-height: 43px;
+  padding: 10px 13px;
+  border: 1px solid #dfe5ed;
+  border-radius: 10px;
+  background: white;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.55;
+  text-align: left;
+  transition: .15s;
+}
+
+.ans:hover:not(:disabled) {
+  border-color: var(--red);
+  background: var(--red-light);
+  color: var(--red);
+}
+
+.ans.glow {
+  border-color: #e9b73b;
+  background: #fff9e8;
+}
+
+.ans.sent {
+  border-color: var(--green);
+  background: #eaf7f1;
+  color: #14734f;
+}
+
+.ans:disabled {
+  cursor: default;
+  opacity: .7;
+}
+
+/* 통화 조작 버튼 */
+
+.ctls {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 13px 10px 18px;
+  border-top: 1px solid var(--line);
+  background: white;
+}
+
+.ctl {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 60px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #5e6b7c;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.ctl .ic {
+  display: grid;
+  place-items: center;
+}
+
+.ctl svg {
+  width: 21px;
+  height: 21px;
+}
+
+.ctl:hover:not(:disabled) {
+  background: #edf2f8;
+}
+
+.ctl[aria-pressed="true"] {
+  border-color: var(--green);
+  background: #e9f7f0;
+  color: var(--green);
+}
+
+.ctl.end {
+  border-color: var(--red);
+  background: var(--red);
+  color: white;
+}
+
+.ctl.end:hover {
+  background: var(--red-dark);
+}
+
+.ctl:disabled {
+  cursor: not-allowed;
+  opacity: .45;
+}
+
+/* 통화 종료 대기 */
+
+.holdbar {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #e9edf2;
+}
+
+.holdbar i {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: 10px;
+  background: var(--green);
+  transition: width 5s linear;
+}
+
+/* 결과 화면 */
+
+#resultV {
+  animation: fadeUp .4s ease both;
+}
+
+.result {
+  max-width: 850px;
+  margin: 25px auto;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: white;
+  box-shadow: var(--shadow);
+}
+
+.r-head {
+  padding: 38px 40px;
+  background: linear-gradient(120deg, #fff5f5, #fff);
+  border-bottom: 1px solid #f3e1e2;
+}
+
+.r-head .no {
+  margin: 0 0 9px;
+  color: var(--red);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.r-head h2 {
+  margin: 0;
+  color: var(--navy);
+  font-size: clamp(25px, 4vw, 34px);
+  font-weight: 900;
+  letter-spacing: -1px;
+}
+
+.r-head h2 span {
+  color: var(--red);
+}
+
+.r-body {
+  padding: 30px 40px 38px;
+}
+
+.recap-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: recap;
+}
+
+.recap-step {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  counter-increment: recap;
+}
+
+.recap-step h3 {
+  position: relative;
+  margin: 0;
+  padding-left: 31px;
+  color: var(--navy);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.recap-step h3::before {
+  content: counter(recap);
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--red);
+  color: white;
+  font-size: 11px;
+}
+
+.step-tip {
+  margin: 5px 0 0 31px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.step-example {
+  margin: 0;
+  padding: 14px 16px;
+  border-left: 3px solid var(--green);
+  border-radius: 0 8px 8px 0;
+  background: #f0f8f4;
+  color: #245c43;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.8;
+}
+
+.call-reminder {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 23px 0 0;
+  padding: 19px;
+  border: 1px solid #f1dfb5;
+  border-radius: 12px;
+  background: #fff9eb;
+  color: #76591d;
+  font-size: 13px;
+}
+
+.call-reminder strong {
+  font-size: 14px;
+}
+
+.call-reminder span {
+  font-size: 12px;
+}
+
+/* 결과 화면 버튼 */
+
+.r-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.btn {
+  flex: 1;
+  min-height: 50px;
+  padding: 12px 18px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: white;
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 800;
+  transition: .2s;
+}
+
+.btn:hover {
+  background: #f3f5f8;
+}
+
+.btn.primary {
+  border-color: var(--red);
+  background: var(--red);
+  color: white;
+}
+
+.btn.primary:hover {
+  background: var(--red-dark);
+}
+
+/* 스크롤바 */
+
+.log::-webkit-scrollbar {
+  width: 5px;
+}
+
+.log::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background: #cbd3de;
+}
+
+/* 태블릿 */
+
+@media (max-width: 900px) {
+  .sim {
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 20px;
+  }
+
+  .lead {
+    padding: 38px;
+  }
+
+  .card-copy {
+    padding: 17px 14px;
+  }
+
+  .phone {
+    top: 12px;
+  }
+}
+
+/* 모바일 */
+
+@media (max-width: 680px) {
+
+  .wrap {
+    width: min(100% - 24px, 520px);
+    padding: 14px 0 40px;
+  }
+
+  .lead {
+    min-height: auto;
+    padding: 30px 23px;
+    border-radius: 19px;
+  }
+
+  .lead h1 {
+    font-size: 35px;
+    letter-spacing: -1.5px;
+  }
+
+  .lead .note {
+    font-size: 13px;
+  }
+
+  .lead-art {
+    width: 35%;
+    min-width: 100px;
+  }
+
+  .scenario-section {
+    margin-top: 32px;
+  }
+
+  .scenario-section h2 {
+    font-size: 21px;
+  }
+
+  .cards {
+    grid-template-columns: 1fr;
+    gap: 13px;
+  }
+
+  .card {
+    border-radius: 13px;
+  }
+
+  .card-thumb {
+    flex-basis: 35%;
+  }
+
+  .card-thumb img {
+    min-height: 145px;
+  }
+
+  .card-copy {
+    padding: 15px 12px;
+  }
+
+  .card-link {
+    font-size: 14px;
+  }
+
+  .card-clue {
+    font-size: 11px;
+  }
+
+  .ops {
+    padding: 16px;
+  }
+
+  .ops-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sim {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .back {
+    order: 0;
+  }
+
+  .scene-col {
+    order: 1;
+    width: 100%;
+  }
+
+  .phone {
+    position: relative;
+    top: auto;
+    order: 2;
+    width: min(100%, 360px);
+    align-self: center;
+  }
+
+  .mission {
+    padding: 13px;
+  }
+
+  .mission .text {
+    font-size: 12px;
+  }
+
+  .scene {
+    min-height: 190px;
+    border-radius: 12px;
+  }
+
+  .scene > img {
+    min-height: 190px;
+  }
+
+  .guide {
+    padding: 13px;
+    font-size: 12px;
+  }
+
+  .progress {
+    gap: 5px;
+  }
+
+  .progress .p {
+    gap: 5px;
+    min-height: 40px;
+    font-size: 10px;
+  }
+
+  .progress .p b {
+    width: 19px;
+    height: 19px;
+    font-size: 10px;
+  }
+
+  .screen,
+  .lock,
+  .dial,
+  .call {
+    min-height: 600px;
+  }
+
+  .log {
+    max-height: 240px;
+  }
+
+  .r-head {
+    padding: 27px 22px;
+  }
+
+  .r-body {
+    padding: 22px 17px 26px;
+  }
+
+  .recap-step {
+    padding: 15px;
+  }
+
+  .r-actions {
+    flex-direction: column;
+  }
+
+  .btn {
+    flex: auto;
+  }
+}
+
+/* 작은 스마트폰 */
+
+@media (max-width: 380px) {
+
+  .lead {
+    padding: 25px 17px;
+  }
+
+  .lead h1 {
+    font-size: 29px;
+  }
+
+  .lead-art {
+    min-width: 85px;
+  }
+
+  .card-thumb {
+    flex-basis: 32%;
+  }
+
+  .card-thumb img {
+    min-height: 130px;
+  }
+
+  .card-copy {
+    padding: 12px 10px;
+  }
+
+  .card-link {
+    font-size: 13px;
+  }
+
+  .clock {
+    font-size: 56px;
+  }
+
+  .keys {
+    gap: 9px;
+  }
+
+  .keys button {
+    max-height: 55px;
+  }
+}
+
+/* 접근성: 움직임 최소화 */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+
+</style>
+
+
+<body>
+<div class="wrap">
+
+  <!-- 첫 화면 -->
+  <main id="home" class="intro">
+    <div class="lead">
+      <div class="lead-copy">
+        <h1 id="homeTitle">
+          <span>119 신고,</span><br>
+          함께 연습해요
+        </h1>
+        <p class="note">
+          그림을 보고 상황실의 질문에 답해 보세요.
+        </p>
+      </div>
+
+      <div class="lead-art" aria-hidden="true">
+        <img src="img/hero-team.svg" alt="" width="400" height="226">
+      </div>
+    </div>
+
+    <section class="scenario-section" aria-labelledby="scenarioTitle">
+      <h2 id="scenarioTitle">어떤 상황을 연습할까요?</h2>
+      <div class="cards" id="cards"></div>
+    </section>
+
+    <!-- 운영자 설정 -->
+    <details class="ops">
+      <summary>운영자 설정</summary>
+
+      <div class="ops-grid">
+        <label for="cfgAddr">
+          상황 1 행사장 주소
+          <input id="cfgAddr" type="text">
+        </label>
+
+        <label for="cfgFloor">
+          층
+          <input id="cfgFloor" type="text">
+        </label>
+      </div>
+
+      <p class="note">
+        입력한 주소와 층은 상황 1의 연습 대화에 나와요.
+      </p>
+    </details>
+  </main>
+
+  <!-- 신고 시뮬레이션 화면 -->
+  <section id="sim" class="sim" hidden>
+
+    <button class="back" id="backBtn">
+      <svg viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2.4"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 5l-7 7 7 7"/>
+      </svg>
+      처음으로
+    </button>
+
+    <div class="scene-col">
+
+      <div class="mission">
+        <span class="tag" id="mTag"></span>
+        <span class="text" id="mText"></span>
+      </div>
+
+      <!-- 상황 그림 -->
+      <div class="scene" id="scene" tabindex="-1">
+        <img id="sceneImg" alt="">
+        <div id="hots"></div>
+
+        <!-- 위치 단서 확대 -->
+        <div class="zoom" id="zoom" hidden>
+          <div class="crop" id="zoomCrop"></div>
+
+          <div class="zbar">
+            <span id="zoomLbl">크게 보기</span>
+            <button id="zoomClose">닫기</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 행동 안내 -->
+      <div class="guide" id="guide">
+        <span class="k" id="guideK">할 일</span>
+        <div>
+          <span id="guideT"></span>
+          <a id="toAnswers" class="scene-jump"
+             href="#answers" hidden>
+            대답 고르러 가기
+          </a>
+        </div>
+      </div>
+
+      <!-- 진행 단계 -->
+      <div class="progress" id="progress">
+        <div class="p" data-st="1">
+          <b>1</b>무슨 일인지
+        </div>
+        <div class="p" data-st="2">
+          <b>2</b>어디인지
+        </div>
+        <div class="p" data-st="3">
+          <b>3</b>어떤 상태인지
+        </div>
+      </div>
+
+    </div>
+
+
+    <!-- 휴대전화 화면 -->
+    <div class="phone" aria-label="휴대전화 화면">
+      <div class="screen" id="screen">
+
+        <!-- 상태 표시줄 -->
+        <div class="status">
+          <span id="stTime">14:32</span>
+          <span>LTE ▮▮▮ 82%</span>
+        </div>
+
+        <!-- 잠금 화면 -->
+        <div class="lock" id="lockV">
+          <div class="clock" id="lkClock">14:32</div>
+          <div class="date" id="lkDate"></div>
+
+          <div class="spacer"></div>
+
+          <div class="lk-msg" id="lkMsg" hidden></div>
+
+          <div class="row">
+            <button class="sos" id="sosBtn">긴급통화</button>
+            <button class="unlock" id="unlockBtn">
+              밀어서 잠금 해제
+            </button>
+          </div>
+        </div>
+
+        <!-- 긴급전화 다이얼 화면 -->
+        <div class="dial" id="dialV" hidden>
+          <div class="t">긴급통화</div>
+
+          <div class="num" id="dialNum" aria-live="polite"></div>
+          <div class="msg" id="dialMsg"></div>
+
+          <div class="keys" id="keys"></div>
+
+          <div class="call-row">
+            <span></span>
+
+            <button class="callbtn" id="callBtn"
+                    aria-label="전화 걸기">
+              <svg viewBox="0 0 24 24" fill="#fff">
+                <path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1l-2.3 2.2z"/>
+              </svg>
+            </button>
+
+            <button class="bksp" id="bkspBtn">지우기</button>
+          </div>
+        </div>
+
+        <!-- 119 통화 화면 -->
+        <div class="call" id="callV" hidden>
+
+          <div class="call-head">
+            <div class="who">119 종합상황실</div>
+            <div class="time" id="callTime">00:00</div>
+          </div>
+
+          <!-- 상황실 대화 기록 -->
+          <div class="log" id="log"
+               tabindex="-1" aria-live="polite"></div>
+
+          <!-- 신고자 응답 선택 -->
+          <div class="answers" id="answers"
+               role="group"
+               aria-label="대답과 통화 안내"
+               tabindex="-1"></div>
+
+          <!-- 통화 조작 버튼 -->
+          <div class="ctls">
+
+            <button class="ctl" id="spkBtn"
+                    aria-pressed="false">
+              <span class="ic">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M4 9v6h4l5 5V4L8 9H4zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/>
+                </svg>
+              </span>
+              스피커
+            </button>
+
+            <button class="ctl" disabled>
+              <span class="ic">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21h2v-3.1a7 7 0 0 0 6-6.9h-2z"/>
+                </svg>
+              </span>
+              음소거
+            </button>
+
+            <button class="ctl end" id="endBtn">
+              <span class="ic">
+                <svg viewBox="0 0 24 24" fill="#fff">
+                  <path d="M12 9c-1.6 0-3.1.3-4.6.7v3.1c0 .4-.2.7-.6.9-1 .5-1.9 1.1-2.7 1.8-.2.2-.4.3-.7.3s-.5-.1-.7-.3L.3 13.1A1 1 0 0 1 0 12.4c0-.3.1-.5.3-.7A17 17 0 0 1 12 7c4.5 0 8.6 1.8 11.7 4.7.2.2.3.4.3.7 0 .3-.1.5-.3.7l-2.5 2.4c-.2.2-.4.3-.7.3s-.5-.1-.7-.3c-.8-.7-1.7-1.3-2.7-1.8-.3-.2-.6-.5-.6-.9V9.7C15.1 9.3 13.6 9 12 9z"/>
+                </svg>
+              </span>
+              종료
+            </button>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </section>
+
+  <!-- 신고 결과 화면 -->
+  <section id="resultV"
+           aria-labelledby="recapTitle"
+           hidden>
+  </section>
+
+</div>
+
+<!-- 음성 안내 데이터 -->
+<script src="audio/lines.js"></script>
+
+
+<script>
+
+
+(() => {
+  const $ = id => document.getElementById(id);
+
+  /* ---------- 저장 기능 ---------- */
+
+  const store = {
+    get(k, d) {
+      try {
+        const v = localStorage.getItem(k);
+        return v === null ? d : JSON.parse(v);
+      } catch (e) {
+        return d;
+      }
+    },
+
+    set(k, v) {
+      try {
+        localStorage.setItem(k, JSON.stringify(v));
+      } catch (e) {}
+    }
+  };
+
+  const cfg = store.get('cfg119', {
+    addr: '광주광역시 서구 치평동 광주청사',
+    floor: '1층'
+  });
+
+  /* ---------- 신고 요약 질문 ---------- */
+
+  const recapPrompts = [
+    [
+      '무슨 일이 생겼나요?',
+      '누가 아픈지, 무슨 사고가 났는지 말해요.'
+    ],
+    [
+      '어디에 있나요?',
+      '주소를 모르면 가까운 건물 이름이나 표지판 번호를 말해요.'
+    ],
+    [
+      '지금 어떤 상태인가요?',
+      '어디가 아픈지, 부르면 대답하는지, 숨을 쉬는지 말해요.'
+    ]
+  ];
+
+  const ok = t => ({ t, ok: true });
+  const no = (t, retry) => ({
+    t,
+    ok: false,
+    retry
+  });
+
+  /* ---------- 신고 상황 데이터 ---------- */
+
+  const SC = [
+
+    /* ==================================
+       상황 1. 복통
+    ================================== */
+
+    {
+      id: 's1',
+      img: 'img/s1-home.jpg',
+      level: ['easy', '쉬움'],
+      title: '집에서 갑자기 배가 아파요',
+
+      mission:
+        '갑자기 배가 아파요. 119에 전화해서 구급차를 요청하세요.',
+
+      clue: '주소와 층',
+
+      recap: () => [
+        '제가 갑자기 배가 아파요.',
+        cfg.addr + ' ' + cfg.floor + '에 있어요.',
+        '5분 전부터 배가 점점 더 아파요.'
+      ],
+
+      hots: [],
+
+      steps: () => [
+
+        {
+          st: 1,
+          say: '네, 119입니다. 무슨 일이세요?',
+
+          opts: [
+            no(
+              '여보세요… 저기요…',
+              '말씀하세요. 누가, 어디가 어떻게 아프세요?'
+            ),
+
+            ok('갑자기 배가 너무 아파요.'),
+
+            no(
+              '구급차 좀 보내 주세요.',
+              '구급차를 보내려면 무슨 일인지 알아야 해요. 어디가 어떻게 아프세요?'
+            )
+          ]
+        },
+
+        {
+          st: 2,
+          say: '현재 계신 곳의 주소를 말씀해 주세요.',
+
+          opts: [
+            ok('정확한 주소를 잘 모르겠어요.'),
+
+            ok(cfg.addr + '예요.')
+          ]
+        },
+
+        {
+          st: 2,
+          say:
+            '휴대전화 위치를 확인해 보겠습니다. 계신 곳이 ' +
+            cfg.addr + '가 맞나요?',
+
+          opts: [
+            ok('네, 맞아요.'),
+
+            no(
+              '(대답하지 않는다)',
+              '들리시면 "네"라고 말씀해 주세요. ' +
+              cfg.addr + ' 맞나요?'
+            )
+          ]
+        },
+
+        {
+          st: 2,
+          say: '몇 층에 계신가요?',
+
+          opts: [
+            no(
+              '몰라요.',
+              '창밖 높이나 계단, 엘리베이터 표시를 보면 알 수 있어요. 몇 층이세요?'
+            ),
+
+            ok(cfg.floor + '이에요.')
+          ]
+        },
+
+        {
+          st: 2,
+          say:
+            '네, 위치 정보를 확인했습니다. 구급대가 출동하도록 하겠습니다.',
+
+          auto: true
+        },
+
+        {
+          st: 3,
+          say: '언제부터 아프기 시작했나요?',
+
+          opts: [
+            ok('5분 전부터 갑자기요. 점점 심해져요.'),
+
+            no(
+              '그냥 아파요.',
+              '몇 분 전부터인지, 점점 심해지는지 알려 주세요.'
+            )
+          ]
+        },
+
+        {
+          st: 3,
+          say: '배 아픈 것 말고 다른 불편한 곳이 있나요?',
+
+          opts: [
+            ok('숨 쉬기도 힘든 것 같아요.'),
+
+            ok('다른 곳은 괜찮아요.')
+          ]
+        },
+
+        {
+          st: 3,
+          say:
+            '움직일 수 있으면 현관문 잠금을 풀어 두세요. 무리하지 말고 편한 자세로 기다리세요.',
+
+          opts: [
+            ok('네, 문 열어 둘게요.'),
+
+            no(
+              '괜찮아요, 그냥 기다릴게요.',
+              '구급대가 바로 들어갈 수 있도록 움직일 수 있을 때 문 잠금만 풀어 주세요.'
+            )
+          ]
+        },
+
+        {
+          st: 3,
+          say:
+            '구급대가 도착할 때까지 전화를 끊지 마세요. 상태가 변하면 바로 말씀해 주세요.',
+
+          hold: true
+        }
+      ]
+    },
+
+    /* ==================================
+       상황 2. 길가에 쓰러진 사람
+    ================================== */
+
+    {
+      id: 's2',
+      img: 'img/s2-field.jpg',
+      level: ['mid', '보통'],
+      title: '길가에 사람이 쓰러져 있어요',
+
+      mission:
+        '지나가다 길가에 쓰러진 할아버지를 발견했어요. 119에 전화해서 구급차를 요청하세요.',
+
+      clue: '전신주 번호판',
+
+      recap: () => [
+        '길가에 사람이 쓰러져 있어요.',
+        '옆 전봇대 번호는 9013G, 그 아래는 131이에요.',
+        '불러도 대답이 없어요. 숨은 쉬는 것 같아요.'
+      ],
+
+      hots: [
+        {
+          id: 'plate',
+          label: '전신주 번호판',
+
+          x: 71.0,
+          y: 6.0,
+          w: 12.8,
+          h: 39.8,
+
+          ar: (12.8 * 1600) / (39.8 * 1066),
+
+          marks: {
+            top: {
+              x: 2,
+              y: 10,
+              w: 96,
+              h: 15
+            },
+
+            sub: {
+              x: 2,
+              y: 25,
+              w: 96,
+              h: 10.5
+            }
+          }
+        }
+      ],
+
+      steps: () => [
+
+        {
+          st: 1,
+          say: '네, 119입니다. 무슨 일이세요?',
+
+          opts: [
+            no(
+              '큰일 났어요! 빨리 와 주세요!',
+              '진정하시고요. 누가 어떻게 됐는지 말씀해 주세요.'
+            ),
+
+            ok('할아버지가 길에 쓰러져 있어요.')
+          ]
+        },
+
+        {
+          st: 2,
+          say: '거기가 어디인가요?',
+
+          opts: [
+            ok('여기가 어디인지 잘 모르겠어요.')
+          ]
+        },
+
+        {
+          st: 2,
+          say: '혹시 주변에 건물이 있나요?',
+
+          opts: [
+            no(
+              '네, 큰 건물이 있어요.',
+              '그림을 다시 보세요. 가까이에 무엇이 보이나요?'
+            ),
+
+            ok('아니요, 논과 들판뿐이에요.')
+          ]
+        },
+
+        {
+          st: 2,
+          say: '근처에 전신주가 있나요?',
+
+          need: 'plate',
+          hint: '그림에서 전봇대를 찾아 눌러 보세요.',
+
+          opts: [
+            ok('네, 바로 옆에 있어요.')
+          ]
+        },
+
+        {
+          st: 2,
+          say:
+            '전신주에 붙은 번호판의 맨 윗줄 번호를 불러 주세요.',
+
+          mark: ['plate', 'top'],
+
+          opts: [
+            no(
+              '"위험"이라고 써 있어요.',
+              '"위험" 글자 바로 아래, 숫자와 영어가 섞인 줄을 읽어 주세요.'
+            ),
+
+            ok('9013G예요.'),
+
+            no(
+              '0703이요.',
+              '아래쪽 작은 칸 말고, 맨 위쪽 큰 글씨 줄이에요.'
+            )
+          ]
+        },
+
+        {
+          st: 2,
+          say: '그 아랫줄 번호는요?',
+
+          mark: ['plate', 'sub'],
+
+          opts: [
+            ok('131이에요.'),
+
+            no(
+              '30R4요.',
+              '바로 아랫줄, 숫자 세 자리예요.'
+            )
+          ]
+        },
+
+        {
+          st: 2,
+          say:
+            '네, 위치를 파악했습니다. 가까운 119 구급대가 출동하도록 하겠습니다.',
+
+          auto: true
+        },
+
+        {
+          st: 3,
+          say:
+            '그분은 어떤 상태인가요? 불러도 대답하나요?',
+
+          opts: [
+            no(
+              '자고 있는 것 같아요.',
+              '안전한 범위에서 어깨를 가볍게 두드리며 크게 불러 보세요. 대답하나요?'
+            ),
+
+            ok('불러도 대답하지 않아요.')
+          ]
+        },
+
+        {
+          st: 3,
+          say:
+            '가슴이 오르내리나요? 정상적으로 숨을 쉬나요?',
+
+          opts: [
+            ok('숨은 쉬는 것 같아요.'),
+
+            no(
+              '잘 모르겠어요.',
+              '가슴과 배의 움직임을 살펴보세요. 숨을 쉬는지 확실하지 않으면 그대로 말씀해 주세요.'
+            ),
+
+            no(
+              '숨을 쉬지 않는 것 같아요.',
+              '매우 위급한 상황입니다. 즉시 말씀해 주세요. 상황실의 심폐소생술 안내를 따르세요.'
+            )
+          ]
+        },
+
+        {
+          st: 3,
+          say: '피가 나는 곳이 보이나요?',
+
+          opts: [
+            ok('피는 안 보여요.'),
+
+            ok('피가 나는 곳이 보여요.')
+          ]
+        },
+
+        {
+          st: 3,
+          say:
+            '휴대전화를 스피커폰으로 바꿔 주세요. 숨을 쉬는지 계속 확인하고, 호흡이 달라지면 바로 말씀해 주세요.',
+
+          speaker: true
+        },
+
+        {
+          st: 3,
+          say:
+            '구급대가 도착할 때까지 전화를 끊지 말고 기다려 주세요.',
+
+          hold: true
+        }
+      ]
+    },
+
+  {
+  id: 's3',
+  img: 'img/s3-highway.jpg',
+  level: ['mid', '보통'],
+  title: '고속도로에서 교통사고가 났어요',
+
+  mission:
+    '호남고속도로에서 차량 두 대가 부딪혔어요. 안전한 곳에서 119에 신고하세요.',
+
+  clue: '이정표와 거리표지판',
+
+  recap: () => [
+    '호남고속도로에서 차량 두 대가 부딪혔어요.',
+    '광주 방향이고 거리표지판에 211.8이라고 적혀 있어요.',
+    '차량 안에 사람이 있는지는 확인하지 못했고 연기나 불은 보이지 않아요.'
+  ],
+
+  hots: [
+    {
+      id: 'route',
+      label: '초록 이정표',
+      x: 18.8,
+      y: 4.0,
+      w: 16.0,
+      h: 15.5,
+      ar: (16 * 1600) / (15.5 * 900),
+      marks: {}
+    },
+    {
+      id: 'km',
+      label: '거리표지판',
+      x: 83.2,
+      y: 29.0,
+      w: 9.6,
+      h: 19.5,
+      ar: (9.6 * 1600) / (19.5 * 900),
+      marks: {
+        num: {
+          x: 6,
+          y: 6,
+          w: 88,
+          h: 88
+        }
+      }
+    }
+  ],
+
+  steps: () => [
+    {
+      st: 1,
+      say: '네, 119입니다. 무슨 일이세요?',
+      opts: [
+        no(
+          '사고 났어요! 빨리 와 주세요!',
+          '침착하게 말씀해 주세요. 어떤 사고가 났나요?'
+        ),
+        ok('고속도로에서 차량 두 대가 부딪혔어요.')
+      ]
+    },
+
+    {
+      st: 1,
+      say: '신고자분은 안전한 곳에 계신가요?',
+      opts: [
+        no(
+          '차량 옆에 서 있어요.',
+          '매우 위험합니다. 차도에 들어가지 말고 가드레일 밖 안전한 곳으로 이동하세요.'
+        ),
+        ok('네, 가드레일 밖 안전한 곳에 있어요.')
+      ]
+    },
+
+    {
+      st: 2,
+      say: '사고가 발생한 도로가 어디인가요?',
+      opts: [
+        ok('고속도로인데 정확한 위치는 모르겠어요.')
+      ]
+    },
+
+    {
+      st: 2,
+      say: '어느 고속도로인지 확인할 수 있나요?',
+      need: 'route',
+      hint: '초록색 이정표를 찾아 눌러 보세요.',
+      opts: [
+        no(
+          '경부고속도로요.',
+          '표지판에 적힌 노선 번호와 도로 이름을 확인해 주세요.'
+        ),
+        ok('호남고속도로예요.')
+      ]
+    },
+
+    {
+      st: 2,
+      say: '어느 방향으로 가고 있었나요?',
+      opts: [
+        ok('광주 방향이에요.'),
+        no(
+          '잘 모르겠어요.',
+          '가까운 이정표에 적힌 지명을 확인해 주세요. 모르면 모른다고 말씀하셔도 됩니다.'
+        )
+      ]
+    },
+
+    {
+      st: 2,
+      say: '주변에 거리표지판이 있나요? 안전한 곳에서 확인할 수 있으면 숫자를 알려 주세요.',
+      need: 'km',
+      hint: '오른쪽 가드레일 옆 거리표지판을 눌러 보세요.',
+      mark: ['km', 'num'],
+      opts: [
+        no(
+          '211이요.',
+          '아래쪽 숫자까지 확인해 주세요.'
+        ),
+        ok('211.8이에요.'),
+        no(
+          '확인할 수 없어요.',
+          '괜찮습니다. 확인 가능한 다른 위치 정보를 알려 주세요.'
+        )
+      ]
+    },
+
+    {
+      st: 2,
+      say: '네, 말씀하신 위치를 확인하고 있습니다. 구조대와 구급대에 출동 요청했습니다.',
+      auto: true
+    },
+
+    {
+      st: 3,
+      say: '차량 안에 사람이 있는지 보이나요?',
+      opts: [
+        no(
+          '가서 문을 열어 볼게요.',
+          '차도에 들어가지 마세요. 안전한 곳에서 보이는 것만 말씀해 주세요.'
+        ),
+        ok('안이 잘 보이지 않아서 사람 여부는 확인하기 어려워요.')
+      ]
+    },
+
+    {
+      st: 3,
+      say: '차량에서 연기나 불꽃이 보이나요?',
+      opts: [
+        ok('연기나 불꽃은 보이지 않아요.'),
+        ok('연기가 보여요.'),
+        ok('불꽃이 보여요.'),
+        ok('잘 모르겠어요.')
+      ]
+    },
+
+    {
+      st: 3,
+      say: '다친 사람이 보이나요?',
+      opts: [
+        ok('다친 사람이 있는 것 같아요.'),
+        ok('아직 확인하지 못했어요.')
+      ]
+    },
+
+    {
+      st: 3,
+      say: '차량 쪽이나 도로 위로 이동하지 마세요. 가드레일 밖 안전한 곳에서 기다려 주세요.',
+      opts: [
+        ok('네, 안전한 곳에서 기다릴게요.')
+      ]
+    },
+
+    {
+      st: 3,
+      say: '구조대가 도착할 때까지 전화를 끊지 마세요. 새로운 위험이 보이면 바로 알려 주세요.',
+      hold: true
+    }
+  ]
+},
+
+{
+  id: 's4',
+  img: 'img/s4-mountain.jpg',
+  level: ['hard', '어려움'],
+  title: '산에서 더 이상 걷지 못하겠어요',
+
+  mission:
+    '무등산을 내려오다가 갑자기 숨이 차고 힘이 빠져 걷지 못하겠어요. 안전한 곳에서 119에 신고하세요.',
+
+  clue: '산악위치표지판, 국가지점번호',
+
+  recap: () => [
+    '무등산을 내려오다가 힘이 빠져 걷지 못하겠어요.',
+    '산악위치표지판에 무등 01-02, 국가지점번호 다라 5187 8134라고 적혀 있어요.',
+    '숨이 차고 혼자 걷기 어려워요.'
+  ],
+
+  hots: [
+    {
+      id: 'sign',
+      label: '산악위치표지판',
+      x: 4.0,
+      y: 7.5,
+      w: 14.4,
+      h: 87.0,
+
+      z: {
+        x: 4.0,
+        y: 7.5,
+        w: 14.4,
+        h: 56.0,
+        ar: (14.4 * 1600) / (56 * 1202)
+      },
+
+      marks: {
+        loc: {
+          x: 4,
+          y: 46.6,
+          w: 70,
+          h: 21.8
+        },
+
+        alt: {
+          x: 4,
+          y: 66.8,
+          w: 70,
+          h: 8.5
+        },
+
+        grid: {
+          x: 5,
+          y: 9,
+          w: 87,
+          h: 83,
+
+          zoom: {
+            x: 4,
+            y: 48.4,
+            w: 12,
+            h: 14.5,
+            ar: (12 * 1600) / (14.5 * 1202),
+            maxHeight: 200
+          }
+        }
+      }
+    }
+  ],
+
+  steps: () => [
+    {
+      st: 1,
+      say: '네, 119입니다. 무슨 일이세요?',
+      opts: [
+        no(
+          '여기 산인데요.',
+          '산에서 어떤 일이 발생했나요? 다치셨나요, 몸이 아프신가요?'
+        ),
+        ok('무등산인데 힘이 빠져서 더 이상 걷지 못하겠어요.')
+      ]
+    },
+
+    {
+      st: 1,
+      say: '신고자 본인이 아프신 건가요?',
+      opts: [
+        ok('네, 제가 아파요.'),
+        no(
+          '옆 사람이 아파요.',
+          '본인이 아프신 상황인지 다시 확인해 주세요.'
+        )
+      ]
+    },
+
+    {
+      st: 2,
+      say: '현재 위치가 어디인가요?',
+      opts: [
+        ok('중머리재에서 조금 내려왔는데 정확한 위치는 모르겠어요.')
+      ]
+    },
+
+    {
+      st: 2,
+      say: '근처에 산악위치표지판이 보이나요?',
+      need: 'sign',
+      hint: '탐방로 옆에 있는 산악위치표지판을 눌러 보세요.',
+      opts: [
+        ok('네, 바로 옆에 있어요.')
+      ]
+    },
+
+    {
+      st: 2,
+      say: '표지판에 적힌 위치번호를 읽어 주세요.',
+      mark: ['sign', 'loc'],
+      opts: [
+        no(
+          '해발 297m예요.',
+          '그건 해발고도입니다. 위치번호를 읽어 주세요.'
+        ),
+        ok('무등 01-02예요.')
+      ]
+    },
+
+    {
+      st: 2,
+      say: '해발고도도 적혀 있나요?',
+      mark: ['sign', 'alt'],
+      opts: [
+        ok('297m라고 적혀 있어요.')
+      ]
+    },
+
+    {
+      st: 2,
+      say: '노란색 칸에 국가지점번호가 있으면 읽어 주세요.',
+      mark: ['sign', 'grid'],
+      opts: [
+        no(
+          '062-227-1187이요.',
+          '그 번호는 전화번호입니다. 노란색 칸의 국가지점번호를 읽어 주세요.'
+        ),
+        ok('다라 5187 8134예요.')
+      ]
+    },
+
+    {
+      st: 2,
+      say: '다라, 5187, 8134가 맞습니까?',
+      opts: [
+        ok('네, 맞아요.'),
+        no(
+          '잘 모르겠어요.',
+          '표지판을 다시 확인해 주세요. 확인이 어려우면 모른다고 말씀하셔도 됩니다.'
+        )
+      ]
+    },
+
+    {
+      st: 2,
+      say: '위치를 확인하고 있습니다. 산악구조대와 구급대에 출동 요청했습니다.',
+      auto: true
+    },
+
+    {
+      st: 3,
+      say: '현재 걸을 수 있나요? 숨은 어떻게 쉬어지나요?',
+      opts: [
+        ok('걷지 못하겠어요. 숨이 조금 차요.')
+      ]
+    },
+
+    {
+      st: 3,
+      say: '가슴이 아프거나 답답한가요?',
+      opts: [
+        ok('가슴은 아프지 않아요.'),
+        ok('가슴이 아프고 답답해요.'),
+        ok('잘 모르겠어요.')
+      ]
+    },
+
+    {
+      st: 3,
+      say: '넘어지거나 다친 곳이 있나요?',
+      opts: [
+        ok('다친 곳은 없어요.'),
+        ok('넘어져서 다쳤어요.'),
+        ok('잘 모르겠어요.')
+      ]
+    },
+
+    {
+      st: 3,
+      say: '주변에 도움을 요청할 사람이 있나요?',
+      opts: [
+        ok('지금 주변에 아무도 없어요.'),
+        ok('주변에 사람이 있어요.')
+      ]
+    },
+
+    {
+      st: 3,
+      say: '무리해서 이동하지 마세요. 편안한 자세로 기다리고 휴대전화를 스피커폰으로 바꿔 주세요.',
+      speaker: true
+    },
+
+        {
+      st: 3,
+      say: '휴대전화 전원을 유지하고 통화를 끊지 마세요. 상태가 달라지면 바로 알려 주세요.',
+      hold: true
+    }
+  ]
+}
+
+];
+
+/* ---------- 음성 안내 ---------- */
+
+const synth = window.speechSynthesis;
+
+let currentVoice = null;
+
+function stopVoice() {
+  if (currentVoice) {
+    currentVoice.stop();
+    currentVoice = null;
+  }
+
+  if (synth) {
+    synth.cancel();
+  }
+}
+
+function speak(text, done) {
+  stopVoice();
+
+  const session = S;
+
+  const voice = {
+    stop() {
+      if (synth) synth.cancel();
+    }
+  };
+
+  currentVoice = voice;
+
+  let finished = false;
+
+  function finish() {
+    if (finished) return;
+    finished = true;
+
+    if (
+      currentVoice !== voice ||
+      !S ||
+      S !== session ||
+      S.phase !== 'call'
+    ) return;
+
+    currentVoice = null;
+    done();
+  }
+
+  if (
+    !synth ||
+    typeof SpeechSynthesisUtterance === 'undefined'
+  ) {
+    setTimeout(finish, 1500);
+    return;
+  }
+
+  try {
+    const utterance =
+      new SpeechSynthesisUtterance(text);
+
+    utterance.lang = 'ko-KR';
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+
+    const voices = synth.getVoices();
+
+    const koreanVoice = voices.find(
+      v => /^ko(-|_)?KR/i.test(v.lang)
+    );
+
+    if (koreanVoice) {
+      utterance.voice = koreanVoice;
+    }
+
+    utterance.onend = finish;
+
+    utterance.onerror = () => {
+      finish();
+    };
+
+    currentVoice = voice;
+
+    synth.speak(utterance);
+
+    setTimeout(() => {
+      if (!finished) finish();
+    }, Math.max(10000, text.length * 250));
+
+  } catch (error) {
+    finish();
+  }
+}
+
+  /* ---------- 처음 화면으로 이동 ---------- */
+
+  function goHome() {
+    if (S) {
+      S.phase = 'done';
+    }
+
+    clearTimers();
+    stopVoice();
+
+    $('zoom').hidden = true;
+
+    $('sosBtn').classList.remove('pulse');
+    $('spkBtn').classList.remove('pulse');
+
+    renderHome();
+    show('home');
+  }
+
+  $('backBtn').onclick = goHome;
+  
+    /* ---------- 잠금화면 시계 ---------- */
+
+  function clock() {
+    const d = new Date();
+
+    const hm =
+      String(d.getHours()).padStart(2, '0') +
+      ':' +
+      String(d.getMinutes()).padStart(2, '0');
+
+    $('lkClock').textContent = hm;
+    $('stTime').textContent = hm;
+
+    const week =
+      '일월화수목금토'[d.getDay()];
+
+    $('lkDate').textContent =
+      (d.getMonth() + 1) +
+      '월 ' +
+      d.getDate() +
+      '일 ' +
+      week +
+      '요일';
+  }
+
+  clock();
+
+  setInterval(clock, 20000);
+  
+/* ---------- 기본 실행 함수 ---------- */
+
+let S = null;
+let timers = [];
+
+function clearTimers() {
+  timers.forEach(id => {
+    clearTimeout(id);
+    clearInterval(id);
+  });
+  timers = [];
+}
+
+function later(fn, ms) {
+  const id = setTimeout(fn, ms);
+  timers.push(id);
+  return id;
+}
+
+function show(id) {
+  ['home', 'sim', 'resultV'].forEach(name => {
+    $(name).hidden = name !== id;
+  });
+
+  window.scrollTo(0, 0);
+}
+
+function escapeHTML(value) {
+  return String(value).replace(/[&<>"']/g, c => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[c]);
+}
+
+/* ---------- 첫 화면 상황 카드 ---------- */
+
+function renderHome() {
+  $('cfgAddr').value = cfg.addr;
+  $('cfgFloor').value = cfg.floor;
+
+  $('cards').innerHTML = SC.map((sc, i) => `
+    <article class="card">
+      <div class="card-thumb">
+        <img src="${escapeHTML(sc.img)}"
+             alt="${escapeHTML(sc.title)}">
+      </div>
+
+      <div class="card-copy">
+        <div class="card-meta">
+          <span class="num">SCENARIO 0${i + 1}</span>
+          <span class="level">${escapeHTML(sc.level[1])}</span>
+        </div>
+
+        <h3>
+          <button class="card-link"
+                  type="button"
+                  data-scenario="${i}">
+            ${escapeHTML(sc.title)}
+          </button>
+        </h3>
+
+        <p class="card-clue">
+          📍 위치 단서: ${escapeHTML(sc.clue)}
+        </p>
+      </div>
+    </article>
+  `).join('');
+
+  $('cards').querySelectorAll('[data-scenario]').forEach(btn => {
+    btn.onclick = () => {
+      startScenario(Number(btn.dataset.scenario));
+    };
+  });
+}
+
+/* ---------- 운영자 설정 저장 ---------- */
+
+$('cfgAddr').addEventListener('change', () => {
+  cfg.addr = $('cfgAddr').value.trim() || '주소 미입력';
+  store.set('cfg119', cfg);
+});
+
+$('cfgFloor').addEventListener('change', () => {
+  cfg.floor = $('cfgFloor').value.trim() || '층 미입력';
+  store.set('cfg119', cfg);
+});
+
+/* ---------- 상황 시작 ---------- */
+
+function startScenario(index) {
+  const sc = SC[index];
+
+  if (!sc) return;
+
+  clearTimers();
+  stopVoice();
+
+  S = {
+    sc,
+    phase: 'lock',
+    steps: sc.steps(),
+    index: 0,
+    found: new Set(),
+    history: [],
+    speaker: false,
+    finished: false
+  };
+
+  $('mTag').textContent = `상황 0${index + 1}`;
+  $('mText').textContent = sc.mission;
+
+
+  $('dialNum').textContent = '';
+  $('dialMsg').textContent = '';
+  $('keys').innerHTML = '';
+
+  $('log').innerHTML = '';
+  $('answers').innerHTML = '';
+
+  $('lkMsg').hidden = true;
+
+  $('sosBtn').classList.remove('pulse');
+  $('spkBtn').setAttribute('aria-pressed', 'false');
+
+  $('guideK').textContent = '할 일';
+  $('guideT').textContent =
+    '휴대전화에서 긴급통화를 눌러 119에 신고하세요.';
+
+  $('toAnswers').hidden = true;
+
+  updateProgress(1);
+
+  $('lockV').hidden = false;
+  $('dialV').hidden = true;
+  $('callV').hidden = true;
+
+  show('sim');
+
+  $('sosBtn').classList.add('pulse');
+}
+
+/* ---------- 진행 단계 표시 ---------- */
+
+function updateProgress(st) {
+  document.querySelectorAll('.progress .p').forEach(el => {
+    const n = Number(el.dataset.st);
+
+    el.classList.toggle('on', n === st);
+    el.classList.toggle('past', n < st);
+  });
+}
+
+/* ---------- 그림 속 위치 찾기 ---------- */
+
+function renderHotspots() {
+  if (!S) return;
+
+  const container = $('hots');
+  container.innerHTML = '';
+
+  S.sc.hots.forEach(item => {
+    const btn = document.createElement('button');
+
+    btn.type = 'button';
+    btn.className = 'hot';
+    btn.title = item.label;
+    btn.setAttribute('aria-label', item.label);
+
+    btn.style.left = item.x + '%';
+    btn.style.top = item.y + '%';
+    btn.style.width = item.w + '%';
+    btn.style.height = item.h + '%';
+
+    if (S.found.has(item.id)) {
+      btn.classList.add('found');
+    }
+
+    btn.onclick = () => {
+      S.found.add(item.id);
+      btn.classList.add('found');
+
+      openZoom(item);
+
+      updateGuide();
+
+      if (S.phase === 'call') {
+        renderAnswers();
+      }
+    };
+
+    container.appendChild(btn);
+  });
+}
+
+/* ---------- 위치 단서 확대 ---------- */
+
+function openZoom(item, markName) {
+  const zoom = $('zoom');
+  const crop = $('zoomCrop');
+
+  zoom.hidden = false;
+  $('zoomLbl').textContent = item.label;
+
+  const image = $('sceneImg');
+
+  crop.innerHTML = '';
+
+  const img = document.createElement('img');
+  img.src = image.src;
+  img.alt = item.label;
+
+  img.style.position = 'absolute';
+  img.style.maxWidth = 'none';
+
+  crop.style.width = '280px';
+  crop.style.height = '180px';
+
+  crop.appendChild(img);
+
+  const naturalW = image.naturalWidth || 1600;
+  const naturalH = image.naturalHeight || 900;
+
+  const scale = Math.min(
+    280 / (naturalW * item.w / 100),
+    180 / (naturalH * item.h / 100)
+  );
+
+  const renderedW = naturalW * scale;
+  const renderedH = naturalH * scale;
+
+  img.style.width = renderedW + 'px';
+  img.style.height = renderedH + 'px';
+  img.style.left = -(item.x / 100 * renderedW) + 'px';
+  img.style.top = -(item.y / 100 * renderedH) + 'px';
+
+  const mark = markName && item.marks
+    ? item.marks[markName]
+    : null;
+
+  if (mark) {
+    const box = document.createElement('div');
+    box.className = 'mark';
+
+    box.style.left = mark.x + '%';
+    box.style.top = mark.y + '%';
+    box.style.width = mark.w + '%';
+    box.style.height = mark.h + '%';
+
+    crop.appendChild(box);
+  }
+}
+
+$('zoomClose').onclick = () => {
+  $('zoom').hidden = true;
+};
+
+/* ---------- 신고 안내 문구 ---------- */
+
+function updateGuide() {
+  if (!S) return;
+
+  const step = S.steps[S.index];
+
+  if (!step) return;
+
+  if (step.need && !S.found.has(step.need)) {
+    $('guide').classList.add('hint');
+    $('guideK').textContent = '위치 찾기';
+    $('guideT').textContent =
+      step.hint || '그림에서 위치 단서를 찾아 누르세요.';
+  } else {
+    $('guide').classList.remove('hint');
+    $('guideK').textContent = '할 일';
+    $('guideT').textContent =
+      '상황실의 질문을 듣고 알맞은 답변을 선택하세요.';
+  }
+
+  $('toAnswers').hidden = S.phase !== 'call';
+}
+
+
+/* =========================================
+   PART 4
+   전화 걸기 / 통화 / 대화 / 결과 화면
+========================================= */
+
+/* ---------- 휴대전화 다이얼 ---------- */
+
+let dialNumber = '';
+let callStartedAt = 0;
+
+function openDial() {
+  if (!S) return;
+
+  S.phase = 'dial';
+
+  $('lockV').hidden = true;
+  $('dialV').hidden = false;
+  $('callV').hidden = true;
+
+  dialNumber = '';
+  $('dialNum').textContent = '';
+  $('dialMsg').textContent = '119를 입력하세요.';
+
+  const keys = $('keys');
+  keys.innerHTML = '';
+
+  ['1','2','3','4','5','6','7','8','9','*','0','#']
+    .forEach(n => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = n;
+
+      btn.onclick = () => {
+        if (dialNumber.length < 11) {
+          dialNumber += n;
+          $('dialNum').textContent = dialNumber;
+        }
+      };
+
+      keys.appendChild(btn);
+    });
+}
+
+$('sosBtn').onclick = openDial;
+$('unlockBtn').onclick = openDial;
+
+$('bkspBtn').onclick = () => {
+  dialNumber = dialNumber.slice(0, -1);
+  $('dialNum').textContent = dialNumber;
+};
+
+$('callBtn').onclick = () => {
+  if (dialNumber !== '119') {
+    $('dialMsg').textContent =
+      '119를 정확하게 입력해 주세요.';
+    return;
+  }
+
+  startCall();
+};
+
+/* ---------- 통화 시작 ---------- */
+
+function startCall() {
+  if (!S) return;
+
+  S.phase = 'call';
+
+  $('lockV').hidden = true;
+  $('dialV').hidden = true;
+  $('callV').hidden = false;
+
+  $('log').innerHTML = '';
+  $('answers').innerHTML = '';
+
+  callStartedAt = Date.now();
+
+  updateCallTime();
+
+  const timer = setInterval(updateCallTime, 1000);
+  timers.push(timer);
+
+  addLog('sys', '119 종합상황실 연결 중...');
+
+  later(() => {
+    if (!S || S.phase !== 'call') return;
+
+    addLog('sys', '119 종합상황실과 연결되었습니다.');
+
+    runStep();
+  }, 900);
+}
+
+/* ---------- 통화 시간 ---------- */
+
+function updateCallTime() {
+  if (!S || S.phase !== 'call') return;
+
+  const sec = Math.floor(
+    (Date.now() - callStartedAt) / 1000
+  );
+
+  const mm = String(Math.floor(sec / 60)).padStart(2, '0');
+  const ss = String(sec % 60).padStart(2, '0');
+
+  $('callTime').textContent = mm + ':' + ss;
+}
+
+/* ---------- 대화 기록 ---------- */
+
+function addLog(type, message) {
+  const div = document.createElement('div');
+  div.className = 'b ' + type;
+
+  if (type === 'op') {
+    const label = document.createElement('span');
+    label.className = 'lbl';
+    label.textContent = '119 상황실';
+
+    div.appendChild(label);
+  }
+
+  const content = document.createElement('span');
+  content.textContent = message;
+
+  div.appendChild(content);
+
+  $('log').appendChild(div);
+  $('log').scrollTop = $('log').scrollHeight;
+}
+
+/* ---------- 단계별 질문 진행 ---------- */
+
+
+function runStep() {
+  if (!S || S.phase !== 'call') return;
+
+  const step = S.steps[S.index];
+
+  if (!step) {
+    finishScenario();
+    return;
+  }
+
+  updateProgress(step.st);
+
+  addLog('op', step.say);
+
+  // 질문이 표시되면 답변을 즉시 보여줌
+  if (!step.auto && !step.speaker && !step.hold) {
+    renderAnswers();
+  }
+
+  speak(step.say, () => {
+    if (!S || S.phase !== 'call') return;
+
+    if (step.auto) {
+      S.history.push({
+        question: step.say,
+        answer: '상황실에서 위치 확인 및 출동 요청'
+      });
+
+      S.index++;
+      later(runStep, 700);
+      return;
+    }
+
+    if (step.speaker) {
+      renderContinue('스피커폰으로 전환한 뒤 계속하기');
+      return;
+    }
+
+    if (step.hold) {
+      renderContinue('통화 종료 및 신고 결과 확인');
+    }
+  });
+}
+
+
+/* ---------- 답변 선택 버튼 ---------- */
+
+function renderAnswers() {
+  if (!S || S.phase !== 'call') return;
+
+  const step = S.steps[S.index];
+  const box = $('answers');
+
+  box.innerHTML = '';
+
+  if (!step) return;
+
+
+  const ask = document.createElement('div');
+  ask.className = 'ask';
+  ask.textContent = '상황실 질문에 알맞게 대답하세요.';
+
+  box.appendChild(ask);
+
+  const heading = document.createElement('div');
+  heading.className = 'choice-heading';
+
+  const label = document.createElement('strong');
+  label.textContent = '신고자 답변';
+
+  heading.appendChild(label);
+  box.appendChild(heading);
+
+  step.opts.forEach((option, index) => {
+    const btn = document.createElement('button');
+
+    btn.type = 'button';
+    btn.className = 'ans';
+    btn.textContent = option.t;
+
+    if (index === 0) {
+      btn.classList.add('glow');
+    }
+
+    btn.onclick = () => {
+      selectAnswer(option, btn);
+    };
+
+    box.appendChild(btn);
+  });
+
+  $('toAnswers').hidden = false;
+  updateGuide();
+}
+
+/* ---------- 답변 처리 ---------- */
+
+function selectAnswer(option, btn) {
+  if (!S || S.phase !== 'call') return;
+
+  const step = S.steps[S.index];
+
+  if (!step) return;
+
+  $('answers').querySelectorAll('.ans')
+    .forEach(el => {
+      el.disabled = true;
+    });
+
+  btn.classList.add('sent');
+
+  addLog('me', option.t);
+
+  if (option.ok) {
+    S.history.push({
+      question: step.say,
+      answer: option.t
+    });
+
+    S.index++;
+
+    later(runStep, 650);
+
+  } else {
+    // 오답이면 다음 단계로 넘어가지 않고 재질문
+    const retry = option.retry ||
+      '다시 한번 말씀해 주세요.';
+
+    later(() => {
+      if (!S || S.phase !== 'call') return;
+
+      addLog('op', retry);
+
+      speak(retry, () => {
+        renderAnswers();
+      });
+
+    }, 600);
+  }
+}
+
+/* ---------- 다음 단계 안내 버튼 ---------- */
+
+function renderContinue(label) {
+  if (!S || S.phase !== 'call') return;
+
+  const box = $('answers');
+  box.innerHTML = '';
+
+  const step = S.steps[S.index];
+
+  const info = document.createElement('div');
+  info.className = 'ask';
+
+  info.textContent = step.hold
+    ? '구급대가 도착할 때까지 통화를 유지하세요. 실제 상황에서는 상황실의 안내를 따르세요.'
+    : '안내에 따라 휴대전화 설정을 확인하고 계속 진행하세요.';
+
+  box.appendChild(info);
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'ans sent';
+  btn.textContent = label;
+
+  btn.onclick = () => {
+    if (!S || S.phase !== 'call') return;
+
+    if (step.hold) {
+      finishScenario();
+      return;
+    }
+
+    if (step.speaker) {
+      S.speaker = true;
+
+      $('spkBtn').setAttribute(
+        'aria-pressed',
+        'true'
+      );
+
+      S.history.push({
+        question: step.say,
+        answer: '스피커폰으로 전환'
+      });
+
+      S.index++;
+      runStep();
+    }
+  };
+
+  box.appendChild(btn);
+}
+
+/* ---------- 스피커폰 버튼 ---------- */
+
+$('spkBtn').onclick = () => {
+  if (!S || S.phase !== 'call') return;
+
+  S.speaker = !S.speaker;
+
+  $('spkBtn').setAttribute(
+    'aria-pressed',
+    String(S.speaker)
+  );
+
+  addLog(
+    'sys',
+    S.speaker
+      ? '스피커폰이 켜졌습니다.'
+      : '스피커폰이 꺼졌습니다.'
+  );
+};
+
+/* ---------- 통화 종료 ---------- */
+
+$('endBtn').onclick = () => {
+  if (!S || S.phase !== 'call') return;
+
+  finishScenario();
+};
+
+/* ---------- 신고 결과 ---------- */
+
+function finishScenario() {
+  if (!S || S.finished) return;
+
+  S.finished = true;
+  S.phase = 'done';
+
+  clearTimers();
+  stopVoice();
+
+  $('zoom').hidden = true;
+
+  const recap = S.sc.recap();
+
+  const titles = [
+    '무슨 일이 생겼나요?',
+    '어디에 있나요?',
+    '지금 어떤 상태인가요?'
+  ];
+
+  const tips = [
+    '사고 종류와 아픈 사람을 정확하게 전달합니다.',
+    '주소, 건물명, 주변 표지판 등 위치 단서를 전달합니다.',
+    '의식, 호흡, 부상 상태와 추가 위험을 전달합니다.'
+  ];
+
+  $('resultV').innerHTML = `
+    <div class="result">
+
+      <div class="r-head">
+        <p class="no">119 신고 연습 완료</p>
+
+        <h2 id="recapTitle">
+          신고 내용을 <span>확인해 볼까요?</span>
+        </h2>
+
+        <p>${escapeHTML(S.sc.title)}</p>
+      </div>
+
+      <div class="r-body">
+
+        <h3>신고할 때 전달할 내용</h3>
+
+        <ol class="recap-steps">
+          ${recap.map((item, i) => `
+            <li class="recap-step">
+              <h3>${titles[i]}</h3>
+              <p class="step-tip">${tips[i]}</p>
+              <p class="step-example">
+                ${escapeHTML(item)}
+              </p>
+            </li>
+          `).join('')}
+        </ol>
+
+        <div class="call-reminder">
+          <strong>꼭 기억하세요!</strong>
+          <span>
+            실제 응급상황에서는 119에 신고하고
+            상황실의 안내에 따라 행동하세요.
+          </span>
+          <span>
+            통화 중에는 임의로 전화를 끊지 말고
+            구조대가 도착할 때까지 안내를 따르세요.
+          </span>
+        </div>
+
+        <div class="r-actions">
+          <button class="btn" id="retryBtn">
+            같은 상황 다시 연습하기
+          </button>
+
+          <button class="btn primary" id="homeBtn">
+            다른 상황 선택하기
+          </button>
+        </div>
+
+      </div>
+    </div>
+  `;
+
+  show('resultV');
+
+  $('retryBtn').onclick = () => {
+    const index = SC.indexOf(S.sc);
+    startScenario(index);
+  };
+
+  $('homeBtn').onclick = goHome;
+}
+
+/* ---------- 초기 실행 ---------- */
+
+renderHome();
+show('home');
+
+
+})();
+
+
+
+</script>
+
+</body>
+</html>
