@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>무등산 안전산행 인증 관리시스템</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f2f5f3;color:#26352d;
+font-family:Arial,"Malgun Gothic",sans-serif}
+header{background:#174d37;color:white;padding:24px}
+header h1{margin:0 0 8px;font-size:23px}
+header p{margin:0;color:#d8eadf}
+main{max-width:1200px;margin:22px auto;padding:0 15px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stat,.panel{background:white;border-radius:12px;padding:18px;
+box-shadow:0 2px 9px #0000000c;margin-bottom:15px}
+.stat small{color:#718078}
+.stat strong{display:block;font-size:27px;color:#17613f;margin-top:8px}
+h2{font-size:18px;margin:0 0 16px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+label{font-size:13px;font-weight:bold;display:block;margin-bottom:6px}
+input,select,textarea{width:100%;padding:10px;border:1px solid #d4ded7;
+border-radius:7px;font-size:14px;background:white}
+textarea{min-height:65px}
+.field{margin-bottom:13px}
+.checks{display:flex;flex-wrap:wrap;gap:12px}
+.checks label{font-weight:normal;display:flex;align-items:center;gap:5px}
+.checks input{width:auto}
+button{border:0;border-radius:7px;padding:10px 15px;
+background:#216b49;color:white;cursor:pointer;font-weight:bold}
+button.secondary{background:#63756a}
+button.danger{background:#b94b43}
+button:disabled{opacity:.4;cursor:not-allowed}
+.actions{display:flex;gap:7px;flex-wrap:wrap}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:11px 8px;border-bottom:1px solid #e7ece8;text-align:left}
+th{background:#f3f7f4}
+.table-wrap{overflow-x:auto}
+.tag{padding:4px 8px;border-radius:20px;background:#e4f3e9;
+color:#216b49;white-space:nowrap}
+.tag.pending{background:#fff0d8;color:#94620b}
+.tag.done{background:#e2edff;color:#28569b}
+footer{text-align:center;color:#819087;padding:25px;font-size:12px}
+@media(max-width:700px){
+.stats{grid-template-columns:repeat(2,1fr)}
+.grid{grid-template-columns:1fr}
+}
+@media print{header,main{display:none}}
+</style>
+</head>
+<body>
+<header>
+<h1>⛰ 무등산 안전산행 인증 관리시스템</h1>
+<p>국립공원 초보 등린이 · 가족단위 안전산행 챌린지</p>
+</header>
+
+<main>
+<section class="stats">
+<div class="stat"><small>전체 참가팀</small><strong id="total">0</strong></div>
+<div class="stat"><small>장비 대여 중</small><strong id="rented">0</strong></div>
+<div class="stat"><small>인증 완료</small><strong id="certified">0</strong></div>
+<div class="stat"><small>기념품 지급</small><strong id="gifted">0</strong></div>
+</section>
+
+<section class="panel">
+<h2>① 참가자 및 장비 대여 등록</h2>
+<form id="entry">
+<div class="grid">
+<div class="field">
+<label>대표 참가자 성명 *</label>
+<input name="name" required placeholder="홍길동">
+</div>
+<div class="field">
+<label>연락처</label>
+<input name="phone" placeholder="010-0000-0000">
+</div>
+<div class="field">
+<label>참가 유형</label>
+<select name="type">
+<option>초보 등린이</option>
+<option>가족단위</option>
+<option>일반 탐방객</option>
+</select>
+</div>
+<div class="field">
+<label>참가 인원</label>
+<input name="people" type="number" min="1" value="1">
+</div>
+<div class="field">
+<label>산행일</label>
+<input name="date" type="date" id="date">
+</div>
+<div class="field">
+<label>담당 직원</label>
+<input name="staff" placeholder="담당자">
+</div>
+</div>
+
+<div class="field">
+<label>② 대여 장비 선택</label>
+<div class="checks">
+<label><input type="checkbox" name="gear" value="등산화"> 등산화</label>
+<label><input type="checkbox" name="gear" value="등산스틱"> 등산스틱</label>
+<label><input type="checkbox" name="gear" value="배낭"> 배낭</label>
+<label><input type="checkbox" name="gear" value="아이젠"> 아이젠</label>
+<label><input type="checkbox" name="gear" value="무릎보호대"> 무릎보호대</label>
+<label><input type="checkbox" name="gear" value="응급키트"> 응급키트</label>
+<label><input type="checkbox" name="gear" value="방석"> 방석</label>
+<label><input type="checkbox" name="gear" value="안내지도"> 안내지도</label>
+<label><input type="checkbox" name="gear" value="핫팩"> 핫팩</label>
+</div>
+</div>
+
+<div class="field">
+<label><input type="checkbox" name="education" value="yes" style="width:auto"> 안전교육 및 안전수칙 확인 완료</label>
+</div>
+
+<div class="actions">
+<button type="submit">참가자 등록 및 대여</button>
+<button type="reset" class="secondary">초기화</button>
+</div>
+</form>
+</section>
+
+<section class="panel">
+<h2>③ 산행 인증 및 반납 관리</h2>
+<p style="font-size:13px;color:#758178">
+참가자를 선택하여 중머리재 인증과 장비 반납 상태를 관리합니다.
+</p>
+<div class="field">
+<label>참가자 선택</label>
+<select id="person"></select>
+</div>
+<div class="grid">
+<div class="field">
+<label>인증사진 또는 사진 확인 메모</label>
+<input id="photo" placeholder="사진 파일명 또는 확인 내용">
+</div>
+<div class="field">
+<label>SNS 게시물 주소 (선택)</label>
+<input id="sns" placeholder="https://www.instagram.com/...">
+</div>
+</div>
+<div class="actions">
+<button onclick="verify()">중머리재 인증 완료</button>
+<button onclick="returnGear()" class="secondary">장비 반납 확인</button>
+<button onclick="gift()" class="secondary">기념품 지급 완료</button>
+</div>
+</section>
+
+<section class="panel">
+<h2>④ 참가자 통합 현황</h2>
+<div class="actions" style="margin-bottom:12px">
+<button onclick="exportCSV()">CSV 엑셀 다운로드</button>
+<button onclick="printCertificate()" class="secondary">인증서 출력</button>
+</div>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>참가자</th><th>유형</th><th>인원</th>
+<th>장비</th><th>인증</th><th>반납</th>
+<th>기념품</th><th>관리</th>
+</tr>
+</thead>
+<tbody id="rows"></tbody>
+</table>
+</div>
+</section>
+<footer>
+무등산 안전산행 인증제 · 관리자 시범운영 프로그램
+</footer>
+</main>
+
+<script>
+const KEY="mudeungsan_safety_v1";
+let data=JSON.parse(localStorage.getItem(KEY)||"[]");
+let selected="";
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({
+"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+}[c]));
+
+$("date").value=new Date().toISOString().slice(0,10);
+
+function save(){
+localStorage.setItem(KEY,JSON.stringify(data));
+render();
+}
+
+function render(){
+$("total").textContent=data.length;
+$("rented").textContent=data.filter(x=>!x.returned).length;
+$("certified").textContent=data.filter(x=>x.certified).length;
+$("gifted").textContent=data.filter(x=>x.gift).length;
+
+$("person").innerHTML='<option value="">참가자 선택</option>'+
+data.map(x=>`<option value="${esc(x.id)}">${esc(x.name)} (${esc(x.date)})</option>`).join("");
+
+$("rows").innerHTML=data.map(x=>`
+<tr>
+<td>${esc(x.name)}</td>
+<td>${esc(x.type)}</td>
+<td>${esc(x.people)}명</td>
+<td>${esc(x.gear.join(", "))}</td>
+<td><span class="tag ${x.certified?'done':'pending'}">${x.certified?'완료':'대기'}</span></td>
+<td>${x.returned?'완료':'대여중'}</td>
+<td>${x.gift?'지급':'미지급'}</td>
+<td><button class="danger" onclick="removeItem('${esc(x.id)}')">삭제</button></td>
+</tr>`).join("");
+}
+
+$("person").addEventListener("change",e=>{
+selected=e.target.value;
+const x=data.find(v=>v.id===selected);
+$("photo").value=x?.photo||"";
+$("sns").value=x?.sns||"";
+});
+
+$("entry").addEventListener("submit",e=>{
+e.preventDefault();
+const f=new FormData(e.target);
+const item={
+id:"MD-"+Date.now(),
+name:f.get("name"),
+phone:f.get("phone"),
+type:f.get("type"),
+people:Number(f.get("people")),
+date:f.get("date"),
+staff:f.get("staff"),
+gear:f.getAll("gear"),
+education:f.get("education")==="yes",
+certified:false,
+returned:false,
+gift:false,
+photo:"",
+sns:"",
+created:new Date().toISOString()
+};
+if(!item.education){
+alert("안전교육 확인 후 등록해 주세요.");
+return;
+}
+data.push(item);
+save();
+e.target.reset();
+$("date").value=new Date().toISOString().slice(0,10);
+alert("참가자 등록 및 장비 대여가 기록되었습니다.");
+});
+
+function current(){
+return data.find(x=>x.id===$("person").value);
+}
+
+function verify(){
+const x=current();
+if(!x)return alert("참가자를 선택하세요.");
+if(!x.returned && x.gear.length>0)
+return alert("장비 반납 확인 후 인증을 완료해 주세요.");
+x.photo=$("photo").value;
+x.sns=$("sns").value;
+if(!x.photo)return alert("인증사진 확인 내용을 입력하세요.");
+x.certified=true;
+save();
+alert("안전산행 인증이 완료되었습니다.");
+}
+
+function returnGear(){
+const x=current();
+if(!x)return alert("참가자를 선택하세요.");
+x.returned=true;
+save();
+alert("장비 반납이 확인되었습니다.");
+}
+
+function gift(){
+const x=current();
+if(!x)return alert("참가자를 선택하세요.");
+if(!x.certified)return alert("먼저 산행 인증을 완료하세요.");
+if(!x.returned)return alert("장비 반납을 먼저 확인하세요.");
+x.gift=true;
+save();
+alert("인증 기념품 지급 완료!");
+}
+
+function removeItem(id){
+if(!confirm("참가 기록을 삭제할까요?"))return;
+data=data.filter(x=>x.id!==id);
+save();
+}
+
+function exportCSV(){
+const cols=["인증번호","성명","연락처","유형","인원","산행일",
+"담당자","대여장비","안전교육","인증완료","반납완료","기념품","사진","SNS"];
+const rows=data.map(x=>[
+x.id,x.name,x.phone,x.type,x.people,x.date,x.staff,
+x.gear.join("/"),x.education,x.certified,x.returned,x.gift,
+x.photo,x.sns
+]);
+const csv="\uFEFF"+[cols,...rows].map(r=>
+r.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(",")
+).join("\r\n");
+const a=document.createElement("a");
+a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
+a.download="무등산_안전산행_참가현황.csv";
+a.click();
+URL.revokeObjectURL(a.href);
+}
+
+function printCertificate(){
+const x=current();
+if(!x)return alert("참가자를 선택하세요.");
+if(!x.certified)return alert("인증 완료자만 인증서를 발급할 수 있습니다.");
+const w=window.open("","_blank");
+if(!w)return alert("팝업을 허용해 주세요.");
+w.document.write(`
+<!DOCTYPE html><html lang="ko"><meta charset="UTF-8">
+<title>무등산 안전산행 인증서</title>
+<style>
+body{font-family:serif;text-align:center;padding:55px;color:#28533b}
+.cert{border:9px double #a88d52;padding:55px 20px;min-height:550px}
+h1{font-size:38px;margin:45px}
+p{font-size:19px;line-height:2}
+.small{font-size:14px}
+</style>
+<div class="cert">
+<p>MUDEUNGSAN NATIONAL PARK</p>
+<h1>안전산행 인증서</h1>
+<h2>SAFE HIKING CERTIFICATE</h2>
+<p>위 참가자는 안전수칙을 준수하고<br>
+무등산 중머리재 산행 인증을 완료하였으므로<br>
+이 증서를 수여합니다.</p>
+<h2>${esc(x.name)}</h2>
+<p>참가인원 : ${esc(x.people)}명<br>
+인증번호 : ${esc(x.id)}<br>
+인증일 : ${esc(x.date)}</p>
+<br>
+<h3>국립공원공단 무등산국립공원사무소장</h3>
+<p class="small">※ 공식 명의 및 직인 사용은 내부 승인 후 적용</p>
+</div>
+<script>window.onload=()=>window.print();<\/script>
+</html>`);
+w.document.close();
+}
+
+render();
+</script>
+</body>
+</html>
