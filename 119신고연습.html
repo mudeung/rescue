@@ -1505,6 +1505,18 @@ input:focus-visible {
   display: none;
 }
 
+/* 그림 영역의 불필요한 높이 제거 */
+.scene {
+  min-height: 0 !important;
+  height: auto !important;
+}
+
+.scene > img {
+  min-height: 0 !important;
+  height: auto !important;
+  display: block;
+}
+
 </style>
 
 
@@ -2608,27 +2620,25 @@ function speak(text, done) {
       new SpeechSynthesisUtterance(text);
 
     utterance.lang = 'ko-KR';
-    utterance.rate = 0.90;
-    utterance.pitch = 1.05;
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
     utterance.volume = 1.0;
 
     const voices = synth.getVoices();
 
-    const koreanVoices = voices.filter(v =>
-      /^ko(-|_)?KR/i.test(v.lang)
+    const koreanVoice = voices.find(
+      v => /^ko(-|_)?KR/i.test(v.lang)
     );
-
-    const koreanVoice =
-      koreanVoices.find(v =>
-        /female|woman|여성|서연|유나/i.test(v.name)
-      ) || koreanVoices[0];
 
     if (koreanVoice) {
       utterance.voice = koreanVoice;
     }
 
     utterance.onend = finish;
-    utterance.onerror = finish;
+
+    utterance.onerror = () => {
+      finish();
+    };
 
     currentVoice = voice;
 
@@ -2636,7 +2646,7 @@ function speak(text, done) {
 
     setTimeout(() => {
       if (!finished) finish();
-    }, Math.max(10000, text.length * 350));
+    }, Math.max(10000, text.length * 250));
 
   } catch (error) {
     finish();
