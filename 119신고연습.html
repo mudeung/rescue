@@ -1605,7 +1605,7 @@ input:focus-visible {
 
       <!-- 행동 안내 -->
       <div class="guide" id="guide">
-        <span class="k" id="guideK">참여사항</span>
+        <span class="k" id="guideK">할 일</span>
         <div>
           <span id="guideT"></span>
           <a id="toAnswers" class="scene-jump"
@@ -1804,9 +1804,10 @@ input:focus-visible {
     retry
   });
 
-  /* ---------- 신고 상황 데이터 4/4---------- */
+  /* ---------- 신고 상황 데이터 ---------- */
 
- /* ---------- 신고 상황 데이터 : 1/4 ---------- */
+  
+/* ---------- 신고 상황 데이터 : 1/4 ---------- */
 
 const SC = [
 
@@ -1941,6 +1942,7 @@ const SC = [
       }
     ]
   },
+
 
 
 
@@ -2150,31 +2152,31 @@ const SC = [
     // --------------------------------
 
     {
-      st: 3,
-      say: '가슴과 배의 움직임을 살펴보세요. 정상적으로 숨을 쉬고 있나요?',
-      opts: [
-        {
-          ...ok('가슴이 오르내리고 정상적으로 숨을 쉬는 것 같아요.'),
-          next: 'normalBreathing'
-        },
-        {
-  ...no(
-    '숨을 쉬는지 잘 모르겠어요.',
-    '호흡이 불확실합니다. 즉시 119 상황요원에게 알리고 가슴압박을 시작하세요.'
-  ),
-  next: 'cprPosition'
-},
-{
-  ...no(
-    '숨을 쉬지 않거나 헐떡이기만 해요.',
-    '매우 위급한 상황입니다. 정상적인 호흡이 아닙니다. 즉시 심폐소생술을 시작해야 합니다.'
-  ),
-  next: 'cprPosition'
-}
-      ]
+  st: 3,
+  say: '가슴과 배의 움직임을 살펴보세요. 정상적으로 숨을 쉬고 있나요?',
+  opts: [
+    {
+      ...ok('가슴이 오르내리고 정상적으로 숨을 쉬는 것 같아요.'),
+      next: 'normalBreathing'
     },
+    {
+      ...no(
+        '숨을 쉬는지 잘 모르겠어요.',
+        '호흡이 불확실합니다. 즉시 119 상황요원에게 알려 주세요. 정상 호흡이 확인되지 않으면 심폐소생술을 시작해야 합니다.'
+      ),
+      next: 'cprPosition'
+    },
+    {
+      ...no(
+        '숨을 쉬지 않거나 헐떡이기만 해요.',
+        '매우 위급한 상황입니다. 정상적인 호흡이 아닙니다. 즉시 심폐소생술을 시작해야 합니다.'
+      ),
+      next: 'cprPosition'
+    }
+  ]
+},
 
-       // =================================
+    // =================================
     // A. 정상 호흡 경로
     // =================================
 
@@ -2194,96 +2196,58 @@ const SC = [
       hold: true
     },
 
- 
+   
+    // =================================
+    // B. 비정상 호흡 경로
+    // =================================
 
-// =================================
-// B. 비정상 호흡 경로
-// =================================
+    {
+      id: 'cprPosition',
+      st: 3,
+      say: '매우 위급한 상황입니다. 119 상황요원의 안내에 따라 심폐소생술을 시작하겠습니다. 환자를 단단하고 평평한 바닥에 등을 대고 눕혀 주세요. 가슴 중앙에 한 손의 손꿈치를 놓고 다른 손을 포개 주세요.',
+      opts: [
+        ok('네, 가슴 중앙에 손을 올렸어요.')
+      ]
+    },
 
-// 1. 환자 자세 및 손 위치
+    {
+      id: 'cprPosture',
+      st: 3,
+      say: '팔꿈치를 곧게 펴고 어깨가 손 바로 위에 오도록 자세를 잡아 주세요.',
+      opts: [
+        ok('네, 자세를 잡았어요.')
+      ]
+    },
 
-{
-  id: 'cprPosition',
-  st: 3,
-  say: '119 상황요원의 안내에 따라 심폐소생술을 시작하겠습니다. 환자를 단단하고 평평한 바닥에 등을 대고 눕혀 주세요. 가슴 중앙에 한 손의 손꿈치를 놓고 다른 손을 포개 주세요.',
-  opts: [
-    ok('네, 가슴 중앙에 손을 올렸어요.')
-  ]
-},
+    {
+      id: 'cprStart',
+      st: 3,
+      say: '가슴 중앙을 분당 100~120회의 속도로 약 5cm 깊이까지 강하고 빠르게 눌러 주세요. 지금 즉시 가슴압박을 시작하세요.',
+      opts: [
+        ok('네, 가슴압박을 시작하겠습니다.')
+      ]
+    },
 
-// 2. 가슴압박 자세
+    {
+      id: 'cprContinue',
+      st: 3,
+      say: '압박할 때마다 가슴이 완전히 올라오도록 해 주세요. 가능한 한 가슴압박을 중단하지 말고 119 상황요원의 안내에 따라 계속해 주세요.',
+      speaker: true
+    },
 
-{
-  id: 'cprPosture',
-  st: 3,
-  say: '팔꿈치를 곧게 펴고 어깨가 손 바로 위에 오도록 자세를 잡아 주세요.',
-  opts: [
-    ok('네, 자세를 잡았어요.')
-  ]
-},
+    // =================================
+    // C. AED 안내
+    // =================================
 
-// 3. 가슴압박 시작
-
-{
-  id: 'cprStart',
-  st: 3,
-  say: '가슴 중앙을 분당 100~120회의 속도로 약 5cm 깊이까지 강하고 빠르게 눌러 주세요. 지금 즉시 가슴압박을 시작하세요.',
-  opts: [
-    ok('네, 가슴압박을 시작하겠습니다.')
-  ]
-},
-
-// 4. 가슴압박 지속
-
-{
-  id: 'cprContinue',
-  st: 3,
-  say: '압박할 때마다 가슴이 완전히 올라오도록 해 주세요. 가능한 한 가슴압박을 중단하지 말고 119 상황요원의 안내에 따라 계속해 주세요.',
-  speaker: true
-},
-
-// 5. AED 요청 및 사용
-
-{
-  id: 'cprAED',
-  st: 3,
-  say: '주변 사람에게 자동심장충격기(AED)를 가져와 달라고 요청하세요. AED가 도착하면 전원을 켜고 음성 안내에 따라 패드를 부착하세요. 심장 리듬 분석과 충격 시에는 환자에게서 모두 떨어져야 합니다. 안내가 끝나면 즉시 가슴압박을 다시 시작하세요.',
-  opts: [
-    ok('네, AED를 가져오도록 요청할게요.'),
-    ok('주변에 AED가 없어요.')
-  ]
-},
-
-// 6. 출혈 및 외상 확인
-
-{
-  id: 'cprInjury',
-  st: 3,
-  say: '환자에게 눈에 보이는 출혈이나 외상이 있나요? 가슴압박을 중단하지 말고 다른 사람이 있다면 확인을 부탁해 주세요.',
-  opts: [
-    ok('눈에 보이는 출혈이나 부상은 없어요.'),
-    ok('피가 나는 곳이나 다친 곳이 보여요.'),
-    ok('다친 곳이 있는지 잘 모르겠어요.')
-  ]
-},
-
-// 7. 출혈 및 외상 전달
-
-{
-  st: 3,
-  say: '출혈이나 부상이 있다면 119 상황요원에게 알려 주세요. 가슴압박을 계속하고 환자를 불필요하게 움직이지 마세요.',
-  speaker: true
-},
-
-// 8. 최종 대기
-
-{
-  id: 'cprWait',
-  st: 3,
-  say: '구급대가 도착할 때까지 119 신고 통화를 유지하고 상황요원의 안내에 따라 주세요. 가슴압박을 계속하고 환자의 상태가 달라지면 즉시 알려 주세요.',
-  hold: true
-},
-
+    {
+      id: 'cprAED',
+      st: 3,
+      say: '주변 사람에게 자동심장충격기(AED)를 가져와 달라고 요청하세요. AED가 도착하면 전원을 켜고 음성 안내에 따라 패드를 부착하세요. 심장 리듬 분석과 충격 시에는 환자에게서 모두 떨어져야 합니다. 분석과 충격이 끝나면 즉시 가슴압박을 다시 시작하세요.',
+      opts: [
+        ok('네, AED를 가져오도록 요청할게요.'),
+        ok('주변에 AED가 없어요.')
+      ]
+    },
 
     // =================================
     // C. 부상 및 출혈 확인
@@ -2724,6 +2688,8 @@ const SC = [
 
 ];
 
+
+
 /* ---------- 음성 안내 ---------- */
 
 const synth = window.speechSynthesis;
@@ -2809,8 +2775,8 @@ function speak(text, done) {
     synth.speak(utterance);
 
     setTimeout(() => {
-      if (!finished) finish();
-    }, Math.max(10000, text.length * 250));
+  if (!finished) finish();
+}, Math.max(10000, text.length * 250));
 
   } catch (error) {
     finish();
@@ -2977,6 +2943,21 @@ function startScenario(index) {
   $('mTag').textContent = `상황 0${index + 1}`;
   $('mText').textContent = sc.mission;
 
+// 상황 이미지 변경 및 위치 단서 생성
+const sceneImg = $('sceneImg');
+
+sceneImg.onload = () => {
+  if (S && S.sc === sc) {
+    renderHotspots();
+  }
+};
+
+sceneImg.src = sc.img;
+
+// 이미 로드된 이미지인 경우
+if (sceneImg.complete && sceneImg.naturalWidth) {
+  renderHotspots();
+}
 
   $('dialNum').textContent = '';
   $('dialMsg').textContent = '';
@@ -3043,18 +3024,27 @@ function renderHotspots() {
       btn.classList.add('found');
     }
 
-    btn.onclick = () => {
-      S.found.add(item.id);
-      btn.classList.add('found');
+btn.onclick = () => {
+  S.found.add(item.id);
+  btn.classList.add('found');
 
-      openZoom(item);
+  const step = S.phase === 'call'
+    ? S.steps[S.index]
+    : null;
 
-      updateGuide();
+  const markName =
+    step?.mark?.[0] === item.id
+      ? step.mark[1]
+      : null;
 
-      if (S.phase === 'call') {
-        renderAnswers();
-      }
-    };
+  openZoom(item, markName);
+
+  updateGuide();
+
+  if (S.phase === 'call') {
+    renderAnswers();
+  }
+};
 
     container.appendChild(btn);
   });
@@ -3130,6 +3120,23 @@ function updateGuide() {
   const step = S.steps[S.index];
 
   if (!step) return;
+  
+  // 위치 단서를 먼저 찾아야 답변할 수 있도록 제한
+if (step.need && !S.found.has(step.need)) {
+  box.innerHTML = '';
+
+  $('toAnswers').hidden = true;
+
+  updateGuide();
+  return;
+}
+
+// 답변 선택지가 없는 안내 단계는 표시하지 않음
+if (!Array.isArray(step.opts)) {
+  box.innerHTML = '';
+  $('toAnswers').hidden = true;
+  return;
+}
 
   if (step.need && !S.found.has(step.need)) {
     $('guide').classList.add('hint');
@@ -3138,7 +3145,7 @@ function updateGuide() {
       step.hint || '그림에서 위치 단서를 찾아 누르세요.';
   } else {
     $('guide').classList.remove('hint');
-    $('guideK').textContent = '할 일';
+    $('guideK').textContent = '참여사항';
     $('guideT').textContent =
       '상황실의 질문을 듣고 알맞은 답변을 선택하세요.';
   }
@@ -3400,12 +3407,29 @@ function selectAnswer(option, btn) {
       answer: option.t
     });
 
-    S.index++;
+    // 지정된 분기 ID가 있으면 해당 단계로 이동
+    if (option.next) {
+      const nextIndex = S.steps.findIndex(
+        item => item.id === option.next
+      );
+
+      if (nextIndex === -1) {
+        console.error(
+          '존재하지 않는 next ID:',
+          option.next
+        );
+        return;
+      }
+
+      S.index = nextIndex;
+
+    } else {
+      S.index++;
+    }
 
     later(runStep, 650);
 
   } else {
-    // 오답이면 다음 단계로 넘어가지 않고 재질문
     const retry = option.retry ||
       '다시 한번 말씀해 주세요.';
 
