@@ -327,6 +327,34 @@ header{
 
 }
 
+/* 배터리 잔량 표시 */
+
+.battery-box{
+    background:#263238;
+    color:#fff;
+    padding:10px 15px;
+    margin:10px auto;
+    border-radius:8px;
+    width:fit-content;
+    min-width:180px;
+    text-align:center;
+    font-size:16px;
+    font-weight:bold;
+    border:1px solid #455a64;
+}
+
+.battery-level{
+    color:#81c784;
+    font-size:22px;
+}
+
+.battery-charging{
+    color:#ffeb3b;
+}
+
+.battery-low{
+    color:#ff5252;
+}    
 </style>
 
 </head>
@@ -352,10 +380,15 @@ header{
 
 <div class="container">
 
+    <!-- 🔋 휴대폰 배터리 잔량 표시 -->
+    <div class="battery-box" id="batteryBox">
+        🔋 배터리 확인 중...
+    </div>
+
+    <!-- 지도 -->
     <div id="map"></div>
 
 </div>
-
 
 <img
     src="https://mudeung.github.io/rescue/logogomir1.png"
@@ -2557,6 +2590,96 @@ setInterval(
 
 );
 
+/* =====================================
+   휴대폰 배터리 잔량 표시
+===================================== */
+
+async function updateBattery(){
+
+    const box =
+        document.getElementById("batteryBox");
+
+    if(!box) return;
+
+    if(!navigator.getBattery){
+
+        box.innerHTML =
+            "🔋 배터리 정보 미지원 브라우저";
+
+        return;
+    }
+
+    try{
+
+        const battery =
+            await navigator.getBattery();
+
+        function displayBattery(){
+
+            const level =
+                Math.round(battery.level * 100);
+
+            const charging =
+                battery.charging;
+
+            let icon = "🔋";
+            let color = "battery-level";
+            let status = "방전 중";
+
+            if(charging){
+
+                icon = "⚡";
+                color = "battery-charging";
+                status = "충전 중";
+
+            }
+
+            if(level <= 20){
+
+                icon = "🪫";
+                color = "battery-low";
+
+            }
+
+            box.innerHTML = `
+                ${icon}
+                배터리 잔량
+
+                <span class="${color}">
+                    ${level}%
+                </span>
+
+                <br>
+
+                <small>${status}</small>
+            `;
+
+        }
+
+        displayBattery();
+
+        battery.addEventListener(
+            "levelchange",
+            displayBattery
+        );
+
+        battery.addEventListener(
+            "chargingchange",
+            displayBattery
+        );
+
+    }
+    catch(error){
+
+        box.innerHTML =
+            "🔋 배터리 정보를 가져올 수 없습니다.";
+
+    }
+
+}
+
+updateBattery();
+    
 </script>
 
 
