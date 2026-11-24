@@ -2170,12 +2170,58 @@ async function loadData(){
 
 
                     📞
-                    ${escapeHTML(item.phone || "번호없음")}
+${escapeHTML(item.phone || "번호없음")}
 
+<br><br>
 
-                    <br>
+<!-- 신고자 휴대폰 배터리 -->
 
-                    ${sendIdHTML}
+<div style="
+    background:#263238;
+    padding:9px;
+    border-radius:6px;
+    margin:8px 0;
+    border:1px solid #455a64;
+">
+
+    🔋 <b>신고자 휴대폰 배터리</b>
+
+    <span style="
+        float:right;
+        color:${
+            Number(item.battery) <= 20
+            ? '#ff5252'
+            : '#81c784'
+        };
+        font-size:18px;
+        font-weight:bold;
+    ">
+        ${
+            item.battery !== undefined &&
+            item.battery !== null &&
+            item.battery !== ""
+            ? escapeHTML(item.battery) + "%"
+            : "정보없음"
+        }
+    </span>
+
+    <div style="clear:both;"></div>
+
+    <small style="color:#aaa;">
+        ${
+            item.battery === undefined ||
+            item.battery === null ||
+            item.battery === ""
+            ? "배터리 정보 미전송"
+            : Number(item.battery) <= 20
+            ? "🪫 배터리 부족"
+            : "배터리 정상"
+        }
+    </small>
+
+</div>
+
+${sendIdHTML}
 
 
                     <br>
