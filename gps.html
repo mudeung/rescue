@@ -1177,49 +1177,43 @@ updateBatteryInfo();
                ★ 구글시트 전송 데이터
             ================================================== */
 
-            const sheetData = {
+           
+const sheetData = {
 
-                lat:
-                    lat,
+    lat: lat,
+    lng: lng,
 
-                lng:
-                    lng,
+    address: currentAddress,
 
-                address:
-                    currentAddress,
+    kakaoMapURL: kakaoMapURL,
+    mapURL: kakaoMapURL,
 
-                kakaoMapURL:
-                    kakaoMapURL,
+    // 위치공유시스템
+    type: FIXED_CONTENT,
+    condition: FIXED_CONTENT,
 
-                mapURL:
-                    kakaoMapURL,
+    // 전송번호
+    sendId: sendId,
 
+    // 배터리 잔량
+    batteryLevel:
+        currentBatteryLevel === null
+            ? "확인 불가"
+            : currentBatteryLevel,
 
-                /* 위치공유시스템 */
+    // 충전 상태
+    batteryCharging:
+        currentBatteryCharging === null
+            ? "확인 불가"
+            : currentBatteryCharging
+                ? "충전 중"
+                : "충전 중 아님",
 
-                type:
-                    FIXED_CONTENT,
+    // 기존 구조 호환
+    symptom: "-",
+    phone: "-"
 
-
-                condition:
-                    FIXED_CONTENT,
-
-
-                /* ★ 전송번호 */
-
-                sendId:
-                    sendId,
-
-
-                /* 기존 구조 호환 */
-
-                symptom:
-                    "-",
-
-                phone:
-                    "-"
-
-            };
+};
 
 
             /* =================================================
