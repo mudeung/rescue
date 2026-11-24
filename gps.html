@@ -256,7 +256,7 @@
     border-left: 4px solid #f9a825;
     border-radius: 5px;
     line-height: 1.7;
-    font-size: 15px;
+    font-size: 13px;
     font-weight: bold;
     color: #333;
 }
@@ -1226,6 +1226,7 @@ const batteryText =
             ================================================== */
     
 
+
 const sheetData = {
 
     lat: lat,
@@ -1242,16 +1243,13 @@ const sheetData = {
     sendId: sendId,
 
     // 배터리 잔량
-    batteryLevel:
-        batteryLevelToSend === null
-            ? "확인 불가"
-            : batteryLevelToSend + "%",
+    batteryLevel: batteryText,
 
     // 숫자만 별도 저장
     batteryPercent:
         batteryLevelToSend === null
             ? ""
-            : batteryLevelToSend,
+            : Number(batteryLevelToSend),
 
     // 충전 상태
     batteryCharging:
@@ -1265,11 +1263,12 @@ const sheetData = {
     phone: "-"
 };
 
-console.log("===== 구글시트 전송 최종 확인 =====");
-console.log("배터리 잔량:", sheetData.batteryLevel);
-console.log("배터리 숫자:", sheetData.batteryPercent);
+console.log("===== 구글시트 최종 전송 데이터 =====");
+console.log("문자 배터리:", batteryText);
+console.log("시트 배터리:", sheetData.batteryLevel);
+console.log("숫자 배터리:", sheetData.batteryPercent);
 console.log("충전 상태:", sheetData.batteryCharging);
-console.log("전체 데이터:", JSON.stringify(sheetData));
+console.log("전체 JSON:", JSON.stringify(sheetData));
 
 
            
