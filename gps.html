@@ -1115,18 +1115,28 @@ updateBatteryInfo();
            문자 전송 + 구글시트 저장
         ====================================================== */
 
-        async function sendSMSAndCall() {
+       async function sendSMSAndCall() {
 
     // 배터리 정보 재확인
-if (!batteryReady) {
+    if (
+        currentBatteryLevel === null ||
+        currentBatteryCharging === null
+    ) {
 
-    const success = await updateBatteryInfo();
+        await updateBatteryInfo();
+    }
 
-    console.log(
-        "배터리 재확인 결과:",
-        success
-    );
-}
+    // 문자 및 구글시트 공통 사용값
+    const batteryLevelToSend =
+        currentBatteryLevel;
+
+    const batteryChargingToSend =
+        currentBatteryCharging;
+
+    console.log("최종 배터리 잔량:", batteryLevelToSend);
+    console.log("최종 충전 상태:", batteryChargingToSend);
+
+
             /* -----------------------------------------
                GPS 확인
             ----------------------------------------- */
@@ -1214,7 +1224,7 @@ if (typeof navigator.getBattery === "function") {
             /* =================================================
                ★ 구글시트 전송 데이터
             ================================================== */
-     const sheetData = {
+    const sheetData = {
 
     lat: lat,
     lng: lng,
@@ -1229,28 +1239,26 @@ if (typeof navigator.getBattery === "function") {
 
     sendId: sendId,
 
-    // 배터리 잔량
-    batteryLevel:
-        currentBatteryLevel !== null
-            ? currentBatteryLevel
-            : "확인 불가",
+    // 실제 배터리 잔량
+    batteryLevel: batteryLevelToSend,
 
-    // 충전 상태
+    // 실제 충전 상태
     batteryCharging:
-        currentBatteryCharging !== null
-            ? currentBatteryCharging
-            : "확인 불가",
+        batteryChargingToSend === null
+            ? "확인 불가"
+            : batteryChargingToSend
+                ? "충전 중"
+                : "충전 중 아님",
 
     symptom: "-",
     phone: "-"
-
 };
 
-console.log("최종 배터리 전송:", {
-    batteryLevel: sheetData.batteryLevel,
-    batteryCharging: sheetData.batteryCharging
-});
-
+console.log(
+    "구글시트 최종 전송 데이터:",
+    JSON.stringify(sheetData)
+);
+           
 /* =========================================
    배터리 정보 sheetData에 추가
 ========================================= */
@@ -1313,13 +1321,13 @@ fetch(
             ================================================== */
 
             const batteryText =
-    currentBatteryLevel === null
+    batteryLevelToSend === null
         ? "확인 불가"
-        : `${currentBatteryLevel}%` +
+        : `${batteryLevelToSend}%` +
           (
-              currentBatteryCharging === null
+              batteryChargingToSend === null
                   ? ""
-                  : currentBatteryCharging
+                  : batteryChargingToSend
                       ? " (충전 중)"
                       : " (충전 중 아님)"
           );
