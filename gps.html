@@ -1117,44 +1117,39 @@ updateBatteryInfo();
 
        async function sendSMSAndCall() {
 
-    /* =========================================
-       1. 배터리 정보 최종 확인
-    ========================================= */
+    
+/* =========================================
+   1. 배터리 정보 최종 확인
+========================================= */
 
-    let batteryLevelToSend = null;
-    let batteryChargingToSend = null;
+let batteryLevelToSend = currentBatteryLevel;
+let batteryChargingToSend = currentBatteryCharging;
 
-    try {
+try {
+    if (typeof navigator.getBattery === "function") {
 
-        if (typeof navigator.getBattery === "function") {
+        const battery = await navigator.getBattery();
 
-            const battery = await navigator.getBattery();
+        batteryLevelToSend =
+            Math.round(battery.level * 100);
 
-            batteryLevelToSend =
-                Math.round(battery.level * 100);
+        batteryChargingToSend =
+            battery.charging;
 
-            batteryChargingToSend =
-                battery.charging;
+        currentBatteryLevel = batteryLevelToSend;
+        currentBatteryCharging = batteryChargingToSend;
 
-            // 전역 변수에도 최신값 반영
-            currentBatteryLevel =
-                batteryLevelToSend;
+        console.log("배터리 확인 성공:", batteryLevelToSend);
+        console.log("충전 상태:", batteryChargingToSend);
 
-            currentBatteryCharging =
-                batteryChargingToSend;
-
-            batteryReady = true;
-
-        }
-
-    } catch (error) {
-
-        console.error(
-            "배터리 정보 확인 실패:",
-            error
-        );
-
+    } else {
+        console.log("배터리 API 미지원");
     }
+
+} catch (error) {
+    console.error("배터리 확인 실패:", error);
+}
+
 
     /* =========================================
        2. 배터리 정보 확인 로그
