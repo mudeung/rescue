@@ -1118,60 +1118,59 @@ updateBatteryInfo();
        async function sendSMSAndCall() {
 
     /* =========================================
-       1. 배터리 최신 정보 확인
+       1. 배터리 정보 최종 확인
     ========================================= */
 
-    if (typeof navigator.getBattery === "function") {
+    let batteryLevelToSend = null;
+    let batteryChargingToSend = null;
 
-        try {
+    try {
 
-            const battery =
-                await navigator.getBattery();
+        if (typeof navigator.getBattery === "function") {
 
-            currentBatteryLevel =
+            const battery = await navigator.getBattery();
+
+            batteryLevelToSend =
                 Math.round(battery.level * 100);
 
-            currentBatteryCharging =
+            batteryChargingToSend =
                 battery.charging;
+
+            // 전역 변수에도 최신값 반영
+            currentBatteryLevel =
+                batteryLevelToSend;
+
+            currentBatteryCharging =
+                batteryChargingToSend;
 
             batteryReady = true;
 
-        } catch (error) {
-
-            console.error(
-                "배터리 확인 오류:",
-                error
-            );
-
-            currentBatteryLevel = null;
-            currentBatteryCharging = null;
-
         }
+
+    } catch (error) {
+
+        console.error(
+            "배터리 정보 확인 실패:",
+            error
+        );
 
     }
 
     /* =========================================
-       2. 최종 배터리 정보 확정
-
-       문자와 구글시트가 동일한 값 사용
+       2. 배터리 정보 확인 로그
     ========================================= */
 
-    const batteryLevelToSend =
-        currentBatteryLevel;
-
-    const batteryChargingToSend =
-        currentBatteryCharging;
+    console.log("===== 배터리 최종 확인 =====");
 
     console.log(
-        "최종 배터리 잔량:",
+        "배터리 잔량:",
         batteryLevelToSend
     );
 
     console.log(
-        "최종 충전 상태:",
+        "충전 상태:",
         batteryChargingToSend
     );
-
 
             /* -----------------------------------------
                GPS 확인
