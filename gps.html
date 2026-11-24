@@ -1238,12 +1238,7 @@ updateBatteryInfo();
 
             const kakaoMapURL =
                 `https://map.kakao.com/link/map/${lat},${lng}`;
-/* 배터리 문자 내용 생성 */
 
-const batteryText =
-    batteryLevelToSend === null
-        ? "확인 불가"
-        : `${batteryLevelToSend}%`;
 
 /* =========================================
    배터리 문자 내용 생성
@@ -1252,14 +1247,8 @@ const batteryText =
 const batteryText =
     batteryLevelToSend === null
         ? "확인 불가"
-        : `${batteryLevelToSend}%` +
-          (
-              batteryChargingToSend === null
-                  ? ""
-                  : batteryChargingToSend
-                      ? " (충전 중)"
-                      : " (충전 중 아님)"
-          );
+        : `${batteryLevelToSend}%`;
+
 
             /* =================================================
                ★ 구글시트 전송 데이터
@@ -1353,8 +1342,8 @@ fetch(
         method: "POST",
         mode: "no-cors",
         headers: {
-            "Content-Type": "application/json"
-        },
+    "Content-Type": "text/plain;charset=utf-8"
+},
         body: JSON.stringify(sheetData)
     }
 )
