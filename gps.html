@@ -1219,6 +1219,28 @@ const sheetData = {
     batteryCharging: sheetData.batteryCharging
 });
 
+/* =========================================
+   배터리 정보 sheetData에 추가
+========================================= */
+
+sheetData.batteryLevel =
+    currentBatteryLevel !== null
+        ? currentBatteryLevel
+        : "확인 불가";
+
+sheetData.batteryCharging =
+    currentBatteryCharging !== null
+        ? currentBatteryCharging
+        : "확인 불가";
+
+console.log("시트 전송 배터리 잔량:",
+    sheetData.batteryLevel
+);
+
+console.log("시트 전송 충전 상태:",
+    sheetData.batteryCharging
+);
+            
             /* =================================================
                구글시트 저장
             ================================================== */
