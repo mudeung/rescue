@@ -520,9 +520,9 @@ if (window.MUDEUNG_LINK_EXPIRED === true) {
    배터리 정보
 ========================================= */
 
+
 let currentBatteryLevel = null;
 let currentBatteryCharging = null;
-
 let batteryReady = false;
 
 async function updateBatteryInfo() {
@@ -533,7 +533,9 @@ async function updateBatteryInfo() {
     try {
 
         if (typeof navigator.getBattery !== "function") {
-            throw new Error("배터리 API 미지원");
+            console.log("이 브라우저는 배터리 API를 지원하지 않습니다.");
+            batteryReady = false;
+            return false;
         }
 
         const battery = await navigator.getBattery();
@@ -560,8 +562,12 @@ async function updateBatteryInfo() {
             );
 
             console.log(
-                "배터리 갱신:",
-                currentBatteryLevel,
+                "배터리 잔량:",
+                currentBatteryLevel
+            );
+
+            console.log(
+                "충전 상태:",
                 currentBatteryCharging
             );
         }
@@ -571,21 +577,20 @@ async function updateBatteryInfo() {
         battery.addEventListener("levelchange", update);
         battery.addEventListener("chargingchange", update);
 
+        return true;
+
     } catch (error) {
+
+        console.error("배터리 확인 오류:", error);
 
         batteryReady = false;
 
-        currentBatteryLevel = null;
-        currentBatteryCharging = null;
-
-        batteryInfo.textContent =
-            "🔋 배터리 정보를 확인할 수 없습니다.";
-
-        console.error("배터리 확인 실패:", error);
+        return false;
     }
 }
 
 updateBatteryInfo();
+
         
         /* =====================================================
            문자 수신 구조대 번호
@@ -1112,10 +1117,16 @@ updateBatteryInfo();
 
         async function sendSMSAndCall() {
 
-    // 배터리 정보가 아직 준비되지 않았다면 재확인
-    if (!batteryReady) {
-        await updateBatteryInfo();
-    }
+    // 배터리 정보 재확인
+if (!batteryReady) {
+
+    const success = await updateBatteryInfo();
+
+    console.log(
+        "배터리 재확인 결과:",
+        success
+    );
+}
             /* -----------------------------------------
                GPS 확인
             ----------------------------------------- */
@@ -1257,8 +1268,23 @@ console.log("시트 전송 충전 상태:",
 ================================================== */
 
 // 전송 직전 배터리 값 확인
-console.log("최종 전송 데이터:", sheetData);
+console.log("===== 최종 배터리 저장 확인 =====");
 
+console.log(
+    "배터리 잔량:",
+    sheetData.batteryLevel
+);
+
+console.log(
+    "충전 상태:",
+    sheetData.batteryCharging
+);
+
+console.log(
+    "전송 JSON:",
+    JSON.stringify(sheetData)
+);
+            
 fetch(
     GOOGLE_SHEET_API,
     {
