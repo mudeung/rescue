@@ -1102,7 +1102,7 @@ updateBatteryInfo();
            문자 전송 + 구글시트 저장
         ====================================================== */
 
-        function sendSMSAndCall() {
+        async function sendSMSAndCall() {
 
 
             /* -----------------------------------------
@@ -1173,11 +1173,26 @@ updateBatteryInfo();
                 `https://map.kakao.com/link/map/${lat},${lng}`;
 
 
+            // 전송 직전 배터리 정보 갱신
+if (typeof navigator.getBattery === "function") {
+    try {
+        const battery = await navigator.getBattery();
+
+        currentBatteryLevel =
+            Math.round(battery.level * 100);
+
+        currentBatteryCharging =
+            battery.charging;
+
+    } catch (error) {
+        console.error("배터리 재확인 오류:", error);
+    }
+}
+
             /* =================================================
                ★ 구글시트 전송 데이터
             ================================================== */
-           
-const sheetData = {
+     const sheetData = {
 
     lat: lat,
     lng: lng,
@@ -1187,34 +1202,29 @@ const sheetData = {
     kakaoMapURL: kakaoMapURL,
     mapURL: kakaoMapURL,
 
-    // 위치공유시스템
     type: FIXED_CONTENT,
     condition: FIXED_CONTENT,
 
-    // 전송번호
     sendId: sendId,
 
     // 배터리 잔량
     batteryLevel:
-        currentBatteryLevel === null
-            ? "확인 불가"
-            : currentBatteryLevel,
+        currentBatteryLevel !== null
+            ? currentBatteryLevel
+            : "확인 불가",
 
     // 충전 상태
     batteryCharging:
-        currentBatteryCharging === null
-            ? "확인 불가"
-            : currentBatteryCharging
-                ? "충전 중"
-                : "충전 중 아님",
+        currentBatteryCharging !== null
+            ? currentBatteryCharging
+            : "확인 불가",
 
-    // 기존 구조 호환
     symptom: "-",
     phone: "-"
 
 };
 
-            console.log("배터리 전송 데이터:", {
+console.log("최종 배터리 전송:", {
     batteryLevel: sheetData.batteryLevel,
     batteryCharging: sheetData.batteryCharging
 });
@@ -1222,16 +1232,6 @@ const sheetData = {
 /* =========================================
    배터리 정보 sheetData에 추가
 ========================================= */
-
-sheetData.batteryLevel =
-    currentBatteryLevel !== null
-        ? currentBatteryLevel
-        : "확인 불가";
-
-sheetData.batteryCharging =
-    currentBatteryCharging !== null
-        ? currentBatteryCharging
-        : "확인 불가";
 
 console.log("시트 전송 배터리 잔량:",
     sheetData.batteryLevel
