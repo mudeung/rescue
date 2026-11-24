@@ -1240,10 +1240,27 @@ updateBatteryInfo();
                 `https://map.kakao.com/link/map/${lat},${lng}`;
 
 
+/* =========================================
+   배터리 문자 내용 생성
+========================================= */
+
+const batteryText =
+    batteryLevelToSend === null
+        ? "확인 불가"
+        : `${batteryLevelToSend}%` +
+          (
+              batteryChargingToSend === null
+                  ? ""
+                  : batteryChargingToSend
+                      ? " (충전 중)"
+                      : " (충전 중 아님)"
+          );
+
             /* =================================================
                ★ 구글시트 전송 데이터
             ================================================== */
-    const sheetData = {
+    
+const sheetData = {
 
     lat: lat,
     lng: lng,
@@ -1258,10 +1275,10 @@ updateBatteryInfo();
 
     sendId: sendId,
 
-    // 문자에 표시되는 배터리 내용 그대로 저장
+    // 배터리 잔량 (예: 85%)
     batteryLevel: batteryText,
 
-    // 숫자 배터리 잔량도 별도 저장
+    // 배터리 숫자 (예: 85)
     batteryPercent: batteryLevelToSend,
 
     // 충전 상태
@@ -1275,6 +1292,7 @@ updateBatteryInfo();
     symptom: "-",
     phone: "-"
 };
+
            
 /* =========================================
    배터리 정보 sheetData에 추가
@@ -1336,19 +1354,7 @@ fetch(
             /* =================================================
                문자 내용
             ================================================== */
-
-            cconst batteryText =
-    batteryLevelToSend === null
-        ? "확인 불가"
-        : `${batteryLevelToSend}%` +
-          (
-              batteryChargingToSend === null
-                  ? ""
-                  : batteryChargingToSend
-                      ? " (충전 중)"
-                      : " (충전 중 아님)"
-          );
-
+         
 const smsText =
 
 `🚨 [산악구조요청]
