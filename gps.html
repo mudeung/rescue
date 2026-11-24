@@ -33,47 +33,33 @@
 
 
 <!-- =========================================
-     공유 링크 만료 확인
-     expires가 없으면 기존 주소 접속 허용
-     expires가 있으면 만료 시각 확인
+     위치공유 링크 검증
+     token 서명 및 만료시간 확인
 ========================================= -->
-
 
 <script>
 (function () {
-    const params = new URLSearchParams(window.location.search);
-    const rawExpires = params.get("expires");
 
+    const params = new URLSearchParams(
+        window.location.search
+    );
+
+    const token = params.get("token");
+
+    window.MUDEUNG_LINK_VALID = false;
     window.MUDEUNG_LINK_EXPIRED = false;
+    window.MUDEUNG_LINK_CHECKING = true;
 
-    // 만료값이 없으면 기존 주소 허용
-    if (rawExpires === null) {
-        return;
-    }
-
-    // 빈 값이나 숫자가 아닌 값은 차단
-    if (!/^\d+$/.test(rawExpires)) {
+    if (!token) {
+        window.MUDEUNG_LINK_CHECKING = false;
         window.MUDEUNG_LINK_EXPIRED = true;
         return;
     }
 
-    const expires = Number(rawExpires);
+    window.MUDEUNG_LINK_TOKEN = token;
 
-    // 잘못된 타임스탬프는 차단
-    if (!Number.isSafeInteger(expires) || expires <= 0) {
-        window.MUDEUNG_LINK_EXPIRED = true;
-        return;
-    }
-
-    // 만료 시각이 현재 시각보다 이전이거나 같으면 차단
-    window.MUDEUNG_LINK_EXPIRED = Date.now() >= expires;
-
-    console.log("현재 시각:", new Date().toISOString());
-    console.log("만료 시각:", new Date(expires).toISOString());
-    console.log("만료 여부:", window.MUDEUNG_LINK_EXPIRED);
 })();
 </script>
-
 
     <!-- =====================================================
          CSS
@@ -602,6 +588,32 @@ updateBatteryInfo();
             "https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
 
 
+        
+/* =========================================
+   구글시트 저장 함수
+========================================= */
+
+async function saveRescueData(sheetData) {
+
+    const response = await fetch(GOOGLE_SHEET_API, {
+        method: "POST",
+        headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+        },
+        body: JSON.stringify(sheetData)
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || result.result !== "success") {
+        throw new Error(result.message || "저장 실패");
+    }
+
+    return result;
+}
+
+
+        
         /* =====================================================
            위치공유시스템 고정 내용
         ====================================================== */
@@ -1177,100 +1189,67 @@ updateBatteryInfo();
                ★ 구글시트 전송 데이터
             ================================================== */
 
-            const sheetData = {
+            
+const sheetData = {
 
-                lat:
-                    lat,
+    lat: lat,
+    lng: lng,
 
-                lng:
-                    lng,
+    address: currentAddress,
 
-                address:
-                    currentAddress,
+    kakaoMapURL: kakaoMapURL,
+    mapURL: kakaoMapURL,
 
-                kakaoMapURL:
-                    kakaoMapURL,
+    type: FIXED_CONTENT,
+    condition: FIXED_CONTENT,
 
-                mapURL:
-                    kakaoMapURL,
+    sendId: sendId,
 
+    symptom: "-",
+    phone: "-",
 
-                /* 위치공유시스템 */
+    // 배터리 잔량
+    batteryLevel:
+        currentBatteryLevel === null
+            ? ""
+            : currentBatteryLevel,
 
-                type:
-                    FIXED_CONTENT,
+    // 충전 상태
+    batteryCharging:
+        currentBatteryCharging === null
+            ? ""
+            : currentBatteryCharging
+                ? "충전 중"
+                : "충전 중 아님"
 
-
-                condition:
-                    FIXED_CONTENT,
-
-
-                /* ★ 전송번호 */
-
-                sendId:
-                    sendId,
-
-
-                /* 기존 구조 호환 */
-
-                symptom:
-                    "-",
-
-                phone:
-                    "-"
-
-            };
+};
 
 
-            /* =================================================
-               구글시트 저장
-            ================================================== */
+/* =================================================
+   ★ 구글시트 저장
+================================================== */
 
-            fetch(
+saveRescueData(sheetData)
+    .then(function(result) {
 
-                GOOGLE_SHEET_API,
+        console.log("구글시트 저장 성공:", result);
 
-                {
+        document.getElementById("sendStatus").innerHTML =
+            "✅ 구글시트 저장 성공" +
+            "<br>🔢 전송번호: " + sendId;
 
-                    method:
-                        "POST",
+    })
+    .catch(function(error) {
 
-                    mode:
-                        "no-cors",
+        console.error("구글시트 저장 실패:", error);
 
-                    headers: {
+        document.getElementById("sendStatus").innerHTML =
+            "❌ 구글시트 저장 실패" +
+            "<br>" + error.message;
 
-                        "Content-Type":
-                            "application/json"
+    });
 
-                    },
-
-                    body:
-                        JSON.stringify(
-                            sheetData
-                        )
-
-                }
-
-            )
-            .then(function() {
-
-                console.log(
-                    "구글시트 전송 완료:",
-                    sendId
-                );
-
-            })
-            .catch(function(error) {
-
-                console.error(
-                    "시트 전송 오류:",
-                    error
-                );
-
-            });
-
-
+            
             /* =================================================
                문자 내용
             ================================================== */
