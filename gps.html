@@ -1117,24 +1117,60 @@ updateBatteryInfo();
 
        async function sendSMSAndCall() {
 
-    // 배터리 정보 재확인
-    if (
-        currentBatteryLevel === null ||
-        currentBatteryCharging === null
-    ) {
+    /* =========================================
+       1. 배터리 최신 정보 확인
+    ========================================= */
 
-        await updateBatteryInfo();
+    if (typeof navigator.getBattery === "function") {
+
+        try {
+
+            const battery =
+                await navigator.getBattery();
+
+            currentBatteryLevel =
+                Math.round(battery.level * 100);
+
+            currentBatteryCharging =
+                battery.charging;
+
+            batteryReady = true;
+
+        } catch (error) {
+
+            console.error(
+                "배터리 확인 오류:",
+                error
+            );
+
+            currentBatteryLevel = null;
+            currentBatteryCharging = null;
+
+        }
+
     }
 
-    // 문자 및 구글시트 공통 사용값
+    /* =========================================
+       2. 최종 배터리 정보 확정
+
+       문자와 구글시트가 동일한 값 사용
+    ========================================= */
+
     const batteryLevelToSend =
         currentBatteryLevel;
 
     const batteryChargingToSend =
         currentBatteryCharging;
 
-    console.log("최종 배터리 잔량:", batteryLevelToSend);
-    console.log("최종 충전 상태:", batteryChargingToSend);
+    console.log(
+        "최종 배터리 잔량:",
+        batteryLevelToSend
+    );
+
+    console.log(
+        "최종 충전 상태:",
+        batteryChargingToSend
+    );
 
 
             /* -----------------------------------------
@@ -1204,22 +1240,6 @@ updateBatteryInfo();
             const kakaoMapURL =
                 `https://map.kakao.com/link/map/${lat},${lng}`;
 
-
-            // 전송 직전 배터리 정보 갱신
-if (typeof navigator.getBattery === "function") {
-    try {
-        const battery = await navigator.getBattery();
-
-        currentBatteryLevel =
-            Math.round(battery.level * 100);
-
-        currentBatteryCharging =
-            battery.charging;
-
-    } catch (error) {
-        console.error("배터리 재확인 오류:", error);
-    }
-}
 
             /* =================================================
                ★ 구글시트 전송 데이터
