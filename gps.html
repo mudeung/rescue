@@ -1238,7 +1238,12 @@ updateBatteryInfo();
 
             const kakaoMapURL =
                 `https://map.kakao.com/link/map/${lat},${lng}`;
+/* 배터리 문자 내용 생성 */
 
+const batteryText =
+    batteryLevelToSend === null
+        ? "확인 불가"
+        : `${batteryLevelToSend}%`;
 
 /* =========================================
    배터리 문자 내용 생성
@@ -1260,6 +1265,7 @@ const batteryText =
                ★ 구글시트 전송 데이터
             ================================================== */
     
+
 const sheetData = {
 
     lat: lat,
@@ -1275,11 +1281,17 @@ const sheetData = {
 
     sendId: sendId,
 
-    // 배터리 잔량 (예: 85%)
-    batteryLevel: batteryText,
+    // 배터리 잔량
+    batteryLevel:
+        batteryLevelToSend === null
+            ? "확인 불가"
+            : batteryLevelToSend + "%",
 
-    // 배터리 숫자 (예: 85)
-    batteryPercent: batteryLevelToSend,
+    // 숫자만 별도 저장
+    batteryPercent:
+        batteryLevelToSend === null
+            ? ""
+            : batteryLevelToSend,
 
     // 충전 상태
     batteryCharging:
@@ -1292,6 +1304,13 @@ const sheetData = {
     symptom: "-",
     phone: "-"
 };
+
+console.log("===== 구글시트 전송 최종 확인 =====");
+console.log("배터리 잔량:", sheetData.batteryLevel);
+console.log("배터리 숫자:", sheetData.batteryPercent);
+console.log("충전 상태:", sheetData.batteryCharging);
+console.log("전체 데이터:", JSON.stringify(sheetData));
+
 
            
 /* =========================================
