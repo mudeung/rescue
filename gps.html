@@ -1258,10 +1258,13 @@ updateBatteryInfo();
 
     sendId: sendId,
 
-    // 실제 배터리 잔량
-    batteryLevel: batteryLevelToSend,
+    // 문자에 표시되는 배터리 내용 그대로 저장
+    batteryLevel: batteryText,
 
-    // 실제 충전 상태
+    // 숫자 배터리 잔량도 별도 저장
+    batteryPercent: batteryLevelToSend,
+
+    // 충전 상태
     batteryCharging:
         batteryChargingToSend === null
             ? "확인 불가"
@@ -1272,11 +1275,6 @@ updateBatteryInfo();
     symptom: "-",
     phone: "-"
 };
-
-console.log(
-    "구글시트 최종 전송 데이터:",
-    JSON.stringify(sheetData)
-);
            
 /* =========================================
    배터리 정보 sheetData에 추가
@@ -1339,7 +1337,7 @@ fetch(
                문자 내용
             ================================================== */
 
-            const batteryText =
+            cconst batteryText =
     batteryLevelToSend === null
         ? "확인 불가"
         : `${batteryLevelToSend}%` +
