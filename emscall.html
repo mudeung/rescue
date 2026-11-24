@@ -2176,6 +2176,8 @@ ${escapeHTML(item.phone || "번호없음")}
 
 <!-- 신고자 휴대폰 배터리 -->
 
+<!-- 신고자 휴대폰 배터리 -->
+
 <div style="
     background:#263238;
     padding:9px;
@@ -2189,7 +2191,7 @@ ${escapeHTML(item.phone || "번호없음")}
     <span style="
         float:right;
         color:${
-            Number(item.batteryLevel) <= 20
+            Number(item.batteryLevel) * 100 <= 20
             ? '#ff5252'
             : '#81c784'
         };
@@ -2200,7 +2202,7 @@ ${escapeHTML(item.phone || "번호없음")}
             item.batteryLevel !== undefined &&
             item.batteryLevel !== null &&
             item.batteryLevel !== ""
-            ? escapeHTML(item.batteryLevel) + "%"
+            ? Math.round(Number(item.batteryLevel) * 100) + "%"
             : "정보없음"
         }
     </span>
@@ -2213,7 +2215,7 @@ ${escapeHTML(item.phone || "번호없음")}
             item.batteryLevel === null ||
             item.batteryLevel === ""
             ? "배터리 정보 미전송"
-            : Number(item.batteryLevel) <= 20
+            : Number(item.batteryLevel) * 100 <= 20
             ? "🪫 배터리 부족"
             : "배터리 정상"
         }
@@ -2227,6 +2229,7 @@ ${escapeHTML(item.phone || "번호없음")}
     </small>
 
 </div>
+
 
 ${sendIdHTML}
 
