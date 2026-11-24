@@ -520,10 +520,10 @@ if (window.MUDEUNG_LINK_EXPIRED === true) {
    배터리 정보
 ========================================= */
 
-
 let currentBatteryLevel = null;
 let currentBatteryCharging = null;
 let batteryReady = false;
+let batteryManager = null;
 
 async function updateBatteryInfo() {
 
@@ -532,27 +532,36 @@ async function updateBatteryInfo() {
 
     try {
 
-        if (typeof navigator.getBattery !== "function") {
-            console.log("이 브라우저는 배터리 API를 지원하지 않습니다.");
-            batteryReady = false;
-            return false;
+        console.log("===== 갤럭시 배터리 진단 =====");
+        console.log("HTTPS 보안 연결:", window.isSecureContext);
+        console.log("배터리 API:", typeof navigator.getBattery);
+
+        if (!window.isSecureContext) {
+            throw new Error("HTTPS 보안 연결이 아닙니다.");
         }
 
-        const battery = await navigator.getBattery();
+        if (typeof navigator.getBattery !== "function") {
+            throw new Error("배터리 API를 지원하지 않습니다.");
+        }
+
+        // 이미 가져온 배터리 객체가 있으면 재사용
+        if (!batteryManager) {
+            batteryManager = await navigator.getBattery();
+        }
 
         function update() {
 
             currentBatteryLevel =
-                Math.round(battery.level * 100);
+                Math.round(batteryManager.level * 100);
 
             currentBatteryCharging =
-                battery.charging;
+                batteryManager.charging;
 
             batteryReady = true;
 
             batteryInfo.textContent =
                 `🔋 배터리 잔량: ${currentBatteryLevel}% · ` +
-                (battery.charging
+                (currentBatteryCharging
                     ? "⚡ 충전 중"
                     : "🔌 충전 중 아님");
 
@@ -561,29 +570,31 @@ async function updateBatteryInfo() {
                 currentBatteryLevel <= 20
             );
 
-            console.log(
-                "배터리 잔량:",
-                currentBatteryLevel
-            );
-
-            console.log(
-                "충전 상태:",
-                currentBatteryCharging
-            );
+            console.log("배터리 잔량:", currentBatteryLevel);
+            console.log("충전 상태:", currentBatteryCharging);
         }
 
         update();
 
-        battery.addEventListener("levelchange", update);
-        battery.addEventListener("chargingchange", update);
+        // 이벤트 중복 등록 방지
+        if (!batteryManager._mudeungListenersAdded) {
+
+            batteryManager.addEventListener("levelchange", update);
+            batteryManager.addEventListener("chargingchange", update);
+
+            batteryManager._mudeungListenersAdded = true;
+        }
 
         return true;
 
     } catch (error) {
 
-        console.error("배터리 확인 오류:", error);
+        console.error("배터리 확인 실패:", error.name, error.message);
 
         batteryReady = false;
+
+        batteryInfo.textContent =
+            "🔋 배터리 정보를 확인할 수 없습니다.";
 
         return false;
     }
@@ -591,7 +602,6 @@ async function updateBatteryInfo() {
 
 updateBatteryInfo();
 
-        
         /* =====================================================
            문자 수신 구조대 번호
         ====================================================== */
@@ -1119,53 +1129,19 @@ updateBatteryInfo();
 
     
 /* =========================================
-   1. 배터리 정보 최종 확인
+   배터리 최종 확인
 ========================================= */
+
+await updateBatteryInfo();
 
 let batteryLevelToSend = currentBatteryLevel;
 let batteryChargingToSend = currentBatteryCharging;
 
-try {
-    if (typeof navigator.getBattery === "function") {
+console.log("===== 최종 배터리 확인 =====");
+console.log("배터리 잔량:", batteryLevelToSend);
+console.log("충전 상태:", batteryChargingToSend);
+console.log("배터리 준비:", batteryReady);
 
-        const battery = await navigator.getBattery();
-
-        batteryLevelToSend =
-            Math.round(battery.level * 100);
-
-        batteryChargingToSend =
-            battery.charging;
-
-        currentBatteryLevel = batteryLevelToSend;
-        currentBatteryCharging = batteryChargingToSend;
-
-        console.log("배터리 확인 성공:", batteryLevelToSend);
-        console.log("충전 상태:", batteryChargingToSend);
-
-    } else {
-        console.log("배터리 API 미지원");
-    }
-
-} catch (error) {
-    console.error("배터리 확인 실패:", error);
-}
-
-
-    /* =========================================
-       2. 배터리 정보 확인 로그
-    ========================================= */
-
-    console.log("===== 배터리 최종 확인 =====");
-
-    console.log(
-        "배터리 잔량:",
-        batteryLevelToSend
-    );
-
-    console.log(
-        "충전 상태:",
-        batteryChargingToSend
-    );
 
             /* -----------------------------------------
                GPS 확인
