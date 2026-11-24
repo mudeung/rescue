@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 
@@ -325,6 +324,37 @@ header{
         font-size:15px;
     }
 
+}
+
+/* 신고자 배터리 창 */
+.battery-box{
+    display:block;
+    width:fit-content;
+    margin-top:5px;
+    margin-bottom:8px;
+    padding:5px 8px;
+    background:#263238;
+    border:1px solid #455a64;
+    border-radius:4px;
+    color:#80cbc4;
+    font-weight:bold;
+    font-size:13px;
+    line-height:1.4;
+}
+
+/* 전송번호 창 */
+.send-number{
+    display:inline-block;
+    margin-top:0;
+    margin-bottom:5px;
+    padding:5px 8px;
+    background:#263238;
+    border:1px solid #455a64;
+    border-radius:4px;
+    color:#80cbc4;
+    font-weight:bold;
+    font-size:13px;
+    line-height:1.4;
 }
 
 </style>
@@ -2176,13 +2206,8 @@ ${escapeHTML(item.phone || "번호없음")}
 
 <!-- 신고자 휴대폰 배터리 -->
 
-<div style="
-    background:#263238;
-    padding:9px;
-    border-radius:6px;
-    margin:8px 0;
-    border:1px solid #455a64;
-">
+
+<div class="battery-box">
 
     🔋 <b>신고자 휴대폰 배터리</b>
 
@@ -2207,7 +2232,7 @@ ${escapeHTML(item.phone || "번호없음")}
 
     <div style="clear:both;"></div>
 
-    <small style="color:#aaa;">
+    <small style="color:#aaa;font-size:11px;">
         ${
             item.batteryLevel === undefined ||
             item.batteryLevel === null ||
