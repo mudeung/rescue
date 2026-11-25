@@ -2827,11 +2827,19 @@ function addFireMarker(
   updateRiskCount();
 
   // 마커 클릭 이벤트
-  circle.on("click", function() {
+ circle.on("click", function() {
 
-    showMarkerInfo(item);
+  // 상세정보 표시
+  showMarkerInfo(item);
 
-  });
+  // 로드뷰 선택 좌표 저장
+  selectRoadviewPosition(
+    item.lat,
+    item.lng,
+    item.title
+  );
+
+});
 
   // 서버 저장
   if (saveToServer && isGasAvailable()) {
@@ -3083,6 +3091,34 @@ removeButton.onclick = function() {
 
 };
 
+
+// ==========================================
+// 선택 지점 카카오 로드뷰 버튼
+// ==========================================
+
+const roadviewButton = document.createElement("button");
+
+roadviewButton.textContent =
+  "📷 선택 지점 카카오 로드뷰";
+
+roadviewButton.className = "btn-green";
+
+roadviewButton.style.marginTop = "8px";
+roadviewButton.style.width = "100%";
+
+roadviewButton.onclick = function() {
+
+  openKakaoRoadview(
+    item.lat,
+    item.lng,
+    item.title
+  );
+
+};
+
+panel.appendChild(roadviewButton);
+
+ 
 panel.appendChild(removeButton);
 
 }
@@ -4377,6 +4413,69 @@ document.getElementById("windyMapBtn")
 let kakaoRoadview = null;
 let kakaoRoadviewClient = null;
 
+
+// ==========================================
+// 카카오 로드뷰 선택 지점 핀 표시
+// ==========================================
+
+function showKakaoRoadviewPin(lat, lng, title) {
+
+  if (!kakaoRoadview) return;
+
+  const position = new kakao.maps.LatLng(lat, lng);
+
+  // 기존 핀 제거
+  if (kakaoRoadviewPinOverlay) {
+    kakaoRoadviewPinOverlay.setMap(null);
+    kakaoRoadviewPinOverlay = null;
+  }
+
+  // 핀 디자인
+  const content = document.createElement("div");
+
+  content.style.cssText = `
+    padding:7px 12px;
+    background:#fb5365;
+    color:white;
+    border:2px solid white;
+    border-radius:18px;
+    font-weight:bold;
+    font-size:12px;
+    white-space:nowrap;
+    box-shadow:0 2px 8px #0008;
+  `;
+
+  content.textContent = "📍 " + (title || "선택 위치");
+
+  // 로드뷰에 핀 표시
+  kakaoRoadviewPinOverlay =
+    new kakao.maps.CustomOverlay({
+      position: position,
+      content: content,
+      yAnchor: 1,
+      zIndex: 100
+    });
+
+  kakaoRoadviewPinOverlay.setMap(kakaoRoadview);
+}
+
+ 
+// ==========================================
+// 카카오 로드뷰 선택 위치 핀 관리
+// ==========================================
+
+// 선택된 GIS 좌표
+let selectedRoadviewPosition = {
+  lat: 35.134167,
+  lng: 126.988889
+};
+
+// 로드뷰 핀 객체
+let kakaoRoadviewPinOverlay = null;
+
+// 현재 선택된 위치 이름
+let selectedRoadviewTitle = "무등산 선택 위치";
+ 
 let selectedRoadviewPosition = {
   lat: 35.134167,
   lng: 126.988889
@@ -4408,58 +4507,7 @@ function initKakaoRoadview() {
   return true;
 }
 
-// 로드뷰 실행
-function openKakaoRoadview(lat, lng) {
 
-  if (!initKakaoRoadview()) return;
-
-  const gis = $("map");
-  const windy = $("windyFrame");
-  const roadview = $("kakaoRoadview");
-
-  gis.style.display = "none";
-  windy.style.display = "none";
-  roadview.style.display = "block";
-
-  $("toggleMapTypeBtn").disabled = true;
-
-  roadview.textContent = "주변 로드뷰 검색 중...";
-
-  setTimeout(() => {
-
-    kakaoRoadview.relayout();
-
-    const position = new kakao.maps.LatLng(
-      lat,
-      lng
-    );
-
-    kakaoRoadviewClient.getNearestPanoId(
-      position,
-      100,
-      function(panoId) {
-
-        if (panoId == null) {
-
-          roadview.textContent =
-            "주변에 촬영된 로드뷰 영상이 없습니다.";
-
-          return;
-        }
-
-        kakaoRoadview.setPanoId(
-          panoId,
-          position
-        );
-
-        kakaoRoadview.relayout();
-
-      }
-    );
-
-  }, 300);
-
-}
 
 // GIS 지도에서 선택한 위치 저장
 function selectRoadviewPosition(lat, lng) {
@@ -4509,11 +4557,12 @@ function switchToWindyMap() {
 
 
 
+
 // ==========================================
-// 로드뷰 위치 표시
+// 카카오 로드뷰 실행 및 선택 위치 표시
 // ==========================================
 
-function openKakaoRoadview(lat, lng) {
+function openKakaoRoadview(lat, lng, title = "선택 위치") {
 
   if (!validateCoordinates(lat, lng)) {
     alert("올바르지 않은 좌표입니다.");
@@ -4526,57 +4575,50 @@ function openKakaoRoadview(lat, lng) {
   const windy = $("windyFrame");
   const roadview = $("kakaoRoadview");
 
-  // 다른 지도 숨김
   gis.style.display = "none";
   windy.style.display = "none";
   roadview.style.display = "block";
 
-  // 지도 버튼 상태
   $("toggleMapTypeBtn").disabled = true;
 
-  // 로드뷰 영역 크기 재계산
-  setTimeout(() => {
-
-    if (kakaoRoadview) {
-      kakaoRoadview.relayout();
-    }
-
-  }, 200);
-
-  const position = new kakao.maps.LatLng(
-    lat,
-    lng
-  );
+  selectedRoadviewPosition = { lat, lng };
+  selectedRoadviewTitle = title;
 
   roadview.textContent = "주변 로드뷰 검색 중...";
 
-  // 가까운 로드뷰 검색
-  kakaoRoadviewClient.getNearestPanoId(
-    position,
-    100,
-    function(panoId) {
+  const position = new kakao.maps.LatLng(lat, lng);
 
-      if (panoId == null) {
+  setTimeout(() => {
 
-        roadview.textContent =
-          "해당 위치 주변에 카카오 로드뷰 촬영 영상이 없습니다.\n" +
-          "다른 위치를 선택해 주세요.";
+    kakaoRoadview.relayout();
 
-        return;
+    kakaoRoadviewClient.getNearestPanoId(
+      position,
+      100,
+      function(panoId) {
+
+        if (panoId == null) {
+
+          roadview.textContent =
+            "주변에 촬영된 로드뷰 영상이 없습니다.";
+
+          return;
+        }
+
+        // 로드뷰 영상 표시
+        kakaoRoadview.setPanoId(panoId, position);
+
+        kakaoRoadview.relayout();
+
+        // 핀 표시
+        showKakaoRoadviewPin(lat, lng, title);
+
       }
+    );
 
-      // 로드뷰 표시
-      kakaoRoadview.setPanoId(
-        panoId,
-        position
-      );
-
-      kakaoRoadview.relayout();
-
-    }
-  );
-
+  }, 300);
 }
+
 
 
 // ==========================================
@@ -4639,10 +4681,10 @@ $("kakaoRoadviewBtn").addEventListener(
 
 
 // ==========================================
-// GIS 지도 위치 선택
+// GIS 지도 선택 위치 저장
 // ==========================================
 
-function selectRoadviewPosition(lat, lng) {
+function selectRoadviewPosition(lat, lng, title) {
 
   if (!validateCoordinates(lat, lng)) return;
 
@@ -4650,6 +4692,9 @@ function selectRoadviewPosition(lat, lng) {
     lat: lat,
     lng: lng
   };
+
+  selectedRoadviewTitle =
+    title || "GIS 지도 선택 위치";
 
 }
 
