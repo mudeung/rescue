@@ -18,497 +18,103 @@
     </script>
 
 <style>
-:root {
-  --bg:#07111f;
-  --panel:#0e1c2d;
-  --panel2:#12243a;
-  --line:#263e56;
-  --text:#e5edf7;
-  --muted:#91a6bd;
-  --cyan:#22d3ee;
-  --green:#4ade80;
-  --red:#fb5365;
-  --yellow:#fbbf24;
 
-  /* 암호 입력창 추가 변수 */
-  --border:#263e56;
-  --surface:#ffffff;
-  --primary:#075985;
+:root {
+  --bg: #07111f;
+  --panel: #0e1c2d;
+  --panel2: #12243a;
+  --line: #263e56;
+  --text: #e5edf7;
+  --muted: #91a6bd;
+  --cyan: #22d3ee;
+  --green: #4ade80;
+  --red: #fb5365;
+  --yellow: #fbbf24;
+
+  --border: #263e56;
+  --surface: #ffffff;
+  --primary: #075985;
 }
 
-* { box-sizing:border-box; }
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+}
 
 body {
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-  font-family:"Pretendard","Malgun Gothic",sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Pretendard", "Malgun Gothic", sans-serif;
+  overflow-x: hidden;
 }
 
-/* 로그인 전에는 본문 숨김 */
-
-document.addEventListener("DOMContentLoaded", function () {
-
-  const panel = document.getElementById("passwordPanel");
-  const form = document.getElementById("passwordForm");
-  const input = document.getElementById("accessPassword");
-  const status = document.getElementById("passwordStatus");
-
-  if (!panel || !form || !input || !status) {
-    console.error("로그인 구성요소 오류");
-    return;
-  }
-
-  const PASSWORD = "knps";
-
-  if (!panel.open) {
-    panel.showModal();
-  }
-
-  input.focus();
-
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
-
-    if (input.value.trim() === PASSWORD) {
-
-      document.body.classList.add("password-verified");
-
-      panel.close();
-
-      input.value = "";
-      status.textContent = "";
-
-      // 로그인 완료 후 지도 크기 재계산
-      setTimeout(function () {
-        if (typeof map !== "undefined" && map) {
-          map.invalidateSize(true);
-        }
-      }, 300);
-
-    } else {
-
-      status.textContent = "암호가 올바르지 않습니다.";
-      input.value = "";
-      input.focus();
-
-    }
-  });
-
-  panel.addEventListener("cancel", function (e) {
-    e.preventDefault();
-  });
-
-});
-
-
-/* 암호 입력창 표시 */
-#passwordPanel {
-  width: min(420px, calc(100% - 32px));
-  border: 1px solid #263e56;
-  border-radius: 18px;
-  padding: 26px;
-  background: #ffffff;
-  color: #20242a;
-  z-index: 99999;
-}
-
-#passwordPanel[open] {
-  display: block;
-}
-
-#passwordPanel::backdrop {
-  background: rgba(7,17,31,0.95);
-}
-
- 
-button,input {
-  font-family:inherit;
+button,
+input {
+  font-family: inherit;
 }
 
 button {
-  cursor:pointer;
-  border:0;
-  border-radius:5px;
-  padding:11px;
-  font-size:12px;
-  font-weight:700;
-  color:white;
-  transition:.2s;
-  margin-bottom:6px;
+  cursor: pointer;
+  border: 0;
+  border-radius: 5px;
+  padding: 11px;
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+  transition: .2s;
+  margin-bottom: 6px;
 }
 
-button:hover { filter:brightness(1.2); }
-button:disabled { opacity:.5;cursor:not-allowed; }
+button:hover {
+  filter: brightness(1.1);
+}
 
-.btn-blue { background:#075985; }
-.btn-green { background:#166534; }
-.btn-purple { background:#43318a; }
-.btn-red { background:#991b1b; }
+button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.btn-blue { background: #075985; }
+.btn-green { background: #166534; }
+.btn-purple { background: #43318a; }
+.btn-red { background: #991b1b; }
+
 .btn-gray {
-  background:#24364a;
-  border:1px solid #3a5068;
+  background: #24364a;
+  border: 1px solid #3a5068;
 }
 
 input {
-  width:100%;
-  background:#081625;
-  color:white;
-  border:1px solid #30465d;
-  border-radius:5px;
-  padding:11px;
-  margin-bottom:8px;
-  font-size:13px;
-  outline:none;
+  width: 100%;
+  background: #081625;
+  color: white;
+  border: 1px solid #30465d;
+  border-radius: 5px;
+  padding: 11px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  outline: none;
 }
 
 input:focus {
-  border-color:var(--cyan);
-  box-shadow:0 0 0 2px #22d3ee20;
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 2px #22d3ee20;
 }
+
+/* HEADER */
 
 header {
-  background:linear-gradient(110deg,#0b1929,#102b46);
-  border-bottom:1px solid #294660;
-  padding:17px 22px;
-  box-shadow:0 4px 20px #0005;
+  background: linear-gradient(110deg, #0b1929, #102b46);
+  border-bottom: 1px solid #294660;
+  padding: 17px 22px;
+  box-shadow: 0 4px 20px #0005;
 }
-
-.header-inner {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:15px;
-  flex-wrap:wrap;
-}
-
-h1 {
-  font-size:23px;
-  margin:0;
-  font-weight:800;
-}
-
-.subtitle {
-  color:#8da9c3;
-  font-size:11px;
-  margin-top:6px;
-  letter-spacing:1px;
-}
-
-.header-right {
-  display:flex;
-  align-items:center;
-  gap:12px;
-  flex-wrap:wrap;
-}
-
-.system-status {
-  color:var(--green);
-  background:#103527;
-  border:1px solid #226348;
-  padding:8px 12px;
-  border-radius:5px;
-  font-size:11px;
-  font-weight:bold;
-}
-
-.clock {
-  color: #22d3ee;
-  font-size: 10px;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 1px;
-  padding: 10px 14px;
-  background: #081625;
-  border: 1px solid #24516a;
-  border-radius: 6px;
-  box-shadow: 0 0 12px #22d3ee18;
-  white-space: nowrap;
-}
-
-main {
-  display:grid;
-  grid-template-columns:minmax(0,1fr) 350px;
-  gap:13px;
-  padding:13px;
-  align-items:start;
-}
-
-.left-area {
-  min-width:0;
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-}
-
-.right-area {
-  min-width:0;
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-}
-
-.stats {
-  display:grid;
-  grid-template-columns:repeat(4,minmax(0,1fr));
-  gap:9px;
-}
-
-.stat-card {
-  background:linear-gradient(145deg,#13263c,#0d1929);
-  border:1px solid #29435d;
-  border-radius:7px;
-  padding:14px;
-  min-width:0;
-  transition:.2s;
-}
-
-.stat-card:hover {
-  border-color:var(--cyan);
-  transform:translateY(-2px);
-}
-
-.stat-label {
-  color:var(--muted);
-  font-size:11px;
-}
-
-.stat-value {
-  font-size:18px;
-  font-weight:800;
-  margin-top:6px;
-  font-variant-numeric:tabular-nums;
-}
-
-.stat-value small {
-  font-size:10px;
-  font-weight:500;
-}
-
-.cyan {color:var(--cyan);}
-.green {color:var(--green);}
-.red {color:var(--red);}
-.yellow {color:var(--yellow);}
-
-.section {
-  background:var(--panel);
-  border:1px solid var(--line);
-  border-radius:8px;
-  overflow:hidden;
-  min-width:0;
-  box-shadow:0 4px 15px #0002;
-}
-
-.section-title {
-  min-height:45px;
-  padding:12px 14px;
-  background:linear-gradient(90deg,#142b43,#0e1d30);
-  border-bottom:1px solid var(--line);
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:10px;
-  font-size:13px;
-  font-weight:700;
-}
-
-.section-title button {
-  margin:0;
-  width:auto;
-  padding:8px 12px;
-}
-
-.panel-body { padding:13px; }
-
-#map-container {
-  position:relative;
-  width:100%;
-  height:65vh;
-  min-height:430px;
-  overflow: hidden;
-}
-
-#map {
-  width:100%;
-  height:100%;
-  min-height:430px;
-  background:#17283a;
-}
-
-.map-legend {
-  position:absolute;
-  z-index:500;
-  bottom:14px;
-  left:12px;
-  display:flex;
-  flex-wrap:wrap;
-  gap:12px;
-  padding:10px 12px;
-  background:rgba(7,17,31,.94);
-  border:1px solid #34516c;
-  border-radius:6px;
-  font-size:10px;
-  pointer-events:none;
-}
-
-.dot {
-  display:inline-block;
-  width:9px;
-  height:9px;
-  border-radius:50%;
-  margin-right:4px;
-}
-
-.dot.red {background:var(--red);}
-.dot.blue {background:#38bdf8;}
-.dot.green {background:var(--green);}
-.dot.yellow {background:var(--yellow);}
-
-.resource-item {
-  display:flex;
-  justify-content:space-between;
-  gap:8px;
-  padding:10px 0;
-  border-bottom:1px solid var(--line);
-  font-size:11px;
-}
-
-.resource-item:last-child { border:0; }
-
-.resource-item span:first-child { color:var(--muted); }
-
-.resource-item strong {
-  color:#dceaf7;
-  text-align:right;
-}
-
-.info-panel {
-  max-height:260px;
-  overflow:auto;
-  white-space:pre-line;
-  background:#081625;
-  border:1px solid var(--line);
-  border-radius:6px;
-  padding:12px;
-  font-size:11px;
-  line-height:1.8;
-  color:#cbd5e1;
-}
-
-.info-panel h3 {
-  color:var(--cyan);
-  font-size:13px;
-  margin:0 0 10px;
-}
-
-.quick-links {
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:6px;
-}
-
-.quick-links button {
-  margin:0;
-  font-size:10px;
-  padding:10px 4px;
-}
-
-.road-tools {
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
-}
-
-.road-tool-column {
-  min-width:0;
-  background:#081625;
-  border:1px solid var(--line);
-  border-radius:7px;
-  padding:12px;
-}
-
-.road-tool-column h3 {
-  color:var(--cyan);
-  font-size:12px;
-  margin:0 0 12px;
-}
-
-.road-tool-column button {
-  width:100%;
-}
-
-.footer {
-  color:#71869d;
-  text-align:center;
-  font-size:10px;
-  padding:15px;
-  border-top:1px solid var(--line);
-  background:#081321;
-}
-
-.vehicle-marker {
-  background:transparent;
-  border:0;
-}
-
-.leaflet-popup-content-wrapper {
-  background:#101f31;
-  color:#e5edf7;
-  border:1px solid var(--cyan);
-}
-
-.leaflet-popup-tip { background:#101f31; }
-
-.leaflet-popup-close-button {
-  color:white!important;
-}
-
-.status-line {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:9px 0;
-  border-bottom:1px solid var(--line);
-  font-size:11px;
-}
-
-.status-indicator {
-  display:inline-block;
-  width:7px;
-  height:7px;
-  border-radius:50%;
-  background:var(--green);
-  margin-right:5px;
-}
-
-@media(max-width:1050px) {
-  main { grid-template-columns:1fr; }
-  .right-area {
-    display:grid;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-  }
-  #map-container { height:60vh; }
-}
-
-@media(max-width:650px) {
-  header { padding:14px; }
-  h1 { font-size:19px; }
-  main { padding:8px; }
-  .stats { grid-template-columns:repeat(2,minmax(0,1fr)); }
-  .right-area { display:flex; }
-  .road-tools { grid-template-columns:1fr; }
-  #map-container {
-    height:55vh;
-    min-height:380px;
-  }
-  #map { min-height:380px; }
-  .stat-value { font-size:19px; }
-}
-
-
-/* =====================================
-   모바일 화면 시계 최적화
-===================================== */
 
 .header-inner {
   display: flex;
@@ -518,60 +124,408 @@ main {
   flex-wrap: wrap;
 }
 
+h1 {
+  font-size: 23px;
+  margin: 0;
+  font-weight: 800;
+}
+
+.subtitle {
+  color: #8da9c3;
+  font-size: 11px;
+  margin-top: 6px;
+  letter-spacing: 1px;
+}
+
 .header-right {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+}
+
+.system-status {
+  color: var(--green);
+  background: #103527;
+  border: 1px solid #226348;
+  padding: 8px 12px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: bold;
 }
 
 .clock {
-  display: block;
-  white-space: nowrap;
+  color: var(--cyan);
   font-size: 10px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
+  letter-spacing: 1px;
+  padding: 10px 14px;
+  background: #081625;
+  border: 1px solid #24516a;
+  border-radius: 6px;
+  white-space: nowrap;
 }
 
-/* 모바일 최적화 */
-@media (max-width: 650px) {
+/* MAIN */
 
-  .header-inner {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-  }
-
-  .header-right {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    width: 100%;
-    gap: 8px;
-  }
-
-  .clock {
-    display: block;
-    width: 100%;
-    text-align: center;
-    font-size: 10px;
-    padding: 12px 5px;
-    letter-spacing: 0.5px;
-    white-space: nowrap;
-  }
-
-  .system-status {
-    width: 100%;
-    text-align: center;
-  }
-
-  h1 {
-    font-size: 19px;
-  }
-
+main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 350px;
+  gap: 13px;
+  padding: 13px;
+  align-items: start;
 }
- 
-/* 암호 입력창 */
+
+.left-area,
+.right-area {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.stat-card {
+  background: linear-gradient(145deg, #13263c, #0d1929);
+  border: 1px solid #29435d;
+  border-radius: 7px;
+  padding: 14px;
+  min-width: 0;
+  transition: .2s;
+}
+
+.stat-card:hover {
+  border-color: var(--cyan);
+  transform: translateY(-2px);
+}
+
+.stat-label {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 800;
+  margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-value small {
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.cyan { color: var(--cyan); }
+.green { color: var(--green); }
+.red { color: var(--red); }
+.yellow { color: var(--yellow); }
+
+/* SECTION */
+
+.section {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  min-width: 0;
+  box-shadow: 0 4px 15px #0002;
+}
+
+.section-title {
+  min-height: 45px;
+  padding: 12px 14px;
+  background: linear-gradient(90deg, #142b43, #0e1d30);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.section-title button {
+  margin: 0;
+  width: auto;
+  padding: 8px 12px;
+}
+
+.panel-body {
+  padding: 13px;
+}
+
+.panel-body h3 {
+  font-size: 12px;
+  margin: 8px 0;
+}
+
+.panel-body input {
+  padding: 8px;
+  font-size: 11px;
+  margin-bottom: 6px;
+}
+
+.panel-body button {
+  padding: 8px;
+  font-size: 11px;
+  margin-bottom: 5px;
+}
+
+/* =================================
+   MAP SYSTEM
+================================= */
+
+#map-container {
+  position: relative;
+  width: 100%;
+  height: 65vh;
+  min-height: 430px;
+  max-height: 900px;
+  display: block;
+  overflow: hidden;
+  background: #17283a;
+  isolation: isolate;
+}
+
+/* 기본 Leaflet 지도 */
+
+#map {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: block;
+  z-index: 1;
+  background: #e5e7eb;
+}
+
+/* Leaflet 타일 원본 색상 보호 */
+
+#map .leaflet-tile-pane,
+#map .leaflet-tile,
+#map .leaflet-layer {
+  filter: none !important;
+}
+
+#map .leaflet-tile {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.leaflet-container {
+  background: #e5e7eb;
+  outline: none;
+}
+
+.leaflet-popup-content-wrapper {
+  background: #101f31;
+  color: #e5edf7;
+  border: 1px solid var(--cyan);
+}
+
+.leaflet-popup-tip {
+  background: #101f31;
+}
+
+.leaflet-popup-close-button {
+  color: white !important;
+}
+
+.vehicle-marker {
+  background: transparent;
+  border: 0;
+}
+
+/* WINDY */
+
+#windyFrame {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: none;
+  background: #17283a;
+}
+
+/* ROADVIEW */
+
+#roadview {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: none;
+  background: #17283a;
+}
+
+#roadview.active {
+  display: block;
+}
+
+#roadviewStatus {
+  display: none;
+  position: absolute;
+  z-index: 10;
+  top: 12px;
+  left: 12px;
+  max-width: calc(100% - 24px);
+  padding: 10px 14px;
+  border: 1px solid var(--cyan);
+  border-radius: 6px;
+  background: rgba(7,17,31,.95);
+  color: var(--text);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.map-legend {
+  position: absolute;
+  z-index: 5;
+  bottom: 14px;
+  left: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 10px 12px;
+  background: rgba(7,17,31,.94);
+  border: 1px solid #34516c;
+  border-radius: 6px;
+  font-size: 10px;
+  pointer-events: none;
+}
+
+.dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+.dot.red { background: var(--red); }
+.dot.blue { background: #38bdf8; }
+.dot.green { background: var(--green); }
+.dot.yellow { background: var(--yellow); }
+
+/* RIGHT PANELS */
+
+.resource-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 11px;
+}
+
+.resource-item:last-child {
+  border: 0;
+}
+
+.resource-item span:first-child {
+  color: var(--muted);
+}
+
+.resource-item strong {
+  color: #dceaf7;
+  text-align: right;
+}
+
+.info-panel {
+  max-height: 260px;
+  overflow: auto;
+  white-space: pre-line;
+  background: #081625;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 12px;
+  font-size: 11px;
+  line-height: 1.8;
+  color: #cbd5e1;
+}
+
+.info-panel h3 {
+  color: var(--cyan);
+  font-size: 13px;
+  margin: 0 0 10px;
+}
+
+.quick-links {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.quick-links button {
+  margin: 0;
+  font-size: 10px;
+  padding: 10px 4px;
+}
+
+.road-tools {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.road-tool-column {
+  min-width: 0;
+  background: #081625;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 12px;
+}
+
+.road-tool-column h3 {
+  color: var(--cyan);
+  font-size: 12px;
+  margin: 0 0 12px;
+}
+
+.road-tool-column button {
+  width: 100%;
+}
+
+#vehicleInfo {
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+#vehicleInfo .resource-item {
+  padding: 8px 4px;
+  font-size: 10px;
+  min-height: 52px;
+}
+
+#vehicleInfo::-webkit-scrollbar {
+  width: 5px;
+}
+
+#vehicleInfo::-webkit-scrollbar-thumb {
+  background: var(--cyan);
+  border-radius: 5px;
+}
+
+#vehicleInfo::-webkit-scrollbar-track {
+  background: #081625;
+}
+
+/* LOGIN */
+
+#passwordPanel,
 .password-panel {
   width: min(420px, calc(100% - 32px));
   max-width: 420px;
@@ -581,27 +535,27 @@ main {
   background: var(--surface);
   color: #20242a;
   box-shadow: 0 18px 60px #00000025;
+  z-index: 99999;
 }
 
+#passwordPanel::backdrop,
 .password-panel::backdrop {
-  background: #111827cc;
+  background: rgba(7,17,31,.95);
   backdrop-filter: blur(3px);
 }
 
+#passwordPanel h2,
 .password-panel h2 {
   margin: 0 0 10px;
   color: #20242a;
   font-size: 22px;
-  text-align: left;
 }
 
 .password-panel > p {
-  color: var(--muted);
+  color: #64748b;
   line-height: 1.6;
-  text-align: left;
 }
 
-/* 암호 입력과 확인 버튼 한 줄 배치 */
 .password-input-row {
   display: flex;
   align-items: stretch;
@@ -618,9 +572,8 @@ main {
   padding: 0 12px;
   border: 1px solid #aeb5be;
   border-radius: 10px;
-  background: #fff;
+  background: white;
   color: #20242a;
-  font: inherit;
 }
 
 .password-input-row .button {
@@ -628,13 +581,8 @@ main {
   width: 82px;
   height: 46px;
   padding: 0 12px;
-  border: 0;
   border-radius: 10px;
   background: var(--primary);
-  color: #fff;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
 }
 
 #passwordStatus {
@@ -642,7 +590,6 @@ main {
   margin: 8px 0 0;
   color: var(--primary);
   font-size: 14px;
-  text-align: left;
 }
 
 .password-input-row input:focus-visible,
@@ -651,122 +598,113 @@ main {
   outline-offset: 3px;
 }
 
-/* 좌표·주소·차량 입력 제목 크기 조정 */
-.panel-body h3 {
-  font-size: 12px;
-  margin-top: 8px;
-  margin-bottom: 8px;
-}
+/* FOOTER */
 
-/* 입력창 높이 축소 */
-.panel-body input {
-  padding: 8px;
-  font-size: 11px;
-  margin-bottom: 6px;
-}
-
-/* 버튼 크기 축소 */
-.panel-body button {
-  padding: 8px;
-  font-size: 11px;
-  margin-bottom: 5px;
-}
-
-/* 진화 차량 목록 - 6대 표시 */
-#vehicleInfo {
-  max-height: 360px;
-  overflow-y: auto;
-  padding: 8px;
-}
-
-/* 차량별 간격 */
-#vehicleInfo .resource-item {
-  padding: 8px 4px;
+.footer {
+  color: #71869d;
+  text-align: center;
   font-size: 10px;
-  min-height: 52px;
+  padding: 15px;
+  border-top: 1px solid var(--line);
+  background: #081321;
 }
 
-/* 스크롤바 */
-#vehicleInfo::-webkit-scrollbar {
-  width: 5px;
-}
-
-#vehicleInfo::-webkit-scrollbar-thumb {
-  background: #22d3ee;
-  border-radius: 5px;
-}
-
-#vehicleInfo::-webkit-scrollbar-track {
-  background: #081625;
-}
-
-/* =====================================
-   카카오 로드뷰
-===================================== */
-
-#roadview {
-  display: none;
-  width: 100%;
-  height: 100%;
-  min-height: 380px;
-  background: #17283a;
-}
-
-#roadviewStatus {
-  display: none;
-  position: absolute;
-  z-index: 600;
-  top: 12px;
-  left: 12px;
-  max-width: calc(100% - 24px);
-  padding: 10px 14px;
-  border: 1px solid #22d3ee;
-  border-radius: 6px;
-  background: rgba(7,17,31,.95);
-  color: #e5edf7;
+.status-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
   font-size: 11px;
-  line-height: 1.6;
 }
 
-#roadview.active {
-  display: block;
+.status-indicator {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  margin-right: 5px;
 }
 
-@media(max-width:650px) {
-  #roadview {
-    min-height: 380px;
+/* RESPONSIVE */
+
+@media(max-width: 1050px) {
+  main {
+    grid-template-columns: 1fr;
+  }
+
+  .right-area {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #map-container {
+    height: 60vh;
   }
 }
 
-#map-container {
-  position: relative;
-  width: 100%;
-  height: 65vh;
-  min-height: 430px;
-  display: block;
+@media(max-width: 650px) {
+  header {
+    padding: 14px;
+  }
+
+  .header-inner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .header-right {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 8px;
+  }
+
+  h1 {
+    font-size: 19px;
+  }
+
+  .clock {
+    width: 100%;
+    text-align: center;
+    font-size: 10px;
+    padding: 12px 5px;
+    letter-spacing: .5px;
+  }
+
+  .system-status {
+    width: 100%;
+    text-align: center;
+  }
+
+  main {
+    padding: 8px;
+  }
+
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .right-area {
+    display: flex;
+  }
+
+  .road-tools {
+    grid-template-columns: 1fr;
+  }
+
+  #map-container {
+    height: 55vh;
+    min-height: 380px;
+  }
+
+  .stat-value {
+    font-size: 19px;
+  }
 }
 
-#map {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  min-height: 430px;
-  display: block;
-  z-index: 1;
-}
-
-#windyFrame {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-}
-
-#roadview {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-}
 
 </style>
 </head>
