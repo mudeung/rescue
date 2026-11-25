@@ -808,13 +808,16 @@ main {
 
    <!-- 카카오 로드뷰 -->
 <div id="kakaoRoadview"
-     style="
-       display:none;
-       width:100%;
-       height:100%;
-       min-height:380px;
-       background:#081625;
-     ">
+     style="display:none;width:100%;height:100%;">
+
+  <div id="kakaoSelectMap"
+       style="width:100%;height:100%;min-height:430px;">
+  </div>
+
+  <div id="kakaoRoadviewView"
+       style="display:none;width:100%;height:100%;min-height:430px;">
+  </div>
+
 </div>
 
       <div class="map-legend">
@@ -1163,7 +1166,6 @@ const FIRE_TRUCK_MIN_WIDTH = 3.0;
 const OVERPASS_URL =
   "https://overpass-api.de/api/interpreter";
 
-
 // ==========================================
 // ⑤ 카카오 로드뷰 변수
 // ==========================================
@@ -1173,6 +1175,9 @@ let kakaoRoadview = null;
 let kakaoRoadviewClient = null;
 
 let kakaoRoadviewPinOverlay = null;
+
+// 카카오 지도 선택 변수 추가
+let kakaoSelectMap = null;
 
 let selectedRoadviewPosition = {
   lat: 35.134167,
@@ -2243,7 +2248,58 @@ function initKakaoRoadview() {
 
 }
 
+// ==========================================
+// 3. 카카오 지도 초기화 (여기에 삽입)
+// ==========================================
 
+function initKakaoSelectMap() {
+
+  return ensureKakaoReady().then(function() {
+
+    const container = $("kakaoSelectMap");
+
+    if (!container) {
+      throw new Error("카카오 지도 화면을 찾을 수 없습니다.");
+    }
+
+    if (!kakaoSelectMap) {
+
+      kakaoSelectMap = new kakao.maps.Map(
+        container,
+        {
+          center: new kakao.maps.LatLng(
+            35.134167,
+            126.988889
+          ),
+          level: 5
+        }
+      );
+
+      kakao.maps.event.addListener(
+        kakaoSelectMap,
+        "click",
+        function(mouseEvent) {
+
+          const position = mouseEvent.latLng;
+
+          openSelectedRoadview(
+            position.getLat(),
+            position.getLng()
+          );
+
+        }
+      );
+
+    }
+
+    setTimeout(function() {
+      kakaoSelectMap.relayout();
+    }, 200);
+
+  });
+
+}
+ 
 // ==========================================
 // 3. GIS 선택 좌표 저장
 // ==========================================
@@ -3190,6 +3246,171 @@ if (passwordForm) {
   });
 
 }
+
+
+/* =========================================
+   카카오 지도 ↔ GIS 지도 좌표 연동
+========================================= */
+
+// 선택 좌표를 GIS 지도에 표시할 마커
+let linkedGISMarker = null;
+
+
+// ==========================================
+// 1. 선택 위치를 GIS 지도에 표시
+// ==========================================
+
+function showSelectedPositionOnGIS() {
+
+  const lat = selectedRoadviewPosition.lat;
+  const lng = selectedRoadviewPosition.lng;
+
+  if (!map) {
+    alert("GIS 지도가 아직 준비되지 않았습니다.");
+    return;
+  }
+
+  switchToGISMap();
+
+  const position = [lat, lng];
+
+  map.setView(position, 17);
+
+  if (linkedGISMarker) {
+    map.removeLayer(linkedGISMarker);
+  }
+
+  linkedGISMarker = L.marker(position).addTo(map);
+
+  linkedGISMarker.bindPopup(
+    "<strong>📍 카카오 지도 선택 위치</strong><br>" +
+    "위도: " + lat.toFixed(6) + "<br>" +
+    "경도: " + lng.toFixed(6)
+  ).openPopup();
+
+  const info = $("infoPanel");
+
+  if (info) {
+    info.textContent =
+      "카카오 지도 선택 위치\n" +
+      "위도: " + lat.toFixed(6) + "\n" +
+      "경도: " + lng.toFixed(6);
+  }
+
+}
+
+
+// ==========================================
+// 2. 선택 위치 산불 발생지역 등록
+// ==========================================
+
+function registerSelectedFirePosition() {
+
+  const lat = selectedRoadviewPosition.lat;
+  const lng = selectedRoadviewPosition.lng;
+
+  if (!validateCoordinates(lat, lng)) {
+    alert("좌표를 확인하세요.");
+    return;
+  }
+
+  const item = addFireMarker(
+    lat,
+    lng,
+    "risk",
+    "카카오 지도 등록 산불 발생지역",
+    "카카오 지도에서 선택하여 등록한 위치",
+    getToday()
+  );
+
+  if (item) {
+
+    switchToGISMap();
+
+    map.setView([lat, lng], 17);
+
+    showMarkerInfo(item);
+
+    alert("산불 발생지역이 등록되었습니다.");
+
+  }
+
+}
+
+
+// ==========================================
+// 3. 카카오 지도 위치 → GIS 지도
+// ==========================================
+
+function goSelectedPositionToGIS() {
+
+  showSelectedPositionOnGIS();
+
+}
+
+
+// ==========================================
+// 4. 선택 위치 → 로드뷰
+// ==========================================
+
+function goSelectedPositionToRoadview() {
+
+  showSelectedRoadview();
+
+}
+
+
+// ==========================================
+// 5. 버튼 생성
+// ==========================================
+
+(function addKakaoLinkButtons() {
+
+  const container = $("kakaoMapInfo");
+
+  if (!container) return;
+
+  const buttonArea = document.createElement("div");
+
+  buttonArea.style.marginTop = "8px";
+
+  buttonArea.innerHTML = `
+    <button id="kakaoToGISBtn"
+      class="btn-blue">
+      GIS 지도에서 보기
+    </button>
+
+    <button id="kakaoToRoadviewBtn"
+      class="btn-green">
+      선택 위치 로드뷰
+    </button>
+
+    <button id="kakaoRegisterFireBtn"
+      class="btn-red">
+      산불 위치 등록
+    </button>
+  `;
+
+  container.appendChild(buttonArea);
+
+  $("kakaoToGISBtn").addEventListener(
+    "click",
+    goSelectedPositionToGIS
+  );
+
+  $("kakaoToRoadviewBtn").addEventListener(
+    "click",
+    goSelectedPositionToRoadview
+  );
+
+  $("kakaoRegisterFireBtn").addEventListener(
+    "click",
+    registerSelectedFirePosition
+  );
+
+})();
+
+console.log("카카오 지도와 GIS 좌표 연동 완료");
 
  
 </script>
