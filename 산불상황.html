@@ -13,7 +13,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script
-  src="//dapi.kakao.com/v2/maps/sdk.js?appkey=여기에_카카오_API키&autoload=false">
+  src="//dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries&autoload=false">
 </script>
  
 <style>
@@ -2449,6 +2449,7 @@ function openKakaoRoadview(
 // 6. GIS 지도 복귀
 // ==========================================
 
+
 function switchToGISMap() {
 
   $("map").style.display = "block";
@@ -2457,24 +2458,19 @@ function switchToGISMap() {
 
   $("kakaoRoadview").style.display = "none";
 
+  if (map) {
+    setTimeout(() => {
+      map.invalidateSize(true);
+    }, 200);
+  }
+
   const button = $("toggleMapTypeBtn");
 
   if (button) {
     button.disabled = false;
   }
 
-  if (map) {
-
-    setTimeout(function() {
-
-      map.invalidateSize(true);
-
-    }, 300);
-
-  }
-
 }
-
 
 // ==========================================
 // 7. Windy 지도 전환
@@ -2597,24 +2593,16 @@ function gasError(error) {
    GIS 지도 실행 안정화
 ========================================= */
 
+
 let mapStarting = false;
 let mapStarted = false;
 
 function startMap() {
 
-  if (mapStarted || mapStarting) {
-    return;
-  }
+  if (mapStarted || mapStarting) return;
 
   if (typeof L === "undefined") {
-
     console.error("Leaflet 로딩 실패");
-
-    if ($("map")) {
-      $("map").textContent =
-        "Leaflet 지도 라이브러리를 불러오지 못했습니다.";
-    }
-
     return;
   }
 
@@ -2622,68 +2610,34 @@ function startMap() {
 
   try {
 
-    
-try {
+    initMap();
 
-  initMap();
-
-  if (!map) {
-    throw new Error("GIS 지도 초기화 실패");
-  }
-
-  mapStarted = true;
-
-  setTimeout(function() {
-
-    if (map) {
-      map.invalidateSize(true);
+    if (!map) {
+      throw new Error("GIS 지도 초기화 실패");
     }
-
-  }, 500);
-
-  loadGasData();
-
-  console.log("GIS 지도 실행 완료");
-
-} catch (error) {
-
-  console.error("GIS 지도 실행 오류:", error);
-
-  if ($("map")) {
-    $("map").textContent =
-      "지도 실행 오류: " + error.message;
-  }
-
-} finally {
-
-  mapStarting = false;
-
-}
-
 
     mapStarted = true;
 
-    loadGasData();
+    requestAnimationFrame(() => {
+      map.invalidateSize(true);
+    });
 
-    setTimeout(function() {
-
-      if (map) {
-        map.invalidateSize(true);
-      }
-
+    setTimeout(() => {
+      if (map) map.invalidateSize(true);
     }, 500);
+
+    loadGasData();
 
     console.log("GIS 지도 실행 완료");
 
   } catch (error) {
 
-    console.error(
-      "GIS 지도 실행 오류:",
-      error
-    );
+    console.error("GIS 지도 실행 오류:", error);
 
-    if ($("map")) {
-      $("map").textContent =
+    const mapElement = $("map");
+
+    if (mapElement) {
+      mapElement.textContent =
         "지도 실행 오류: " + error.message;
     }
 
@@ -2692,22 +2646,6 @@ try {
     mapStarting = false;
 
   }
-
-}
-
-
-// HTML 로딩 완료 후 실행
-if (document.readyState === "loading") {
-
-  document.addEventListener(
-    "DOMContentLoaded",
-    startMap,
-    { once: true }
-  );
-
-} else {
-
-  startMap();
 
 }
 
