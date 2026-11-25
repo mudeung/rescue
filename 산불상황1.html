@@ -12,6 +12,11 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+<!-- Kakao Maps SDK -->
+<script
+        src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services">
+    </script>
+
 <style>
 :root {
   --bg:#07111f;
@@ -24,6 +29,11 @@
   --green:#4ade80;
   --red:#fb5365;
   --yellow:#fbbf24;
+
+  /* 암호 입력창 추가 변수 */
+  --border:#263e56;
+  --surface:#ffffff;
+  --primary:#075985;
 }
 
 * { box-sizing:border-box; }
@@ -35,9 +45,80 @@ body {
   font-family:"Pretendard","Malgun Gothic",sans-serif;
 }
 
-/* 암호 확인 전 본문 숨김 */
-body:not(.password-verified):not(.link-expired) > :not(#passwordPanel):not(#expiredPanel) {
-  visibility: hidden;
+/* 로그인 전에는 본문 숨김 */
+
+document.addEventListener("DOMContentLoaded", function () {
+
+  const panel = document.getElementById("passwordPanel");
+  const form = document.getElementById("passwordForm");
+  const input = document.getElementById("accessPassword");
+  const status = document.getElementById("passwordStatus");
+
+  if (!panel || !form || !input || !status) {
+    console.error("로그인 구성요소 오류");
+    return;
+  }
+
+  const PASSWORD = "knps";
+
+  if (!panel.open) {
+    panel.showModal();
+  }
+
+  input.focus();
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    if (input.value.trim() === PASSWORD) {
+
+      document.body.classList.add("password-verified");
+
+      panel.close();
+
+      input.value = "";
+      status.textContent = "";
+
+      // 로그인 완료 후 지도 크기 재계산
+      setTimeout(function () {
+        if (typeof map !== "undefined" && map) {
+          map.invalidateSize(true);
+        }
+      }, 300);
+
+    } else {
+
+      status.textContent = "암호가 올바르지 않습니다.";
+      input.value = "";
+      input.focus();
+
+    }
+  });
+
+  panel.addEventListener("cancel", function (e) {
+    e.preventDefault();
+  });
+
+});
+
+
+/* 암호 입력창 표시 */
+#passwordPanel {
+  width: min(420px, calc(100% - 32px));
+  border: 1px solid #263e56;
+  border-radius: 18px;
+  padding: 26px;
+  background: #ffffff;
+  color: #20242a;
+  z-index: 99999;
+}
+
+#passwordPanel[open] {
+  display: block;
+}
+
+#passwordPanel::backdrop {
+  background: rgba(7,17,31,0.95);
 }
 
  
@@ -618,7 +699,45 @@ main {
 #vehicleInfo::-webkit-scrollbar-track {
   background: #081625;
 }
- 
+
+/* =====================================
+   카카오 로드뷰
+===================================== */
+
+#roadview {
+  display: none;
+  width: 100%;
+  height: 100%;
+  min-height: 380px;
+  background: #17283a;
+}
+
+#roadviewStatus {
+  display: none;
+  position: absolute;
+  z-index: 600;
+  top: 12px;
+  left: 12px;
+  max-width: calc(100% - 24px);
+  padding: 10px 14px;
+  border: 1px solid #22d3ee;
+  border-radius: 6px;
+  background: rgba(7,17,31,.95);
+  color: #e5edf7;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+#roadview.active {
+  display: block;
+}
+
+@media(max-width:650px) {
+  #roadview {
+    min-height: 380px;
+  }
+}
+
 </style>
 </head>
 
@@ -775,6 +894,10 @@ main {
     <button id="leafletMapBtn" class="btn-gray">
       GIS 지도
     </button>
+    
+    <button id="roadviewMapBtn" class="btn-green">
+  📷 카카오 로드뷰
+</button>
   </div>
 </div>
 
@@ -805,6 +928,44 @@ main {
         <span><i class="dot yellow"></i>도로 분석</span>
       </div>
     </div>
+    
+ 
+<!-- =================================
+     카카오 로드뷰
+================================= -->
+
+<div
+  id="roadview"
+  style="
+    display:none;
+    width:100%;
+    height:100%;
+    min-height:380px;
+    background:#17283a;
+  ">
+</div>
+
+<!-- 로드뷰 상태 안내 -->
+<div
+  id="roadviewStatus"
+  style="
+    display:none;
+    position:absolute;
+    z-index:600;
+    top:12px;
+    left:12px;
+    max-width:calc(100% - 24px);
+    padding:10px 14px;
+    border:1px solid #22d3ee;
+    border-radius:6px;
+    background:rgba(7,17,31,.95);
+    color:#e5edf7;
+    font-size:11px;
+    line-height:1.6;
+  ">
+  GIS 지도에서 위치를 선택한 후 로드뷰를 실행하세요.
+</div>
+   
 
   <!-- 도로 측정 -->
   <div class="section">
@@ -1036,47 +1197,67 @@ main {
 
 <script>
 
-/* =========================================
-   암호 확인
-========================================= */
-(function () {
-  // 만료된 링크는 암호 확인 절차를 실행하지 않음
-  if (window.MUDEUNG_LINK_EXPIRED) {
-    return;
-  }
 
-  const PASSWORD = "knps";
+
+/* =========================================
+   로그인 시스템 안정화
+========================================= */
+document.addEventListener("DOMContentLoaded", function () {
 
   const panel = document.getElementById("passwordPanel");
   const form = document.getElementById("passwordForm");
   const input = document.getElementById("accessPassword");
   const status = document.getElementById("passwordStatus");
 
-  // 암호창 표시
-  panel.showModal();
+  if (!panel || !form || !input || !status) {
+    alert("로그인 화면 구성요소를 찾을 수 없습니다.");
+    return;
+  }
+
+  const PASSWORD = "knps";
+
+  // 로그인 화면 표시
+  document.body.classList.remove("password-verified");
+
+  if (!panel.open) {
+    panel.showModal();
+  }
+
   input.focus();
 
-  form.addEventListener("submit", function (event) {
-    event.preventDefault();
+  // 로그인 확인
+  form.addEventListener("submit", function (e) {
+
+    e.preventDefault();
 
     if (input.value === PASSWORD) {
+
       document.body.classList.add("password-verified");
 
       panel.close();
+
       input.value = "";
       status.textContent = "";
+
     } else {
+
       status.textContent = "암호가 올바르지 않습니다.";
+
       input.value = "";
       input.focus();
+
     }
+
   });
 
-  // ESC로 암호창 닫기 방지
-  panel.addEventListener("cancel", function (event) {
-    event.preventDefault();
+  // ESC 닫기 방지
+  panel.addEventListener("cancel", function (e) {
+    e.preventDefault();
   });
-})();
+
+});
+
+
  
 // ==========================================
 // ① 공통 변수 및 설정
@@ -2629,12 +2810,18 @@ function initMap() {
   // 지도 클릭 이벤트
   // ==========================================
 
-  map.on("click", function(e) {
+map.on("click", function(e) {
 
     // 도로 기능 우선 처리
     if (handleRoadMapClick(e)) {
       return;
     }
+
+    // 로드뷰 좌표 자동 저장
+    setRoadviewPosition(
+      e.latlng.lat,
+      e.latlng.lng
+    );
 
     // 산불 발생지역 등록
     if (!clickMode) return;
@@ -4306,42 +4493,37 @@ document.querySelectorAll(
 
 });  
 
+
 // ==========================================
 // GIS 지도 ↔ Windy 지도 전환
 // ==========================================
 
-
+// GIS 지도 전환 함수
 function switchToGISMap() {
 
-  const gis = document.getElementById("map");
-  const windy = document.getElementById("windyFrame");
+  currentDisplayMode = "gis";
 
-  gis.style.display = "block";
-  windy.style.display = "none";
+  document.getElementById("map").style.display = "block";
+  document.getElementById("windyFrame").style.display = "none";
+  document.getElementById("roadview").style.display = "none";
+  document.getElementById("roadviewStatus").style.display = "none";
 
   document.getElementById("toggleMapTypeBtn").disabled = false;
 
   if (map) {
-    setTimeout(() => map.invalidateSize(true), 300);
+    setTimeout(function () {
+      map.invalidateSize(true);
+    }, 200);
   }
 }
 
-function switchToWindyMap() {
-
-  const gis = document.getElementById("map");
-  const windy = document.getElementById("windyFrame");
-
-  gis.style.display = "none";
-  windy.style.display = "block";
-
-  document.getElementById("toggleMapTypeBtn").disabled = true;
-}
-
+// 버튼 이벤트 연결
 document.getElementById("leafletMapBtn")
   .addEventListener("click", switchToGISMap);
 
 document.getElementById("windyMapBtn")
   .addEventListener("click", switchToWindyMap);
+
 
 
 // ==========================================
@@ -4411,9 +4593,277 @@ function refreshWindyMap() {
 window.addEventListener("resize", refreshWindyMap);
 
  
-// =========================================================
+
+/* ==========================================
+   카카오 로드뷰 통합 기능
+========================================== */
+
+// 로드뷰 객체
+let kakaoRoadview = null;
+let kakaoRoadviewClient = null;
+
+// 마지막으로 선택한 좌표
+let selectedRoadviewPosition = {
+  lat: 35.134167,
+  lng: 126.988889
+};
+
+// 현재 화면
+let currentDisplayMode = "gis";
+
+// 로드뷰 화면 요소
+const roadviewElement = document.getElementById("roadview");
+const roadviewStatus = document.getElementById("roadviewStatus");
+
+
+// ==========================================
+// 로드뷰 초기화
+// ==========================================
+
+function initKakaoRoadview() {
+
+  if (!window.kakao || !window.kakao.maps) {
+    showRoadviewMessage(
+      "카카오 지도 SDK를 불러오지 못했습니다. JavaScript 키와 도메인을 확인하세요."
+    );
+    return false;
+  }
+
+  if (kakaoRoadview) return true;
+
+  kakaoRoadview = new kakao.maps.Roadview(
+    roadviewElement
+  );
+
+  kakaoRoadviewClient =
+    new kakao.maps.RoadviewClient();
+
+  kakao.maps.event.addListener(
+    kakaoRoadview,
+    "init",
+    function() {
+      showRoadviewMessage(
+        "카카오 로드뷰 영상이 준비되었습니다."
+      );
+    }
+  );
+
+  return true;
+}
+
+
+// ==========================================
+// 로드뷰 안내 메시지
+// ==========================================
+
+function showRoadviewMessage(message) {
+
+  roadviewStatus.textContent = message;
+  roadviewStatus.style.display = "block";
+
+}
+
+
+// ==========================================
+// GIS에서 선택한 좌표 저장
+// ==========================================
+
+function setRoadviewPosition(lat, lng) {
+
+  if (!validateCoordinates(lat, lng)) return;
+
+  selectedRoadviewPosition = {
+    lat: lat,
+    lng: lng
+  };
+
+}
+
+
+// ==========================================
+// 카카오 로드뷰 실행
+// ==========================================
+
+function openKakaoRoadview(lat, lng) {
+
+  if (!validateCoordinates(lat, lng)) {
+    showRoadviewMessage("좌표가 올바르지 않습니다.");
+    return;
+  }
+
+  setRoadviewPosition(lat, lng);
+
+  if (!initKakaoRoadview()) return;
+
+  showRoadviewMessage(
+    "주변 로드뷰 촬영 영상을 검색하고 있습니다..."
+  );
+
+  const position = new kakao.maps.LatLng(
+    lat,
+    lng
+  );
+
+  kakaoRoadviewClient.getNearestPanoId(
+    position,
+    100,
+    function(panoId) {
+
+      if (!panoId) {
+
+        showRoadviewMessage(
+          "선택한 위치 반경 100m 이내에 로드뷰 촬영 영상이 없습니다.\nGIS 지도에서 다른 위치를 선택해 주세요."
+        );
+
+        return;
+      }
+
+      // 가장 가까운 파노라마 표시
+      kakaoRoadview.setPanoId(
+        panoId,
+        position
+      );
+
+      roadviewStatus.style.display = "none";
+
+      kakaoRoadview.relayout();
+
+    }
+  );
+
+}
+
+
+// ==========================================
+// GIS 지도 선택 좌표로 로드뷰 실행
+==========================================
+
+function openSelectedRoadview() {
+
+  const position = selectedRoadviewPosition;
+
+  switchToKakaoRoadview();
+
+  // 화면 전환 후 크기 조정
+  requestAnimationFrame(function() {
+
+    if (kakaoRoadview) {
+      kakaoRoadview.relayout();
+    }
+
+    openKakaoRoadview(
+      position.lat,
+      position.lng
+    );
+
+  });
+
+}
+
+function switchToWindyMap() {
+
+  currentDisplayMode = "windy";
+
+  document.getElementById("map").style.display = "none";
+
+  document.getElementById("windyFrame").style.display = "block";
+
+  roadviewElement.style.display = "none";
+
+  roadviewStatus.style.display = "none";
+
+  document.getElementById("toggleMapTypeBtn").disabled = true;
+
+}
+
+
+// ==========================================
+// Windy 화면으로 전환
+// ==========================================
+
+function switchToWindyMap() {
+
+  currentDisplayMode = "windy";
+
+  document.getElementById("map").style.display = "none";
+
+  document.getElementById("windyFrame").style.display = "block";
+
+  roadviewElement.style.display = "none";
+
+  roadviewStatus.style.display = "none";
+
+  document.getElementById("toggleMapTypeBtn").disabled = true;
+
+}
+
+
+// ==========================================
+// 카카오 로드뷰 화면으로 전환
+// ==========================================
+
+function switchToKakaoRoadview() {
+
+  currentDisplayMode = "roadview";
+
+  document.getElementById("map").style.display = "none";
+
+  document.getElementById("windyFrame").style.display = "none";
+
+  roadviewElement.style.display = "block";
+
+  document.getElementById("toggleMapTypeBtn").disabled = true;
+
+  showRoadviewMessage(
+    "GIS 지도에서 선택한 위치의 로드뷰를 불러옵니다."
+  );
+
+  if (kakaoRoadview) {
+
+    setTimeout(function() {
+      kakaoRoadview.relayout();
+    }, 200);
+
+  }
+
+}
+
+
+// ==========================================
+// 버튼 이벤트 연결
+// ==========================================
+
+document.getElementById("leafletMapBtn")
+  .addEventListener("click", switchToGISMap);
+
+document.getElementById("windyMapBtn")
+  .addEventListener("click", switchToWindyMap);
+
+document.getElementById("roadviewMapBtn")
+  .addEventListener("click", openSelectedRoadview);
+
+
+// ==========================================
+// 화면 크기 변경 시 로드뷰 재조정
+// ==========================================
+
+window.addEventListener("resize", function() {
+
+  if (
+    currentDisplayMode === "roadview" &&
+    kakaoRoadview
+  ) {
+
+    kakaoRoadview.relayout();
+
+  }
+
+});
+ 
+ 
+// ==========================================
 // PREVENT CONTEXT MENU
-// =========================================================
+// ==========================================
 
 document.addEventListener(
 
@@ -4430,9 +4880,9 @@ document.addEventListener(
 );
 
 
-// =========================================================
+// ==========================================
 // KEYBOARD PROTECTION
-// =========================================================
+// ==========================================
 
 document.addEventListener(
 
