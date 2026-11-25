@@ -12,109 +12,422 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<!-- Kakao Maps SDK -->
-<script
-        src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services">
-    </script>
-
 <style>
-
 :root {
-  --bg: #07111f;
-  --panel: #0e1c2d;
-  --panel2: #12243a;
-  --line: #263e56;
-  --text: #e5edf7;
-  --muted: #91a6bd;
-  --cyan: #22d3ee;
-  --green: #4ade80;
-  --red: #fb5365;
-  --yellow: #fbbf24;
-
-  --border: #263e56;
-  --surface: #ffffff;
-  --primary: #075985;
+  --bg:#07111f;
+  --panel:#0e1c2d;
+  --panel2:#12243a;
+  --line:#263e56;
+  --text:#e5edf7;
+  --muted:#91a6bd;
+  --cyan:#22d3ee;
+  --green:#4ade80;
+  --red:#fb5365;
+  --yellow:#fbbf24;
 }
 
-* {
-  box-sizing: border-box;
-}
-
-html,
-body {
-  width: 100%;
-  min-height: 100%;
-  margin: 0;
-}
+* { box-sizing:border-box; }
 
 body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: "Pretendard", "Malgun Gothic", sans-serif;
-  overflow-x: hidden;
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:"Pretendard","Malgun Gothic",sans-serif;
 }
 
-button,
-input {
-  font-family: inherit;
+/* 암호 확인 전 본문 숨김 */
+body:not(.password-verified):not(.link-expired) > :not(#passwordPanel):not(#expiredPanel) {
+  visibility: hidden;
+}
+
+ 
+button,input {
+  font-family:inherit;
 }
 
 button {
-  cursor: pointer;
-  border: 0;
-  border-radius: 5px;
-  padding: 11px;
-  font-size: 12px;
-  font-weight: 700;
-  color: white;
-  transition: .2s;
-  margin-bottom: 6px;
+  cursor:pointer;
+  border:0;
+  border-radius:5px;
+  padding:11px;
+  font-size:12px;
+  font-weight:700;
+  color:white;
+  transition:.2s;
+  margin-bottom:6px;
 }
 
-button:hover {
-  filter: brightness(1.1);
-}
+button:hover { filter:brightness(1.2); }
+button:disabled { opacity:.5;cursor:not-allowed; }
 
-button:disabled {
-  opacity: .5;
-  cursor: not-allowed;
-}
-
-.btn-blue { background: #075985; }
-.btn-green { background: #166534; }
-.btn-purple { background: #43318a; }
-.btn-red { background: #991b1b; }
-
+.btn-blue { background:#075985; }
+.btn-green { background:#166534; }
+.btn-purple { background:#43318a; }
+.btn-red { background:#991b1b; }
 .btn-gray {
-  background: #24364a;
-  border: 1px solid #3a5068;
+  background:#24364a;
+  border:1px solid #3a5068;
 }
 
 input {
-  width: 100%;
-  background: #081625;
-  color: white;
-  border: 1px solid #30465d;
-  border-radius: 5px;
-  padding: 11px;
-  margin-bottom: 8px;
-  font-size: 13px;
-  outline: none;
+  width:100%;
+  background:#081625;
+  color:white;
+  border:1px solid #30465d;
+  border-radius:5px;
+  padding:11px;
+  margin-bottom:8px;
+  font-size:13px;
+  outline:none;
 }
 
 input:focus {
-  border-color: var(--cyan);
-  box-shadow: 0 0 0 2px #22d3ee20;
+  border-color:var(--cyan);
+  box-shadow:0 0 0 2px #22d3ee20;
 }
-
-/* HEADER */
 
 header {
-  background: linear-gradient(110deg, #0b1929, #102b46);
-  border-bottom: 1px solid #294660;
-  padding: 17px 22px;
-  box-shadow: 0 4px 20px #0005;
+  background:linear-gradient(110deg,#0b1929,#102b46);
+  border-bottom:1px solid #294660;
+  padding:17px 22px;
+  box-shadow:0 4px 20px #0005;
 }
+
+.header-inner {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+  flex-wrap:wrap;
+}
+
+h1 {
+  font-size:23px;
+  margin:0;
+  font-weight:800;
+}
+
+.subtitle {
+  color:#8da9c3;
+  font-size:11px;
+  margin-top:6px;
+  letter-spacing:1px;
+}
+
+.header-right {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+.system-status {
+  color:var(--green);
+  background:#103527;
+  border:1px solid #226348;
+  padding:8px 12px;
+  border-radius:5px;
+  font-size:11px;
+  font-weight:bold;
+}
+
+.clock {
+  color: #22d3ee;
+  font-size: 10px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 1px;
+  padding: 10px 14px;
+  background: #081625;
+  border: 1px solid #24516a;
+  border-radius: 6px;
+  box-shadow: 0 0 12px #22d3ee18;
+  white-space: nowrap;
+}
+
+main {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 350px;
+  gap:13px;
+  padding:13px;
+  align-items:start;
+}
+
+.left-area {
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.right-area {
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.stats {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:9px;
+}
+
+.stat-card {
+  background:linear-gradient(145deg,#13263c,#0d1929);
+  border:1px solid #29435d;
+  border-radius:7px;
+  padding:14px;
+  min-width:0;
+  transition:.2s;
+}
+
+.stat-card:hover {
+  border-color:var(--cyan);
+  transform:translateY(-2px);
+}
+
+.stat-label {
+  color:var(--muted);
+  font-size:11px;
+}
+
+.stat-value {
+  font-size:18px;
+  font-weight:800;
+  margin-top:6px;
+  font-variant-numeric:tabular-nums;
+}
+
+.stat-value small {
+  font-size:10px;
+  font-weight:500;
+}
+
+.cyan {color:var(--cyan);}
+.green {color:var(--green);}
+.red {color:var(--red);}
+.yellow {color:var(--yellow);}
+
+.section {
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:8px;
+  overflow:hidden;
+  min-width:0;
+  box-shadow:0 4px 15px #0002;
+}
+
+.section-title {
+  min-height:45px;
+  padding:12px 14px;
+  background:linear-gradient(90deg,#142b43,#0e1d30);
+  border-bottom:1px solid var(--line);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  font-size:13px;
+  font-weight:700;
+}
+
+.section-title button {
+  margin:0;
+  width:auto;
+  padding:8px 12px;
+}
+
+.panel-body { padding:13px; }
+
+#map-container {
+  position:relative;
+  width:100%;
+  height:65vh;
+  min-height:430px;
+  overflow: hidden;
+}
+
+#map {
+  width:100%;
+  height:100%;
+  min-height:430px;
+  background:#17283a;
+}
+
+.map-legend {
+  position:absolute;
+  z-index:500;
+  bottom:14px;
+  left:12px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  padding:10px 12px;
+  background:rgba(7,17,31,.94);
+  border:1px solid #34516c;
+  border-radius:6px;
+  font-size:10px;
+  pointer-events:none;
+}
+
+.dot {
+  display:inline-block;
+  width:9px;
+  height:9px;
+  border-radius:50%;
+  margin-right:4px;
+}
+
+.dot.red {background:var(--red);}
+.dot.blue {background:#38bdf8;}
+.dot.green {background:var(--green);}
+.dot.yellow {background:var(--yellow);}
+
+.resource-item {
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  padding:10px 0;
+  border-bottom:1px solid var(--line);
+  font-size:11px;
+}
+
+.resource-item:last-child { border:0; }
+
+.resource-item span:first-child { color:var(--muted); }
+
+.resource-item strong {
+  color:#dceaf7;
+  text-align:right;
+}
+
+.info-panel {
+  max-height:260px;
+  overflow:auto;
+  white-space:pre-line;
+  background:#081625;
+  border:1px solid var(--line);
+  border-radius:6px;
+  padding:12px;
+  font-size:11px;
+  line-height:1.8;
+  color:#cbd5e1;
+}
+
+.info-panel h3 {
+  color:var(--cyan);
+  font-size:13px;
+  margin:0 0 10px;
+}
+
+.quick-links {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6px;
+}
+
+.quick-links button {
+  margin:0;
+  font-size:10px;
+  padding:10px 4px;
+}
+
+.road-tools {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.road-tool-column {
+  min-width:0;
+  background:#081625;
+  border:1px solid var(--line);
+  border-radius:7px;
+  padding:12px;
+}
+
+.road-tool-column h3 {
+  color:var(--cyan);
+  font-size:12px;
+  margin:0 0 12px;
+}
+
+.road-tool-column button {
+  width:100%;
+}
+
+.footer {
+  color:#71869d;
+  text-align:center;
+  font-size:10px;
+  padding:15px;
+  border-top:1px solid var(--line);
+  background:#081321;
+}
+
+.vehicle-marker {
+  background:transparent;
+  border:0;
+}
+
+.leaflet-popup-content-wrapper {
+  background:#101f31;
+  color:#e5edf7;
+  border:1px solid var(--cyan);
+}
+
+.leaflet-popup-tip { background:#101f31; }
+
+.leaflet-popup-close-button {
+  color:white!important;
+}
+
+.status-line {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:9px 0;
+  border-bottom:1px solid var(--line);
+  font-size:11px;
+}
+
+.status-indicator {
+  display:inline-block;
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:var(--green);
+  margin-right:5px;
+}
+
+@media(max-width:1050px) {
+  main { grid-template-columns:1fr; }
+  .right-area {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  #map-container { height:60vh; }
+}
+
+@media(max-width:650px) {
+  header { padding:14px; }
+  h1 { font-size:19px; }
+  main { padding:8px; }
+  .stats { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .right-area { display:flex; }
+  .road-tools { grid-template-columns:1fr; }
+  #map-container {
+    height:55vh;
+    min-height:380px;
+  }
+  #map { min-height:380px; }
+  .stat-value { font-size:19px; }
+}
+
+
+/* =====================================
+   모바일 화면 시계 최적화
+===================================== */
 
 .header-inner {
   display: flex;
@@ -124,408 +437,60 @@ header {
   flex-wrap: wrap;
 }
 
-h1 {
-  font-size: 23px;
-  margin: 0;
-  font-weight: 800;
-}
-
-.subtitle {
-  color: #8da9c3;
-  font-size: 11px;
-  margin-top: 6px;
-  letter-spacing: 1px;
-}
-
 .header-right {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex-wrap: wrap;
-}
-
-.system-status {
-  color: var(--green);
-  background: #103527;
-  border: 1px solid #226348;
-  padding: 8px 12px;
-  border-radius: 5px;
-  font-size: 11px;
-  font-weight: bold;
+  flex-wrap: nowrap;
 }
 
 .clock {
-  color: var(--cyan);
-  font-size: 10px;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 1px;
-  padding: 10px 14px;
-  background: #081625;
-  border: 1px solid #24516a;
-  border-radius: 6px;
+  display: block;
   white-space: nowrap;
-}
-
-/* MAIN */
-
-main {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 350px;
-  gap: 13px;
-  padding: 13px;
-  align-items: start;
-}
-
-.left-area,
-.right-area {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.stats {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 9px;
-}
-
-.stat-card {
-  background: linear-gradient(145deg, #13263c, #0d1929);
-  border: 1px solid #29435d;
-  border-radius: 7px;
-  padding: 14px;
-  min-width: 0;
-  transition: .2s;
-}
-
-.stat-card:hover {
-  border-color: var(--cyan);
-  transform: translateY(-2px);
-}
-
-.stat-label {
-  color: var(--muted);
-  font-size: 11px;
-}
-
-.stat-value {
-  font-size: 18px;
+  font-size: 10px;
   font-weight: 800;
-  margin-top: 6px;
   font-variant-numeric: tabular-nums;
 }
 
-.stat-value small {
-  font-size: 10px;
-  font-weight: 500;
+/* 모바일 최적화 */
+@media (max-width: 650px) {
+
+  .header-inner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .clock {
+    display: block;
+    width: 100%;
+    text-align: center;
+    font-size: 10px;
+    padding: 12px 5px;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  .system-status {
+    width: 100%;
+    text-align: center;
+  }
+
+  h1 {
+    font-size: 19px;
+  }
+
 }
-
-.cyan { color: var(--cyan); }
-.green { color: var(--green); }
-.red { color: var(--red); }
-.yellow { color: var(--yellow); }
-
-/* SECTION */
-
-.section {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  overflow: hidden;
-  min-width: 0;
-  box-shadow: 0 4px 15px #0002;
-}
-
-.section-title {
-  min-height: 45px;
-  padding: 12px 14px;
-  background: linear-gradient(90deg, #142b43, #0e1d30);
-  border-bottom: 1px solid var(--line);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.section-title button {
-  margin: 0;
-  width: auto;
-  padding: 8px 12px;
-}
-
-.panel-body {
-  padding: 13px;
-}
-
-.panel-body h3 {
-  font-size: 12px;
-  margin: 8px 0;
-}
-
-.panel-body input {
-  padding: 8px;
-  font-size: 11px;
-  margin-bottom: 6px;
-}
-
-.panel-body button {
-  padding: 8px;
-  font-size: 11px;
-  margin-bottom: 5px;
-}
-
-/* =================================
-   MAP SYSTEM
-================================= */
-
-#map-container {
-  position: relative;
-  width: 100%;
-  height: 65vh;
-  min-height: 430px;
-  max-height: 900px;
-  display: block;
-  overflow: hidden;
-  background: #17283a;
-  isolation: isolate;
-}
-
-/* 기본 Leaflet 지도 */
-
-#map {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  display: block;
-  z-index: 1;
-  background: #e5e7eb;
-}
-
-/* Leaflet 타일 원본 색상 보호 */
-
-#map .leaflet-tile-pane,
-#map .leaflet-tile,
-#map .leaflet-layer {
-  filter: none !important;
-}
-
-#map .leaflet-tile {
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-
-.leaflet-container {
-  background: #e5e7eb;
-  outline: none;
-}
-
-.leaflet-popup-content-wrapper {
-  background: #101f31;
-  color: #e5edf7;
-  border: 1px solid var(--cyan);
-}
-
-.leaflet-popup-tip {
-  background: #101f31;
-}
-
-.leaflet-popup-close-button {
-  color: white !important;
-}
-
-.vehicle-marker {
-  background: transparent;
-  border: 0;
-}
-
-/* WINDY */
-
-#windyFrame {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  width: 100%;
-  height: 100%;
-  border: 0;
-  display: none;
-  background: #17283a;
-}
-
-/* ROADVIEW */
-
-#roadview {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  display: none;
-  background: #17283a;
-}
-
-#roadview.active {
-  display: block;
-}
-
-#roadviewStatus {
-  display: none;
-  position: absolute;
-  z-index: 10;
-  top: 12px;
-  left: 12px;
-  max-width: calc(100% - 24px);
-  padding: 10px 14px;
-  border: 1px solid var(--cyan);
-  border-radius: 6px;
-  background: rgba(7,17,31,.95);
-  color: var(--text);
-  font-size: 11px;
-  line-height: 1.6;
-}
-
-.map-legend {
-  position: absolute;
-  z-index: 5;
-  bottom: 14px;
-  left: 12px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  padding: 10px 12px;
-  background: rgba(7,17,31,.94);
-  border: 1px solid #34516c;
-  border-radius: 6px;
-  font-size: 10px;
-  pointer-events: none;
-}
-
-.dot {
-  display: inline-block;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  margin-right: 4px;
-}
-
-.dot.red { background: var(--red); }
-.dot.blue { background: #38bdf8; }
-.dot.green { background: var(--green); }
-.dot.yellow { background: var(--yellow); }
-
-/* RIGHT PANELS */
-
-.resource-item {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--line);
-  font-size: 11px;
-}
-
-.resource-item:last-child {
-  border: 0;
-}
-
-.resource-item span:first-child {
-  color: var(--muted);
-}
-
-.resource-item strong {
-  color: #dceaf7;
-  text-align: right;
-}
-
-.info-panel {
-  max-height: 260px;
-  overflow: auto;
-  white-space: pre-line;
-  background: #081625;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 12px;
-  font-size: 11px;
-  line-height: 1.8;
-  color: #cbd5e1;
-}
-
-.info-panel h3 {
-  color: var(--cyan);
-  font-size: 13px;
-  margin: 0 0 10px;
-}
-
-.quick-links {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-}
-
-.quick-links button {
-  margin: 0;
-  font-size: 10px;
-  padding: 10px 4px;
-}
-
-.road-tools {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.road-tool-column {
-  min-width: 0;
-  background: #081625;
-  border: 1px solid var(--line);
-  border-radius: 7px;
-  padding: 12px;
-}
-
-.road-tool-column h3 {
-  color: var(--cyan);
-  font-size: 12px;
-  margin: 0 0 12px;
-}
-
-.road-tool-column button {
-  width: 100%;
-}
-
-#vehicleInfo {
-  max-height: 360px;
-  overflow-y: auto;
-  padding: 8px;
-}
-
-#vehicleInfo .resource-item {
-  padding: 8px 4px;
-  font-size: 10px;
-  min-height: 52px;
-}
-
-#vehicleInfo::-webkit-scrollbar {
-  width: 5px;
-}
-
-#vehicleInfo::-webkit-scrollbar-thumb {
-  background: var(--cyan);
-  border-radius: 5px;
-}
-
-#vehicleInfo::-webkit-scrollbar-track {
-  background: #081625;
-}
-
-/* LOGIN */
-
-#passwordPanel,
+ 
+/* 암호 입력창 */
 .password-panel {
   width: min(420px, calc(100% - 32px));
   max-width: 420px;
@@ -535,27 +500,27 @@ main {
   background: var(--surface);
   color: #20242a;
   box-shadow: 0 18px 60px #00000025;
-  z-index: 99999;
 }
 
-#passwordPanel::backdrop,
 .password-panel::backdrop {
-  background: rgba(7,17,31,.95);
+  background: #111827cc;
   backdrop-filter: blur(3px);
 }
 
-#passwordPanel h2,
 .password-panel h2 {
   margin: 0 0 10px;
   color: #20242a;
   font-size: 22px;
+  text-align: left;
 }
 
 .password-panel > p {
-  color: #64748b;
+  color: var(--muted);
   line-height: 1.6;
+  text-align: left;
 }
 
+/* 암호 입력과 확인 버튼 한 줄 배치 */
 .password-input-row {
   display: flex;
   align-items: stretch;
@@ -572,8 +537,9 @@ main {
   padding: 0 12px;
   border: 1px solid #aeb5be;
   border-radius: 10px;
-  background: white;
+  background: #fff;
   color: #20242a;
+  font: inherit;
 }
 
 .password-input-row .button {
@@ -581,8 +547,13 @@ main {
   width: 82px;
   height: 46px;
   padding: 0 12px;
+  border: 0;
   border-radius: 10px;
   background: var(--primary);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 #passwordStatus {
@@ -590,6 +561,7 @@ main {
   margin: 8px 0 0;
   color: var(--primary);
   font-size: 14px;
+  text-align: left;
 }
 
 .password-input-row input:focus-visible,
@@ -598,114 +570,55 @@ main {
   outline-offset: 3px;
 }
 
-/* FOOTER */
-
-.footer {
-  color: #71869d;
-  text-align: center;
-  font-size: 10px;
-  padding: 15px;
-  border-top: 1px solid var(--line);
-  background: #081321;
+/* 좌표·주소·차량 입력 제목 크기 조정 */
+.panel-body h3 {
+  font-size: 12px;
+  margin-top: 8px;
+  margin-bottom: 8px;
 }
 
-.status-line {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 9px 0;
-  border-bottom: 1px solid var(--line);
+/* 입력창 높이 축소 */
+.panel-body input {
+  padding: 8px;
   font-size: 11px;
+  margin-bottom: 6px;
 }
 
-.status-indicator {
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--green);
-  margin-right: 5px;
+/* 버튼 크기 축소 */
+.panel-body button {
+  padding: 8px;
+  font-size: 11px;
+  margin-bottom: 5px;
 }
 
-/* RESPONSIVE */
-
-@media(max-width: 1050px) {
-  main {
-    grid-template-columns: 1fr;
-  }
-
-  .right-area {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  #map-container {
-    height: 60vh;
-  }
+/* 진화 차량 목록 - 6대 표시 */
+#vehicleInfo {
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 8px;
 }
 
-@media(max-width: 650px) {
-  header {
-    padding: 14px;
-  }
-
-  .header-inner {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-  }
-
-  .header-right {
-    flex-direction: column;
-    align-items: stretch;
-    width: 100%;
-    gap: 8px;
-  }
-
-  h1 {
-    font-size: 19px;
-  }
-
-  .clock {
-    width: 100%;
-    text-align: center;
-    font-size: 10px;
-    padding: 12px 5px;
-    letter-spacing: .5px;
-  }
-
-  .system-status {
-    width: 100%;
-    text-align: center;
-  }
-
-  main {
-    padding: 8px;
-  }
-
-  .stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .right-area {
-    display: flex;
-  }
-
-  .road-tools {
-    grid-template-columns: 1fr;
-  }
-
-  #map-container {
-    height: 55vh;
-    min-height: 380px;
-  }
-
-  .stat-value {
-    font-size: 19px;
-  }
+/* 차량별 간격 */
+#vehicleInfo .resource-item {
+  padding: 8px 4px;
+  font-size: 10px;
+  min-height: 52px;
 }
 
+/* 스크롤바 */
+#vehicleInfo::-webkit-scrollbar {
+  width: 5px;
+}
 
+#vehicleInfo::-webkit-scrollbar-thumb {
+  background: #22d3ee;
+  border-radius: 5px;
+}
+
+#vehicleInfo::-webkit-scrollbar-track {
+  background: #081625;
+}
+ 
 </style>
 </head>
 
@@ -859,13 +772,13 @@ main {
       🌬 Windy 지도
     </button>
 
+<button id="kakaoRoadviewBtn" class="btn-green">
+  📷 카카오 로드뷰
+</button>
+
     <button id="leafletMapBtn" class="btn-gray">
       GIS 지도
     </button>
-    
-    <button id="roadviewMapBtn" class="btn-green">
-  📷 카카오 로드뷰
-</button>
   </div>
 </div>
 
@@ -888,7 +801,17 @@ main {
     allowfullscreen>
   </iframe>
 
-     
+   <!-- 카카오 로드뷰 -->
+<div id="kakaoRoadview"
+     style="
+       display:none;
+       width:100%;
+       height:100%;
+       min-height:380px;
+       background:#081625;
+     ">
+</div>
+
       <div class="map-legend">
         <span><i class="dot red"></i>산불 발생지역</span>
         <span><i class="dot blue"></i>수관 보관함</span>
@@ -896,44 +819,6 @@ main {
         <span><i class="dot yellow"></i>도로 분석</span>
       </div>
     </div>
-    
- 
-<!-- =================================
-     카카오 로드뷰
-================================= -->
-
-<div
-  id="roadview"
-  style="
-    display:none;
-    width:100%;
-    height:100%;
-    min-height:380px;
-    background:#17283a;
-  ">
-</div>
-
-<!-- 로드뷰 상태 안내 -->
-<div
-  id="roadviewStatus"
-  style="
-    display:none;
-    position:absolute;
-    z-index:600;
-    top:12px;
-    left:12px;
-    max-width:calc(100% - 24px);
-    padding:10px 14px;
-    border:1px solid #22d3ee;
-    border-radius:6px;
-    background:rgba(7,17,31,.95);
-    color:#e5edf7;
-    font-size:11px;
-    line-height:1.6;
-  ">
-  GIS 지도에서 위치를 선택한 후 로드뷰를 실행하세요.
-</div>
-   
 
   <!-- 도로 측정 -->
   <div class="section">
@@ -1165,60 +1050,47 @@ main {
 
 <script>
 
-
-
 /* =========================================
-   로그인 시스템 안정화
+   암호 확인
 ========================================= */
+(function () {
+  // 만료된 링크는 암호 확인 절차를 실행하지 않음
+  if (window.MUDEUNG_LINK_EXPIRED) {
+    return;
+  }
 
-document.addEventListener("DOMContentLoaded", function () {
+  const PASSWORD = "knps";
 
   const panel = document.getElementById("passwordPanel");
   const form = document.getElementById("passwordForm");
   const input = document.getElementById("accessPassword");
   const status = document.getElementById("passwordStatus");
 
-  if (!panel || !form || !input || !status) return;
-
-  document.body.classList.remove("password-verified");
-
+  // 암호창 표시
   panel.showModal();
-
   input.focus();
 
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
+  form.addEventListener("submit", function (event) {
+    event.preventDefault();
 
-    if (input.value.trim() === "knps") {
-
+    if (input.value === PASSWORD) {
       document.body.classList.add("password-verified");
-      panel.close();
 
+      panel.close();
       input.value = "";
       status.textContent = "";
-
-      setTimeout(function () {
-        if (map) {
-          map.invalidateSize(true);
-        }
-      }, 500);
-
     } else {
-
       status.textContent = "암호가 올바르지 않습니다.";
       input.value = "";
       input.focus();
-
     }
   });
 
-  panel.addEventListener("cancel", function (e) {
-    e.preventDefault();
+  // ESC로 암호창 닫기 방지
+  panel.addEventListener("cancel", function (event) {
+    event.preventDefault();
   });
-
-});
-
-
+})();
  
 // ==========================================
 // ① 공통 변수 및 설정
@@ -2771,47 +2643,49 @@ function initMap() {
   // 지도 클릭 이벤트
   // ==========================================
 
-map.on("click", function(e) {
+  map.on("click", function(e) {
 
     // 도로 기능 우선 처리
     if (handleRoadMapClick(e)) {
       return;
     }
 
-    // 로드뷰 좌표 자동 저장
-    setRoadviewPosition(
-      e.latlng.lat,
-      e.latlng.lng
-    );
+    
+// GIS 지도에서 선택한 위치 저장
+selectRoadviewPosition(
+  e.latlng.lat,
+  e.latlng.lng
+);
 
-    // 산불 발생지역 등록
-    if (!clickMode) return;
+// 산불 발생지역 등록 모드가 아니면 종료
+if (!clickMode) return;
 
-    const item = addFireMarker(
+const item = addFireMarker(
 
-      e.latlng.lat,
+  e.latlng.lat,
 
-      e.latlng.lng,
+  e.latlng.lng,
 
-      "risk",
+  "risk",
 
-      "현장산불 발생지역",
+  "현장산불 발생지역",
 
-      "지도 클릭으로 등록한 산불·위험 지점",
+  "지도 클릭으로 등록한 산불·위험 지점",
 
-      getToday()
+  getToday()
 
-    );
+);
 
-    resetMapModes();
+resetMapModes();
 
-    if (item) {
+if (item) {
 
-      showMarkerInfo(item);
+  showMarkerInfo(item);
 
-    }
+}
 
-  });
+});
+
 
 
   // ==========================================
@@ -4321,45 +4195,42 @@ function loadGasData() {
 // ⑯ 지도 실행 (수정본)
 // ==========================================
 
-
 function startMap() {
 
-  const mapElement = document.getElementById("map");
-
-  if (!mapElement) {
-    console.error("지도 요소를 찾을 수 없습니다.");
-    return;
-  }
-
+  // Leaflet 확인
   if (typeof L === "undefined") {
-    console.error("Leaflet 라이브러리 로딩 실패");
-    mapElement.textContent = "지도 라이브러리 로딩 실패";
+
+    console.error(
+      "Leaflet 라이브러리 로딩 실패"
+    );
+
+    $("map").textContent =
+      "Leaflet 라이브러리를 불러오지 못했습니다.";
+
     return;
+
   }
 
+  // 중복 실행 방지
   if (map) return;
 
+  // 지도 초기화
   initMap();
 
-  if (!map) return;
+  // 지도 초기화 성공 여부 확인
+  if (!map) {
 
-  setTimeout(function () {
-    map.invalidateSize(true);
-  }, 500);
+    console.error(
+      "지도 초기화에 실패했습니다."
+    );
 
+    return;
+
+  }
+
+  // Google Sheets 데이터 불러오기
   loadGasData();
 
-  console.log("GIS 지도 초기화 완료");
-}
-
-if (document.readyState === "loading") {
-  document.addEventListener(
-    "DOMContentLoaded",
-    startMap,
-    { once: true }
-  );
-} else {
-  startMap();
 }
 
 
@@ -4457,37 +4328,225 @@ document.querySelectorAll(
 
 });  
 
-
 // ==========================================
 // GIS 지도 ↔ Windy 지도 전환
 // ==========================================
 
-// GIS 지도 전환 함수
+
 function switchToGISMap() {
 
-  currentDisplayMode = "gis";
+  const gis = document.getElementById("map");
+  const windy = document.getElementById("windyFrame");
 
-  document.getElementById("map").style.display = "block";
-  document.getElementById("windyFrame").style.display = "none";
-  document.getElementById("roadview").style.display = "none";
-  document.getElementById("roadviewStatus").style.display = "none";
+  gis.style.display = "block";
+  windy.style.display = "none";
 
   document.getElementById("toggleMapTypeBtn").disabled = false;
 
   if (map) {
-    setTimeout(function () {
-      map.invalidateSize(true);
-    }, 200);
+    setTimeout(() => map.invalidateSize(true), 300);
   }
 }
 
-// 버튼 이벤트 연결
+function switchToWindyMap() {
+
+  const gis = document.getElementById("map");
+  const windy = document.getElementById("windyFrame");
+
+  gis.style.display = "none";
+  windy.style.display = "block";
+
+  document.getElementById("toggleMapTypeBtn").disabled = true;
+}
+
 document.getElementById("leafletMapBtn")
   .addEventListener("click", switchToGISMap);
 
 document.getElementById("windyMapBtn")
   .addEventListener("click", switchToWindyMap);
 
+
+// ==========================================
+// 카카오 로드뷰 통합 기능
+// ==========================================
+
+let kakaoRoadview = null;
+let kakaoRoadviewClient = null;
+
+// 마지막으로 선택한 위치
+let selectedRoadviewPosition = {
+  lat: 35.134167,
+  lng: 126.988889
+};
+
+// 로드뷰 초기화
+function initKakaoRoadview() {
+
+  if (typeof kakao === "undefined" ||
+      !kakao.maps) {
+
+    alert("카카오 지도 SDK를 불러오지 못했습니다.");
+    return false;
+  }
+
+  if (!kakaoRoadview) {
+
+    kakaoRoadview = new kakao.maps.Roadview(
+      document.getElementById("kakaoRoadview")
+    );
+
+    kakaoRoadviewClient =
+      new kakao.maps.RoadviewClient();
+
+  }
+
+  return true;
+}
+
+
+// ==========================================
+// 로드뷰 위치 표시
+// ==========================================
+
+function openKakaoRoadview(lat, lng) {
+
+  if (!validateCoordinates(lat, lng)) {
+    alert("올바르지 않은 좌표입니다.");
+    return;
+  }
+
+  if (!initKakaoRoadview()) return;
+
+  const gis = $("map");
+  const windy = $("windyFrame");
+  const roadview = $("kakaoRoadview");
+
+  // 다른 지도 숨김
+  gis.style.display = "none";
+  windy.style.display = "none";
+  roadview.style.display = "block";
+
+  // 지도 버튼 상태
+  $("toggleMapTypeBtn").disabled = true;
+
+  // 로드뷰 영역 크기 재계산
+  setTimeout(() => {
+
+    if (kakaoRoadview) {
+      kakaoRoadview.relayout();
+    }
+
+  }, 200);
+
+  const position = new kakao.maps.LatLng(
+    lat,
+    lng
+  );
+
+  roadview.textContent = "주변 로드뷰 검색 중...";
+
+  // 가까운 로드뷰 검색
+  kakaoRoadviewClient.getNearestPanoId(
+    position,
+    100,
+    function(panoId) {
+
+      if (panoId == null) {
+
+        roadview.textContent =
+          "해당 위치 주변에 카카오 로드뷰 촬영 영상이 없습니다.\n" +
+          "다른 위치를 선택해 주세요.";
+
+        return;
+      }
+
+      // 로드뷰 표시
+      kakaoRoadview.setPanoId(
+        panoId,
+        position
+      );
+
+      kakaoRoadview.relayout();
+
+    }
+  );
+
+}
+
+
+// ==========================================
+// GIS 지도 복귀
+// ==========================================
+
+function switchToGISMap() {
+
+  $("map").style.display = "block";
+
+  $("windyFrame").style.display = "none";
+
+  $("kakaoRoadview").style.display = "none";
+
+  $("toggleMapTypeBtn").disabled = false;
+
+  if (map) {
+
+    setTimeout(() => {
+      map.invalidateSize(true);
+    }, 300);
+
+  }
+
+}
+
+
+// ==========================================
+// Windy 지도 전환
+// ==========================================
+
+function switchToWindyMap() {
+
+  $("map").style.display = "none";
+
+  $("windyFrame").style.display = "block";
+
+  $("kakaoRoadview").style.display = "none";
+
+  $("toggleMapTypeBtn").disabled = true;
+
+}
+
+
+// ==========================================
+// 카카오 로드뷰 버튼
+// ==========================================
+
+$("kakaoRoadviewBtn").addEventListener(
+  "click",
+  function() {
+
+    openKakaoRoadview(
+      selectedRoadviewPosition.lat,
+      selectedRoadviewPosition.lng
+    );
+
+  }
+);
+
+
+// ==========================================
+// GIS 지도 위치 선택
+// ==========================================
+
+function selectRoadviewPosition(lat, lng) {
+
+  if (!validateCoordinates(lat, lng)) return;
+
+  selectedRoadviewPosition = {
+    lat: lat,
+    lng: lng
+  };
+
+}
 
 
 // ==========================================
@@ -4557,277 +4616,9 @@ function refreshWindyMap() {
 window.addEventListener("resize", refreshWindyMap);
 
  
-
-/* ==========================================
-   카카오 로드뷰 통합 기능
-========================================== */
-
-// 로드뷰 객체
-let kakaoRoadview = null;
-let kakaoRoadviewClient = null;
-
-// 마지막으로 선택한 좌표
-let selectedRoadviewPosition = {
-  lat: 35.134167,
-  lng: 126.988889
-};
-
-// 현재 화면
-let currentDisplayMode = "gis";
-
-// 로드뷰 화면 요소
-const roadviewElement = document.getElementById("roadview");
-const roadviewStatus = document.getElementById("roadviewStatus");
-
-
-// ==========================================
-// 로드뷰 초기화
-// ==========================================
-
-function initKakaoRoadview() {
-
-  if (!window.kakao || !window.kakao.maps) {
-    showRoadviewMessage(
-      "카카오 지도 SDK를 불러오지 못했습니다. JavaScript 키와 도메인을 확인하세요."
-    );
-    return false;
-  }
-
-  if (kakaoRoadview) return true;
-
-  kakaoRoadview = new kakao.maps.Roadview(
-    roadviewElement
-  );
-
-  kakaoRoadviewClient =
-    new kakao.maps.RoadviewClient();
-
-  kakao.maps.event.addListener(
-    kakaoRoadview,
-    "init",
-    function() {
-      showRoadviewMessage(
-        "카카오 로드뷰 영상이 준비되었습니다."
-      );
-    }
-  );
-
-  return true;
-}
-
-
-// ==========================================
-// 로드뷰 안내 메시지
-// ==========================================
-
-function showRoadviewMessage(message) {
-
-  roadviewStatus.textContent = message;
-  roadviewStatus.style.display = "block";
-
-}
-
-
-// ==========================================
-// GIS에서 선택한 좌표 저장
-// ==========================================
-
-function setRoadviewPosition(lat, lng) {
-
-  if (!validateCoordinates(lat, lng)) return;
-
-  selectedRoadviewPosition = {
-    lat: lat,
-    lng: lng
-  };
-
-}
-
-
-// ==========================================
-// 카카오 로드뷰 실행
-// ==========================================
-
-function openKakaoRoadview(lat, lng) {
-
-  if (!validateCoordinates(lat, lng)) {
-    showRoadviewMessage("좌표가 올바르지 않습니다.");
-    return;
-  }
-
-  setRoadviewPosition(lat, lng);
-
-  if (!initKakaoRoadview()) return;
-
-  showRoadviewMessage(
-    "주변 로드뷰 촬영 영상을 검색하고 있습니다..."
-  );
-
-  const position = new kakao.maps.LatLng(
-    lat,
-    lng
-  );
-
-  kakaoRoadviewClient.getNearestPanoId(
-    position,
-    100,
-    function(panoId) {
-
-      if (!panoId) {
-
-        showRoadviewMessage(
-          "선택한 위치 반경 100m 이내에 로드뷰 촬영 영상이 없습니다.\nGIS 지도에서 다른 위치를 선택해 주세요."
-        );
-
-        return;
-      }
-
-      // 가장 가까운 파노라마 표시
-      kakaoRoadview.setPanoId(
-        panoId,
-        position
-      );
-
-      roadviewStatus.style.display = "none";
-
-      kakaoRoadview.relayout();
-
-    }
-  );
-
-}
-
-
-// ==========================================
-// GIS 지도 선택 좌표로 로드뷰 실행
-==========================================
-
-function openSelectedRoadview() {
-
-  const position = selectedRoadviewPosition;
-
-  switchToKakaoRoadview();
-
-  // 화면 전환 후 크기 조정
-  requestAnimationFrame(function() {
-
-    if (kakaoRoadview) {
-      kakaoRoadview.relayout();
-    }
-
-    openKakaoRoadview(
-      position.lat,
-      position.lng
-    );
-
-  });
-
-}
-
-function switchToWindyMap() {
-
-  currentDisplayMode = "windy";
-
-  document.getElementById("map").style.display = "none";
-
-  document.getElementById("windyFrame").style.display = "block";
-
-  roadviewElement.style.display = "none";
-
-  roadviewStatus.style.display = "none";
-
-  document.getElementById("toggleMapTypeBtn").disabled = true;
-
-}
-
-
-// ==========================================
-// Windy 화면으로 전환
-// ==========================================
-
-function switchToWindyMap() {
-
-  currentDisplayMode = "windy";
-
-  document.getElementById("map").style.display = "none";
-
-  document.getElementById("windyFrame").style.display = "block";
-
-  roadviewElement.style.display = "none";
-
-  roadviewStatus.style.display = "none";
-
-  document.getElementById("toggleMapTypeBtn").disabled = true;
-
-}
-
-
-// ==========================================
-// 카카오 로드뷰 화면으로 전환
-// ==========================================
-
-function switchToKakaoRoadview() {
-
-  currentDisplayMode = "roadview";
-
-  document.getElementById("map").style.display = "none";
-
-  document.getElementById("windyFrame").style.display = "none";
-
-  roadviewElement.style.display = "block";
-
-  document.getElementById("toggleMapTypeBtn").disabled = true;
-
-  showRoadviewMessage(
-    "GIS 지도에서 선택한 위치의 로드뷰를 불러옵니다."
-  );
-
-  if (kakaoRoadview) {
-
-    setTimeout(function() {
-      kakaoRoadview.relayout();
-    }, 200);
-
-  }
-
-}
-
-
-// ==========================================
-// 버튼 이벤트 연결
-// ==========================================
-
-document.getElementById("leafletMapBtn")
-  .addEventListener("click", switchToGISMap);
-
-document.getElementById("windyMapBtn")
-  .addEventListener("click", switchToWindyMap);
-
-document.getElementById("roadviewMapBtn")
-  .addEventListener("click", openSelectedRoadview);
-
-
-// ==========================================
-// 화면 크기 변경 시 로드뷰 재조정
-// ==========================================
-
-window.addEventListener("resize", function() {
-
-  if (
-    currentDisplayMode === "roadview" &&
-    kakaoRoadview
-  ) {
-
-    kakaoRoadview.relayout();
-
-  }
-
-});
- 
- 
-// ==========================================
+// =========================================================
 // PREVENT CONTEXT MENU
-// ==========================================
+// =========================================================
 
 document.addEventListener(
 
@@ -4844,9 +4635,9 @@ document.addEventListener(
 );
 
 
-// ==========================================
+// =========================================================
 // KEYBOARD PROTECTION
-// ==========================================
+// =========================================================
 
 document.addEventListener(
 
