@@ -621,8 +621,8 @@ main {
  
 </style>
 
- <script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries"></script>
- 
+<script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries"></script>
+
 </head>
 
 <body>
@@ -4369,6 +4369,7 @@ document.getElementById("windyMapBtn")
   .addEventListener("click", switchToWindyMap);
 
 
+
 // ==========================================
 // 카카오 로드뷰 통합 기능
 // ==========================================
@@ -4376,7 +4377,6 @@ document.getElementById("windyMapBtn")
 let kakaoRoadview = null;
 let kakaoRoadviewClient = null;
 
-// 마지막으로 선택한 위치
 let selectedRoadviewPosition = {
   lat: 35.134167,
   lng: 126.988889
@@ -4385,10 +4385,12 @@ let selectedRoadviewPosition = {
 // 로드뷰 초기화
 function initKakaoRoadview() {
 
-  if (typeof kakao === "undefined" ||
-      !kakao.maps) {
-
-    alert("카카오 지도 SDK를 불러오지 못했습니다.");
+  if (
+    typeof kakao === "undefined" ||
+    !kakao.maps ||
+    !kakao.maps.Roadview
+  ) {
+    alert("카카오 지도 SDK를 확인하세요.");
     return false;
   }
 
@@ -4405,6 +4407,106 @@ function initKakaoRoadview() {
 
   return true;
 }
+
+// 로드뷰 실행
+function openKakaoRoadview(lat, lng) {
+
+  if (!initKakaoRoadview()) return;
+
+  const gis = $("map");
+  const windy = $("windyFrame");
+  const roadview = $("kakaoRoadview");
+
+  gis.style.display = "none";
+  windy.style.display = "none";
+  roadview.style.display = "block";
+
+  $("toggleMapTypeBtn").disabled = true;
+
+  roadview.textContent = "주변 로드뷰 검색 중...";
+
+  setTimeout(() => {
+
+    kakaoRoadview.relayout();
+
+    const position = new kakao.maps.LatLng(
+      lat,
+      lng
+    );
+
+    kakaoRoadviewClient.getNearestPanoId(
+      position,
+      100,
+      function(panoId) {
+
+        if (panoId == null) {
+
+          roadview.textContent =
+            "주변에 촬영된 로드뷰 영상이 없습니다.";
+
+          return;
+        }
+
+        kakaoRoadview.setPanoId(
+          panoId,
+          position
+        );
+
+        kakaoRoadview.relayout();
+
+      }
+    );
+
+  }, 300);
+
+}
+
+// GIS 지도에서 선택한 위치 저장
+function selectRoadviewPosition(lat, lng) {
+
+  selectedRoadviewPosition = { lat, lng };
+
+}
+
+// 로드뷰 버튼
+$("kakaoRoadviewBtn").addEventListener(
+  "click",
+  function() {
+
+    openKakaoRoadview(
+      selectedRoadviewPosition.lat,
+      selectedRoadviewPosition.lng
+    );
+
+  }
+);
+
+// GIS 지도 복귀
+function switchToGISMap() {
+
+  $("map").style.display = "block";
+  $("windyFrame").style.display = "none";
+  $("kakaoRoadview").style.display = "none";
+
+  $("toggleMapTypeBtn").disabled = false;
+
+  if (map) {
+    setTimeout(() => map.invalidateSize(true), 300);
+  }
+
+}
+
+// Windy 지도 전환
+function switchToWindyMap() {
+
+  $("map").style.display = "none";
+  $("windyFrame").style.display = "block";
+  $("kakaoRoadview").style.display = "none";
+
+  $("toggleMapTypeBtn").disabled = true;
+
+}
+
 
 
 // ==========================================
