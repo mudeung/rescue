@@ -4235,44 +4235,34 @@ function loadGasData() {
 // ==========================================
 
 function startMap() {
-
-  // Leaflet 확인
-  if (typeof L === "undefined") {
-
-    console.error(
-      "Leaflet 라이브러리 로딩 실패"
-    );
-
-    $("map").textContent =
-      "Leaflet 라이브러리를 불러오지 못했습니다.";
-
-    return;
-
-  }
-
-  // 중복 실행 방지
   if (map) return;
 
-  // 지도 초기화
-  initMap();
-
-  // 지도 초기화 성공 여부 확인
-  if (!map) {
-
-    console.error(
-      "지도 초기화에 실패했습니다."
-    );
-
+  if (typeof L === "undefined") {
+    $("map").textContent =
+      "Leaflet 지도 라이브러리 로딩 실패";
     return;
-
   }
 
-  // Google Sheets 데이터 불러오기
-  loadGasData();
+  try {
+    initMap();
 
+    if (!map) {
+      throw new Error("지도 초기화 실패");
+    }
+
+    loadGasData();
+
+    setTimeout(() => {
+      map.invalidateSize(true);
+    }, 500);
+
+  } catch (error) {
+    console.error("GIS 지도 초기화 오류:", error);
+
+    $("map").textContent =
+      "지도 초기화 오류: " + error.message;
+  }
 }
-
-
 // ==========================================
 // HTML 로딩 완료 후 지도 실행
 // ==========================================
@@ -4473,14 +4463,9 @@ let selectedRoadviewPosition = {
 // 로드뷰 핀 객체
 let kakaoRoadviewPinOverlay = null;
 
-// 현재 선택된 위치 이름
+// 현재 선택된 위치 선택된 GIS 좌표이름
 let selectedRoadviewTitle = "무등산 선택 위치";
  
-let selectedRoadviewPosition = {
-  lat: 35.134167,
-  lng: 126.988889
-};
-
 // 로드뷰 초기화
 function initKakaoRoadview() {
 
@@ -4531,7 +4516,6 @@ $("kakaoRoadviewBtn").addEventListener(
 
 // GIS 지도 복귀
 function switchToGISMap() {
-
   $("map").style.display = "block";
   $("windyFrame").style.display = "none";
   $("kakaoRoadview").style.display = "none";
@@ -4541,21 +4525,16 @@ function switchToGISMap() {
   if (map) {
     setTimeout(() => map.invalidateSize(true), 300);
   }
-
 }
 
-// Windy 지도 전환
+// Windy 지도 전환 
 function switchToWindyMap() {
-
   $("map").style.display = "none";
   $("windyFrame").style.display = "block";
   $("kakaoRoadview").style.display = "none";
 
   $("toggleMapTypeBtn").disabled = true;
-
 }
-
-
 
 
 // ==========================================
