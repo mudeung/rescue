@@ -1677,6 +1677,79 @@ const landslideData = [
 
 
 // ==========================================
+// 산불 및 수관 보관함 마커 생성
+// ==========================================
+
+function addFireMarker(
+  lat,
+  lng,
+  type,
+  title,
+  description,
+  date,
+  updateCount = true
+) {
+
+  lat = Number(lat);
+  lng = Number(lng);
+
+  if (!validateCoordinates(lat, lng)) {
+    console.error("잘못된 마커 좌표:", lat, lng);
+    return null;
+  }
+
+  if (!map || typeof L === "undefined") {
+    console.error("GIS 지도가 준비되지 않았습니다.");
+    return null;
+  }
+
+  const isFire = type === "fire";
+
+  const color = isFire ? "#38bdf8" : "#fb5365";
+
+  const marker = L.circleMarker([lat, lng], {
+    radius: isFire ? 8 : 10,
+    color: "#ffffff",
+    weight: 2,
+    fillColor: color,
+    fillOpacity: 0.95
+  }).addTo(map);
+
+  const item = {
+    id: "FIRE-" + Date.now() + "-" + markers.length,
+    lat: lat,
+    lng: lng,
+    type: type,
+    title: title || (isFire ? "수관 보관함" : "산불 발생지역"),
+    description: description || "",
+    date: date || getToday(),
+    marker: marker
+  };
+
+  marker.bindPopup(
+    "<strong>" + escapeHTML(item.title) + "</strong><br>" +
+    "위도: " + lat.toFixed(6) + "<br>" +
+    "경도: " + lng.toFixed(6) + "<br>" +
+    "등록일: " + escapeHTML(item.date) + "<br>" +
+    escapeHTML(item.description)
+  );
+
+  marker.on("click", function() {
+    showMarkerInfo(item);
+  });
+
+  markers.push(item);
+
+  if (updateCount) {
+    updateRiskCount();
+    updateFireCount();
+  }
+
+  return item;
+}
+
+ 
+// ==========================================
 // ⑦ 수관 보관함 개수
 // ==========================================
 
@@ -1780,6 +1853,16 @@ function initMap() {
 
   });
 
+ // 지도 초기화 및 크기 재계산
+map.whenReady(function() {
+
+  requestAnimationFrame(function() {
+
+    map.invalidateSize(true);
+
+  });
+
+});
 
   // 축척 표시
   L.control.scale({
@@ -2535,11 +2618,44 @@ function startMap() {
 
   try {
 
-    initMap();
+    
+try {
 
-    if (!map) {
-      throw new Error("GIS 지도 초기화 실패");
+  initMap();
+
+  if (!map) {
+    throw new Error("GIS 지도 초기화 실패");
+  }
+
+  mapStarted = true;
+
+  setTimeout(function() {
+
+    if (map) {
+      map.invalidateSize(true);
     }
+
+  }, 500);
+
+  loadGasData();
+
+  console.log("GIS 지도 실행 완료");
+
+} catch (error) {
+
+  console.error("GIS 지도 실행 오류:", error);
+
+  if ($("map")) {
+    $("map").textContent =
+      "지도 실행 오류: " + error.message;
+  }
+
+} finally {
+
+  mapStarting = false;
+
+}
+
 
     mapStarted = true;
 
