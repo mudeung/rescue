@@ -738,6 +738,36 @@ main {
   }
 }
 
+#map-container {
+  position: relative;
+  width: 100%;
+  height: 65vh;
+  min-height: 430px;
+  display: block;
+}
+
+#map {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 430px;
+  display: block;
+  z-index: 1;
+}
+
+#windyFrame {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
+#roadview {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+}
+
 </style>
 </head>
 
@@ -1202,6 +1232,7 @@ main {
 /* =========================================
    로그인 시스템 안정화
 ========================================= */
+
 document.addEventListener("DOMContentLoaded", function () {
 
   const panel = document.getElementById("passwordPanel");
@@ -1209,48 +1240,40 @@ document.addEventListener("DOMContentLoaded", function () {
   const input = document.getElementById("accessPassword");
   const status = document.getElementById("passwordStatus");
 
-  if (!panel || !form || !input || !status) {
-    alert("로그인 화면 구성요소를 찾을 수 없습니다.");
-    return;
-  }
+  if (!panel || !form || !input || !status) return;
 
-  const PASSWORD = "knps";
-
-  // 로그인 화면 표시
   document.body.classList.remove("password-verified");
 
-  if (!panel.open) {
-    panel.showModal();
-  }
+  panel.showModal();
 
   input.focus();
 
-  // 로그인 확인
   form.addEventListener("submit", function (e) {
-
     e.preventDefault();
 
-    if (input.value === PASSWORD) {
+    if (input.value.trim() === "knps") {
 
       document.body.classList.add("password-verified");
-
       panel.close();
 
       input.value = "";
       status.textContent = "";
 
+      setTimeout(function () {
+        if (map) {
+          map.invalidateSize(true);
+        }
+      }, 500);
+
     } else {
 
       status.textContent = "암호가 올바르지 않습니다.";
-
       input.value = "";
       input.focus();
 
     }
-
   });
 
-  // ESC 닫기 방지
   panel.addEventListener("cancel", function (e) {
     e.preventDefault();
   });
@@ -4360,42 +4383,45 @@ function loadGasData() {
 // ⑯ 지도 실행 (수정본)
 // ==========================================
 
+
 function startMap() {
 
-  // Leaflet 확인
-  if (typeof L === "undefined") {
+  const mapElement = document.getElementById("map");
 
-    console.error(
-      "Leaflet 라이브러리 로딩 실패"
-    );
-
-    $("map").textContent =
-      "Leaflet 라이브러리를 불러오지 못했습니다.";
-
+  if (!mapElement) {
+    console.error("지도 요소를 찾을 수 없습니다.");
     return;
-
   }
 
-  // 중복 실행 방지
+  if (typeof L === "undefined") {
+    console.error("Leaflet 라이브러리 로딩 실패");
+    mapElement.textContent = "지도 라이브러리 로딩 실패";
+    return;
+  }
+
   if (map) return;
 
-  // 지도 초기화
   initMap();
 
-  // 지도 초기화 성공 여부 확인
-  if (!map) {
+  if (!map) return;
 
-    console.error(
-      "지도 초기화에 실패했습니다."
-    );
+  setTimeout(function () {
+    map.invalidateSize(true);
+  }, 500);
 
-    return;
-
-  }
-
-  // Google Sheets 데이터 불러오기
   loadGasData();
 
+  console.log("GIS 지도 초기화 완료");
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener(
+    "DOMContentLoaded",
+    startMap,
+    { once: true }
+  );
+} else {
+  startMap();
 }
 
 
