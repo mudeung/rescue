@@ -1,57 +1,28 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
+<meta charset="UTF-8">
+<title>🆘 무등산 산악사고 구조요청</title>
 
-    <meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+<meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>🆘 무등산 산악사고 구조요청</title>
+<meta name="theme-color" content="#b71c1c">
 
-    <meta
-        name="robots"
-        content="noindex, nofollow, noarchive, nosnippet"
-    >
+<!-- 카카오맵 SDK -->
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services"></script>
 
-    <meta
-        name="googlebot"
-        content="noindex, nofollow, noarchive, nosnippet"
-    >
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-
-    <!-- =====================================================
-         카카오맵 SDK
-    ====================================================== -->
-
-    <script
-        src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ff9e145029506d6e4c72d1f2b01ea424&libraries=services">
-    </script>
-
-
-<!-- =========================================
-     공유 링크 만료 확인
-     expires가 없으면 기존 주소 접속 허용
-     expires가 있으면 만료 시각 확인
-========================================= -->
-
-
+<!-- 공유 링크 만료 확인 -->
 <script>
 (function () {
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(location.search);
     const rawExpires = params.get("expires");
 
     window.MUDEUNG_LINK_EXPIRED = false;
 
-    // 만료값이 없으면 기존 주소 허용
-    if (rawExpires === null) {
-        return;
-    }
+    if (rawExpires === null) return;
 
-    // 빈 값이나 숫자가 아닌 값은 차단
     if (!/^\d+$/.test(rawExpires)) {
         window.MUDEUNG_LINK_EXPIRED = true;
         return;
@@ -59,195 +30,110 @@
 
     const expires = Number(rawExpires);
 
-    // 잘못된 타임스탬프는 차단
     if (!Number.isSafeInteger(expires) || expires <= 0) {
         window.MUDEUNG_LINK_EXPIRED = true;
         return;
     }
 
-    // 만료 시각이 현재 시각보다 이전이거나 같으면 차단
     window.MUDEUNG_LINK_EXPIRED = Date.now() >= expires;
-
-    console.log("현재 시각:", new Date().toISOString());
-    console.log("만료 시각:", new Date(expires).toISOString());
-    console.log("만료 여부:", window.MUDEUNG_LINK_EXPIRED);
 })();
 </script>
 
-
-    <!-- =====================================================
-         CSS
-    ====================================================== -->
-
+<!-- 만료된 링크 처리 -->
+<script>
+if (window.MUDEUNG_LINK_EXPIRED) {
+    document.write(`
     <style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f5f5f5;
+        text-align: center;
+        padding: 40px 20px;
+    }
+    h2 { color: #b71c1c; }
+    </style>
+    `);
+}
+</script>
+</head>
 
-        * {
-            box-sizing: border-box;
-        }
+<body>
 
+<script>
+if (window.MUDEUNG_LINK_EXPIRED) {
+    document.write(`
+        <h2>링크 사용 기간 만료</h2>
+        <p>이 위치공유 링크는 만료되었습니다.</p>
+        <p>새로운 링크를 발급받아 접속해 주세요.</p>
+    `);
+} else {
+</script>
 
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
-        }
+<style>
+* {
+    box-sizing: border-box;
+}
 
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f5f5f5;
+}
 
-        header {
-            background: #b71c1c;
-            color: white;
-            padding: 14px;
-            text-align: center;
-            font-size: 20px;
-            font-weight: bold;
-        }
+header {
+    background: #b71c1c;
+    color: white;
+    padding: 14px;
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+}
 
+section {
+    padding: 15px;
+}
 
-        #map {
-            width: 100%;
-            height: 450px;
-        }
+.info {
+    background: white;
+    padding: 14px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.08);
+}
 
+#map {
+    width: 100%;
+    height: 450px;
+}
 
-        section {
-            padding: 15px;
-        }
+#gpsInfo {
+    line-height: 1.7;
+    font-size: 15px;
+}
 
+.gps-title {
+    font-weight: bold;
+    color: #1565c0;
+}
 
-        .info {
-            background: white;
-            padding: 14px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-        }
+.address-box {
+    margin-top: 10px;
+    padding: 10px;
+    background: #f1f8e9;
+    border-left: 4px solid #43a047;
+    border-radius: 5px;
+    line-height: 1.6;
+}
 
+.address-title {
+    color: #2e7d32;
+    font-weight: bold;
+}
 
-        #gpsInfo {
-            line-height: 1.7;
-            font-size: 15px;
-        }
-
-
-        .gps-title {
-            font-weight: bold;
-            color: #1565c0;
-        }
-
-
-        .address-box {
-            margin-top: 10px;
-            padding: 10px;
-            background: #f1f8e9;
-            border-left: 4px solid #43a047;
-            border-radius: 5px;
-            line-height: 1.6;
-        }
-
-
-        .address-title {
-            color: #2e7d32;
-            font-weight: bold;
-            margin-bottom: 3px;
-        }
-
-
-        #addressText {
-            color: #333;
-            font-size: 14px;
-        }
-
-
-        button {
-            width: 100%;
-            padding: 14px;
-            font-size: 18px;
-            background: #d32f2f;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-
-        button:hover {
-            background: #b71c1c;
-        }
-
-
-        button:active {
-            transform: scale(0.98);
-        }
-
-
-        button:disabled {
-            background: #999;
-            cursor: not-allowed;
-        }
-
-
-        #sendStatus {
-            margin-top: 10px;
-            font-size: 14px;
-            font-weight: bold;
-            color: #1565c0;
-            line-height: 1.7;
-            word-break: break-all;
-        }
-
-
-        .small {
-            font-size: 14px;
-            color: #555;
-            padding: 0 15px;
-            line-height: 1.7;
-        }
-
-
-        .consent-info {
-            padding: 0 15px;
-            margin-top: 10px;
-        }
-
-
-        .consent-title {
-            font-size: 14px;
-            font-weight: bold;
-            background: #f2f2f2;
-            padding: 10px;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-
-        .consent-detail {
-            display: none;
-            font-size: 13px;
-            margin-top: 8px;
-            padding: 10px;
-            background: #fafafa;
-            border-radius: 6px;
-            line-height: 1.6;
-        }
-
-
-        @media (max-width: 768px) {
-
-            header {
-                font-size: 18px;
-            }
-
-
-            #map {
-                height: 400px;
-            }
-
-
-            button {
-                width: 100%;
-            }
-
-        }
+#addressText {
+    font-size: 14px;
+    color: #333;
+}
 
 .battery-box {
     margin-top: 10px;
@@ -258,7 +144,6 @@
     line-height: 1.7;
     font-size: 15px;
     font-weight: bold;
-    color: #333;
 }
 
 .battery-box.battery-low {
@@ -266,167 +151,113 @@
     border-left-color: #d32f2f;
     color: #d32f2f;
 }
-        
-    </style>
 
-
-    <!-- =====================================================
-         동의내용 열기/닫기
-    ====================================================== -->
-
-    <script>
-
-        function toggleConsent() {
-
-            const detail =
-                document.getElementById(
-                    "consentDetail"
-                );
-
-
-            if (
-                detail.style.display === "none" ||
-                detail.style.display === ""
-            ) {
-
-                detail.style.display = "block";
-
-            }
-            else {
-
-                detail.style.display = "none";
-
-            }
-
-        }
-
-    </script>
-
-</head>
-
-
-<body>
-
-    <!-- =====================================================
-         기간만료
-    ====================================================== -->
-<script>
-if (window.MUDEUNG_LINK_EXPIRED === true) {
-    document.documentElement.innerHTML = `
-    <html lang="ko">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport"
-              content="width=device-width, initial-scale=1.0">
-        <title>링크 사용 기간 만료</title>
-        <style>
-            body {
-                margin: 0;
-                padding: 30px 20px;
-                font-family: Arial, sans-serif;
-                text-align: center;
-                background: #f5f5f5;
-                color: #333;
-            }
-            h2 {
-                color: #b71c1c;
-            }
-        </style>
-    </head>
-    <body>
-        <h2>링크 사용 기간 만료</h2>
-        <p>이 위치공유 링크는 만료되었습니다.</p>
-        <p>새로운 링크를 발급받아 접속해 주세요.</p>
-    </body>
-    </html>`;
+button {
+    width: 100%;
+    padding: 14px;
+    font-size: 18px;
+    background: #d32f2f;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
 }
-</script>
 
-    <!-- =====================================================
-         HEADER
-    ====================================================== -->
+button:active {
+    transform: scale(.98);
+}
 
-    <header>
-        🆘 무등산 산악사고 구조요청
-    </header>
+button:disabled {
+    background: #999;
+    cursor: not-allowed;
+}
 
+#sendStatus {
+    margin-top: 10px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #1565c0;
+    line-height: 1.7;
+    word-break: break-all;
+}
 
-    <!-- =====================================================
-         위치정보 수집·이용 안내
-    ====================================================== -->
+.small {
+    font-size: 14px;
+    color: #555;
+    padding: 0 15px;
+    line-height: 1.7;
+}
 
-    <div class="consent-info">
+.consent-info {
+    padding: 0 15px;
+    margin-top: 10px;
+}
 
-        <div
-            class="consent-title"
-            onclick="toggleConsent()"
-        >
+.consent-title {
+    font-size: 14px;
+    font-weight: bold;
+    background: #f2f2f2;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+}
 
-            📝 구조요청 위치정보 수집·이용 안내
-            (내용보기)
+.consent-detail {
+    display: none;
+    font-size: 13px;
+    margin-top: 8px;
+    padding: 10px;
+    background: #fafafa;
+    border-radius: 6px;
+    line-height: 1.6;
+}
 
-        </div>
+@media (max-width: 768px) {
+    header {
+        font-size: 18px;
+    }
 
+    #map {
+        height: 400px;
+    }
+}
+</style>
 
-        <div
-            class="consent-detail"
-            id="consentDetail"
-        >
+<header>
+    🆘 무등산 산악사고 구조요청
+</header>
 
-            <b>
-                산악사고 등 긴급상황 발생 시
-                구조·구급 요청을 목적으로 운영됩니다.
-            </b>
+<div class="consent-info">
 
-            구조 요청 과정에서
-            <b>
-                GPS 위치정보, 휴대전화 번호,
-                구조요청 시간
-            </b>
-            을 수집하며,
-
-            수집된 정보는
-            <b>
-                신속한 구조·구급 활동 수행을 위한
-                용도에 한하여 사용
-            </b>
-            됩니다.
-
-            해당 정보는 구조·구급 목적 외
-            다른 용도로는 사용되지 않으며,
-            관련 법령에 따라 적절한 보안 조치를 통해
-            관리됩니다.
-
-            <br><br>
-
-            <b>[문자 보내기]</b>
-            버튼을 눌러 전송한 경우
-            위 위치정보 수집·이용에 동의한 것으로
-            간주됩니다.
-
-        </div>
-
+    <div class="consent-title"
+         onclick="toggleConsent()">
+        📝 구조요청 위치정보 수집·이용 안내
+        (내용보기)
     </div>
 
+    <div class="consent-detail" id="consentDetail">
 
-    <!-- =====================================================
-         로고
-    ====================================================== -->
+        <b>산악사고 등 긴급상황 발생 시 구조·구급 요청을 목적으로 운영됩니다.</b>
 
-    <img
-        src="https://mudeung.github.io/rescue/logogomir1.png"
-        alt="달콩이 이미지"
-        style="
-            display:block;
-            margin:0 auto;
-            max-width:100%;
-        "
-    >
+        구조 요청 과정에서 GPS 위치정보, 휴대전화 번호,
+        구조요청 시간을 수집합니다.
 
+        수집된 정보는 신속한 구조·구급 활동 수행을 위한
+        용도에 한하여 사용됩니다.
 
-<!-- =====================================================
-     GPS 정보
-====================================================== -->
+        <br><br>
+
+        <b>[문자 보내기]</b> 버튼을 눌러 구조요청 정보를
+        준비하고 문자 앱을 실행합니다.
+
+    </div>
+</div>
+
+<img
+    src="https://mudeung.github.io/rescue/logogomir1.png"
+    alt="달콩이 이미지"
+    style="display:block;margin:0 auto;max-width:100%;"
+>
 
 <section>
     <div class="info">
@@ -435,8 +266,7 @@ if (window.MUDEUNG_LINK_EXPIRED === true) {
             📍 <b>위치 좌표 확인 중...</b>
         </div>
 
-        <!-- 현재 위치 주소 -->
-        <div id="addressInfo" class="address-box">
+        <div class="address-box">
             <div class="address-title">
                 🏠 현재 위치 주소
             </div>
@@ -446,105 +276,179 @@ if (window.MUDEUNG_LINK_EXPIRED === true) {
             </div>
         </div>
 
-        <!-- 배터리 잔량 -->
         <div id="batteryInfo" class="battery-box">
             🔋 배터리 잔량 확인 중...
         </div>
 
         <br>
 
-        <!-- 문자 보내기 버튼: 한 번만 배치 -->
-        <button
-            id="sendButton"
-            onclick="sendSMSAndCall()"
-        >
+        <button id="sendButton"
+                onclick="sendSMSAndCall()">
             ✉️ 문자 보내기 클릭
         </button>
 
-        <!-- 전송 상태: 한 번만 배치 -->
         <div id="sendStatus"></div>
 
     </div>
 </section>
 
-
-    <!-- =====================================================
-         안내문
-    ====================================================== -->
-
-    <div class="small">
-
-        ※ 생명보호를 위한 구조·구급 목적의 위치 문자전송
-        <br>
-
-        ※ <b>국립공원특수구조대·119산악구조대</b>에 연결됩니다.
-
-    </div>
-
-
+<div class="small">
+    ※ 생명보호를 위한 구조·구급 목적의 위치 문자전송
     <br>
+    ※ <b>국립공원특수구조대·119산악구조대</b>에 연결됩니다.
+</div>
+
+<br>
+
+<div id="map"></div>
+
+<script>
+let map;
+let userMarker;
+let geocoder;
+
+let currentLat = null;
+let currentLng = null;
+let currentAddress = "주소 확인 중...";
+
+function toggleConsent() {
+    const detail = document.getElementById("consentDetail");
+
+    detail.style.display =
+        detail.style.display === "block"
+            ? "none"
+            : "block";
+}
+
+/* 카카오맵 초기화 */
+function initMap(lat = 35.131295, lng = 126.948047) {
+
+    if (!window.kakao || !kakao.maps) {
+        document.getElementById("map").textContent =
+            "카카오맵을 불러올 수 없습니다.";
+        return false;
+    }
+
+    const center = new kakao.maps.LatLng(lat, lng);
+
+    map = new kakao.maps.Map(
+        document.getElementById("map"),
+        {
+            center: center,
+            level: 3
+        }
+    );
+
+    userMarker = new kakao.maps.Marker({
+        map: map,
+        position: center
+    });
+
+    geocoder = new kakao.maps.services.Geocoder();
+
+    return true;
+}
+
+initMap();
+
+/* GPS 좌표 → 주소 */
+function getAddressFromGPS(lat, lng) {
+
+    if (!geocoder) return;
+
+    geocoder.coord2Address(lng, lat, function(result, status) {
+
+        if (status === kakao.maps.services.Status.OK && result[0]) {
+
+            const road = result[0].road_address;
+            const parcel = result[0].address;
+
+            currentAddress =
+                (road && road.address_name) ||
+                (parcel && parcel.address_name) ||
+                "주소를 확인할 수 없습니다.";
+
+        } else {
+            currentAddress = "주소를 확인할 수 없습니다.";
+        }
+
+        document.getElementById("addressText").textContent =
+            currentAddress;
+    });
+}
+
+/* GPS 실시간 추적 */
+if (navigator.geolocation) {
+
+    navigator.geolocation.watchPosition(
+
+        function(pos) {
+
+            currentLat = pos.coords.latitude;
+            currentLng = pos.coords.longitude;
+
+            const lat = Number(currentLat.toFixed(6));
+            const lng = Number(currentLng.toFixed(6));
+
+            const loc = new kakao.maps.LatLng(lat, lng);
+
+            if (map && userMarker) {
+                map.setCenter(loc);
+                userMarker.setPosition(loc);
+            }
+
+            document.getElementById("gpsInfo").innerHTML = `
+                📍 <span class="gps-title">위치 좌표</span>
+                <br>
+                위도: ${lat}
+                <br>
+                경도: ${lng}
+            `;
+
+            getAddressFromGPS(lat, lng);
+        },
+
+        function(error) {
+
+            console.error("GPS 오류:", error);
+
+            document.getElementById("gpsInfo").textContent =
+                "📍 위치 확인 실패 - 위치 권한을 허용해 주세요.";
+
+            document.getElementById("addressText").textContent =
+                "현재 위치를 확인할 수 없습니다.";
+        },
+
+        {
+            enableHighAccuracy: true,
+            maximumAge: 1000,
+            timeout: 15000
+        }
+    );
+
+} else {
+
+    document.getElementById("gpsInfo").textContent =
+        "GPS를 지원하지 않는 브라우저입니다.";
+}
 
 
-    <!-- =====================================================
-         지도
-    ====================================================== -->
-
-    <div id="map"></div>
-
-
-    <!-- =====================================================
-         JAVASCRIPT
-    ====================================================== -->
-
-    <script>
-
-
-        /* =====================================================
-           전역 변수
-        ====================================================== */
-
-        let map;
-
-        let userMarker;
-
-        let currentLat = null;
-
-        let currentLng = null;
-
-        let currentAddress =
-            "주소 확인 중...";
-
-        let geocoder;
-
-/* =========================================
-   배터리 정보
-========================================= */
-
+/* 배터리 정보 */
 let currentBatteryLevel = null;
 let currentBatteryCharging = null;
-let batteryReady = false;
 let batteryManager = null;
 
 async function updateBatteryInfo() {
 
-    const batteryInfo =
-        document.getElementById("batteryInfo");
+    const element = document.getElementById("batteryInfo");
 
     try {
 
-        console.log("===== 갤럭시 배터리 진단 =====");
-        console.log("HTTPS 보안 연결:", window.isSecureContext);
-        console.log("배터리 API:", typeof navigator.getBattery);
-
-        if (!window.isSecureContext) {
-            throw new Error("HTTPS 보안 연결이 아닙니다.");
+        if (!window.isSecureContext ||
+            typeof navigator.getBattery !== "function") {
+            throw new Error("배터리 API 미지원");
         }
 
-        if (typeof navigator.getBattery !== "function") {
-            throw new Error("배터리 API를 지원하지 않습니다.");
-        }
-
-        // 이미 가져온 배터리 객체가 있으면 재사용
         if (!batteryManager) {
             batteryManager = await navigator.getBattery();
         }
@@ -557,43 +461,31 @@ async function updateBatteryInfo() {
             currentBatteryCharging =
                 batteryManager.charging;
 
-            batteryReady = true;
-
-            batteryInfo.textContent =
+            element.textContent =
                 `🔋 배터리 잔량: ${currentBatteryLevel}% · ` +
                 (currentBatteryCharging
                     ? "⚡ 충전 중"
                     : "🔌 충전 중 아님");
 
-            batteryInfo.classList.toggle(
+            element.classList.toggle(
                 "battery-low",
                 currentBatteryLevel <= 20
             );
-
-            console.log("배터리 잔량:", currentBatteryLevel);
-            console.log("충전 상태:", currentBatteryCharging);
         }
 
         update();
 
-        // 이벤트 중복 등록 방지
-        if (!batteryManager._mudeungListenersAdded) {
-
-            batteryManager.addEventListener("levelchange", update);
-            batteryManager.addEventListener("chargingchange", update);
-
-            batteryManager._mudeungListenersAdded = true;
-        }
+        batteryManager.addEventListener("levelchange", update);
+        batteryManager.addEventListener("chargingchange", update);
 
         return true;
 
     } catch (error) {
 
-        console.error("배터리 확인 실패:", error.name, error.message);
+        currentBatteryLevel = null;
+        currentBatteryCharging = null;
 
-        batteryReady = false;
-
-        batteryInfo.textContent =
+        element.textContent =
             "🔋 배터리 정보를 확인할 수 없습니다.";
 
         return false;
@@ -602,739 +494,117 @@ async function updateBatteryInfo() {
 
 updateBatteryInfo();
 
-        /* =====================================================
-           문자 수신 구조대 번호
-        ====================================================== */
+/* 구조대 문자 수신번호 5개 */
+const RESCUE_NUMBER = [
+    "01080020860",
+    "01066650113",
+    "01035000320",
+    "01031901187",
+    "01088601187"
+];
 
-        const RESCUE_NUMBER = [
+/* Google Sheets API */
+const GOOGLE_SHEET_API =
+"https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
 
-            "01080020860",
-            "01066650113",
-            "01035000320",
-            "01031901187",
-            "01088601187"
+const FIXED_CONTENT = "위치공유시스템에서 전송";
 
-        ];
+/* 기기별 고유 코드 */
+function getShortDeviceCode() {
 
+    const key = "MUDEUNG_RESCUE_SHORT_DEVICE_CODE";
 
-        /* =====================================================
-           구글시트 API
-        ====================================================== */
+    try {
 
-        const GOOGLE_SHEET_API =
-            "https://script.google.com/macros/s/AKfycbwUbacHm34YkWh--zL_e590P6h4S5wQo3iF8tCVZu71ZaTunTwdZ1TMLVqkyuHu-izW/exec";
+        let code = localStorage.getItem(key);
 
-
-        /* =====================================================
-           위치공유시스템 고정 내용
-        ====================================================== */
-
-        const FIXED_CONTENT =
-            "위치공유시스템에서 전송";
-
-
-        /* =====================================================
-           ★ 기기별 고유 2자리 코드 생성
-           
-           예:
-           A3
-           F7
-           K2
-           Z9
-           
-           0~9 + A~Z
-           총 1,296가지 조합
-        ====================================================== */
-
-        function getShortDeviceCode() {
-
-            const DEVICE_CODE_KEY =
-                "MUDEUNG_RESCUE_SHORT_DEVICE_CODE";
-
-
-            /* -----------------------------------------
-               기존 기기코드 확인
-            ----------------------------------------- */
-
-            let code =
-                localStorage.getItem(
-                    DEVICE_CODE_KEY
-                );
-
-
-            /* 이미 있으면 그대로 사용 */
-
-            if (code) {
-
-                return code;
-
-            }
-
-
-            /* -----------------------------------------
-               새로운 기기코드 생성
-               
-               36진수 2자리
-            ----------------------------------------- */
-
-            const randomNumber =
-                Math.floor(
-                    Math.random() * 1296
-                );
-
-
-            code =
-                randomNumber
-                    .toString(36)
-                    .toUpperCase()
-                    .padStart(2, "0");
-
-
-            /* -----------------------------------------
-               해당 휴대폰에 저장
-            ----------------------------------------- */
-
-            localStorage.setItem(
-                DEVICE_CODE_KEY,
-                code
-            );
-
-
+        if (code && /^[0-9A-Z]{2}$/.test(code)) {
             return code;
-
         }
 
+        code = Math.floor(Math.random() * 1296)
+            .toString(36)
+            .toUpperCase()
+            .padStart(2, "0");
 
-        /* =====================================================
-           ★ 기기코드
-        ====================================================== */
+        localStorage.setItem(key, code);
 
-        const DEVICE_CODE =
-            getShortDeviceCode();
+        return code;
 
+    } catch (error) {
 
-        /* =====================================================
-           ★ 최종 전송번호 생성
-           
-           형식:
-
-           YYMMDDHHMM-XX
-
-           예:
-
-           2610011117-A3
-           
-           261001 = 2026년 10월 1일
-           1117   = 11시 17분
-           A3     = 기기 식별코드
-        ====================================================== */
-
-        function createSendId() {
-
-            const now =
-                new Date();
-
-
-            /* -----------------------------------------
-               연도 YY
-            ----------------------------------------- */
-
-            const year =
-                String(
-                    now.getFullYear()
-                ).slice(-2);
-
-
-            /* -----------------------------------------
-               월 MM
-            ----------------------------------------- */
-
-            const month =
-                String(
-                    now.getMonth() + 1
-                )
-                .padStart(2, "0");
-
-
-            /* -----------------------------------------
-               일 DD
-            ----------------------------------------- */
-
-            const day =
-                String(
-                    now.getDate()
-                )
-                .padStart(2, "0");
-
-
-            /* -----------------------------------------
-               시 HH
-            ----------------------------------------- */
-
-            const hour =
-                String(
-                    now.getHours()
-                )
-                .padStart(2, "0");
-
-
-            /* -----------------------------------------
-               분 MM
-            ----------------------------------------- */
-
-            const minute =
-                String(
-                    now.getMinutes()
-                )
-                .padStart(2, "0");
-
-
-            /* -----------------------------------------
-               날짜 + 시간
-            ----------------------------------------- */
-
-            const dateTimePart =
-                year +
-                month +
-                day +
-                hour +
-                minute;
-
-
-            /* -----------------------------------------
-               최종 전송번호
-
-               예:
-               2610011117-A3
-            ----------------------------------------- */
-
-            return (
-                dateTimePart +
-                "-" +
-                DEVICE_CODE
-            );
-
-        }
-
-
-        /* =====================================================
-           지도 초기화
-        ====================================================== */
-
-        function initMap(
-
-            lat = 35.131295,
-
-            lng = 126.948047
-
-        ) {
-
-
-            const center =
-                new kakao.maps.LatLng(
-                    lat,
-                    lng
-                );
-
-
-            map =
-                new kakao.maps.Map(
-
-                    document.getElementById(
-                        "map"
-                    ),
-
-                    {
-
-                        center:
-                            center,
-
-                        level:
-                            3
-
-                    }
-
-                );
-
-
-            userMarker =
-                new kakao.maps.Marker({
-
-                    map:
-                        map,
-
-                    position:
-                        center
-
-                });
-
-
-            geocoder =
-                new kakao.maps.services.Geocoder();
-
-        }
-
-
-        initMap();
-
-
-        /* =====================================================
-           GPS → 주소
-        ====================================================== */
-
-        function getAddressFromGPS(
-            lat,
-            lng
-        ) {
-
-
-            if (!geocoder) {
-
-                currentAddress =
-                    "주소 검색 서비스를 사용할 수 없습니다.";
-
-
-                document.getElementById(
-                    "addressText"
-                ).innerText =
-                    currentAddress;
-
-                return;
-
-            }
-
-
-            geocoder.coord2Address(
-
-                lng,
-
-                lat,
-
-                function(
-                    result,
-                    status
-                ) {
-
-
-                    if (
-                        status ===
-                        kakao.maps.services.Status.OK
-                    ) {
-
-
-                        let address = "";
-
-
-                        /* 도로명주소 우선 */
-
-                        if (
-                            result[0] &&
-                            result[0].road_address
-                        ) {
-
-                            address =
-                                result[0]
-                                    .road_address
-                                    .address_name;
-
-                        }
-
-
-                        /* 지번주소 */
-
-                        if (
-                            !address &&
-                            result[0] &&
-                            result[0].address
-                        ) {
-
-                            address =
-                                result[0]
-                                    .address
-                                    .address_name;
-
-                        }
-
-
-                        currentAddress =
-                            address ||
-                            "주소를 확인할 수 없습니다.";
-
-                    }
-                    else {
-
-                        currentAddress =
-                            "주소를 확인할 수 없습니다.";
-
-                    }
-
-
-                    document.getElementById(
-                        "addressText"
-                    ).innerText =
-                        currentAddress;
-
-                }
-
-            );
-
-        }
-
-
-        /* =====================================================
-           GPS 추적
-        ====================================================== */
-
-        if (
-            navigator.geolocation
-        ) {
-
-
-            navigator.geolocation.watchPosition(
-
-                function(pos) {
-
-
-                    currentLat =
-                        pos.coords.latitude;
-
-
-                    currentLng =
-                        pos.coords.longitude;
-
-
-                    const lat =
-                        Number(
-                            currentLat.toFixed(6)
-                        );
-
-
-                    const lng =
-                        Number(
-                            currentLng.toFixed(6)
-                        );
-
-
-                    const loc =
-                        new kakao.maps.LatLng(
-                            lat,
-                            lng
-                        );
-
-
-                    map.setCenter(
-                        loc
-                    );
-
-
-                    userMarker.setPosition(
-                        loc
-                    );
-
-
-                    document.getElementById(
-                        "gpsInfo"
-                    ).innerHTML = `
-
-                        📍
-                        <span class="gps-title">
-                            위치 좌표
-                        </span>
-
-                        <br>
-
-                        위도:
-                        ${lat}
-
-                        <br>
-
-                        경도:
-                        ${lng}
-
-                    `;
-
-
-                    getAddressFromGPS(
-                        lat,
-                        lng
-                    );
-
-                },
-
-
-                function(error) {
-
-
-                    console.error(
-                        "GPS 오류:",
-                        error
-                    );
-
-
-                    document.getElementById(
-                        "gpsInfo"
-                    ).innerHTML = `
-
-                        📍
-                        <b>
-                            위치 확인 실패
-                        </b>
-
-                        <br>
-
-                        위치 권한을 허용해주세요.
-
-                    `;
-
-
-                    document.getElementById(
-                        "addressText"
-                    ).innerText =
-                        "현재 위치를 확인할 수 없습니다.";
-
-                },
-
-
-                {
-
-                    enableHighAccuracy:
-                        true,
-
-                    maximumAge:
-                        1000,
-
-                    timeout:
-                        10000
-
-                }
-
-            );
-
-        }
-        else {
-
-            document.getElementById(
-                "gpsInfo"
-            ).innerHTML =
-                "📍 이 기기에서는 GPS를 사용할 수 없습니다.";
-
-        }
-
-
-        /* =====================================================
-           문자 전송 + 구글시트 저장
-        ====================================================== */
-
-       async function sendSMSAndCall() {
-
-    
-/* =========================================
-   배터리 최종 확인
-========================================= */
-
-await updateBatteryInfo();
-
-let batteryLevelToSend = currentBatteryLevel;
-let batteryChargingToSend = currentBatteryCharging;
-
-console.log("===== 최종 배터리 확인 =====");
-console.log("배터리 잔량:", batteryLevelToSend);
-console.log("충전 상태:", batteryChargingToSend);
-console.log("배터리 준비:", batteryReady);
-
-
-            /* -----------------------------------------
-               GPS 확인
-            ----------------------------------------- */
-
-            if (
-                currentLat === null ||
-                currentLng === null
-            ) {
-
-                alert(
-                    "현재 위치를 확인할 수 없습니다."
-                );
-
-                return;
-
-            }
-
-
-            /* -----------------------------------------
-               좌표
-            ----------------------------------------- */
-
-            const lat =
-                Number(
-                    currentLat.toFixed(6)
-                );
-
-
-            const lng =
-                Number(
-                    currentLng.toFixed(6)
-                );
-
-
-            /* -----------------------------------------
-               주소 확인
-            ----------------------------------------- */
-
-            if (
-                currentAddress ===
-                "주소 확인 중..."
-            ) {
-
-                alert(
-                    "현재 위치의 주소를 확인하는 중입니다.\n잠시 후 다시 눌러주세요."
-                );
-
-                return;
-
-            }
-
-
-            /* -----------------------------------------
-               ★ 전송번호 생성
-            ----------------------------------------- */
-
-            const sendId =
-                createSendId();
-
-
-            /* -----------------------------------------
-               카카오맵 URL
-            ----------------------------------------- */
-
-            const kakaoMapURL =
-                `https://map.kakao.com/link/map/${lat},${lng}`;
-
-
-/* =========================================
-   배터리 문자 내용 생성
-========================================= */
-
-const batteryText =
-    batteryLevelToSend === null
-        ? "확인 불가"
-        : `${batteryLevelToSend}%`;
-
-
-            /* =================================================
-               ★ 구글시트 전송 데이터
-            ================================================== */
-    
-
-
-const sheetData = {
-
-    lat: lat,
-    lng: lng,
-
-    address: currentAddress,
-
-    kakaoMapURL: kakaoMapURL,
-    mapURL: kakaoMapURL,
-
-    type: FIXED_CONTENT,
-    condition: FIXED_CONTENT,
-
-    sendId: sendId,
-
-    // 배터리 잔량
-    batteryLevel: batteryText,
-
-    // 숫자만 별도 저장
-    batteryPercent:
-        batteryLevelToSend === null
-            ? ""
-            : Number(batteryLevelToSend),
-
-    // 충전 상태
-    batteryCharging:
-        batteryChargingToSend === null
-            ? "확인 불가"
-            : batteryChargingToSend
-                ? "충전 중"
-                : "충전 중 아님",
-
-    symptom: "-",
-    phone: "-"
-};
-
-console.log("===== 구글시트 최종 전송 데이터 =====");
-console.log("문자 배터리:", batteryText);
-console.log("시트 배터리:", sheetData.batteryLevel);
-console.log("숫자 배터리:", sheetData.batteryPercent);
-console.log("충전 상태:", sheetData.batteryCharging);
-console.log("전체 JSON:", JSON.stringify(sheetData));
-
-
-           
-/* =========================================
-   배터리 정보 sheetData에 추가
-========================================= */
-
-console.log("시트 전송 배터리 잔량:",
-    sheetData.batteryLevel
-);
-
-console.log("시트 전송 충전 상태:",
-    sheetData.batteryCharging
-);
-            
-/* =================================================
-   구글시트 저장
-================================================== */
-
-// 전송 직전 배터리 값 확인
-console.log("===== 최종 배터리 저장 확인 =====");
-
-console.log(
-    "배터리 잔량:",
-    sheetData.batteryLevel
-);
-
-console.log(
-    "충전 상태:",
-    sheetData.batteryCharging
-);
-
-console.log(
-    "전송 JSON:",
-    JSON.stringify(sheetData)
-);
-            
-fetch(
-    GOOGLE_SHEET_API,
-    {
-        method: "POST",
-        mode: "no-cors",
-        headers: {
-    "Content-Type": "text/plain;charset=utf-8"
-},
-        body: JSON.stringify(sheetData)
+        return Math.random().toString(36)
+            .substring(2, 4)
+            .toUpperCase();
     }
-)
-.then(function() {
-    console.log(
-        "구글시트 전송 요청 완료:",
-        sendId
-    );
-})
-.catch(function(error) {
-    console.error(
-        "시트 전송 오류:",
-        error
-    );
-});
-            /* =================================================
-               문자 내용
-            ================================================== */
-         
-const smsText =
+}
 
+const DEVICE_CODE = getShortDeviceCode();
+
+/* 전송번호 YYMMDDHHMM-XX */
+function createSendId() {
+
+    const now = new Date();
+
+    const year = String(now.getFullYear()).slice(-2);
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    const hour = String(now.getHours()).padStart(2, "0");
+    const minute = String(now.getMinutes()).padStart(2, "0");
+
+    return year + month + day + hour + minute +
+        "-" + DEVICE_CODE;
+}
+
+
+async function sendSMSAndCall() {
+
+    const button = document.getElementById("sendButton");
+    const status = document.getElementById("sendStatus");
+
+    if (button.disabled) return;
+
+    button.disabled = true;
+
+    try {
+
+        /* GPS 확인 */
+        if (currentLat === null || currentLng === null) {
+            alert("현재 GPS 위치를 확인할 수 없습니다.");
+            return;
+        }
+
+        /* 주소 확인 */
+        if (
+            !currentAddress ||
+            currentAddress === "주소 확인 중..." ||
+            currentAddress === "주소를 확인할 수 없습니다."
+        ) {
+            alert("현재 위치 주소를 확인한 후 다시 눌러주세요.");
+            return;
+        }
+
+        /* 배터리 정보 */
+        await updateBatteryInfo();
+
+        const batteryLevelToSend = currentBatteryLevel;
+        const batteryChargingToSend = currentBatteryCharging;
+
+        const batteryText =
+            batteryLevelToSend === null
+                ? "확인 불가"
+                : `${batteryLevelToSend}%`;
+
+        const lat = Number(currentLat.toFixed(6));
+        const lng = Number(currentLng.toFixed(6));
+
+        const sendId = createSendId();
+
+        const kakaoMapURL =
+            `https://map.kakao.com/link/map/${lat},${lng}`;
+
+        /* 문자 내용 */
+        const smsText =
 `🚨 [산악구조요청]
 
 🔢 전송번호:
@@ -1355,205 +625,133 @@ ${lat}
 ${lng}
 
 🗺 카카오맵:
-${kakaoMapURL}
-`;
+${kakaoMapURL}`;
 
-            /* =================================================
-               화면 전송 상태
-            ================================================== */
+        /* Google Sheets 데이터 */
+        const sheetData = {
 
-            document.getElementById(
-                "sendStatus"
-            ).innerHTML =
+            lat: lat,
+            lng: lng,
+            address: currentAddress,
 
-                "✅ 위치공유시스템 전송 준비 완료" +
-                "<br>" +
-                "🔢 전송번호: " +
-                sendId;
+            kakaoMapURL: kakaoMapURL,
+            mapURL: kakaoMapURL,
 
+            type: FIXED_CONTENT,
+            condition: FIXED_CONTENT,
 
-            /* =================================================
-               버튼 중복 클릭 방지
-            ================================================= */
+            sendId: sendId,
 
-            const button =
-                document.getElementById(
-                    "sendButton"
-                );
+            batteryLevel: batteryText,
 
+            batteryPercent:
+                batteryLevelToSend === null
+                    ? ""
+                    : batteryLevelToSend,
 
-            button.disabled =
-                true;
+            batteryCharging:
+                batteryChargingToSend === null
+                    ? "확인 불가"
+                    : batteryChargingToSend
+                        ? "충전 중"
+                        : "충전 중 아님",
 
+            symptom: "-",
+            phone: "-"
+        };
 
-            button.style.opacity =
-                "0.7";
+        /* Google Sheets 저장 요청 */
+        const sheetPromise = fetch(GOOGLE_SHEET_API, {
 
+            method: "POST",
+            mode: "no-cors",
 
-            setTimeout(
-                function() {
+            headers: {
+                "Content-Type": "text/plain;charset=utf-8"
+            },
 
-                    button.disabled =
-                        false;
+            body: JSON.stringify(sheetData)
 
-                    button.style.opacity =
-                        "1";
+        }).catch(error => {
+            console.error("Google Sheets 오류:", error);
+        });
 
-                },
-                3000
+        status.innerHTML =
+            "✅ 구조요청 정보 준비 완료" +
+            "<br>🔢 전송번호: " + sendId +
+            "<br>📋 문자 앱에서 수신번호와 내용을 확인해 주세요.";
+
+        /* 운영체제 확인 */
+        const ua = navigator.userAgent;
+
+        const isIOS =
+            /iPhone|iPad|iPod/i.test(ua) ||
+            (navigator.platform === "MacIntel" &&
+             navigator.maxTouchPoints > 1);
+
+        const isAndroid = /Android/i.test(ua);
+
+        const encodedBody = encodeURIComponent(smsText);
+
+        let smsURL;
+
+        if (isIOS) {
+
+            /*
+             iPhone Safari
+             iOS는 수신번호 여러 개를
+             쉼표로 구분하는 방식을 사용
+            */
+
+            smsURL =
+                `sms:${RESCUE_NUMBER.join(",")}&body=${encodedBody}`;
+
+        } else if (isAndroid) {
+
+            /*
+             Galaxy Chrome
+             Android는 ?body= 형식 사용
+            */
+
+            smsURL =
+                `sms:${RESCUE_NUMBER.join(",")}?body=${encodedBody}`;
+
+        } else {
+
+            alert(
+                "모바일에서 문자 기능을 이용해 주세요.\n\n" +
+                smsText
             );
 
-
-            /* =================================================
-               모바일 문자
-            ================================================= */
-
-            if (
-                /Mobi|Android|iPhone/i
-                    .test(
-                        navigator.userAgent
-                    )
-            ) {
-
-                location.href =
-
-                    `sms:${RESCUE_NUMBER}?body=` +
-
-                    encodeURIComponent(
-                        smsText
-                    );
-
-            }
-            else {
-
-                alert(
-
-                    "모바일에서만 문자 전송이 가능합니다.\n\n" +
-                    smsText
-
-                );
-
-            }
-
+            return;
         }
 
-    </script>
+        /*
+         문자 앱 실행
+         실제 발송은 사용자가 문자 앱에서 확인 후 진행
+        */
 
+        window.location.href = smsURL;
 
-    <!-- =====================================================
-         우클릭 및 개발자도구 단축키 방지
-    ====================================================== -->
+        /*
+         저장 요청은 문자 앱 이동과 독립적으로 시작됨.
+         no-cors 응답은 저장 성공 여부를 확인할 수 없음.
+        */
 
-    <script>
+    } catch (error) {
 
-        document.addEventListener(
-            "contextmenu",
-            function(e) {
+        console.error("구조요청 오류:", error);
 
-                e.preventDefault();
+        alert("구조요청 정보를 준비하는 중 오류가 발생했습니다.");
 
-                return false;
+    } finally {
 
-            }
-        );
-
-
-        document.addEventListener(
-            "keydown",
-            function(e) {
-
-
-                /* F12 */
-
-                if (
-                    e.key === "F12"
-                ) {
-
-                    e.preventDefault();
-
-                    return false;
-
-                }
-
-
-                /* Ctrl + U */
-
-                if (
-                    e.ctrlKey &&
-                    e.key.toLowerCase() === "u"
-                ) {
-
-                    e.preventDefault();
-
-                    return false;
-
-                }
-
-
-                /* Ctrl + Shift + I */
-
-                if (
-                    e.ctrlKey &&
-                    e.shiftKey &&
-                    e.key.toLowerCase() === "i"
-                ) {
-
-                    e.preventDefault();
-
-                    return false;
-
-                }
-
-
-                /* Ctrl + Shift + J */
-
-                if (
-                    e.ctrlKey &&
-                    e.shiftKey &&
-                    e.key.toLowerCase() === "j"
-                ) {
-
-                    e.preventDefault();
-
-                    return false;
-
-                }
-
-
-                /* Ctrl + Shift + C */
-
-                if (
-                    e.ctrlKey &&
-                    e.shiftKey &&
-                    e.key.toLowerCase() === "c"
-                ) {
-
-                    e.preventDefault();
-
-                    return false;
-
-                }
-
-
-                /* Ctrl + S */
-
-                if (
-                    e.ctrlKey &&
-                    e.key.toLowerCase() === "s"
-                ) {
-
-                    e.preventDefault();
-
-                    return false;
-
-                }
-
-            }
-        );
-
-    </script>
-
+        setTimeout(function() {
+            button.disabled = false;
+        }, 3000);
+    }
+}
+</script>
 
 </body>
-
 </html>
