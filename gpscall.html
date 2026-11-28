@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -8,38 +9,29 @@
 <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- =========================================
-     공유 링크 만료시간 확인
-     expires 값은 Unix 타임스탬프(밀리초)
-========================================= -->
 <script>
 (function () {
-    const params = new URLSearchParams(location.search);
+  const params = new URLSearchParams(location.search);
 
-    // expires가 없는 기존 주소는 무기한 접속 허용
-    if (!params.has("expires")) {
-        window.MUDEUNG_LINK_EXPIRED = false;
-        return;
-    }
+  if (!params.has("expires")) {
+    window.MUDEUNG_LINK_EXPIRED = false;
+    return;
+  }
 
-    const rawExpires = params.get("expires");
-    const expires = Number(rawExpires);
+  const rawExpires = params.get("expires");
+  const expires = Number(rawExpires);
 
-    // 만료 값이 잘못되었거나 만료 시각이 지났으면 차단
-    window.MUDEUNG_LINK_EXPIRED =
-        rawExpires === "" ||
-        !Number.isSafeInteger(expires) ||
-        expires <= Date.now();
+  window.MUDEUNG_LINK_EXPIRED =
+    rawExpires === "" ||
+    !Number.isSafeInteger(expires) ||
+    expires <= Date.now();
 })();
 </script>
 
 <style>
 :root {
   color-scheme: light;
-  --primary: #b42318;
-  --surface: #fff;
   --border: #d7dbe0;
-  --muted: #626b76;
 }
 
 * {
@@ -55,13 +47,11 @@ body {
   text-align: center;
 }
 
-
-/* 만료된 경우 기존 콘텐츠 숨김 */
 body.link-expired > :not(#expiredPanel) {
   display: none !important;
 }
 
-h1, h2 {
+h2 {
   color: #ff4d4d;
   margin-bottom: 20px;
 }
@@ -102,8 +92,6 @@ h1, h2 {
   color: #aaa;
 }
 
-
-/* 링크 만료 안내 */
 .expired-panel {
   width: min(420px, calc(100% - 32px));
   margin: 60px auto;
@@ -113,35 +101,17 @@ h1, h2 {
   background: #fff;
   color: #20242a;
   line-height: 1.7;
-  box-shadow: 0 18px 60px #00000025;
 }
 
 .expired-panel h2 {
-  margin: 0 0 16px;
   color: #b42318;
 }
 
-.expired-panel p {
-  margin: 8px 0;
-}
-
-@media (max-width: 380px) {
-  body {
-    padding: 24px 12px;
-  }
-
-  .password-panel {
-    padding: 20px;
-  }
-}
 </style>
 </head>
 
 <body>
 
-<!-- =========================================
-     만료 링크 안내
-========================================= -->
 <div id="expiredPanel"
      class="expired-panel"
      role="alert"
@@ -159,9 +129,6 @@ h1, h2 {
   </p>
 </div>
 
-<!-- =========================================
-     페이지 본문
-========================================= -->
 <h2>무등산 산악구조 🆘 링크 문자전송</h2>
 
 <p>
@@ -169,7 +136,6 @@ h1, h2 {
   버튼을 눌러주세요.
 </p>
 
-<!-- 받는 사람 전화번호 -->
 <input
   class="phone-input"
   type="tel"
@@ -179,7 +145,6 @@ h1, h2 {
   autocomplete="tel"
 />
 
-<!-- 문자 전송 -->
 <button class="sms-button" id="sendButton" type="button">
   📩 위치 링크 문자 보내기
 </button>
@@ -190,7 +155,6 @@ h1, h2 {
 
 <br>
 
-<!-- 달콩이 이미지 -->
 <img
   src="https://mudeung.github.io/rescue/logogomir1.png"
   alt="달콩이 이미지"
@@ -198,31 +162,26 @@ h1, h2 {
 >
 
 <script>
-/* =========================================
-   링크 만료 확인 및 화면 처리
-========================================= */
-(function () {
-  if (!window.MUDEUNG_LINK_EXPIRED) {
-    return;
-  }
 
-  // 만료된 경우 암호 입력창을 열지 않음
+/* 링크 만료 확인 */
+
+(function () {
+  if (!window.MUDEUNG_LINK_EXPIRED) return;
+
   document.body.classList.add("link-expired");
 
-  const expiredPanel = document.getElementById("expiredPanel");
+  const panel = document.getElementById("expiredPanel");
 
-  if (expiredPanel) {
-    expiredPanel.style.display = "block";
+  if (panel) {
+    panel.style.display = "block";
   }
 })();
 
 
-/* =========================================
-   iPhone / Android 공통 문자 전송
-   링크 유효시간: 1시간
-========================================= */
+/* 아이폰 / 안드로이드 문자 전송 */
 
 function sendSMS() {
+
   if (window.MUDEUNG_LINK_EXPIRED) {
     alert("링크 사용 기간이 만료되었습니다.");
     return;
@@ -245,17 +204,17 @@ function sendSMS() {
     return;
   }
 
-  // 링크 유효기간 1시간
+  // 1시간 유효 링크 생성
   const expires = Date.now() + 60 * 60 * 1000;
 
   const link =
     "https://mudeung.github.io/gps?expires=" + expires;
 
-  // URL을 독립된 줄에 배치
+  // URL은 반드시 마지막 줄에 단독 배치
   const message =
     "[무등산 산악구조 요청]\n\n" +
     "국립공원 특수구조대입니다.\n" +
-    "아래 링크를 눌러 현재 위치를 확인해 주세요.\n\n" +
+    "아래 주소를 눌러 현재 위치를 확인해 주세요.\n\n" +
     link;
 
   const encodedMessage = encodeURIComponent(message);
@@ -267,38 +226,53 @@ function sendSMS() {
     (navigator.platform === "MacIntel" &&
      navigator.maxTouchPoints > 1);
 
-  // 아이폰과 안드로이드 문자 앱 호출
-  const smsURL = isIOS
-    ? "sms:" + normalizedPhone + "&body=" + encodedMessage
-    : "sms:" + normalizedPhone + "?body=" + encodedMessage;
+  let smsURL;
+
+  if (isIOS) {
+
+    // iPhone 문자 작성 화면
+    smsURL =
+      "sms:" + normalizedPhone +
+      "&body=" + encodedMessage;
+
+  } else {
+
+    // Android 문자 작성 화면
+    smsURL =
+      "sms:" + normalizedPhone +
+      "?body=" + encodedMessage;
+  }
 
   window.location.href = smsURL;
 }
 
-/* =========================================
-   문자 전송 버튼 이벤트 연결
-========================================= */
 
-document.getElementById("sendButton").addEventListener("click", sendSMS);
-     
-/* =========================================
-   우클릭 및 단축키 방지
-========================================= */
-document.addEventListener("contextmenu", function (event) {
+/* 버튼 이벤트 */
+
+document.getElementById("sendButton")
+  .addEventListener("click", sendSMS);
+
+
+/* 우클릭 및 단축키 방지 */
+
+document.addEventListener("contextmenu", function(event) {
   event.preventDefault();
 });
 
-document.addEventListener("keydown", function (event) {
+document.addEventListener("keydown", function(event) {
+
   const key = event.key.toLowerCase();
 
   if (
     event.key === "F12" ||
     (event.ctrlKey && ["u", "s"].includes(key)) ||
-    (event.ctrlKey && event.shiftKey && ["i", "j", "c"].includes(key))
+    (event.ctrlKey && event.shiftKey &&
+     ["i", "j", "c"].includes(key))
   ) {
     event.preventDefault();
   }
 });
+
 </script>
 
 </body>
