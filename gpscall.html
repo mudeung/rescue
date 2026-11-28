@@ -221,6 +221,7 @@ h1, h2 {
    iPhone / Android 공통 문자 전송
    링크 유효시간: 1시간
 ========================================= */
+
 function sendSMS() {
   if (window.MUDEUNG_LINK_EXPIRED) {
     alert("링크 사용 기간이 만료되었습니다.");
@@ -244,23 +245,29 @@ function sendSMS() {
     return;
   }
 
-  // 1시간 후 만료되는 링크 생성
+  // 링크 유효기간 1시간
   const expires = Date.now() + 60 * 60 * 1000;
-  const link = "https://mudeung.github.io/gps?expires=" + expires;
 
+  const link =
+    "https://mudeung.github.io/gps?expires=" + expires;
+
+  // URL을 독립된 줄에 배치
   const message =
-    "[무등산 산악구조 요청]\n" +
-    "국립공원 특수구조대입니다. 링크를 클릭해 주세요.\n" +
+    "[무등산 산악구조 요청]\n\n" +
+    "국립공원 특수구조대입니다.\n" +
+    "아래 링크를 눌러 현재 위치를 확인해 주세요.\n\n" +
     link;
 
   const encodedMessage = encodeURIComponent(message);
 
   const ua = navigator.userAgent;
+
   const isIOS =
     /iPhone|iPad|iPod/i.test(ua) ||
     (navigator.platform === "MacIntel" &&
      navigator.maxTouchPoints > 1);
 
+  // 아이폰과 안드로이드 문자 앱 호출
   const smsURL = isIOS
     ? "sms:" + normalizedPhone + "&body=" + encodedMessage
     : "sms:" + normalizedPhone + "?body=" + encodedMessage;
